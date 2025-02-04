@@ -5,12 +5,10 @@ using System.Linq;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Crud;
 using Imedisoft.Core.Entities;
-using OpenDentBusiness.Dentalxchange2016;
-using OpenDentBusiness.Eclaims;
 
 namespace OpenDentBusiness;
 
-public class ElectIDs
+public static class ElectIDs
 {
     public static void Insert(ElectID electId)
     {
@@ -27,45 +25,9 @@ public class ElectIDs
         return ElectIDCrud.Update(electIdNew, electIdOld);
     }
 
-    public static void UpsertFromDentalXChange(List<supportedTransPayer> supportedTransPayers)
-    {
-        var hasChanged = false;
-
-        foreach (var supportedTransPayer in supportedTransPayers)
-        {
-            var payer = supportedTransPayer;
-
-            var electId = GetFirstOrDefault(x => x.PayorID == payer.PayerIDCode && x.CarrierName == payer.Name && x.CommBridge == EclaimsCommBridge.ClaimConnect);
-            if (electId is null)
-            {
-                electId = new ElectID
-                {
-                    CarrierName = supportedTransPayer.Name,
-                    PayorID = supportedTransPayer.PayerIDCode,
-                    CommBridge = EclaimsCommBridge.ClaimConnect,
-                    Attributes = string.Join(",", ClaimConnect.GetAttributes(supportedTransPayer).Select(x => (int) x))
-                };
-
-                Insert(electId);
-
-                hasChanged = true;
-
-                continue;
-            }
-
-            var electIdOld = electId.Copy();
-
-            electId.Attributes = string.Join(",", ClaimConnect.GetAttributes(supportedTransPayer).Select(x => (int) x));
-
-            hasChanged |= Update(electId, electIdOld);
-        }
-
-        if (hasChanged) Signalods.SetInvalid(InvalidType.ElectIDs);
-    }
-
     public static void UpsertFromEds(List<IdNameAttributes> listIdNameAttributess)
     {
-        var hasChanged = false;
+        var changed = false;
 
         foreach (var idNameAttributes in listIdNameAttributess)
         {
@@ -91,7 +53,7 @@ public class ElectIDs
 
                 Insert(electId);
 
-                hasChanged = true;
+                changed = true;
 
                 continue;
             }
@@ -102,10 +64,13 @@ public class ElectIDs
             electId.PayorID = payorId;
             electId.Attributes = attributes;
 
-            hasChanged |= Update(electId, electIdOld);
+            changed |= Update(electId, electIdOld);
         }
 
-        if (hasChanged) Signalods.SetInvalid(InvalidType.ElectIDs);
+        if (changed)
+        {
+            Signalods.SetInvalid(InvalidType.ElectIDs);
+        }
     }
 
     public static ElectID GetId(string payorId)
@@ -147,25 +112,25 @@ public class ElectIDs
 
         protected override void FillCacheIfNeeded()
         {
-            ElectIDs.GetTableFromCache(false);
+            GetTableFromCache(false);
         }
     }
 
     private static readonly ElectIdCache Cache = new();
 
-    public static List<ElectID> GetDeepCopy(bool isShort = false)
+    public static List<ElectID> GetDeepCopy(bool shortList = false)
     {
-        return Cache.GetDeepCopy(isShort);
+        return Cache.GetDeepCopy(shortList);
     }
 
-    private static ElectID GetFirstOrDefault(Func<ElectID, bool> match, bool isShort = false)
+    private static ElectID GetFirstOrDefault(Func<ElectID, bool> predicate, bool shortList = false)
     {
-        return Cache.GetFirstOrDefault(match, isShort);
+        return Cache.GetFirstOrDefault(predicate, shortList);
     }
 
-    public static List<ElectID> GetWhere(Predicate<ElectID> match, bool isShort = false)
+    public static List<ElectID> GetWhere(Predicate<ElectID> predicate, bool shortList = false)
     {
-        return Cache.GetWhere(match, isShort);
+        return Cache.GetWhere(predicate, shortList);
     }
 
     public static void RefreshCache()
@@ -173,9 +138,9 @@ public class ElectIDs
         GetTableFromCache(true);
     }
 
-    public static DataTable GetTableFromCache(bool doRefreshCache)
+    public static DataTable GetTableFromCache(bool refreshCache)
     {
-        return Cache.GetTableFromCache(doRefreshCache);
+        return Cache.GetTableFromCache(refreshCache);
     }
 
     public static void ClearCache()

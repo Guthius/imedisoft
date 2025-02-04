@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 using CodeBase;
-using DataConnectionBase;
 using Imedisoft.Core.Crud;
 using Imedisoft.Core.Entities;
 
@@ -111,7 +110,7 @@ public class OrthoHardwares
 
     public static List<OrthoHardware> GetPatientData(long patNum)
     {
-        var command = "SELECT * FROM orthohardware WHERE PatNum = " + SOut.Long(patNum);
+        var command = "SELECT * FROM orthohardware WHERE PatNum = " + (patNum);
         var listOrthoHardwares = OrthoHardwareCrud.SelectMany(command);
         listOrthoHardwares = listOrthoHardwares.OrderBy(x => x.DateExam).ThenBy(x => x.OrthoHardwareType).ThenBy(GetToothInt).ToList();
 

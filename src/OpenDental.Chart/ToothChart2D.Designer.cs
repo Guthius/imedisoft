@@ -1,4 +1,4 @@
-﻿namespace SparksToothChart {
+﻿namespace OpenDental.Chart {
 	partial class ToothChart2D {
 		/// <summary> 
 		/// Required designer variable.

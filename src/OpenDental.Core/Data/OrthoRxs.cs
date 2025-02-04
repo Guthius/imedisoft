@@ -38,9 +38,9 @@ public static class OrthoRxs
 
     private static readonly OrthoRxCache Cache = new();
 
-    public static List<OrthoRx> GetDeepCopy(bool isShort = false)
+    public static List<OrthoRx> GetDeepCopy(bool shortList = false)
     {
-        return Cache.GetDeepCopy(isShort);
+        return Cache.GetDeepCopy(shortList);
     }
 
     public static void RefreshCache()
@@ -48,9 +48,9 @@ public static class OrthoRxs
         GetTableFromCache(true);
     }
 
-    public static DataTable GetTableFromCache(bool doRefreshCache)
+    public static DataTable GetTableFromCache(bool refreshCache)
     {
-        return Cache.GetTableFromCache(doRefreshCache);
+        return Cache.GetTableFromCache(refreshCache);
     }
 
     public static void ClearCache()

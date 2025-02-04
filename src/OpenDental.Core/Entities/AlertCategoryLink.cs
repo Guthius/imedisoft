@@ -1,31 +1,29 @@
-﻿using System;
-using OpenDentBusiness;
+﻿using OpenDentBusiness;
 
 namespace Imedisoft.Core.Entities;
 
-///<summary>Links an alert type to a category.</summary>
-[Serializable]
-[CrudTable(IsSynchable=true)]
-public class AlertCategoryLink:TableBase{
-	///<summary>Primary key.</summary>
-	[CrudColumn(IsPriKey=true)]
-	public long AlertCategoryLinkNum;
-	///<summary>FK to AlertCategory.AlertCategoryNum.</summary>
-	public long AlertCategoryNum;
-	///<summary>Enum:AlertType Identifies what types of alert this row is associated to.</summary>
-	public AlertType AlertType;
+public class AlertCategoryLink : TableBase
+{
+    [CrudColumn(IsPriKey = true)]
+    public long AlertCategoryLinkNum;
 
-	public AlertCategoryLink() {
-			
-	}
+    ///<summary>FK to AlertCategory.AlertCategoryNum.</summary>
+    public long AlertCategoryNum;
 
-	public AlertCategoryLink(long alertCategoryNum, AlertType alertType) {
-		AlertCategoryNum=alertCategoryNum;
-		AlertType=alertType;
-	}
+    public AlertType AlertType;
 
-		
-	public AlertCategoryLink Copy() {
-		return (AlertCategoryLink)MemberwiseClone();
-	}
+    public AlertCategoryLink()
+    {
+    }
+
+    public AlertCategoryLink(long alertCategoryNum, AlertType alertType)
+    {
+        AlertCategoryNum = alertCategoryNum;
+        AlertType = alertType;
+    }
+
+    public AlertCategoryLink Copy()
+    {
+        return (AlertCategoryLink) MemberwiseClone();
+    }
 }

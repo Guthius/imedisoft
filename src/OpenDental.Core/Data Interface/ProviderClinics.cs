@@ -16,15 +16,7 @@ public class ProviderClinics
     public static List<ProviderClinic> GetByProvNums(List<long> listProvNums)
     {
         if (listProvNums == null || listProvNums.Count == 0) return [];
-        var command = "SELECT * FROM providerclinic WHERE ProvNum IN(" + string.Join(", ", listProvNums.Select(x => SOut.Long(x))) + ")";
-        return ProviderClinicCrud.SelectMany(command);
-    }
-
-    public static List<ProviderClinic> GetByProvNumsAndClinicNum(List<long> listProvNums, long clinicNum = 0, bool includeUnsassigned = false)
-    {
-        if (listProvNums == null || listProvNums.Count == 0) return [];
-        var command = $"SELECT * FROM providerclinic WHERE ProvNum IN({string.Join(", ", listProvNums.Select(x => SOut.Long(x)))})";
-        command += includeUnsassigned ? $"AND providerclinic.ClinicNum IN (0,{SOut.Long(clinicNum)})" : $"AND providerclinic.ClinicNum = {SOut.Long(clinicNum)}";
+        var command = "SELECT * FROM providerclinic WHERE ProvNum IN(" + string.Join(", ", listProvNums.Select(x => (x))) + ")";
         return ProviderClinicCrud.SelectMany(command);
     }
 
@@ -36,13 +28,13 @@ public class ProviderClinics
 
     public static ProviderClinic GetOne(long provNum, long clinicNum)
     {
-        var command = "SELECT * FROM providerclinic WHERE ProvNum = " + SOut.Long(provNum) + " AND ClinicNum = " + SOut.Long(clinicNum);
+        var command = "SELECT * FROM providerclinic WHERE ProvNum = " + (provNum) + " AND ClinicNum = " + (clinicNum);
         return ProviderClinicCrud.SelectOne(command);
     }
 
     public static string GetDEANum(long provNum, long clinicNum = 0)
     {
-        var command = "SELECT DEANum FROM providerclinic WHERE ProvNum = " + SOut.Long(provNum) + " AND ClinicNum = " + SOut.Long(clinicNum);
+        var command = "SELECT DEANum FROM providerclinic WHERE ProvNum = " + (provNum) + " AND ClinicNum = " + (clinicNum);
         var retVal = DataCore.GetScalar(command);
         if (clinicNum != 0 && string.IsNullOrWhiteSpace(retVal)) retVal = GetDEANum(provNum);
         return retVal;
@@ -50,7 +42,7 @@ public class ProviderClinics
 
     public static string GetStateWhereLicensed(long provNum, long clinicNum = 0)
     {
-        var command = "SELECT StateWhereLicensed FROM providerclinic WHERE ProvNum = " + SOut.Long(provNum) + " AND ClinicNum = " + SOut.Long(clinicNum);
+        var command = "SELECT StateWhereLicensed FROM providerclinic WHERE ProvNum = " + (provNum) + " AND ClinicNum = " + (clinicNum);
         var retVal = DataCore.GetScalar(command);
         if (clinicNum != 0 && string.IsNullOrWhiteSpace(retVal)) retVal = GetStateWhereLicensed(provNum);
         return retVal;
@@ -58,7 +50,7 @@ public class ProviderClinics
 
     public static List<ProviderClinic> GetListForProvider(long provNum, List<long> listClinicNums = null)
     {
-        var command = "SELECT * FROM providerclinic WHERE ProvNum = " + SOut.Long(provNum);
+        var command = "SELECT * FROM providerclinic WHERE ProvNum = " + (provNum);
         if (listClinicNums != null && listClinicNums.Count > 0) command += " AND ClinicNum IN(" + string.Join(", ", listClinicNums) + ") ";
         return ProviderClinicCrud.SelectMany(command);
     }
@@ -73,8 +65,8 @@ public class ProviderClinics
     public static string GetStateLicenseForProv(long provNum, string stateLicensed, long clinicNum = 0, bool useRxId = false)
     {
         var licenseType = useRxId ? "StateRxID" : "StateLicense";
-        var command = $"SELECT {SOut.String(licenseType)} FROM providerclinic WHERE ProvNum={SOut.Long(provNum)} AND StateWhereLicensed='{SOut.String(stateLicensed)}' " +
-                      $"AND ClinicNum={SOut.Long(clinicNum)}";
+        var command = $"SELECT {SOut.String(licenseType)} FROM providerclinic WHERE ProvNum={(provNum)} AND StateWhereLicensed='{SOut.String(stateLicensed)}' " +
+                      $"AND ClinicNum={(clinicNum)}";
         var retVal = SIn.String(DataCore.GetScalar(command));
         if (clinicNum != 0 && string.IsNullOrWhiteSpace(retVal)) retVal = GetStateLicenseForProv(provNum, stateLicensed, 0, useRxId);
         return retVal;

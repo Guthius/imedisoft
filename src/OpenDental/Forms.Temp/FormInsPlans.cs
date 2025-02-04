@@ -4,10 +4,7 @@ See header in FormOpenDental.cs for complete text.  Redistributions must retain 
 ===============================================================================================================*/
 using System;
 using System.Data;
-using System.Drawing;
-using System.Collections;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Globalization;
 using System.Windows.Forms;
 using OpenDental.UI;
@@ -203,7 +200,7 @@ public partial class FormInsPlans:FormODBase {
 		}
 		var insPlanMergeComputerName=PrefC.GetStringNoCache(PrefName.InsPlanMergeInProgress);
 		if(insPlanMergeComputerName!="") {
-			if(insPlanMergeComputerName==ODEnvironment.MachineName){
+			if(insPlanMergeComputerName==Environment.MachineName){
 				if(!MsgBox.Show(MsgBoxButtons.YesNo,$"A merge is already in progress on this workstation. Please wait for the merge to complete before beginning a new merge." +
 				                                    $" Only begin a new merge if you have verified there is no instance of Open Dental on this machine with a merge in progess. Beginning a new merge while another" +
 				                                    $" merge is in progress could cause errors. Continue?")){
@@ -248,7 +245,7 @@ public partial class FormInsPlans:FormODBase {
 		Cursor=Cursors.WaitCursor;
 		var didMerge=false;
 		var stringBuilder=new StringBuilder();
-		Prefs.UpdateStringNoCache(PrefName.InsPlanMergeInProgress,ODEnvironment.MachineName);//merge in progress on this computer
+		Prefs.UpdateStringNoCache(PrefName.InsPlanMergeInProgress,Environment.MachineName);//merge in progress on this computer
 		var listMergedPlanNums=new List<long>();
 		for(var i=0;i<insPlanSelectedArray.Length;i++){//loop through each selected plan
 			//skip the planToMergeTo, because it's already correct

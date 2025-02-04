@@ -1,8 +1,6 @@
 using System;
 using System.Collections.Generic;
-using System.Data;
 using System.Drawing;
-using System.Text;
 using System.Windows.Forms;
 using OpenDentBusiness;
 using System.Linq;
@@ -13,7 +11,6 @@ using CodeBase;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Entities;
 using OpenDental.Logic;
-using OpenDental.Thinfinity;
 
 namespace OpenDental;
 
@@ -351,33 +348,27 @@ public partial class FormRpUnfinalizedInsPay:FormODBase {
 	private void butExport_Click(object sender,System.EventArgs e) {
 		var fileName=Lan.g(this,"Unfinalized Insurance Payments");
 		var filePath=ODFileUtils.CombinePaths(Path.GetTempPath(),fileName);
-		if(/* ODEnvironment.IsCloudServer */ false) {
-			//Thinfinity: file download dialog will come up later, after file is created. AppStream: File will be created in client's Downloads folder.
-			filePath+=".txt";//Provide the filepath an extension so that Thinfinity can offer as a download.
-		}
-		else {
-			var saveFileDialog=new SaveFileDialog();
-			saveFileDialog.AddExtension=true;
-			saveFileDialog.FileName=fileName;
-			if(!Directory.Exists(PrefC.GetString(PrefName.ExportPath))) {
-				try {
-					Directory.CreateDirectory(PrefC.GetString(PrefName.ExportPath));
-					saveFileDialog.InitialDirectory=PrefC.GetString(PrefName.ExportPath);
-				}
-				catch {
-					//initialDirectory will be blank
-				}
-			}
-			else {
+		var saveFileDialog=new SaveFileDialog();
+		saveFileDialog.AddExtension=true;
+		saveFileDialog.FileName=fileName;
+		if(!Directory.Exists(PrefC.GetString(PrefName.ExportPath))) {
+			try {
+				Directory.CreateDirectory(PrefC.GetString(PrefName.ExportPath));
 				saveFileDialog.InitialDirectory=PrefC.GetString(PrefName.ExportPath);
 			}
-			saveFileDialog.Filter="Text files(*.txt)|*.txt|Excel Files(*.xls)|*.xls|All files(*.*)|*.*";
-			saveFileDialog.FilterIndex=0;
-			if(saveFileDialog.ShowDialog()!=DialogResult.OK) {
-				return;
+			catch {
+				//initialDirectory will be blank
 			}
-			filePath=saveFileDialog.FileName;
 		}
+		else {
+			saveFileDialog.InitialDirectory=PrefC.GetString(PrefName.ExportPath);
+		}
+		saveFileDialog.Filter="Text files(*.txt)|*.txt|Excel Files(*.xls)|*.xls|All files(*.*)|*.*";
+		saveFileDialog.FilterIndex=0;
+		if(saveFileDialog.ShowDialog()!=DialogResult.OK) {
+			return;
+		}
+		filePath=saveFileDialog.FileName;
 		try {
 			using(var sw=new StreamWriter(filePath,false))
 			{

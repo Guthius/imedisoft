@@ -11,7 +11,7 @@ public class BCBSGA
 
     public static bool Launch(Clearinghouse clearinghouseClin, int batchNum, ITerminalConnector terminalConnector)
     {
-        bool retVal = true;
+        var retVal = true;
         try
         {
             terminalConnector.ShowForm();
@@ -23,7 +23,7 @@ public class BCBSGA
             terminalConnector.Pause(3000);
             terminalConnector.ClearRxBuff();
             //3. Send Submitter login record
-            string submitterLogin =
+            var submitterLogin =
                 //position,length indicated for each
                 "/SLRON" //1,6 /SLRON=Submitter login
                 + terminalConnector.Sout(clearinghouseClin.LoginID, 12, 12) //7,12 Submitter ID
@@ -53,12 +53,12 @@ public class BCBSGA
 
             //7. Send file using X-modem or Z-modem
             //slash not handled properly if missing:
-            terminalConnector.UploadXmodem(clearinghouseClin.ExportPath + "claims" + batchNum.ToString() + ".txt");
+            terminalConnector.UploadXmodem(clearinghouseClin.ExportPath + "claims" + batchNum + ".txt");
             //8. After transmitting, pause for 1 second.
             terminalConnector.Pause(1000);
             terminalConnector.ClearRxBuff();
             //9. Send submitter logout record
-            string submitterLogout =
+            var submitterLogout =
                 "/SLROFF" //1,7 /SLROFF=Submitter logout
                 + terminalConnector.Sout(clearinghouseClin.LoginID, 12, 12) //8,12 Submitter ID
                 + batchNum.ToString().PadLeft(8, '0') //20,8 matches field in submitter Login
@@ -82,11 +82,10 @@ public class BCBSGA
         return retVal;
     }
 
-    ///<summary>Retrieves any waiting reports from this clearinghouse. Returns true if the communications were successful, and false if they failed.</summary>
-    public static bool Retrieve(Clearinghouse clearinghouseClin, bool isAutomatic, ITerminalConnector terminalConnector, IODProgressExtended progress = null)
+    public static bool Retrieve(Clearinghouse clearinghouseClin, ITerminalConnector terminalConnector, IODProgressExtended progress = null)
     {
         progress = progress ?? new ODProgressExtendedNull();
-        bool retVal = true;
+        var retVal = true;
         try
         {
             progress.UpdateProgress(Lans.g(progress.LanThis, "Contacting web server and downloading reports"), "reports", "17%", 17);
@@ -99,12 +98,11 @@ public class BCBSGA
             terminalConnector.ShowForm();
             terminalConnector.OpenConnection(clearinghouseClin.ModemPort);
             terminalConnector.Dial("17065713158");
-            //2. Wait for connect, then pause 3 seconds
             terminalConnector.WaitFor("CONNECT 9600", 50000);
             terminalConnector.Pause(3000);
             terminalConnector.ClearRxBuff();
             //1. Send submitter login record
-            string submitterLogin =
+            var submitterLogin =
                 "/SLRON" //1,6 /SLRON=Submitter login
                 + terminalConnector.Sout(clearinghouseClin.LoginID, 12, 12) //7,12 Submitter ID
                 + terminalConnector.Sout(clearinghouseClin.Password, 8, 8) //19,8 submitter password
@@ -116,8 +114,8 @@ public class BCBSGA
                 + "MDD " //54,4 use 'MDD '
                 + "VND" //58,3 Vendor ID is yet to be assigned by BCBS
                 + "00"; //61,2 Software version not important
-            byte response = (byte) 'Y';
-            string retrieveFile = "";
+            var response = (byte) 'Y';
+            var retrieveFile = "";
             progress.UpdateProgress(Lans.g(progress.LanThis, "Web server contact successful."));
             progress.UpdateProgress(Lans.g(progress.LanThis, "Downloading files"), "reports", "33%", 33);
             if (progress.IsPauseOrCancel())

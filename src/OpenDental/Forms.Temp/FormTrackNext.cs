@@ -1,16 +1,14 @@
 using System;
 using System.Drawing;
-using System.Drawing.Printing;
-using System.Collections;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Windows.Forms;
 using OpenDentBusiness;
 using OpenDental.UI;
 using System.Linq;
-using CodeBase;
 using Imedisoft.Core.Caching;
+using Imedisoft.Core.Data;
 using Imedisoft.Core.Entities;
+using Imedisoft.Features.Providers.Dtos;
 using OpenDental.Logic;
 
 namespace OpenDental;
@@ -21,7 +19,7 @@ public partial class FormTrackNext : FormODBase {
 	private int _pagesPrinted;
 	private bool _isHeadingPrinted;
 	private int _headingPrintH;
-	private List<Provider> _listProviders;
+	private List<ProviderDto> _listProviders;
 	private List<Site> _listSites;
 
 	///<summary>PatientGoTo must be set before calling Show() or ShowDialog().</summary>
@@ -39,7 +37,7 @@ public partial class FormTrackNext : FormODBase {
 		comboProv.SelectedIndex=0;
 		_listProviders=Providers.GetDeepCopy(true);
 		for(var i=0;i<_listProviders.Count;i++) {
-			comboProv.Items.Add(_listProviders[i].GetLongDesc());
+			comboProv.Items.Add(_listProviders[i].Description);
 		}
 		if(PrefC.GetBool(PrefName.EasyHidePublicHealth)){
 			comboSite.Visible=false;
@@ -155,11 +153,11 @@ public partial class FormTrackNext : FormODBase {
 			}
 			row.Cells.Add(Defs.GetName(DefCat.RecallUnschedStatus,_listAppointmentsPlanned[i].UnschedStatus));
 			if(_listAppointmentsPlanned[i].IsHygiene) {
-				var provHyg=Providers.GetFirstOrDefault(x => x.ProvNum==_listAppointmentsPlanned[i].ProvHyg);
+				var provHyg=Providers.GetFirstOrDefault(x => x.Id==_listAppointmentsPlanned[i].ProvHyg);
 				row.Cells.Add(provHyg==null?Lan.g(this,"INVALID"):provHyg.Abbr);
 			}
 			else {
-				var prov=Providers.GetFirstOrDefault(x => x.ProvNum==_listAppointmentsPlanned[i].ProvNum);
+				var prov=Providers.GetFirstOrDefault(x => x.Id==_listAppointmentsPlanned[i].ProvNum);
 				row.Cells.Add(prov==null?Lan.g(this,"INVALID"):prov.Abbr);
 			}
 			row.Cells.Add(_listAppointmentsPlanned[i].ProcDescript);
@@ -184,7 +182,7 @@ public partial class FormTrackNext : FormODBase {
 		}
 		long provNum=0;
 		if(comboProv.SelectedIndex!=0) {
-			provNum=_listProviders[comboProv.SelectedIndex-1].ProvNum;
+			provNum=_listProviders[comboProv.SelectedIndex-1].Id;
 		}
 		long siteNum=0;
 		if(!PrefC.GetBool(PrefName.EasyHidePublicHealth) && comboSite.SelectedIndex!=0) {

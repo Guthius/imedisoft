@@ -18,15 +18,16 @@ public class AutoNoteControlCrud
     public static List<AutoNoteControl> TableToList(DataTable table)
     {
         var retVal = new List<AutoNoteControl>();
-        AutoNoteControl autoNoteControl;
         foreach (DataRow row in table.Rows)
         {
-            autoNoteControl = new AutoNoteControl();
-            autoNoteControl.AutoNoteControlNum = SIn.Long(row["AutoNoteControlNum"].ToString());
-            autoNoteControl.Descript = SIn.String(row["Descript"].ToString());
-            autoNoteControl.ControlType = SIn.String(row["ControlType"].ToString());
-            autoNoteControl.ControlLabel = SIn.String(row["ControlLabel"].ToString());
-            autoNoteControl.ControlOptions = SIn.String(row["ControlOptions"].ToString());
+            var autoNoteControl = new AutoNoteControl
+            {
+                AutoNoteControlNum = SIn.Long(row["AutoNoteControlNum"].ToString()),
+                Descript = SIn.String(row["Descript"].ToString()),
+                ControlType = SIn.String(row["ControlType"].ToString()),
+                ControlLabel = SIn.String(row["ControlLabel"].ToString()),
+                ControlOptions = SIn.String(row["ControlOptions"].ToString())
+            };
             retVal.Add(autoNoteControl);
         }
 
@@ -47,7 +48,7 @@ public class AutoNoteControlCrud
         return table;
     }
 
-    public static long Insert(AutoNoteControl autoNoteControl)
+    public static void Insert(AutoNoteControl autoNoteControl)
     {
         var command = "INSERT INTO autonotecontrol (";
 
@@ -63,7 +64,6 @@ public class AutoNoteControlCrud
         {
             autoNoteControl.AutoNoteControlNum = Db.NonQ(command, true, "AutoNoteControlNum", "autoNoteControl", paramControlOptions);
         }
-        return autoNoteControl.AutoNoteControlNum;
     }
 
     public static void InsertMany(List<AutoNoteControl> listAutoNoteControls)

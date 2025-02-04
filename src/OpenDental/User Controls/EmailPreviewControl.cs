@@ -6,7 +6,6 @@ using System.IO;
 using System.Windows.Forms;
 using System.Security.Cryptography.X509Certificates;
 using CodeBase;
-using DataConnectionBase;
 using OpenDentBusiness;
 using System.Linq;
 using OpenDental.UI;
@@ -60,7 +59,7 @@ public partial class EmailPreviewControl:UserControl {
 	private long _clinicNum;
 	///<summary>string to return the updated htmlText for a composing or sent email. webBrowser.DocumentText doesn't always work. </summary>
 	public string HtmlText;
-	public LayoutManagerForms LayoutManager=new LayoutManagerForms();
+	
 	///<summary>lock for _listHistoricContacts and _hasSetHistoricContacts.</summary>
 	private readonly object _lockHistoricContacts = new object();
 
@@ -548,24 +547,6 @@ public partial class EmailPreviewControl:UserControl {
 		FillAttachments();
 	}
 
-	///<summary>Attempts to parse message and detects if it is an ORU_R01 HL7 message.  Returns false if it fails, or does not detect message type.</summary>
-	private bool IsORU_R01message(string strFilePathAttach) {
-		if(Path.GetExtension(strFilePathAttach) != "txt") {
-			return false;
-		}
-		try {
-			var ArrayMSHFields=File.ReadAllText(strFilePathAttach).Split(["\r\n"],
-				StringSplitOptions.RemoveEmptyEntries)[0].Split('|');
-			if(ArrayMSHFields[8]!="ORU^R01^ORU_R01") {
-				return false;
-			}
-		}
-		catch(Exception ex) {
-			return false;
-		}
-		return true;
-	}
-
 	#endregion Attachments
 
 	#region Signature
@@ -880,7 +861,7 @@ public partial class EmailPreviewControl:UserControl {
 		gridContacts.MouseClick+=EmailAuto_Click;
 		gridContacts.Tag=textBox;
 		gridContacts.TitleVisible=false;
-		LayoutManagerForms.Add(gridContacts,this);
+		Controls.Add(gridContacts);
 		gridContacts.BringToFront();
 		var menuPosition=textBox.Location;
 		menuPosition.X+=10;

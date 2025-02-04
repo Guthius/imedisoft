@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Windows.Forms;
 using CDT;
@@ -13,8 +12,6 @@ namespace OpenDental;
 
 public partial class FormBackup : FormODBase
 {
-    private double _amtCopied = 0;
-
     public FormBackup()
     {
         InitializeComponent();
@@ -524,31 +521,10 @@ public partial class FormBackup : FormODBase
             MsgBox.Show(this, "Invalid or inaccessible " + labelSupplementalBackupCopyNetworkPath.Text + "."); //This label text will rarely change.
             return;
         }
-
-        if (Prefs.UpdateBool(PrefName.SupplementalBackupEnabled, checkSupplementalBackupEnabled.Checked))
-        {
-            try
-            {
-                //Inform HQ when the supplemental backups are enabled/disabled and which security admin performed the change.
-                var payloadItemStatus = new PayloadItem(
-                    (int) (checkSupplementalBackupEnabled.Checked ? SupplementalBackupStatuses.Enabled : SupplementalBackupStatuses.Disabled),
-                    "SupplementalBackupStatus");
-                var payloadItemAdminUserName = new PayloadItem(Security.CurUser.UserName, "AdminUserName");
-                var officeData = PayloadHelper.CreatePayload([payloadItemStatus, payloadItemAdminUserName], eServiceCode.SupplementalBackup);
-                WebServiceMainHQProxy.GetWebServiceMainHQInstance().SetSupplementalBackupStatus(officeData);
-            }
-            catch (Exception ex)
-            {
-            }
-
-            SecurityLogs.MakeLogEntry(EnumPermType.SupplementalBackup, 0,
-                "Supplemental backup has been " + (checkSupplementalBackupEnabled.Checked ? "Enabled" : "Disabled") + ".");
-        }
-
+        
         if (Prefs.UpdateString(PrefName.SupplementalBackupNetworkPath, textSupplementalBackupCopyNetworkPath.Text))
         {
-            SecurityLogs.MakeLogEntry(EnumPermType.SupplementalBackup, 0,
-                labelSupplementalBackupCopyNetworkPath.Text + " changed to '" + textSupplementalBackupCopyNetworkPath.Text + "'.");
+            SecurityLogs.MakeLogEntry(EnumPermType.SupplementalBackup, 0, labelSupplementalBackupCopyNetworkPath.Text + " changed to '" + textSupplementalBackupCopyNetworkPath.Text + "'.");
         }
 
         MsgBox.Show(this, "Saved");

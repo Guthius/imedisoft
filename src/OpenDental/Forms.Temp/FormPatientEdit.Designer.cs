@@ -185,7 +185,6 @@ namespace OpenDental{
 			this.labelExcludeECR = new System.Windows.Forms.Label();
 			this.butViewBirthdate = new OpenDental.UI.Button();
 			this.odDatePickerBirthDate = new OpenDental.UI.ODDatePicker();
-			this.warningIntegrity1 = new OpenDental.UI.WarningIntegrity();
 			this.comboPreferredPronouns = new OpenDental.UI.ComboBox();
 			this.labelPreferredPronouns = new System.Windows.Forms.Label();
 			this.textBirthdateMask = new System.Windows.Forms.TextBox();
@@ -1821,13 +1820,6 @@ namespace OpenDental{
 			this.odDatePickerBirthDate.TabIndex = 6;
 			this.odDatePickerBirthDate.Leave += new System.EventHandler(this.odDatePickerBirthDate_Validated);
 			// 
-			// warningIntegrity1
-			// 
-			this.warningIntegrity1.Location = new System.Drawing.Point(0, 0);
-			this.warningIntegrity1.Name = "warningIntegrity1";
-			this.warningIntegrity1.Size = new System.Drawing.Size(18, 18);
-			this.warningIntegrity1.TabIndex = 57;
-			// 
 			// comboPreferredPronouns
 			// 
 			this.comboPreferredPronouns.Location = new System.Drawing.Point(160, 148);
@@ -1861,7 +1853,6 @@ namespace OpenDental{
 			this.ClientSize = new System.Drawing.Size(974, 696);
 			this.Controls.Add(this.labelPreferredPronouns);
 			this.Controls.Add(this.comboPreferredPronouns);
-			this.Controls.Add(this.warningIntegrity1);
 			this.Controls.Add(this.butViewBirthdate);
 			this.Controls.Add(this.textAge);
 			this.Controls.Add(this.label20);
@@ -2122,7 +2113,6 @@ namespace OpenDental{
 		private UI.ODDatePicker odDatePickerBirthDate;
 		private UI.ODDatePicker odDatePickerAdmitDate;
 		private UI.ODDatePicker odDatePickerDateFirstVisit;
-		private UI.WarningIntegrity warningIntegrity1;
 		private UI.ComboBox comboPreferredPronouns;
 		private Label labelPreferredPronouns;
 		private Label labelDischargeDate;

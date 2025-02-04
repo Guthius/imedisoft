@@ -32,10 +32,10 @@ public class PaySplits
         //this query goes 10 times faster for very large databases
         var command = @"select DISTINCT paysplitunion.* FROM "
                       + "(SELECT DISTINCT paysplit.* FROM paysplit,payment "
-                      + "WHERE paysplit.PayNum=payment.PayNum and payment.PatNum='" + SOut.Long(patNum) + "' "
+                      + "WHERE paysplit.PayNum=payment.PayNum and payment.PatNum='" + (patNum) + "' "
                       + "UNION "
                       + "SELECT DISTINCT paysplit.* FROM paysplit,payment "
-                      + "WHERE paysplit.PayNum = payment.PayNum AND paysplit.PatNum='" + SOut.Long(patNum) + "') paysplitunion "
+                      + "WHERE paysplit.PayNum = payment.PayNum AND paysplit.PatNum='" + (patNum) + "') paysplitunion "
                       + "ORDER BY paysplitunion.DatePay";
         return PaySplitCrud.SelectMany(command).ToArray();
     }
@@ -51,17 +51,17 @@ public class PaySplits
         //this query goes 10 times faster for very large databases
         var command = @"select DISTINCT paysplitunion.* FROM "
                       + "(SELECT DISTINCT paysplit.* FROM paysplit,payment "
-                      + "WHERE paysplit.PayNum=payment.PayNum and payment.PatNum='" + SOut.Long(patNum) + "' "
+                      + "WHERE paysplit.PayNum=payment.PayNum and payment.PatNum='" + (patNum) + "' "
                       + "UNION "
                       + "SELECT DISTINCT paysplit.* FROM paysplit,payment " //Jordan-I think payment is not needed here
-                      + "WHERE paysplit.PayNum = payment.PayNum AND paysplit.PatNum='" + SOut.Long(patNum) + "') paysplitunion "
+                      + "WHERE paysplit.PayNum = payment.PayNum AND paysplit.PatNum='" + (patNum) + "') paysplitunion "
                       + "ORDER BY paysplitunion.DatePay";
         return PaySplitCrud.SelectMany(command);
     }
 
     public static List<PaySplit> GetForAdjustments(List<long> listAdjustNums)
     {
-        if (listAdjustNums == null || listAdjustNums.Count == 0) return new List<PaySplit>();
+        if (listAdjustNums == null || listAdjustNums.Count == 0) return [];
 
         var command = "SELECT * FROM paysplit WHERE AdjNum IN (" + string.Join(",", listAdjustNums) + ")";
         return PaySplitCrud.SelectMany(command);
@@ -69,7 +69,7 @@ public class PaySplits
 
     public static List<PaySplit> GetForPayPlanCharges(List<long> listPayPlanChargeNums)
     {
-        if (listPayPlanChargeNums.IsNullOrEmpty()) return new List<PaySplit>();
+        if (listPayPlanChargeNums.IsNullOrEmpty()) return [];
 
         var command = $"SELECT * FROM paysplit WHERE PayPlanChargeNum > 0 AND PayPlanChargeNum IN ({string.Join(",", listPayPlanChargeNums)})";
         return PaySplitCrud.SelectMany(command);
@@ -79,23 +79,13 @@ public class PaySplits
     {
         var command =
             "SELECT * FROM paysplit "
-            + "WHERE PayNum=" + SOut.Long(payNum);
-        return PaySplitCrud.SelectMany(command);
-    }
-
-    public static List<PaySplit> GetForPayments(List<long> listPayNums)
-    {
-        if (listPayNums.IsNullOrEmpty()) return new List<PaySplit>();
-
-        var command =
-            "SELECT * FROM paysplit "
-            + "WHERE PayNum IN(" + string.Join(",", listPayNums.Select(x => SOut.Long(x))) + ")";
+            + "WHERE PayNum=" + (payNum);
         return PaySplitCrud.SelectMany(command);
     }
 
     public static List<PaySplit> GetForProcs(List<long> listProcNums)
     {
-        if (listProcNums.IsNullOrEmpty()) return new List<PaySplit>();
+        if (listProcNums.IsNullOrEmpty()) return [];
 
         var command = $"SELECT * FROM paysplit WHERE paysplit.ProcNum IN ({string.Join(",", listProcNums)}) ";
         return PaySplitCrud.SelectMany(command);
@@ -170,7 +160,7 @@ public class PaySplits
         var command = "SELECT paysplit.*,payment.CheckNum,payment.PayAmt,payment.PayType "
                       + "FROM paysplit "
                       + "LEFT JOIN payment ON paysplit.PayNum=payment.PayNum "
-                      + "WHERE paysplit.PayPlanNum=" + SOut.Long(payPlanNum) + " "
+                      + "WHERE paysplit.PayPlanNum=" + (payPlanNum) + " "
                       + "ORDER BY DatePay";
         var tableSplits = DataCore.GetTable(command);
         return tableSplits;
@@ -178,7 +168,7 @@ public class PaySplits
 
     public static List<PaySplit> GetForPayPlans(List<long> listPayPlanNums)
     {
-        if (listPayPlanNums.Count == 0) return new List<PaySplit>();
+        if (listPayPlanNums.Count == 0) return [];
 
         var command = "SELECT paysplit.* "
                       + "FROM paysplit "
@@ -237,12 +227,12 @@ public class PaySplits
     
     public static List<PaySplit> GetPaySplitsFromProc(long procNum, bool onlyUnearned = false)
     {
-        return GetPaySplitsFromProcs(new List<long> {procNum}, onlyUnearned);
+        return GetPaySplitsFromProcs([procNum], onlyUnearned);
     }
 
     public static List<PaySplit> GetPaySplitsFromProcs(List<long> listProcNums, bool onlyUnearned = false)
     {
-        if (listProcNums == null || listProcNums.Count < 1) return new List<PaySplit>();
+        if (listProcNums == null || listProcNums.Count < 1) return [];
 
         var command = "SELECT * FROM paysplit WHERE ProcNum IN(" + string.Join(",", listProcNums) + ")";
         if (onlyUnearned) command += " AND UnearnedType > 0";
@@ -258,12 +248,12 @@ public class PaySplits
 
     public static void UpdateAttachedPaySplits(Procedure proc)
     {
-        Db.NonQ($@"UPDATE paysplit SET ProvNum = {SOut.Long(proc.ProvNum)} WHERE ProcNum = {SOut.Long(proc.ProcNum)}");
+        Db.NonQ($@"UPDATE paysplit SET ProvNum = {(proc.ProvNum)} WHERE ProcNum = {(proc.ProcNum)}");
     }
 
     public static void UnlinkForAdjust(Adjustment adj)
     {
-        Db.NonQ($@"UPDATE paysplit SET AdjNum = 0 WHERE AdjNum = {SOut.Long(adj.AdjNum)}");
+        Db.NonQ($@"UPDATE paysplit SET AdjNum = 0 WHERE AdjNum = {(adj.AdjNum)}");
     }
 
     public static void UpdateProvForAdjust(Adjustment adj, List<PaySplit> listSplits = null)
@@ -271,10 +261,10 @@ public class PaySplits
         if (listSplits != null && listSplits.Count == 0) return;
 
         if (listSplits == null)
-            Db.NonQ($@"UPDATE paysplit SET ProvNum = {SOut.Long(adj.ProvNum)} WHERE AdjNum = {SOut.Long(adj.AdjNum)}");
+            Db.NonQ($@"UPDATE paysplit SET ProvNum = {(adj.ProvNum)} WHERE AdjNum = {(adj.AdjNum)}");
         else
-            Db.NonQ($@"UPDATE paysplit SET ProvNum = {SOut.Long(adj.ProvNum)}
-					WHERE SplitNum IN({string.Join(",", listSplits.Select(x => SOut.Long(x.SplitNum)))})");
+            Db.NonQ($@"UPDATE paysplit SET ProvNum = {(adj.ProvNum)}
+					WHERE SplitNum IN({string.Join(",", listSplits.Select(x => (x.SplitNum)))})");
     }
 
     public static bool Sync(List<PaySplit> listNew, long payNum)
@@ -299,13 +289,13 @@ public class PaySplits
     {
         if (arraySplitNums.IsNullOrEmpty()) return;
 
-        var command = $"DELETE FROM paysplit WHERE SplitNum IN({string.Join(",", arraySplitNums.Select(x => SOut.Long(x)))})";
+        var command = $"DELETE FROM paysplit WHERE SplitNum IN({string.Join(",", arraySplitNums.Select(x => (x)))})";
         Db.NonQ(command);
     }
 
     public static bool IsPaySplitAttached(long procNum)
     {
-        var command = "SELECT COUNT(*) FROM paysplit WHERE ProcNum=" + SOut.Long(procNum);
+        var command = "SELECT COUNT(*) FROM paysplit WHERE ProcNum=" + (procNum);
         if (Db.GetCount(command) == "0") return false;
         return true;
     }

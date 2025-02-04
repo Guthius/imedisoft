@@ -1,8 +1,4 @@
 using System;
-using System.Drawing;
-using System.Drawing.Printing;
-using System.Collections;
-using System.ComponentModel;
 using System.Windows.Forms;
 using OpenDentBusiness;
 using CodeBase;
@@ -51,9 +47,6 @@ public partial class FormPrinterSetup : FormODBase {
 			PrintSituation.LabelSheet,
 			PrintSituation.LabelSingle, 
 			PrintSituation.Postcard, 
-			PrintSituation.Rx, 
-			PrintSituation.RxControlled, 
-			PrintSituation.RxMulti, 
 			PrintSituation.Statement, 
 			PrintSituation.TPPerio, 
 			PrintSituation.Receipt};
@@ -96,7 +89,7 @@ public partial class FormPrinterSetup : FormODBase {
 	}
 
 	private void butSave_Click(object sender, System.EventArgs e){
-		var compName=ODEnvironment.MachineName;
+		var compName=Environment.MachineName;
 		if(checkSimple.Checked && !PrefC.GetBool(PrefName.EasyHidePrinters)){
 			//if user clicked the simple option
 			if(!MsgBox.Show(this,MsgBoxButtons.YesNo,"Warning!  You have selected the simple interface option."+

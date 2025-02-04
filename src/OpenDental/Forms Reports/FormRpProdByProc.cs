@@ -1,16 +1,15 @@
 using System;
 using System.Collections.Generic;
-using System.Data;
 using System.Drawing;
 using System.Windows.Forms;
 using OpenDentBusiness;
 using OpenDental.ReportingComplex;
-using CodeBase;
 using System.Linq;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Entities;
 using Imedisoft.Core.Features.Clinics;
 using Imedisoft.Core.Features.Clinics.Dtos;
+using Imedisoft.Features.Providers.Dtos;
 
 namespace OpenDental;
 
@@ -18,7 +17,7 @@ public partial class FormRpProdByProc : FormODBase {
 	private List<ClinicDto> _listClinics;
 	private List<long> _listClinicNums;
 	private List<long> _listProvNums;
-	private List<Provider> _listProviders;
+	private List<ProviderDto> _listProviders;
 
 		
 	public FormRpProdByProc(){
@@ -31,35 +30,28 @@ public partial class FormRpProdByProc : FormODBase {
 		date2.SelectionStart=DateTime.Today;
 		if(!Security.IsAuthorized(EnumPermType.ReportDailyAllProviders,true)) {
 			//They either have permission or have a provider at this point.  If they don't have permission they must have a provider.
-			_listProviders=_listProviders.FindAll(x => x.ProvNum==Security.CurUser.ProvNum);
+			_listProviders=_listProviders.FindAll(x => x.Id==Security.CurUser.ProvNum);
 			checkAllProv.Checked=false;
 			checkAllProv.Enabled=false;
 		}
-		listProv.Items.AddList(_listProviders,x => x.GetLongDesc());
+		listProv.Items.AddList(_listProviders,x => x.Description);
 		if(checkAllProv.Enabled==false && _listProviders.Count>0) {
 			listProv.SetSelected(0);
 		}
-		if(!true) {
-			listClin.Visible=false;
-			labelClin.Visible=false;
-			checkAllClin.Visible=false;
+		_listClinics=Clinics.GetForUserod(Security.CurUser);
+		if(!Security.CurUser.ClinicIsRestricted) {
+			listClin.Items.Add(Lan.g(this,"Unassigned"));
+			listClin.SetSelected(0);
 		}
-		else {
-			_listClinics=Clinics.GetForUserod(Security.CurUser);
-			if(!Security.CurUser.ClinicIsRestricted) {
-				listClin.Items.Add(Lan.g(this,"Unassigned"));
-				listClin.SetSelected(0);
+		for(var i=0;i<_listClinics.Count;i++) {
+			listClin.Items.Add(_listClinics[i].Abbr);
+			if(Clinics.ClinicNum==0) {
+				listClin.SetSelected(listClin.Items.Count-1);
+				checkAllClin.Checked=true;
 			}
-			for(var i=0;i<_listClinics.Count;i++) {
-				listClin.Items.Add(_listClinics[i].Abbr);
-				if(Clinics.ClinicNum==0) {
-					listClin.SetSelected(listClin.Items.Count-1);
-					checkAllClin.Checked=true;
-				}
-				if(_listClinics[i].Id==Clinics.ClinicNum) {
-					listClin.SelectedIndices.Clear();
-					listClin.SetSelected(listClin.Items.Count-1);
-				}
+			if(_listClinics[i].Id==Clinics.ClinicNum) {
+				listClin.SelectedIndices.Clear();
+				listClin.SetSelected(listClin.Items.Count-1);
 			}
 		}
 	}
@@ -109,7 +101,7 @@ public partial class FormRpProdByProc : FormODBase {
 		_listProvNums= [];
 		_listClinicNums= [];
 		for(var i=0;i<listProv.SelectedIndices.Count;i++) {
-			_listProvNums.Add(_listProviders[listProv.SelectedIndices[i]].ProvNum);
+			_listProvNums.Add(_listProviders[listProv.SelectedIndices[i]].Id);
 		}
 		if(true) {
 			for(var i=0;i<listClin.SelectedIndices.Count;i++) {
@@ -185,9 +177,6 @@ public partial class FormRpProdByProc : FormODBase {
 	///<summary>Returns 'All Clinics' or comma separated string of clinics selected.</summary>
 	private string ConstructClinicSubtitle() {
 		var subtitleClinics="";
-		if(!true) {
-			return subtitleClinics;
-		}
 		if(checkAllClin.Checked) {
 			return Lan.g(this,"All Clinics (includes hidden)");
 		}

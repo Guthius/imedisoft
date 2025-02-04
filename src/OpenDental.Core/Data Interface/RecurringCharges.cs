@@ -13,7 +13,6 @@ using Imedisoft.Core.Crud;
 using Imedisoft.Core.Entities;
 using Imedisoft.Core.Features.Clinics;
 using Imedisoft.Core.Features.Clinics.Dtos;
-using OpenDentBusiness.FileIO;
 using OpenDentBusiness.PayConnectService;
 using OpenDentBusiness.WebTypes.Shared.XWeb;
 using EdgeExpressProps = OpenDentBusiness.ProgramProperties.PropertyDescs.EdgeExpress;
@@ -36,7 +35,7 @@ public class RecurringCharges
 
     public static bool HasRecurringChargesForPayment(long payNum)
     {
-        var command = "SELECT COUNT(*) FROM recurringcharge WHERE PayNum=" + SOut.Long(payNum);
+        var command = "SELECT COUNT(*) FROM recurringcharge WHERE PayNum=" + (payNum);
         return Db.GetCount(command) != "0";
     }
 
@@ -60,7 +59,7 @@ public class RecurringCharges
         if (listRecurringCharges.Count == 0) return;
 
         var command = @"DELETE FROM recurringcharge
-				WHERE RecurringChargeNum IN(" + string.Join(",", listRecurringCharges.Select(x => SOut.Long(x.RecurringChargeNum))) + ")";
+				WHERE RecurringChargeNum IN(" + string.Join(",", listRecurringCharges.Select(x => (x.RecurringChargeNum))) + ")";
         Db.NonQ(command);
     }
 
@@ -172,7 +171,7 @@ public class RecurringChargeData
     public string ZipPat = "";
 }
 
-public class RecurringChargerator(Logger.IWriteLine log, bool isManual)
+public class RecurringChargerator(bool isManual)
 {
     private const string _lanThis = "FormCreditRecurringCharges";
     private readonly Dictionary<long, decimal> _dictFamBalNoPPlan = new();
@@ -203,10 +202,9 @@ public class RecurringChargerator(Logger.IWriteLine log, bool isManual)
         //if no clinics are selected but clinics are enabled and the user is restricted, the results will be empty so no need to run the report
         //if clinics are enabled and the user is not restricted and selects no clinics, there will not be a clinic filter in the query, so all clinics
         if (true && Security.CurUser.ClinicIsRestricted && listClinicNums.Count == 0)
-            ListRecurringChargeData = new List<RecurringChargeData>();
+            ListRecurringChargeData = [];
         else
             ListRecurringChargeData = CreditCards.GetRecurringChargeList(listClinicNums, _nowDateTime);
-        log.WriteLine("ListRecurringChargeData.Count: " + ListRecurringChargeData.Count, LogLevel.Verbose);
         var dictFamBals = new Dictionary<long, decimal>(); //Keeps track of the family balance for each patient
         //Calculate the repeat charge amount and the amount to be charged for each credit card
         for (var i = ListRecurringChargeData.Count - 1; i > -1; i--)
@@ -275,8 +273,6 @@ public class RecurringChargerator(Logger.IWriteLine log, bool isManual)
                 chargeAmt = Math.Min(chargeAmt, rptChargeAmt);
             if (chargeAmt <= 0)
             {
-                log.WriteLine("Removing from ListRecurringChargeData. PatNum: " + chargeCur.RecurringCharge.PatNum + "  FamBal: " + famBalTotal
-                              + "  PayPlanDue: " + payPlanDue + "  RepeatChargeAmt: " + rptChargeAmt, LogLevel.Verbose);
                 ListRecurringChargeData.RemoveAt(i);
                 continue;
             }
@@ -893,7 +889,6 @@ public class RecurringChargerator(Logger.IWriteLine log, bool isManual)
             exp = chargeData.CCExpiration;
         }
 
-        var amt = (decimal) chargeData.RecurringCharge.ChargeAmt;
         var zip = chargeData.Zip;
         var clinicNumCur = chargeData.RecurringCharge.ClinicNum;
         double amount = 0;
@@ -1098,7 +1093,6 @@ public class RecurringChargerator(Logger.IWriteLine log, bool isManual)
         }
 
         chargeData.RecurringCharge.ErrorMsg = StringTools.AppendLine(chargeData.RecurringCharge.ErrorMsg, errorMsg);
-        log.WriteLine(errorMsg + (errorMsg[errorMsg.Length - 1] == '\n' ? "" : "\r\n") + "  " + Lans.g(_lanThis, "Patient:") + " " + chargeData.PatName, logLevel);
     }
 
     private void ClearStats()
@@ -1141,10 +1135,7 @@ public class RecurringChargerator(Logger.IWriteLine log, bool isManual)
 
             listRecurringCharges.Add(chargeCur);
         }
-
-        if (warnings.Count > 0)
-            //Show the warning message.  This allows the user the ability to unhighlight rows or go change the date limitation.
-            log.WriteLine(string.Join("\r\n", warnings), LogLevel.Error);
+        
         return listRecurringCharges;
     }
 
@@ -1356,7 +1347,6 @@ public class RecurringChargerator(Logger.IWriteLine log, bool isManual)
         if (ListRecurringChargeData == null) return;
         var listToDelete = ListRecurringChargeData.Select(x => x.RecurringCharge)
             .Where(x => x.ChargeStatus == RecurringChargeStatus.NotYetCharged && x.RecurringChargeNum > 0).ToList();
-        log.WriteLine("Deleting " + listToDelete.Count + " pending charges.", LogLevel.Verbose);
         RecurringCharges.DeleteMany(listToDelete);
     }
 }

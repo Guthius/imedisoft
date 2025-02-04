@@ -17,13 +17,14 @@ public class ComputerCrud
     public static List<Computer> TableToList(DataTable table)
     {
         var retVal = new List<Computer>();
-        Computer computer;
         foreach (DataRow row in table.Rows)
         {
-            computer = new Computer();
-            computer.ComputerNum = SIn.Long(row["ComputerNum"].ToString());
-            computer.CompName = SIn.String(row["CompName"].ToString());
-            computer.LastHeartBeat = SIn.DateTime(row["LastHeartBeat"].ToString());
+            var computer = new Computer
+            {
+                ComputerNum = SIn.Long(row["ComputerNum"].ToString()),
+                CompName = SIn.String(row["CompName"].ToString()),
+                LastHeartBeat = SIn.DateTime(row["LastHeartBeat"].ToString())
+            };
             retVal.Add(computer);
         }
 
@@ -40,20 +41,5 @@ public class ComputerCrud
         foreach (var computer in listComputers)
             table.Rows.Add(SOut.Long(computer.ComputerNum), computer.CompName, SOut.DateTime(computer.LastHeartBeat, false));
         return table;
-    }
-
-    public static long Insert(Computer computer)
-    {
-        var command = "INSERT INTO computer (";
-
-        command += "CompName,LastHeartBeat) VALUES(";
-
-        command +=
-            "'" + SOut.String(computer.CompName) + "',"
-            + SOut.DateTime(computer.LastHeartBeat) + ")";
-        {
-            computer.ComputerNum = Db.NonQ(command, true, "ComputerNum", "computer");
-        }
-        return computer.ComputerNum;
     }
 }

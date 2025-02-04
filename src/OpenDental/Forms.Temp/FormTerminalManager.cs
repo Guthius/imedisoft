@@ -1,17 +1,15 @@
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Diagnostics;
 using System.Drawing;
 using System.Linq;
 using System.Windows.Forms;
 using CodeBase;
 using Imedisoft.Core.Caching;
+using Imedisoft.Core.Data;
 using Imedisoft.Core.Entities;
-using Imedisoft.Core.Features.Clinics;
 using OpenDental.UI;
 using OpenDentBusiness;
-using OpenDentBusiness.WebTypes;
 
 namespace OpenDental;
 
@@ -31,11 +29,9 @@ public partial class FormTerminalManager:FormODBase {
 
 	private void FormTerminalManager_Load(object sender,EventArgs e) {
 		ODEvent.Fired+=PatientChangedEvent_Fired;
-		ODEvent.Fired+=eClipboardChangedEvent_Fired;
 		textPassword.Text=PrefC.GetString(PrefName.TerminalClosePassword);
 		FillGrid();
 		contrClinicPicker.SelectionChangeCommitted+=contrClinicPick_SelectionChangeCommitted;
-		butByod.Enabled=_appointment!=null && OpenDentBusiness.AutoComm.Byod.IsEnabledForConfirmed(_appointment.Confirmed,_appointment.ClinicNum,out var error);
 	}
 
 	protected override void ProcessSignalODs(List<Signalod> signals) {
@@ -50,7 +46,7 @@ public partial class FormTerminalManager:FormODBase {
 	}
 
 	private void FillGrid() {
-		var sheetDeviceSelected=new SheetDevice(new MobileAppDevice());//just instantiate to something random that won't match any of our actual devices
+		var sheetDeviceSelected=new SheetDevice();
 		if(gridMain.GetSelectedIndex()>-1) {
 			sheetDeviceSelected=(SheetDevice)gridMain.ListGridRows[gridMain.GetSelectedIndex()].Tag;
 		}
@@ -59,43 +55,8 @@ public partial class FormTerminalManager:FormODBase {
 		for(var i=0;i<listTerminalActives.Count();i++){
 			listSheetDevices.Add(new SheetDevice(listTerminalActives[i]));
 		}
-		var listMobileAppDevices=new List<MobileAppDevice>();
-		if(true) {
-			//Option "All" is selected and at least one clinic is signed up for the eClipboard feature
-			if(contrClinicPicker.IsAllSelected && PrefC.GetString(PrefName.EClipboardClinicsSignedUp)!="") {
-				listMobileAppDevices=MobileAppDevices.GetForUser(Security.CurUser).FindAll(x => x.IsEclipboardEnabled);
-			}
-			//A specific clinic is selected and that is signed up for the eClipboard feature
-			else if(MobileAppDevices.IsClinicSignedUpForEClipboard(contrClinicPicker.ClinicNumSelected)) {
-				listMobileAppDevices=MobileAppDevices.GetForUser(Security.CurUser).FindAll(x => x.IsEclipboardEnabled && x.ClinicNum==contrClinicPicker.ClinicNumSelected);
-			}
-		}
-		//We aren't using clinics and the zero clinic is signed up
-		else if(MobileAppDevices.IsClinicSignedUpForEClipboard(0)) {
-			listMobileAppDevices=MobileAppDevices.GetForUser(Security.CurUser).FindAll(x => x.IsEclipboardEnabled);
-		}
-		//Add the clinics we decided on the the d
-		for(var i=0;i<listMobileAppDevices.Count();i++){
-			listSheetDevices.Add(new SheetDevice(listMobileAppDevices[i]));
-		}
 		listSheetDevices.Sort((x,y) => {
-			//First, Kisok devices. Next, eClipboard devices. Last, BYOD devices.
-			if(x.IsKiosk() && y.IsKiosk()) {
-				return x.GetTerminalName().CompareTo(y.GetTerminalName());
-			}
-			if(x.IsKiosk()) {
-				return -1;
-			}
-			if(y.IsKiosk()) {
-				return 1;
-			}
-			var boolX=x.MobileAppDevice?.IsBYODDevice??false;
-			var boolY=y.MobileAppDevice?.IsBYODDevice??false;
-			var ret=boolX.CompareTo(boolY);
-			if(ret==0) {
-				ret=x.GetTerminalName().CompareTo(y.GetTerminalName());
-			}
-			return ret;
+			return x.GetTerminalName().CompareTo(y.GetTerminalName());
 		});
 		var selectedIndex=-1;
 		gridMain.BeginUpdate();
@@ -127,83 +88,34 @@ public partial class FormTerminalManager:FormODBase {
 			//Using the list index to refer to the SheetDevice will cause an out-of-bounds index UE after CellClick() invokes FillGrid()
 			var sheetDeviceCurrent=listSheetDevices[i];
 			row.Tag=sheetDeviceCurrent;
-			if(sheetDeviceCurrent.IsMobileAppDevice()){
-				row.Cells.Add(new GridCell(sheetDeviceCurrent.GetTerminalName()+"\r\n("+sheetDeviceCurrent.MobileAppDevice.UniqueID+")"));
-			}
-			else{
-				row.Cells.Add(new GridCell(sheetDeviceCurrent.GetTerminalName()));
-			}
+			row.Cells.Add(new GridCell(sheetDeviceCurrent.GetTerminalName()));
 			row.Cells.Add(new GridCell(sheetDeviceCurrent.GetSessionName()));
-			if(sheetDeviceCurrent.MobileAppDevice!=null) {
-				row.Cells.Add(new GridCell(sheetDeviceCurrent.MobileAppDevice.DevicePage.GetDescription()));
-			}
-			else if(sheetDeviceCurrent.TerminalActiveComputerKiosk!=null) {
+			if(sheetDeviceCurrent.TerminalActiveComputerKiosk!=null) {
 				row.Cells.Add(new GridCell(sheetDeviceCurrent.TerminalActiveComputerKiosk.TerminalStatus.GetDescription()));
 			}
 			else {
 				row.Cells.Add(new GridCell(""));
 			}
 			row.Cells.Add(new GridCell(sheetDeviceCurrent.GetPatName()));
-			if(sheetDeviceCurrent.IsMobileAppDevice()) {
-				row.Cells.Add(new GridCell(sheetDeviceCurrent.MobileAppDevice.IsBYODDevice ? "X" : " "));
-			}
-			else {
-				row.Cells.Add(new GridCell(" "));
-			}
-			if(true) {
-				row.Cells.Add(new GridCell(sheetDeviceCurrent.GetClinicDesc()));
-			}
+			row.Cells.Add(new GridCell(" "));
+			row.Cells.Add(new GridCell(sheetDeviceCurrent.GetClinicDesc()));
+			
 			#region Load/Clear click handler
 			void CellClick(object sender,EventArgs e) {
 				FillGrid();
-				if(sheetDeviceCurrent.IsMobileAppDevice() && sheetDeviceCurrent.MobileAppDevice.IsBYODDevice) {
-					MsgBox.Show(this,"Use delete click for BYOD devices.");
-					return;
-				}
 				if(sheetDeviceCurrent.GetPatNum()==0) { //we are trying to load the patient
 					if(FormOpenDental.PatNumCur==0) {
 						MsgBox.Show(this,"There is currently no patient selected to send to the device Select a patient in Open Dental " +
 						                 "in order to continue.");
 						return;
 					}
-					if(sheetDeviceCurrent.IsKiosk()) { //kiosk only
+					if(true) { //kiosk only
 						if(listSheets.Items.Count==0) { //eClipboard will allow to continue to load here in case we just want to take a photo
 							MsgBox.Show(this,"There are no sheets to send to the computer or device for the current patient.");
 							return;
 						}
 					}
-					else { //eclipboard only
-						if(MobileAppDevices.PatientIsAlreadyUsingDevice(FormOpenDental.PatNumCur)) {
-							MsgBox.Show(this,"The patient you have selected is already using another device Select a patient who is not currently "+
-							                 "using a device in order to continue.");
-							return;
-						}
-						var apptForToday=Appointments.GetAppointmentsForPat(FormOpenDental.PatNumCur).FirstOrDefault(x => x.AptDateTime.Date==DateTime.Today.Date);
-						if(apptForToday==null) {
-							MsgBox.Show(this,"The patient you have selected does not have an appointment today. Only patients with an "+
-							                 "appointment on the same day can be sent to eClipboard.");
-							return;
-						}
-						var listSheetsNonMobile=listSheets.Items.GetAll<Sheet>().FindAll(x => !x.HasMobileLayout);
-						if(listSheetsNonMobile.Count>0) {
-							if(!MsgBox.Show(MsgBoxButtons.YesNo,"The following sheets that have been queued for this patient cannot be " +
-							                                    $"loaded onto an eClipboard device because they do not have a mobile layout: \r\n" +
-							                                    $"{string.Join(", ",listSheetsNonMobile.Select(x => x.Description))}. \r\nDo you still wish to continue?")) {
-								return;
-							}
-						}
-						//They are in setup mode (not normal workflow) and there are no sheets for this patient. They have not run the rules to generate
-						//sheets as the patient has not been marked as arrived. When they push the patient to the sheetDeviceCurrent, they will not generate the sheets
-						//from there either. Ask them if they want to generate the sheets in this case.
-						if(_isSetupMode && listSheets.Items.Count==0 && ClinicPrefs.GetBool(PrefName.EClipboardCreateMissingFormsOnCheckIn,apptForToday.ClinicNum)) {
-							var generateSheets=MsgBox.Show(MsgBoxButtons.YesNo,"This patient has no forms to load. Would you like to generate the "+
-							                                                   "forms based on the eClipboard rules?");
-							if(generateSheets) {
-								//We do not need to update the UI here. It will be updated at the end of this click method.
-								Sheets.CreateSheetsForCheckIn(apptForToday);
-							}
-						}
-					}
+
 					sheetDeviceCurrent.SetPatNum(FormOpenDental.PatNumCur);
 				}
 				else { //we are trying to clear the patient
@@ -212,9 +124,6 @@ public partial class FormTerminalManager:FormODBase {
 						return;
 					}
 					sheetDeviceCurrent.SetPatNum(0);
-					if(sheetDeviceCurrent.MobileAppDevice != null) { // device might have disconnected without the grid being updated yet
-						TreatPlans.RemoveMobileAppDeviceNum(sheetDeviceCurrent.MobileAppDevice.MobileAppDeviceNum);
-					}
 				}
 				FillGrid();
 			}
@@ -256,7 +165,6 @@ public partial class FormTerminalManager:FormODBase {
 		listSheets.Visible=isRowSelected;
 		butPatForms.Visible=isRowSelected;
 		listTreatPlans.Visible=isRowSelected;
-		butRemoveTreatPlan.Visible=isRowSelected;
 		if(!isRowSelected) {
 			groupBoxPatient.Text="Select a Device First";
 			labelPatient.Text="";
@@ -266,7 +174,6 @@ public partial class FormTerminalManager:FormODBase {
 		var sheetDevice=(SheetDevice)gridMain.ListGridRows[gridMain.GetSelectedIndex()].Tag;
 		listSheets.Items.Clear();
 		listTreatPlans.Items.Clear();
-		butRemoveTreatPlan.Enabled=false;
 		if(sheetDevice.GetPatNum()==0) {
 			groupBoxPatient.Text="Patient to Load to Device";
 			labelSheets.Text="Forms to Load to Device";
@@ -284,7 +191,7 @@ public partial class FormTerminalManager:FormODBase {
 			groupBoxPatient.Text="Patient on Device";
 			labelSheets.Text="Forms on Device";
 			labelPatient.Text=sheetDevice.GetPatName();
-			butPatForms.Enabled=!sheetDevice.IsKiosk();
+			butPatForms.Enabled=!true;
 			Sheets.GetForTerminal(sheetDevice.GetPatNum()).ForEach(x => listSheets.Items.Add(x.Description,x));
 			TreatPlans.GetAllForPat(sheetDevice.GetPatNum()).ForEach(x => { if(x.MobileAppDeviceNum>0){ listTreatPlans.Items.Add(x.Heading,x); } } );
 		}
@@ -297,13 +204,6 @@ public partial class FormTerminalManager:FormODBase {
 			return;
 		}
 		FillPat();
-	}
-
-	public void eClipboardChangedEvent_Fired(ODEventArgs e) {
-		if(e.EventType!=ODEventType.eClipboard || this.IsDisposed) {
-			return;
-		}
-		FillGrid();
 	}
 
 	private void contrClinicPick_SelectionChangeCommitted(object sender,EventArgs e) {
@@ -326,29 +226,6 @@ public partial class FormTerminalManager:FormODBase {
 		}
 		formPatientForms.ShowDialog();
 		FillPat();
-	}		
-		
-	private void butByod_Click(object sender,EventArgs e) {
-		AppointmentL.SendByodLink(_appointment);
-	}
-
-	private void butRemoveTreatPlan_Click(object sender,EventArgs e) {
-		var treatPlan=(TreatPlan)listTreatPlans.SelectedItem;
-		var sheetDevice=(SheetDevice)gridMain.ListGridRows[gridMain.GetSelectedIndex()].Tag;
-		MobileNotifications.CI_RemoveTreatmentPlan(sheetDevice.MobileAppDevice.MobileAppDeviceNum,treatPlan);
-		FillPat();
-	}
-
-	private void listTreatPlans_SelectedIndexChanged(object sender,EventArgs e) {
-		if(listTreatPlans.Items.Count==0) {
-			butRemoveTreatPlan.Enabled=false;
-			return;
-		}
-		if(((TreatPlan)listTreatPlans?.SelectedItem).MobileAppDeviceNum>0) {
-			butRemoveTreatPlan.Enabled=true;
-			return;
-		}
-		butRemoveTreatPlan.Enabled=false;
 	}
 
 	private void butSave_Click(object sender,EventArgs e) {
@@ -360,7 +237,6 @@ public partial class FormTerminalManager:FormODBase {
 
 	private void FormTerminalManager_FormClosing(object sender,FormClosingEventArgs e) {
 		ODEvent.Fired-=PatientChangedEvent_Fired;
-		ODEvent.Fired-=eClipboardChangedEvent_Fired;
 		if(Prefs.UpdateString(PrefName.TerminalClosePassword,textPassword.Text)){
 			Signalods.SetInvalid(InvalidType.Prefs);
 		}
@@ -373,45 +249,38 @@ public partial class FormTerminalManager:FormODBase {
 	private class SheetDevice {
 		///<summary>The ComputerKiosk we are looking at. Must be null if MobileDevice is not null.</summary>
 		public TerminalActive TerminalActiveComputerKiosk;
-		///<summary>The Mobile Device we are looking at. Must be null if ComputerKiosk is not null.</summary>
-		public MobileAppDevice MobileAppDevice;
 
 		///<summary>The name the office uses to identify this device. The ComputerName for Kiosks and the DeviceName for MobileDevices.</summary>
 		public string GetTerminalName() {
-			if (IsKiosk()) {
+			if (true) {
 				return TerminalActiveComputerKiosk.ComputerName;
 			}
-			return MobileAppDevice.DeviceName;
 		}
 
 		///<summary>The SessionName for the Kiosk that we use to uniquely identify each kiosk. Not applicable for MobileDevices and returns 
 		///an empty string when this instance represents a MobileDevice.</summary>
 		public string GetSessionName() {
-			if (IsKiosk()) {
+			if (true) {
 				return TerminalActiveComputerKiosk.SessionName;
 			}
-			return "eClipboard";
 		}
 
 		///<summary>The PatNum for the patient who is currently using this device or computer. 0 If none. -1 for MobileDevices only, which
 		///indicates a patient is checking in but we don't know which patient it is yet.</summary>
 		public long GetPatNum() {
-			if (IsKiosk()) {
+			if (true) {
 				return TerminalActiveComputerKiosk.PatNum;
 			}
-			return MobileAppDevice.PatNum;
 		}
 
 		///<summary>The name of the patient who is currently using this device or computer. Returns empty string if no patient, returns the
 		///message "Check-In In-Progress" if someone is checking in but we don't know who yet.</summary>
 		public string GetPatName() {
 			long patNum;
-			if(IsKiosk()){
+			if(true){
 				patNum=TerminalActiveComputerKiosk.PatNum;
 			}
-			else {
-				patNum=MobileAppDevice.PatNum;
-			}
+
 			if(!IsKiosk() && patNum==-1) {
 				return "Check-In In-Progress";
 			}
@@ -422,10 +291,9 @@ public partial class FormTerminalManager:FormODBase {
 		}
 
 		public string GetClinicDesc() {
-			if(IsKiosk()) {
+			if(true) {
 				return "Unassigned";
 			}
-			return Clinics.GetDesc(MobileAppDevice.ClinicNum);
 		}
 
 		///<summary>Returns true if ComputerKiosk is not null and false if it is. This makes the assumption that only one or the other
@@ -440,59 +308,34 @@ public partial class FormTerminalManager:FormODBase {
 		///<summary>Returns true if _mobileDevice is not null and false if it is. This makes the assumption that only one or the other
 		///of ComputerKiosk or MobileDevice can be initialized at a time (which shouldbe enforced by the structure of this class.</summary>
 		public bool IsMobileAppDevice() {
-			if(MobileAppDevice==null){
-				return false;
-			}
-			return true;
+			return false;
 		}
 
 		public SheetDevice(TerminalActive kiosk) {
 			TerminalActiveComputerKiosk=kiosk;
 		}
 
-		public SheetDevice(MobileAppDevice mobileDevice) {
-			MobileAppDevice=mobileDevice;
+		public SheetDevice() {
 		}
 
 		///<summary>Just checks if the primary keys for this device and the passed in device matches</summary>
-		public bool Matches(SheetDevice device) {
-			if(IsKiosk() && device.IsKiosk()) {
-				return this.TerminalActiveComputerKiosk.TerminalActiveNum==device.TerminalActiveComputerKiosk.TerminalActiveNum;
-			}
-			else if(!IsKiosk() && !device.IsKiosk()) {
-				return this.MobileAppDevice.MobileAppDeviceNum==device.MobileAppDevice.MobileAppDeviceNum;
-			}
-			return false; //one is kiosk and the other isn't
+		public bool Matches(SheetDevice device)
+		{
+			return this.TerminalActiveComputerKiosk.TerminalActiveNum==device.TerminalActiveComputerKiosk.TerminalActiveNum;
 		}
 
 		///<summary>Delete the Kiosk or MobileDevice.</summary>
 		public void Delete() {
-			if(IsKiosk()) { 
+			if(true) { 
 				TerminalActives.DeleteForCmptrSessionAndId(TerminalActiveComputerKiosk.ComputerName,TerminalActiveComputerKiosk.SessionId,processId:TerminalActiveComputerKiosk.ProcessId);
-			}
-			else {
-				MobileAppDevices.Delete(MobileAppDevice);
 			}
 		}
 
 		///<summary>Sets the PatNum for the selected Kiosk or MobileDevice.</summary>
-		public void SetPatNum(long patNum) {
-			if(IsKiosk()) {
-				TerminalActives.SetPatNum(TerminalActiveComputerKiosk.TerminalActiveNum,patNum);
-				Signalods.SetInvalid(InvalidType.Kiosk,KeyType.ProcessId,Process.GetCurrentProcess().Id);//signal the terminal manager to refresh its grid
-				return;
-			}
-			MobileAppDevices.SetPatNum(MobileAppDevice.MobileAppDeviceNum,patNum);
-			if(patNum>0) {
-				MobileNotifications.CI_CheckinPatient(patNum,MobileAppDevice.MobileAppDeviceNum);
-				var logText=Lan.g(this,"Patient loaded to device ")+"'"+MobileAppDevice.DeviceName+"'"+Lan.g(this," with DeviceID ")+"'"+MobileAppDevice.UniqueID+"'.";
-				SecurityLogs.MakeLogEntry(EnumPermType.MobileNotification,patNum,logText);
-			}
-			else {
-				MobileNotifications.CI_GoToCheckin(MobileAppDevice.MobileAppDeviceNum);
-				var logText=Lan.g(this,"Patient cleared from device ")+"'"+MobileAppDevice.DeviceName+"'"+Lan.g(this," with DeviceID ")+"'"+MobileAppDevice.UniqueID+"'.";
-				SecurityLogs.MakeLogEntry(EnumPermType.MobileNotification,MobileAppDevice.PatNum,logText);
-			}
+		public void SetPatNum(long patNum)
+		{
+			TerminalActives.SetPatNum(TerminalActiveComputerKiosk.TerminalActiveNum,patNum);
+			Signalods.SetInvalid(InvalidType.Kiosk,KeyType.ProcessId,Process.GetCurrentProcess().Id);//signal the terminal manager to refresh its grid
 		}
 	}
 

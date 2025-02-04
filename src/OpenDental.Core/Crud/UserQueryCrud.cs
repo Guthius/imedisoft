@@ -1,34 +1,13 @@
-#region
-
 using System.Collections.Generic;
 using System.Data;
-using System.Linq;
 using DataConnectionBase;
 using Imedisoft.Core.Entities;
 using OpenDentBusiness;
-
-#endregion
 
 namespace Imedisoft.Core.Crud;
 
 public class UserQueryCrud
 {
-    public static UserQuery SelectOne(long queryNum)
-    {
-        var command = "SELECT * FROM userquery "
-                      + "WHERE QueryNum = " + SOut.Long(queryNum);
-        var list = TableToList(DataCore.GetTable(command));
-        if (list.Count == 0) return null;
-        return list[0];
-    }
-
-    public static UserQuery SelectOne(string command)
-    {
-        var list = TableToList(DataCore.GetTable(command));
-        if (list.Count == 0) return null;
-        return list[0];
-    }
-
     public static List<UserQuery> SelectMany(string command)
     {
         var list = TableToList(DataCore.GetTable(command));
@@ -38,17 +17,18 @@ public class UserQueryCrud
     public static List<UserQuery> TableToList(DataTable table)
     {
         var retVal = new List<UserQuery>();
-        UserQuery userQuery;
         foreach (DataRow row in table.Rows)
         {
-            userQuery = new UserQuery();
-            userQuery.QueryNum = SIn.Long(row["QueryNum"].ToString());
-            userQuery.Description = SIn.String(row["Description"].ToString());
-            userQuery.FileName = SIn.String(row["FileName"].ToString());
-            userQuery.QueryText = SIn.String(row["QueryText"].ToString());
-            userQuery.IsReleased = SIn.Bool(row["IsReleased"].ToString());
-            userQuery.IsPromptSetup = SIn.Bool(row["IsPromptSetup"].ToString());
-            userQuery.DefaultFormatRaw = SIn.Bool(row["DefaultFormatRaw"].ToString());
+            var userQuery = new UserQuery
+            {
+                QueryNum = SIn.Long(row["QueryNum"].ToString()),
+                Description = SIn.String(row["Description"].ToString()),
+                FileName = SIn.String(row["FileName"].ToString()),
+                QueryText = SIn.String(row["QueryText"].ToString()),
+                IsReleased = SIn.Bool(row["IsReleased"].ToString()),
+                IsPromptSetup = SIn.Bool(row["IsPromptSetup"].ToString()),
+                DefaultFormatRaw = SIn.Bool(row["DefaultFormatRaw"].ToString())
+            };
             retVal.Add(userQuery);
         }
 
@@ -71,12 +51,7 @@ public class UserQueryCrud
         return table;
     }
 
-    public static long Insert(UserQuery userQuery)
-    {
-        return Insert(userQuery, false);
-    }
-
-    public static long Insert(UserQuery userQuery, bool useExistingPK)
+    public static void Insert(UserQuery userQuery)
     {
         var command = "INSERT INTO userquery (";
 
@@ -94,35 +69,6 @@ public class UserQueryCrud
         {
             userQuery.QueryNum = Db.NonQ(command, true, "QueryNum", "userQuery", paramQueryText);
         }
-        return userQuery.QueryNum;
-    }
-
-    public static long InsertNoCache(UserQuery userQuery)
-    {
-        return InsertNoCache(userQuery, false);
-    }
-
-    public static long InsertNoCache(UserQuery userQuery, bool useExistingPK)
-    {
-        const bool isRandomKeys = false;
-        var command = "INSERT INTO userquery (";
-        if (isRandomKeys || useExistingPK) command += "QueryNum,";
-        command += "Description,FileName,QueryText,IsReleased,IsPromptSetup,DefaultFormatRaw) VALUES(";
-        if (isRandomKeys || useExistingPK) command += SOut.Long(userQuery.QueryNum) + ",";
-        command +=
-            "'" + SOut.String(userQuery.Description) + "',"
-            + "'" + SOut.String(userQuery.FileName) + "',"
-            + DbHelper.ParamChar + "paramQueryText,"
-            + SOut.Bool(userQuery.IsReleased) + ","
-            + SOut.Bool(userQuery.IsPromptSetup) + ","
-            + SOut.Bool(userQuery.DefaultFormatRaw) + ")";
-        if (userQuery.QueryText == null) userQuery.QueryText = "";
-        var paramQueryText = new OdSqlParameter("paramQueryText", SOut.StringParam(userQuery.QueryText));
-        if (useExistingPK || isRandomKeys)
-            Db.NonQ(command, paramQueryText);
-        else
-            userQuery.QueryNum = Db.NonQ(command, true, "QueryNum", "userQuery", paramQueryText);
-        return userQuery.QueryNum;
     }
 
     public static void Update(UserQuery userQuery)
@@ -138,79 +84,5 @@ public class UserQueryCrud
         if (userQuery.QueryText == null) userQuery.QueryText = "";
         var paramQueryText = new OdSqlParameter("paramQueryText", SOut.StringParam(userQuery.QueryText));
         Db.NonQ(command, paramQueryText);
-    }
-
-    public static bool Update(UserQuery userQuery, UserQuery oldUserQuery)
-    {
-        var command = "";
-        if (userQuery.Description != oldUserQuery.Description)
-        {
-            if (command != "") command += ",";
-            command += "Description = '" + SOut.String(userQuery.Description) + "'";
-        }
-
-        if (userQuery.FileName != oldUserQuery.FileName)
-        {
-            if (command != "") command += ",";
-            command += "FileName = '" + SOut.String(userQuery.FileName) + "'";
-        }
-
-        if (userQuery.QueryText != oldUserQuery.QueryText)
-        {
-            if (command != "") command += ",";
-            command += "QueryText = " + DbHelper.ParamChar + "paramQueryText";
-        }
-
-        if (userQuery.IsReleased != oldUserQuery.IsReleased)
-        {
-            if (command != "") command += ",";
-            command += "IsReleased = " + SOut.Bool(userQuery.IsReleased) + "";
-        }
-
-        if (userQuery.IsPromptSetup != oldUserQuery.IsPromptSetup)
-        {
-            if (command != "") command += ",";
-            command += "IsPromptSetup = " + SOut.Bool(userQuery.IsPromptSetup) + "";
-        }
-
-        if (userQuery.DefaultFormatRaw != oldUserQuery.DefaultFormatRaw)
-        {
-            if (command != "") command += ",";
-            command += "DefaultFormatRaw = " + SOut.Bool(userQuery.DefaultFormatRaw) + "";
-        }
-
-        if (command == "") return false;
-        if (userQuery.QueryText == null) userQuery.QueryText = "";
-        var paramQueryText = new OdSqlParameter("paramQueryText", SOut.StringParam(userQuery.QueryText));
-        command = "UPDATE userquery SET " + command
-                                          + " WHERE QueryNum = " + SOut.Long(userQuery.QueryNum);
-        Db.NonQ(command, paramQueryText);
-        return true;
-    }
-
-    public static bool UpdateComparison(UserQuery userQuery, UserQuery oldUserQuery)
-    {
-        if (userQuery.Description != oldUserQuery.Description) return true;
-        if (userQuery.FileName != oldUserQuery.FileName) return true;
-        if (userQuery.QueryText != oldUserQuery.QueryText) return true;
-        if (userQuery.IsReleased != oldUserQuery.IsReleased) return true;
-        if (userQuery.IsPromptSetup != oldUserQuery.IsPromptSetup) return true;
-        if (userQuery.DefaultFormatRaw != oldUserQuery.DefaultFormatRaw) return true;
-        return false;
-    }
-
-    public static void Delete(long queryNum)
-    {
-        var command = "DELETE FROM userquery "
-                      + "WHERE QueryNum = " + SOut.Long(queryNum);
-        Db.NonQ(command);
-    }
-
-    public static void DeleteMany(List<long> listQueryNums)
-    {
-        if (listQueryNums == null || listQueryNums.Count == 0) return;
-        var command = "DELETE FROM userquery "
-                      + "WHERE QueryNum IN(" + string.Join(",", listQueryNums.Select(x => SOut.Long(x))) + ")";
-        Db.NonQ(command);
     }
 }

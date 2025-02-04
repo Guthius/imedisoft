@@ -16,36 +16,36 @@ namespace OpenDentBusiness;
 
 public class TsiTransLogs
 {
-    public static List<TsiTransLog> SelectMany(List<long> listPatNums)
+    public static List<TsiTransLog> SelectMany(List<long> patNums)
     {
-        if (listPatNums == null || listPatNums.Count < 1) return new List<TsiTransLog>();
+        if (patNums == null || patNums.Count < 1) return [];
 
-        var command = "SELECT * FROM tsitranslog "
-                      + "WHERE PatNum IN (" + string.Join(",", listPatNums.Select(x => SOut.Long(x))) + ")";
-        return TsiTransLogCrud.SelectMany(command);
+        return TsiTransLogCrud.SelectMany("SELECT * FROM tsitranslog WHERE PatNum IN (" + string.Join(",", patNums) + ")");
     }
 
     public static List<TsiTransLog> GetAll()
     {
-        var command = "SELECT * FROM tsitranslog ORDER BY TransDateTime DESC";
-        return TsiTransLogCrud.SelectMany(command);
+        return TsiTransLogCrud.SelectMany("SELECT * FROM tsitranslog ORDER BY TransDateTime DESC");
     }
 
     public static List<long> GetSuspendedGuarNums()
     {
-        var listStatusTransTypes = new List<int>();
-        listStatusTransTypes.Add((int) TsiTransType.SS);
-        listStatusTransTypes.Add((int) TsiTransType.CN);
-        listStatusTransTypes.Add((int) TsiTransType.RI);
-        listStatusTransTypes.Add((int) TsiTransType.PF);
-        listStatusTransTypes.Add((int) TsiTransType.PT);
-        listStatusTransTypes.Add((int) TsiTransType.PL);
+        var transTypes = new List<int>
+        {
+            (int) TsiTransType.SS,
+            (int) TsiTransType.CN,
+            (int) TsiTransType.RI,
+            (int) TsiTransType.PF,
+            (int) TsiTransType.PT,
+            (int) TsiTransType.PL
+        };
+
         var command = "SELECT DISTINCT tsitranslog.PatNum "
                       + "FROM tsitranslog "
                       + "INNER JOIN ("
                       + "SELECT PatNum,MAX(TransDateTime) transDateTime "
                       + "FROM tsitranslog "
-                      + "WHERE TransType IN(" + string.Join(",", listStatusTransTypes) + ") "
+                      + "WHERE TransType IN(" + string.Join(",", transTypes) + ") "
                       + "AND TransDateTime>" + SOut.DateTime(DateTime.Now.AddDays(-50)) + " "
                       + "GROUP BY PatNum"
                       + ") mostRecentTrans ON tsitranslog.PatNum=mostRecentTrans.PatNum "
@@ -56,26 +56,29 @@ public class TsiTransLogs
 
     public static bool IsGuarSuspended(long guarNum)
     {
-        var listStatusTransTypes = new List<int>();
-        listStatusTransTypes.Add((int) TsiTransType.SS);
-        listStatusTransTypes.Add((int) TsiTransType.CN);
-        listStatusTransTypes.Add((int) TsiTransType.RI);
-        listStatusTransTypes.Add((int) TsiTransType.PF);
-        listStatusTransTypes.Add((int) TsiTransType.PT);
-        listStatusTransTypes.Add((int) TsiTransType.PL);
+        var transTypes = new List<int>
+        {
+            (int) TsiTransType.SS,
+            (int) TsiTransType.CN,
+            (int) TsiTransType.RI,
+            (int) TsiTransType.PF,
+            (int) TsiTransType.PT,
+            (int) TsiTransType.PL
+        };
+        
         var command = "SELECT (CASE WHEN tsitranslog.TransType=" + (int) TsiTransType.SS + " THEN 1 ELSE 0 END) isGuarSuspended "
                       + "FROM tsitranslog "
                       + "INNER JOIN ("
                       + "SELECT PatNum,MAX(TransDateTime) transDateTime "
                       + "FROM tsitranslog "
-                      + "WHERE PatNum=" + SOut.Long(guarNum) + " "
-                      + "AND TransType IN(" + string.Join(",", listStatusTransTypes) + ") "
+                      + "WHERE PatNum=" + guarNum + " "
+                      + "AND TransType IN(" + string.Join(",", transTypes) + ") "
                       + "AND TransDateTime>" + SOut.DateTime(DateTime.Now.AddDays(-50)) + " "
                       + "GROUP BY PatNum"
                       + ") mostRecentLog ON tsitranslog.PatNum=mostRecentLog.PatNum AND tsitranslog.TransDateTime=mostRecentLog.transDateTime";
         return SIn.Bool(DataCore.GetScalar(command));
     }
-    
+
     public static void Insert(TsiTransLog tsiTransLog)
     {
         TsiTransLogCrud.Insert(tsiTransLog);
@@ -91,7 +94,7 @@ public class TsiTransLogs
         //insert tsitranslog for this transaction so the ODService won't send it to Transworld.  _isTsiAdj means Transworld received a payment on
         //behalf of this guar and took a percentage and send the rest to the office for the account.  This will result in a payment being entered
         //into the account, having been received from Transworld, and an adjustment to account for Transorld's cut.
-        var patAging = Patients.GetAgingListFromGuarNums(new List<long> {patGuar}).FirstOrDefault(); //should only ever be 1
+        var patAging = Patients.GetAgingListFromGuarNums([patGuar]).FirstOrDefault(); //should only ever be 1
         if (patAging == null) return;
 
         var offsetAmt = adjustment.AdjAmt - patAging.ListTsiLogs.FindAll(x => x.FKeyType == TsiFKeyType.Adjustment && x.FKey == adjustment.AdjNum).Sum(x => x.TransAmt);
@@ -161,7 +164,7 @@ public class TsiTransLogs
 
         InsertTsiLogsForAdjustment(patientGuar.PatNum, adjustment, msgText, tsiTransType);
     }
-    
+
     public static double GetBalFromMsgs(PatAging patAging)
     {
         var tsiTransLog = patAging.ListTsiLogs.FirstOrDefault(x => x.TransType == TsiTransType.PL);
@@ -186,7 +189,7 @@ public class TsiTransLogs
         listTsiTransTypes.Add(TsiTransType.PF);
         listTsiTransTypes.Add(TsiTransType.PT);
         listTsiTransTypes.Add(TsiTransType.PL);
-        var tsiTransLogRecent = SelectMany(new List<long> {patient.Guarantor}).FindAll(x => listTsiTransTypes.Contains(x.TransType))
+        var tsiTransLogRecent = SelectMany([patient.Guarantor]).FindAll(x => listTsiTransTypes.Contains(x.TransType))
             .OrderBy(x => x.TransDateTime).LastOrDefault();
         if (tsiTransLogRecent == null) return false; //Not being managed by TSI
 
@@ -211,7 +214,7 @@ public class TsiTransLogs
 
         var stringArraySelectedServices = listProgramProperties.FirstOrDefault(x => x.PropertyDesc == "SelectedServices")
             ?.PropertyValue
-            ?.Split(new[] {','}, StringSplitOptions.RemoveEmptyEntries);
+            ?.Split([','], StringSplitOptions.RemoveEmptyEntries);
         if (stringArraySelectedServices.IsNullOrEmpty())
             //must have at least one service selected, i.e. Accelerator, Profit Recovery, and/or Collection
             return false;
@@ -240,7 +243,7 @@ public class TsiTransLogs
 
     public static string SuspendGuar(Patient patient)
     {
-        var patAging = Patients.GetAgingListFromGuarNums(new List<long> {patient.PatNum}).FirstOrDefault();
+        var patAging = Patients.GetAgingListFromGuarNums([patient.PatNum]).FirstOrDefault();
         if (patAging == null)
             //this would only happen if the patient was not in the db??, just in case
             return Lans.g("TsiTransLogs", "An error occurred when trying to send a suspend message to TSI.");

@@ -7,6 +7,7 @@ using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Data;
 using Imedisoft.Core.Entities;
+using Imedisoft.Features.Providers.Dtos;
 using OpenDental.UI;
 using OpenDentBusiness;
 
@@ -58,7 +59,7 @@ public partial class FormApptSearchAdvanced : FormODBase
         _dateAfter = dateAfter.Date;
     }
 
-    private void FillProviders(List<Provider> providersForClinic, List<long> provNumsToSelect = null)
+    private void FillProviders(List<ProviderDto> providersForClinic, List<long> provNumsToSelect = null)
     {
         if (provNumsToSelect == null || provNumsToSelect.Count == 0)
         {
@@ -71,7 +72,7 @@ public partial class FormApptSearchAdvanced : FormODBase
 
         for (var i = 0; i < providersForClinic.Count; i++)
         {
-            if (provNumsToSelect.Contains(providersForClinic[i].ProvNum))
+            if (provNumsToSelect.Contains(providersForClinic[i].Id))
             {
                 comboBoxMultiProv.SetSelected(i + 1, true);
             }
@@ -83,7 +84,7 @@ public partial class FormApptSearchAdvanced : FormODBase
         }
     }
 
-    private List<Provider> GetProvidersForSelectedClinic(ProvMode provMode = ProvMode.All)
+    private List<ProviderDto> GetProvidersForSelectedClinic(ProvMode provMode = ProvMode.All)
     {
         var providers = Providers.GetProvsForClinic(comboBoxClinic.ClinicNumSelected);
         switch (provMode)
@@ -332,11 +333,11 @@ public partial class FormApptSearchAdvanced : FormODBase
 
     private void ButtonProviders_Click(object sender, EventArgs e)
     {
-        var providers = comboBoxMultiProv.Items.GetAll<Provider>();
+        var providers = comboBoxMultiProv.Items.GetAll<ProviderDto>();
 
         using var formProvidersMultiPick = new FormProvidersMultiPick(providers);
 
-        formProvidersMultiPick.ListProvidersSelected = comboBoxMultiProv.GetListSelected<Provider>();
+        formProvidersMultiPick.SelectedProviders = comboBoxMultiProv.GetListSelected<ProviderDto>();
 
         if (formProvidersMultiPick.ShowDialog() != DialogResult.OK)
         {
@@ -345,9 +346,9 @@ public partial class FormApptSearchAdvanced : FormODBase
 
         List<long> provNums = [];
 
-        foreach (var provider in formProvidersMultiPick.ListProvidersSelected)
+        foreach (var provider in formProvidersMultiPick.SelectedProviders)
         {
-            provNums.Add(provider.ProvNum);
+            provNums.Add(provider.Id);
         }
 
         FillProviders(GetProvidersForSelectedClinic(), provNums);
@@ -404,7 +405,7 @@ public partial class FormApptSearchAdvanced : FormODBase
     {
         var providers = GetProvidersForSelectedClinic(ProvMode.Dent);
 
-        FillProviders(providers, providers.Select(x => x.ProvNum).ToList());
+        FillProviders(providers, providers.Select(x => x.Id).ToList());
 
         DoSearch();
     }
@@ -413,7 +414,7 @@ public partial class FormApptSearchAdvanced : FormODBase
     {
         var providers = GetProvidersForSelectedClinic(ProvMode.Hyg);
 
-        FillProviders(providers, providers.Select(x => x.ProvNum).ToList());
+        FillProviders(providers, providers.Select(x => x.Id).ToList());
 
         DoSearch();
     }

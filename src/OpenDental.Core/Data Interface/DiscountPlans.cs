@@ -36,7 +36,7 @@ public class DiscountPlans
 
     public static List<DiscountPlan> GetForPats(List<long> listPatNums)
     {
-        if (listPatNums.Count < 1) return new List<DiscountPlan>();
+        if (listPatNums.Count < 1) return [];
 
         var command = "SELECT discountplan.* "
                       + "FROM discountplan "
@@ -60,12 +60,12 @@ public class DiscountPlans
 
     public static List<string> GetPatNamesForPlan(long discountPlanNum)
     {
-        if (discountPlanNum == 0) return new List<string>();
+        if (discountPlanNum == 0) return [];
 
         var command = "SELECT patient.LName,patient.FName "
                       + "FROM discountplansub "
                       + "LEFT JOIN patient ON discountplansub.PatNum=patient.PatNum "
-                      + "WHERE discountplansub.DiscountPlanNum=" + SOut.Long(discountPlanNum) + " "
+                      + "WHERE discountplansub.DiscountPlanNum=" + discountPlanNum + " "
                       + "AND patient.PatStatus NOT IN (" + SOut.Int((int) PatientStatus.Deleted) + "," + SOut.Int((int) PatientStatus.Deceased) + ") ";
         //No Preferred or MiddleI needed because this logic needs to match FormInsPlan.
         return DataCore.GetTable(command).Select().Select(x => Patients.GetNameLFnoPref(x["LName"].ToString(), x["FName"].ToString(), "")).ToList();
@@ -127,7 +127,7 @@ public class DiscountPlans
 
     public static List<DiscountPlanProc> GetDiscountPlanProc(List<Procedure> listProcedures, DiscountPlanSub discountPlanSub = null, DiscountPlan discountPlan = null, List<Adjustment> listAdjustments = null)
     {
-        if (listProcedures.IsNullOrEmpty() || discountPlanSub == null || discountPlan == null) return new List<DiscountPlanProc>();
+        if (listProcedures.IsNullOrEmpty() || discountPlanSub == null || discountPlan == null) return [];
 
         var listDiscountPlanProcs = new List<DiscountPlanProc>();
         var listProceduresHist = new List<Procedure>();
@@ -162,10 +162,9 @@ public class DiscountPlans
 
     public static void MergeTwoPlans(DiscountPlan discountPlanInto, DiscountPlan discountPlanFrom)
     {
-        var command = "UPDATE discountplansub SET DiscountPlanNum=" + SOut.Long(discountPlanInto.DiscountPlanNum)
-                                                                    + " WHERE DiscountPlanNum=" + SOut.Long(discountPlanFrom.DiscountPlanNum);
+        var command = "UPDATE discountplansub SET DiscountPlanNum=" + discountPlanInto.DiscountPlanNum + " WHERE DiscountPlanNum=" + discountPlanFrom.DiscountPlanNum;
         Db.NonQ(command);
-        //Delete the discount plan from the database.
+        
         DiscountPlanCrud.Delete(discountPlanFrom.DiscountPlanNum);
     }
 

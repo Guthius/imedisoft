@@ -1,5 +1,3 @@
-#region
-
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
@@ -8,28 +6,10 @@ using DataConnectionBase;
 using Imedisoft.Core.Entities;
 using OpenDentBusiness;
 
-#endregion
-
 namespace Imedisoft.Core.Crud;
 
 public class PaySplitCrud
 {
-    public static PaySplit SelectOne(long splitNum)
-    {
-        var command = "SELECT * FROM paysplit "
-                      + "WHERE SplitNum = " + SOut.Long(splitNum);
-        var list = TableToList(DataCore.GetTable(command));
-        if (list.Count == 0) return null;
-        return list[0];
-    }
-
-    public static PaySplit SelectOne(string command)
-    {
-        var list = TableToList(DataCore.GetTable(command));
-        if (list.Count == 0) return null;
-        return list[0];
-    }
-
     public static List<PaySplit> SelectMany(string command)
     {
         var list = TableToList(DataCore.GetTable(command));
@@ -39,73 +19,39 @@ public class PaySplitCrud
     public static List<PaySplit> TableToList(DataTable table)
     {
         var retVal = new List<PaySplit>();
-        PaySplit paySplit;
         foreach (DataRow row in table.Rows)
         {
-            paySplit = new PaySplit();
-            paySplit.SplitNum = SIn.Long(row["SplitNum"].ToString());
-            paySplit.SplitAmt = SIn.Double(row["SplitAmt"].ToString());
-            paySplit.PatNum = SIn.Long(row["PatNum"].ToString());
-            paySplit.ProcDate = SIn.Date(row["ProcDate"].ToString());
-            paySplit.PayNum = SIn.Long(row["PayNum"].ToString());
-            paySplit.IsDiscount = SIn.Bool(row["IsDiscount"].ToString());
-            paySplit.DiscountType = SIn.Byte(row["DiscountType"].ToString());
-            paySplit.ProvNum = SIn.Long(row["ProvNum"].ToString());
-            paySplit.PayPlanNum = SIn.Long(row["PayPlanNum"].ToString());
-            paySplit.DatePay = SIn.Date(row["DatePay"].ToString());
-            paySplit.ProcNum = SIn.Long(row["ProcNum"].ToString());
-            paySplit.DateEntry = SIn.Date(row["DateEntry"].ToString());
-            paySplit.UnearnedType = SIn.Long(row["UnearnedType"].ToString());
-            paySplit.ClinicNum = SIn.Long(row["ClinicNum"].ToString());
-            paySplit.SecUserNumEntry = SIn.Long(row["SecUserNumEntry"].ToString());
-            paySplit.SecDateTEdit = SIn.DateTime(row["SecDateTEdit"].ToString());
-            paySplit.FSplitNum = SIn.Long(row["FSplitNum"].ToString());
-            paySplit.AdjNum = SIn.Long(row["AdjNum"].ToString());
-            paySplit.PayPlanChargeNum = SIn.Long(row["PayPlanChargeNum"].ToString());
-            paySplit.PayPlanDebitType = (PayPlanDebitTypes) SIn.Int(row["PayPlanDebitType"].ToString());
-            paySplit.SecurityHash = SIn.String(row["SecurityHash"].ToString());
+            var paySplit = new PaySplit
+            {
+                SplitNum = SIn.Long(row["SplitNum"].ToString()),
+                SplitAmt = SIn.Double(row["SplitAmt"].ToString()),
+                PatNum = SIn.Long(row["PatNum"].ToString()),
+                ProcDate = SIn.Date(row["ProcDate"].ToString()),
+                PayNum = SIn.Long(row["PayNum"].ToString()),
+                IsDiscount = SIn.Bool(row["IsDiscount"].ToString()),
+                DiscountType = SIn.Byte(row["DiscountType"].ToString()),
+                ProvNum = SIn.Long(row["ProvNum"].ToString()),
+                PayPlanNum = SIn.Long(row["PayPlanNum"].ToString()),
+                DatePay = SIn.Date(row["DatePay"].ToString()),
+                ProcNum = SIn.Long(row["ProcNum"].ToString()),
+                DateEntry = SIn.Date(row["DateEntry"].ToString()),
+                UnearnedType = SIn.Long(row["UnearnedType"].ToString()),
+                ClinicNum = SIn.Long(row["ClinicNum"].ToString()),
+                SecUserNumEntry = SIn.Long(row["SecUserNumEntry"].ToString()),
+                SecDateTEdit = SIn.DateTime(row["SecDateTEdit"].ToString()),
+                FSplitNum = SIn.Long(row["FSplitNum"].ToString()),
+                AdjNum = SIn.Long(row["AdjNum"].ToString()),
+                PayPlanChargeNum = SIn.Long(row["PayPlanChargeNum"].ToString()),
+                PayPlanDebitType = (PayPlanDebitTypes) SIn.Int(row["PayPlanDebitType"].ToString()),
+                SecurityHash = SIn.String(row["SecurityHash"].ToString())
+            };
             retVal.Add(paySplit);
         }
 
         return retVal;
     }
 
-    public static DataTable ListToTable(List<PaySplit> listPaySplits, string tableName = "")
-    {
-        if (string.IsNullOrEmpty(tableName)) tableName = "PaySplit";
-        var table = new DataTable(tableName);
-        table.Columns.Add("SplitNum");
-        table.Columns.Add("SplitAmt");
-        table.Columns.Add("PatNum");
-        table.Columns.Add("ProcDate");
-        table.Columns.Add("PayNum");
-        table.Columns.Add("IsDiscount");
-        table.Columns.Add("DiscountType");
-        table.Columns.Add("ProvNum");
-        table.Columns.Add("PayPlanNum");
-        table.Columns.Add("DatePay");
-        table.Columns.Add("ProcNum");
-        table.Columns.Add("DateEntry");
-        table.Columns.Add("UnearnedType");
-        table.Columns.Add("ClinicNum");
-        table.Columns.Add("SecUserNumEntry");
-        table.Columns.Add("SecDateTEdit");
-        table.Columns.Add("FSplitNum");
-        table.Columns.Add("AdjNum");
-        table.Columns.Add("PayPlanChargeNum");
-        table.Columns.Add("PayPlanDebitType");
-        table.Columns.Add("SecurityHash");
-        foreach (var paySplit in listPaySplits)
-            table.Rows.Add(SOut.Long(paySplit.SplitNum), SOut.Double(paySplit.SplitAmt), SOut.Long(paySplit.PatNum), SOut.DateTime(paySplit.ProcDate, false), SOut.Long(paySplit.PayNum), SOut.Bool(paySplit.IsDiscount), SOut.Byte(paySplit.DiscountType), SOut.Long(paySplit.ProvNum), SOut.Long(paySplit.PayPlanNum), SOut.DateTime(paySplit.DatePay, false), SOut.Long(paySplit.ProcNum), SOut.DateTime(paySplit.DateEntry, false), SOut.Long(paySplit.UnearnedType), SOut.Long(paySplit.ClinicNum), SOut.Long(paySplit.SecUserNumEntry), SOut.DateTime(paySplit.SecDateTEdit, false), SOut.Long(paySplit.FSplitNum), SOut.Long(paySplit.AdjNum), SOut.Long(paySplit.PayPlanChargeNum), SOut.Int((int) paySplit.PayPlanDebitType), paySplit.SecurityHash);
-        return table;
-    }
-
-    public static long Insert(PaySplit paySplit)
-    {
-        return Insert(paySplit, false);
-    }
-
-    public static long Insert(PaySplit paySplit, bool useExistingPK)
+    public static void Insert(PaySplit paySplit)
     {
         var command = "INSERT INTO paysplit (";
 
@@ -135,15 +81,9 @@ public class PaySplitCrud
         {
             paySplit.SplitNum = Db.NonQ(command, true, "SplitNum", "paySplit");
         }
-        return paySplit.SplitNum;
     }
 
-    public static void InsertMany(List<PaySplit> listPaySplits)
-    {
-        InsertMany(listPaySplits, false);
-    }
-
-    public static void InsertMany(List<PaySplit> listPaySplits, bool useExistingPK)
+    public static void InsertMany(List<PaySplit> listPaySplits, bool useExistingPK = false)
     {
         StringBuilder sbCommands = null;
         var index = 0;
@@ -225,46 +165,6 @@ public class PaySplitCrud
                 index++;
             }
         }
-    }
-
-    public static long InsertNoCache(PaySplit paySplit)
-    {
-        return InsertNoCache(paySplit, false);
-    }
-
-    public static long InsertNoCache(PaySplit paySplit, bool useExistingPK)
-    {
-        const bool isRandomKeys = false;
-        var command = "INSERT INTO paysplit (";
-        if (isRandomKeys || useExistingPK) command += "SplitNum,";
-        command += "SplitAmt,PatNum,ProcDate,PayNum,IsDiscount,DiscountType,ProvNum,PayPlanNum,DatePay,ProcNum,DateEntry,UnearnedType,ClinicNum,SecUserNumEntry,FSplitNum,AdjNum,PayPlanChargeNum,PayPlanDebitType,SecurityHash) VALUES(";
-        if (isRandomKeys || useExistingPK) command += SOut.Long(paySplit.SplitNum) + ",";
-        command +=
-            SOut.Double(paySplit.SplitAmt) + ","
-                                           + SOut.Long(paySplit.PatNum) + ","
-                                           + SOut.Date(paySplit.ProcDate) + ","
-                                           + SOut.Long(paySplit.PayNum) + ","
-                                           + SOut.Bool(paySplit.IsDiscount) + ","
-                                           + SOut.Byte(paySplit.DiscountType) + ","
-                                           + SOut.Long(paySplit.ProvNum) + ","
-                                           + SOut.Long(paySplit.PayPlanNum) + ","
-                                           + SOut.Date(paySplit.DatePay) + ","
-                                           + SOut.Long(paySplit.ProcNum) + ","
-                                           + "NOW()" + ","
-                                           + SOut.Long(paySplit.UnearnedType) + ","
-                                           + SOut.Long(paySplit.ClinicNum) + ","
-                                           + SOut.Long(paySplit.SecUserNumEntry) + ","
-                                           //SecDateTEdit can only be set by MySQL
-                                           + SOut.Long(paySplit.FSplitNum) + ","
-                                           + SOut.Long(paySplit.AdjNum) + ","
-                                           + SOut.Long(paySplit.PayPlanChargeNum) + ","
-                                           + SOut.Int((int) paySplit.PayPlanDebitType) + ","
-                                           + "'" + SOut.String(paySplit.SecurityHash) + "')";
-        if (useExistingPK || isRandomKeys)
-            Db.NonQ(command);
-        else
-            paySplit.SplitNum = Db.NonQ(command, true, "SplitNum", "paySplit");
-        return paySplit.SplitNum;
     }
 
     public static void Update(PaySplit paySplit)
@@ -409,38 +309,6 @@ public class PaySplitCrud
         return true;
     }
 
-    public static bool UpdateComparison(PaySplit paySplit, PaySplit oldPaySplit)
-    {
-        if (paySplit.SplitAmt != oldPaySplit.SplitAmt) return true;
-        if (paySplit.PatNum != oldPaySplit.PatNum) return true;
-        if (paySplit.ProcDate.Date != oldPaySplit.ProcDate.Date) return true;
-        if (paySplit.PayNum != oldPaySplit.PayNum) return true;
-        if (paySplit.IsDiscount != oldPaySplit.IsDiscount) return true;
-        if (paySplit.DiscountType != oldPaySplit.DiscountType) return true;
-        if (paySplit.ProvNum != oldPaySplit.ProvNum) return true;
-        if (paySplit.PayPlanNum != oldPaySplit.PayPlanNum) return true;
-        if (paySplit.DatePay.Date != oldPaySplit.DatePay.Date) return true;
-        if (paySplit.ProcNum != oldPaySplit.ProcNum) return true;
-        //DateEntry not allowed to change
-        if (paySplit.UnearnedType != oldPaySplit.UnearnedType) return true;
-        if (paySplit.ClinicNum != oldPaySplit.ClinicNum) return true;
-        //SecUserNumEntry excluded from update
-        //SecDateTEdit can only be set by MySQL
-        if (paySplit.FSplitNum != oldPaySplit.FSplitNum) return true;
-        if (paySplit.AdjNum != oldPaySplit.AdjNum) return true;
-        if (paySplit.PayPlanChargeNum != oldPaySplit.PayPlanChargeNum) return true;
-        if (paySplit.PayPlanDebitType != oldPaySplit.PayPlanDebitType) return true;
-        if (paySplit.SecurityHash != oldPaySplit.SecurityHash) return true;
-        return false;
-    }
-
-    public static void Delete(long splitNum)
-    {
-        var command = "DELETE FROM paysplit "
-                      + "WHERE SplitNum = " + SOut.Long(splitNum);
-        Db.NonQ(command);
-    }
-
     public static void DeleteMany(List<long> listSplitNums)
     {
         if (listSplitNums == null || listSplitNums.Count == 0) return;
@@ -461,15 +329,13 @@ public class PaySplitCrud
         var idxNew = 0;
         var idxDB = 0;
         var rowsUpdatedCount = 0;
-        PaySplit fieldNew;
-        PaySplit fieldDB;
         //Because both lists have been sorted using the same criteria, we can now walk each list to determine which list contians the next element.  The next element is determined by Primary Key.
         //If the New list contains the next item it will be inserted.  If the DB contains the next item, it will be deleted.  If both lists contain the next item, the item will be updated.
         while (idxNew < listNew.Count || idxDB < listDB.Count)
         {
-            fieldNew = null;
+            PaySplit fieldNew = null;
             if (idxNew < listNew.Count) fieldNew = listNew[idxNew];
-            fieldDB = null;
+            PaySplit fieldDB = null;
             if (idxDB < listDB.Count) fieldDB = listDB[idxDB];
             //begin compare
             if (fieldNew != null && fieldDB == null)

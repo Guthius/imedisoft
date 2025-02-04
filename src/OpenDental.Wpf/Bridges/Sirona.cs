@@ -118,12 +118,7 @@ namespace OpenDental.Bridges {
 						line.Append(pat.ChartNumber);
 					}
 					line.Append(nTerm);
-					if(/* ODEnvironment.IsCloudServer */ false) {
-						line.Append(ODEnvironment.MachineName);//Will be replaced on the client side
-					}
-					else {
-						line.Append(SystemInformation.ComputerName);
-					}
+					line.Append(SystemInformation.ComputerName);
 					line.Append(nTerm);
 					line.Append(DateTime.Now.ToString("dd.MM.yyyy"));
 					line.Append(nTerm);

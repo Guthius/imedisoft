@@ -1,8 +1,7 @@
-﻿using System.IO;
+﻿using System;
+using System.IO;
 using System.Linq;
-using CodeBase;
 using Imedisoft.Core.Caching;
-using Imedisoft.Core.Data;
 using Imedisoft.Core.Entities;
 
 namespace OpenDentBusiness.FileIO;
@@ -24,16 +23,25 @@ public class FileAtoZ
                 LocalAtoZpath = "";
             }
         }
-            
+
         if (!string.IsNullOrEmpty(LocalAtoZpath))
         {
             return LocalAtoZpath.Trim();
         }
 
-        var replicationAtoZ = ReplicationServers.GetAtoZpath();
-        return !string.IsNullOrEmpty(replicationAtoZ) 
-            ? GetValidPathFromString(replicationAtoZ)?.Trim() 
-            : GetValidPathFromString(PrefC.GetString(PrefName.DocPath))?.Trim();
+        var path = PrefC.GetString(PrefName.DocPath);
+        if (!string.IsNullOrEmpty(path))
+        {
+            return path;
+        }
+
+        path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.CommonApplicationData), "Imedisoft", "Data");
+        if (!Directory.Exists(path))
+        {
+            Directory.CreateDirectory(path);
+        }
+
+        return path;
     }
 
     public static string GetValidPathFromString(string documentPaths)

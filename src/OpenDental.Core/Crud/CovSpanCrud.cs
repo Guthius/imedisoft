@@ -17,14 +17,15 @@ public class CovSpanCrud
     public static List<CovSpan> TableToList(DataTable table)
     {
         var retVal = new List<CovSpan>();
-        CovSpan covSpan;
         foreach (DataRow row in table.Rows)
         {
-            covSpan = new CovSpan();
-            covSpan.CovSpanNum = SIn.Long(row["CovSpanNum"].ToString());
-            covSpan.CovCatNum = SIn.Long(row["CovCatNum"].ToString());
-            covSpan.FromCode = SIn.String(row["FromCode"].ToString());
-            covSpan.ToCode = SIn.String(row["ToCode"].ToString());
+            var covSpan = new CovSpan
+            {
+                CovSpanNum = SIn.Long(row["CovSpanNum"].ToString()),
+                CovCatNum = SIn.Long(row["CovCatNum"].ToString()),
+                FromCode = SIn.String(row["FromCode"].ToString()),
+                ToCode = SIn.String(row["ToCode"].ToString())
+            };
             retVal.Add(covSpan);
         }
 
@@ -44,7 +45,7 @@ public class CovSpanCrud
         return table;
     }
 
-    public static long Insert(CovSpan covSpan)
+    public static void Insert(CovSpan covSpan)
     {
         var command = "INSERT INTO covspan (";
 
@@ -57,7 +58,6 @@ public class CovSpanCrud
         {
             covSpan.CovSpanNum = Db.NonQ(command, true, "CovSpanNum", "covSpan");
         }
-        return covSpan.CovSpanNum;
     }
 
     public static void Update(CovSpan covSpan)

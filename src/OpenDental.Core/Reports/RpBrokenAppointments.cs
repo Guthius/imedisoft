@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Reflection;
 using DataConnectionBase;
 
 namespace OpenDentBusiness {
@@ -10,7 +9,7 @@ namespace OpenDentBusiness {
 		public static DataTable GetBrokenApptTable(DateTime dateStart,DateTime dateEnd,List<long> listProvNums,List<long> listClinicNums,
 			List<long> listAdj,BrokenApptProcedure brokenApptOption,bool hasAllClinics,bool isByProc,bool isByAptStatus,bool isByAdj,bool hasClinicsEnabled) 
 		{
-			string whereProv="";
+			var whereProv="";
 			if(listProvNums.Count > 0) {
 				if(isByProc) {//Report looking at ADA procedure code D9986
 					whereProv=" AND procedurelog.ProvNum IN ("+string.Join(",",listProvNums)+") ";
@@ -23,7 +22,7 @@ namespace OpenDentBusiness {
 						+"OR appointment.ProvHyg IN ("+string.Join(",",listProvNums)+")) ";
 				}
 			}
-			string whereClin="";
+			var whereClin="";
 			if(hasClinicsEnabled && listClinicNums.Count > 0 && !hasAllClinics) {
 				if(isByProc) {//Report looking at ADA procedure code D9986
 					whereClin+=" AND procedurelog.ClinicNum IN(";
@@ -36,7 +35,7 @@ namespace OpenDentBusiness {
 				}
 				whereClin+=string.Join(",",listClinicNums)+") ";
 			}
-			string queryBrokenApts="";
+			var queryBrokenApts="";
 			if(isByProc) {
 				queryBrokenApts=ByProceduresQuery(hasClinicsEnabled,dateStart,dateEnd,whereProv,whereClin,brokenApptOption);
 			}
@@ -46,11 +45,11 @@ namespace OpenDentBusiness {
 			if(isByAptStatus) {
 				queryBrokenApts=ByApptStatusQuery(hasClinicsEnabled,dateStart,dateEnd,whereProv,whereClin);
 			}
-			return ReportsComplex.GetTable(queryBrokenApts);
+			return DataCore.GetTable(queryBrokenApts);
 		}
 
 		private static string ByProceduresQuery(bool hasClinicsEnabled,DateTime dateStart,DateTime dateEnd,string whereProv,string whereClin,BrokenApptProcedure brokenApptOption) {
-			string queryBrokenApts="SELECT procedurelog.ProcDate ProcDate,provider.Abbr Provider,";
+			var queryBrokenApts="SELECT procedurelog.ProcDate ProcDate,provider.Abbr Provider,";
 				if(brokenApptOption==BrokenApptProcedure.Both) {//Show code when running for both.
 					queryBrokenApts+="procedurecode.ProcCode,";
 				}
@@ -92,8 +91,8 @@ namespace OpenDentBusiness {
 		}
 
 		private static string ByAdjustmentsQuery(bool hasClinicsEnabled,DateTime dateStart,DateTime dateEnd,string whereProv,string whereClin,List<long> listAdj) {
-			string queryBrokenApts="SELECT adjustment.AdjDate AdjDate,provider.Abbr Provider,"+DbHelper.Concat("patient.LName","', '","patient.FName")+" Patient,"
-					+"adjustment.AdjAmt AdjAmt,adjustment.AdjNote AdjNote ";
+			var queryBrokenApts="SELECT adjustment.AdjDate AdjDate,provider.Abbr Provider,"+DbHelper.Concat("patient.LName","', '","patient.FName")+" Patient,"
+			                    +"adjustment.AdjAmt AdjAmt,adjustment.AdjNote AdjNote ";
 				if(hasClinicsEnabled) {
 					queryBrokenApts+=",COALESCE(clinic.Description,'"+SOut.String(Lans.g("FormRpBrokenAppointments","Unassigned"))+"') ClinicDesc ";
 				}
@@ -120,9 +119,9 @@ namespace OpenDentBusiness {
 		}
 
 		private static string ByApptStatusQuery(bool hasClinicsEnabled,DateTime dateStart,DateTime dateEnd,string whereProv,string whereClin) {
-			string queryBrokenApts="SELECT "+DbHelper.DateTFormatColumn("appointment.AptDateTime","%m/%d/%Y %H:%i:%s")+" AptDateTime, "
-					+""+DbHelper.Concat("patient.LName","', '","patient.FName")+" Patient,doctor.Abbr Doctor,hygienist.Abbr Hygienist, "
-					+"appointment.IsHygiene IsHygieneApt ";
+			var queryBrokenApts="SELECT "+DbHelper.DateTFormatColumn("appointment.AptDateTime","%m/%d/%Y %H:%i:%s")+" AptDateTime, "
+			                    +""+DbHelper.Concat("patient.LName","', '","patient.FName")+" Patient,doctor.Abbr Doctor,hygienist.Abbr Hygienist, "
+			                    +"appointment.IsHygiene IsHygieneApt ";
 				if(hasClinicsEnabled) {
 					queryBrokenApts+=",COALESCE(clinic.Description,'"+SOut.String(Lans.g("FormRpBrokenAppointments","Unassigned"))+"') ClinicDesc ";//Coalesce is Oracle compatible
 				}

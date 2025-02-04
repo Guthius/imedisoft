@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Drawing;
 using System.Globalization;
 using System.Linq;
 using System.Windows.Forms;
@@ -69,9 +68,6 @@ public partial class FormRequiredFields:FormODBase {
 					}
 					break;
 				case RequiredFieldName.Clinic:
-					if(!true) {
-						continue;//Don't include Clinic in the list if clinics is not enabled
-					}
 					break;
 				case RequiredFieldName.PatientStatus:
 				case RequiredFieldName.Position:
@@ -79,9 +75,6 @@ public partial class FormRequiredFields:FormODBase {
 				case RequiredFieldName.MothersMaidenFirstName:
 				case RequiredFieldName.MothersMaidenLastName:
 				case RequiredFieldName.DateTimeDeceased:
-					if(!PrefC.GetBool(PrefName.ShowFeatureEhr)) {
-						continue;//EHR features
-					}
 					break;
 				case RequiredFieldName.StudentStatus:
 					if(CultureInfo.CurrentCulture.Name.EndsWith("CA")) {//Canadian. en-CA or fr-CA
@@ -111,7 +104,7 @@ public partial class FormRequiredFields:FormODBase {
 					break;
 				case RequiredFieldName.Ethnicity:
 					if(PrefC.GetBool(PrefName.EasyHidePublicHealth)
-					   || !PrefC.GetBool(PrefName.ShowFeatureEhr))
+					   || !false)
 					{
 						continue;//Don't show Ethnicity
 					}

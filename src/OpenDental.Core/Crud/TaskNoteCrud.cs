@@ -17,15 +17,16 @@ public class TaskNoteCrud
     public static List<TaskNote> TableToList(DataTable table)
     {
         var retVal = new List<TaskNote>();
-        TaskNote taskNote;
         foreach (DataRow row in table.Rows)
         {
-            taskNote = new TaskNote();
-            taskNote.TaskNoteNum = SIn.Long(row["TaskNoteNum"].ToString());
-            taskNote.TaskNum = SIn.Long(row["TaskNum"].ToString());
-            taskNote.UserNum = SIn.Long(row["UserNum"].ToString());
-            taskNote.DateTimeNote = SIn.DateTime(row["DateTimeNote"].ToString());
-            taskNote.Note = SIn.String(row["Note"].ToString());
+            var taskNote = new TaskNote
+            {
+                TaskNoteNum = SIn.Long(row["TaskNoteNum"].ToString()),
+                TaskNum = SIn.Long(row["TaskNum"].ToString()),
+                UserNum = SIn.Long(row["UserNum"].ToString()),
+                DateTimeNote = SIn.DateTime(row["DateTimeNote"].ToString()),
+                Note = SIn.String(row["Note"].ToString())
+            };
             retVal.Add(taskNote);
         }
 

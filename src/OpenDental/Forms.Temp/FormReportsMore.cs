@@ -1,15 +1,10 @@
 using System;
-using System.Diagnostics;
 using System.Windows.Forms;
 using OpenDental.UI;
 using OpenDentBusiness;
 using OpenDental.Bridges;
-using System.Data.Common;
 using System.Collections.Generic;
-using System.Linq;
-using DataConnectionBase;
 using CodeBase;
-using Imedisoft.Core.Caching;
 using Imedisoft.Core.Data;
 using Imedisoft.Core.Entities;
 
@@ -43,9 +38,6 @@ public partial class FormReportsMore:FormODBase {
 		butPW.Visible=Programs.IsEnabled(ProgramName.PracticeWebReports);
 		LayoutMenu();
 		FillLists();
-		if(ProgramProperties.IsAdvertisingDisabled(ProgramName.Podium)) {
-			groupPatientReviews.Visible=false;
-		}
 		if(ProgramProperties.IsAdvertisingDisabled(ProgramName.PracticeByNumbers)) {
 			groupBusiness.Visible=false;
 		}
@@ -753,16 +745,6 @@ public partial class FormReportsMore:FormODBase {
 	private void picturePracticeByNumbers_Click(object sender,EventArgs e) {
 		PracticeByNumbers.ShowPage();
 	}
-
-	private void picturePodium_Click(object sender,EventArgs e) {
-		try {
-			Podium.ShowPage();
-		}
-		catch(Exception ex) {
-			ODMessageBox.Show(ex.Message);
-		}
-	}
-
 }
 
 ///<summary>Used in FormReportsMore to indicate that a non-modal window should be shown.</summary>

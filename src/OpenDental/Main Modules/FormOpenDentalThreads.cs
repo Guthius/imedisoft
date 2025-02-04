@@ -12,9 +12,7 @@ using Imedisoft.Core.Data;
 using Imedisoft.Core.Entities;
 using Imedisoft.Core.Features.Clinics;
 using MySqlConnector;
-using ODApi;
 using OpenDentBusiness;
-using Timer = System.Windows.Forms.Timer;
 
 namespace OpenDental;
 
@@ -22,7 +20,6 @@ public partial class FormOpenDental
 {
     private readonly List<ODThread> _runOnce = [];
     private readonly List<AutoResetEvent> _exitWaitHandles = [];
-    private Timer _timerSignals;
 
     private void SetTimersAndThreads(bool doStart)
     {
@@ -65,14 +62,10 @@ public partial class FormOpenDental
             {
                 BeginClaimReportThread();
                 BeginCanadianItransCarrierThread();
-                BeginEServiceMonitorThread();
                 BeginLogOffThread();
-                BeginOdServiceMonitorThread();
                 BeginUpdateFormTextThread();
                 BeginComputerHeartbeatThread();
-                BeginPodiumThread();
                 CheckAlerts(runOnThread: true);
-                BeginApiEventsThread();
                 return;
             }
 
@@ -111,8 +104,9 @@ public partial class FormOpenDental
             return true;
         }
 
-        var listThreads = ODThread.GetThreadsByGroupName(threadName.GetDescription());
-        return !listThreads.IsNullOrEmpty();
+        var threads = ODThread.GetThreadsByGroupName(threadName.GetDescription());
+        
+        return !threads.IsNullOrEmpty();
     }
 
     private void BeginCanadianItransCarrierThread()
@@ -258,7 +252,7 @@ public partial class FormOpenDental
         {
             ODException.SwallowAnyException(() =>
             {
-                Computers.UpdateHeartBeat(ODEnvironment.MachineName, false);
+                Computers.UpdateHeartBeat(Environment.MachineName, false);
 
                 if (Security.CurUser != null)
                 {
@@ -273,60 +267,6 @@ public partial class FormOpenDental
         thread.Start();
     }
     
-    private void BeginEServiceMonitorThread()
-    {
-        if (IsThreadAlreadyRunning(FormODThreadNames.EServiceMonitoring))
-        {
-            return;
-        }
-
-        if (Security.CurUser == null || !Security.IsAuthorized(EnumPermType.EServicesSetup, true))
-        {
-            return;
-        }
-
-        EServiceSignals.ProcessErrorSignalsAroundTime(PrefC.GetDateT(PrefName.ProgramVersionLastUpdated));
-
-        var thread = new ODThread(60000, EServiceMonitorWorker);
-
-        thread.AddExceptionHandler(_ => { });
-        thread.GroupName = FormODThreadNames.EServiceMonitoring.GetDescription();
-        thread.Name = FormODThreadNames.EServiceMonitoring.GetDescription();
-        thread.Start();
-    }
-
-    private void EServiceMonitorWorker(ODThread odThread)
-    {
-        var status = EServiceSignals.GetListenerServiceStatus();
-        if (status == eServiceSignalSeverity.None)
-        {
-            odThread.QuitAsync();
-            return;
-        }
-
-        if (status != eServiceSignalSeverity.Critical)
-        {
-            return;
-        }
-
-        if (AlertItems.RefreshForType(AlertType.EConnectorDown).Count > 0)
-        {
-            return;
-        }
-
-        AlertItems.Insert(new AlertItem
-        {
-            Actions = ActionType.MarkAsRead | ActionType.OpenForm,
-            Description = "eConnector needs to be restarted",
-            Severity = SeverityType.High,
-            Type = AlertType.EConnectorDown,
-            ClinicNum = -1,
-            FormToOpen = FormType.FormEServicesEConnector,
-        });
-
-        CheckAlerts();
-    }
-
     private void BeginLogOffThread()
     {
         if (IsThreadAlreadyRunning(FormODThreadNames.LogOff))
@@ -334,7 +274,7 @@ public partial class FormOpenDental
             return;
         }
 
-        var thread = new ODThread((int) TimeSpan.FromSeconds(15).TotalMilliseconds, _ => { LogOffWorker(); })
+        var thread = new ODThread((int) TimeSpan.FromSeconds(15).TotalMilliseconds, _ => LogOffWorker())
         {
             GroupName = FormODThreadNames.LogOff.GetDescription(),
             Name = FormODThreadNames.LogOff.GetDescription()
@@ -445,130 +385,6 @@ public partial class FormOpenDental
 
         thread.Start();
     }
-
-    private void BeginOdServiceMonitorThread()
-    {
-        if (IsThreadAlreadyRunning(FormODThreadNames.ODServiceMonitor))
-        {
-            return;
-        }
-
-        var thread = new ODThread((int) TimeSpan.FromMinutes(10).TotalMilliseconds, _ => { AlertItems.CheckOdServiceHeartbeat(); });
-
-        thread.AddExceptionHandler(_ => { });
-        thread.GroupName = FormODThreadNames.ODServiceMonitor.GetDescription();
-        thread.Name = FormODThreadNames.ODServiceMonitor.GetDescription();
-        thread.Start();
-    }
-
-    private void BeginOdServiceStarterThread()
-    {
-        if (IsThreadAlreadyRunning(FormODThreadNames.ODServiceStarter))
-        {
-            return;
-        }
-
-        var thread = new ODThread(_ =>
-        {
-            if (PrefC.GetString(PrefName.WebServiceServerName) != "" && ODEnvironment.IdIsThisComputer(PrefC.GetString(PrefName.WebServiceServerName)))
-            {
-                ServicesHelper.StartServices(ServicesHelper.GetAllOpenDentServices());
-            }
-        });
-
-        thread.AddExceptionHandler(_ => { });
-        thread.GroupName = FormODThreadNames.ODServiceStarter.GetDescription();
-        thread.Name = FormODThreadNames.ODServiceStarter.GetDescription();
-        thread.Start();
-    }
-
-    private void BeginOdDashboardStarterThread()
-    {
-        if (IsThreadAlreadyRunning(FormODThreadNames.Dashboard))
-        {
-            return;
-        }
-
-        var thread = new ODThread(_ =>
-        {
-            RefreshMenuDashboards();
-
-            if (Security.CurUser != null)
-            {
-                InitDashboards(Security.CurUser.UserNum);
-            }
-        });
-
-        thread.AddExceptionHandler(_ =>
-        {
-            if (Security.CurUser == null || Security.CurUser.UserNum == 0)
-            {
-                return;
-            }
-
-            UserOdPrefs.DeleteForValueString(Security.CurUser.UserNum, UserOdFkeyType.Dashboard, string.Empty);
-            DataValid.SetInvalid(InvalidType.UserOdPrefs);
-        });
-
-        thread.GroupName = FormODThreadNames.Dashboard.GetDescription();
-        thread.Name = FormODThreadNames.Dashboard.GetDescription();
-        thread.Start();
-    }
-
-    private void BeginPlaySoundsThread(List<SigMessage> sigMessages)
-    {
-        var thread = new ODThread(_ => PlaySoundsWorker(sigMessages));
-
-        thread.AddExceptionHandler(_ => { });
-        thread.GroupName = FormODThreadNames.PlaySounds.GetDescription();
-        thread.Name = FormODThreadNames.PlaySounds.GetDescription();
-        thread.Start();
-    }
-
-    private static void PlaySoundsWorker(List<SigMessage> sigMessages)
-    {
-        foreach (var sigMessage in sigMessages)
-        {
-            if (sigMessage.AckDateTime.Year > 1880)
-            {
-                continue;
-            }
-
-            var sigElementDefs = SigElementDefs.GetDefsForSigMessage(sigMessage);
-
-            foreach (var sigElement in sigElementDefs)
-            {
-                if (sigElement.Sound == "")
-                {
-                    continue;
-                }
-
-                ODException.SwallowAnyException(() =>
-                {
-                    var rawData = Convert.FromBase64String(sigElement.Sound);
-
-                    SoundHelper.PlaySoundSync(rawData);
-                });
-            }
-
-            Thread.Sleep(1000);
-        }
-    }
-
-    private void BeginPodiumThread()
-    {
-        if (IsThreadAlreadyRunning(FormODThreadNames.Podium))
-        {
-            return;
-        }
-
-        var thread = new ODThread(Podium.PodiumThreadIntervalMS, _ => { Podium.ThreadPodiumSendInvitations(false); });
-
-        thread.AddExceptionHandler(Logger.WriteException);
-        thread.GroupName = FormODThreadNames.Podium.GetDescription();
-        thread.Name = FormODThreadNames.Podium.GetDescription();
-        thread.Start();
-    }
     
     private void BeginShutdownThread()
     {
@@ -583,7 +399,7 @@ public partial class FormOpenDental
 
             CloseOpenForms(true);
 
-            this.Invoke(Application.Exit);
+            Invoke(() => Application.Exit());
         })
         {
             GroupName = FormODThreadNames.Shutdown.GetDescription(),
@@ -632,22 +448,7 @@ public partial class FormOpenDental
         thread.Name = FormODThreadNames.UpdateFormText.GetDescription();
         thread.Start();
     }
-        
-    private void BeginApiEventsThread()
-    {
-        if (IsThreadAlreadyRunning(FormODThreadNames.ApiEvents))
-        {
-            return;
-        }
-
-        var thread = new ODThread(1000, _ => { ApiEvents.FireDbEventsWorker(); });
-            
-        thread.AddExceptionHandler(_ => { });
-        thread.GroupName = FormODThreadNames.ApiEvents.GetDescription();
-        thread.Name = FormODThreadNames.ApiEvents.GetDescription();
-        thread.Start();
-    }
-        
+    
     public enum FormODThreadNames
     {
         CanadianItransCarrier = 1,

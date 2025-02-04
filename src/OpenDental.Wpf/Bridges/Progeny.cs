@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections;
-using System.IO;
-using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading;
-using System.Windows.Forms;
+﻿using System.Windows.Forms;
 using CodeBase;
 using OpenDentBusiness;
 using System.Collections.Generic;
@@ -43,7 +37,7 @@ namespace OpenDental.Bridges {
 					//Double-quotes are removed from id and name to prevent malformed command. ID could have double-quote if chart number.
 					pibridge.StartInfo.Arguments="cmd=open id=\""+id.Replace("\"","")+"\" first=\""+fname.Replace("\"","")+"\" last=\""
 						+lname.Replace("\"","")+"\" dob=\""+birthdate.Replace("\"","")+"\"";
-					ODFileUtils.ProcessStart(pibridge);
+					pibridge.Start();
 				}//if patient is loaded
 				else{
 					//Should start Progeny without bringing up a pt.
@@ -52,7 +46,7 @@ namespace OpenDental.Bridges {
 					pibridge.StartInfo.UseShellExecute=true;
 					pibridge.StartInfo.FileName=path;
 					pibridge.StartInfo.Arguments="cmd=start";
-					ODFileUtils.ProcessStart(pibridge);
+					pibridge.Start();
 				}
 			}
 			catch(ODException ex) {

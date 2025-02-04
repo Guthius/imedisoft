@@ -9,6 +9,7 @@ using Imedisoft.Core.Caching;
 using Imedisoft.Core.Entities;
 using Imedisoft.Core.Features.Clinics;
 using Imedisoft.Core.Features.Clinics.Dtos;
+using Imedisoft.Features.Providers.Dtos;
 
 namespace OpenDental;
 
@@ -18,7 +19,7 @@ public partial class FormReqFieldCondEdit:FormODBase {
 	public List<RequiredFieldCondition> ListRequiredFieldConditions= [];
 	private List<string> _listLanguages;
 	private List<ClinicDto> _listClinics;
-	private List<Provider> _listProviders;
+	private List<ProviderDto> _listProviders;
 	public RequiredFieldName RequiredFieldName_;
 	///<summary>Keeps track of which enum value is at which index.</summary>
 	private List<RequiredFieldName> _listRequiredFieldNames;
@@ -54,9 +55,6 @@ public partial class FormReqFieldCondEdit:FormODBase {
 		if(true) {
 			AddListConditionType(RequiredFieldName.Clinic);
 		}
-		if(PrefC.GetBool(PrefName.ShowFeatureEhr)) {
-			AddListConditionType(RequiredFieldName.DateTimeDeceased);
-		}
 		if(!PrefC.GetBool(PrefName.EasyHideHospitals)) {
 			AddListConditionType(RequiredFieldName.DischargeDate);
 		}
@@ -74,9 +72,9 @@ public partial class FormReqFieldCondEdit:FormODBase {
 		if(!CultureInfo.CurrentCulture.Name.EndsWith("CA")) {// Not Canadian. en-CA or fr-CA
 			AddListConditionType(RequiredFieldName.StudentStatus);
 		}
-		LayoutManagerForms.MoveLocation(textConditionValue1,new Point(textConditionValue1.Location.X,comboOperator1.Location.Y));
-		LayoutManagerForms.MoveLocation(textConditionValue2,new Point(textConditionValue2.Location.X,comboOperator2.Location.Y));
-		LayoutManagerForms.MoveLocation(labelConditionValue2,new Point(labelConditionValue2.Location.X,textConditionValue1.Location.Y+21));
+		textConditionValue1.Location = new Point(textConditionValue1.Location.X,comboOperator1.Location.Y);
+		textConditionValue2.Location = new Point(textConditionValue2.Location.X,comboOperator2.Location.Y);
+		labelConditionValue2.Location = new Point(labelConditionValue2.Location.X,textConditionValue1.Location.Y+21);
 		this.Height-=70;//To take care of the space left by the Conditional Value textboxes
 	}
 
@@ -227,7 +225,7 @@ public partial class FormReqFieldCondEdit:FormODBase {
 				SetFieldVisibleHelper(true);
 				butPickProv.Visible=true;
 				for(var i=0;i<_listProviders.Count;i++) {
-					listConditionValues.Items.Add(_listProviders[i].GetLongDesc());//Only visible provs added to combobox.
+					listConditionValues.Items.Add(_listProviders[i].Description);//Only visible provs added to combobox.
 				}
 				ListValuesSetIndices();
 				break;
@@ -296,7 +294,7 @@ public partial class FormReqFieldCondEdit:FormODBase {
 				continue;
 			}
 			if(requiredFieldNameSelected==RequiredFieldName.PrimaryProvider
-			   && ListRequiredFieldConditions.Exists(x => x.ConditionValue==_listProviders[i].ProvNum.ToString()))
+			   && ListRequiredFieldConditions.Exists(x => x.ConditionValue==_listProviders[i].Id.ToString()))
 			{
 				listConditionValues.SelectedIndices.Add(i);
 				continue;
@@ -318,13 +316,13 @@ public partial class FormReqFieldCondEdit:FormODBase {
 	private void butPickProv_Click(object sender,EventArgs e) {
 		var frmProviderPick=new FrmProviderPick(_listProviders);
 		if(listConditionValues.SelectedIndices.Count>0) {//Initial formProviderPick selection
-			frmProviderPick.ProvNumSelected=_listProviders[listConditionValues.SelectedIndices[0]].ProvNum;
+			frmProviderPick.ProvNumSelected=_listProviders[listConditionValues.SelectedIndices[0]].Id;
 		}
 		frmProviderPick.ShowDialog();
 		if(!frmProviderPick.IsDialogOK) {
 			return;
 		}
-		listConditionValues.SelectedIndices.Add(_listProviders.FindIndex(x => x.ProvNum==frmProviderPick.ProvNumSelected));
+		listConditionValues.SelectedIndices.Add(_listProviders.FindIndex(x => x.Id==frmProviderPick.ProvNumSelected));
 	}
 
 	private void butDelete_Click(object sender,EventArgs e) {
@@ -448,7 +446,7 @@ public partial class FormReqFieldCondEdit:FormODBase {
 				var listFkNums=new List<long>();
 				if(requiredFieldNameSelected==RequiredFieldName.PrimaryProvider) {
 					for(var i=0;i<listConditionValues.SelectedIndices.Count;i++) {
-						listFkNums.Add(_listProviders[listConditionValues.SelectedIndices[i]].ProvNum);
+						listFkNums.Add(_listProviders[listConditionValues.SelectedIndices[i]].Id);
 					}
 				}
 				else if(requiredFieldNameSelected==RequiredFieldName.BillingType) {

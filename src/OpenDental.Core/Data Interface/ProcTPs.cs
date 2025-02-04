@@ -14,15 +14,15 @@ public class ProcTPs
     {
         if (listProcNums.IsNullOrEmpty()) return;
 
-        Db.NonQ($@"UPDATE proctp SET Priority = {SOut.Long(priority)}
-				WHERE TreatPlanNum = {SOut.Long(treatPlanNum)}
-				AND ProcNumOrig IN({string.Join(",", listProcNums.Select(x => SOut.Long(x)))})");
+        Db.NonQ($@"UPDATE proctp SET Priority = {(priority)}
+				WHERE TreatPlanNum = {(treatPlanNum)}
+				AND ProcNumOrig IN({string.Join(",", listProcNums.Select(x => (x)))})");
     }
 
     public static List<ProcTP> Refresh(long patNum)
     {
         var command = "SELECT * FROM proctp "
-                      + "WHERE PatNum=" + SOut.Long(patNum)
+                      + "WHERE PatNum=" + (patNum)
                       + " ORDER BY ItemOrder";
         return ProcTPCrud.SelectMany(command);
     }
@@ -30,7 +30,7 @@ public class ProcTPs
     public static List<ProcTP> RefreshForTP(long tpNum)
     {
         var command = "SELECT * FROM proctp "
-                      + "WHERE TreatPlanNum=" + SOut.Long(tpNum)
+                      + "WHERE TreatPlanNum=" + (tpNum)
                       + " ORDER BY ItemOrder";
         var table = DataCore.GetTable(command);
         return ProcTPCrud.SelectMany(command);
@@ -41,11 +41,11 @@ public class ProcTPs
         ProcTPCrud.Update(proc);
     }
 
-    public static long Insert(ProcTP proc)
+    public static void Insert(ProcTP proc)
     {
         //Security.CurUser.UserNum gets set on MT by the DtoProcessor so it matches the user from the client WS.
         proc.SecUserNumEntry = Security.CurUser.UserNum;
-        return ProcTPCrud.Insert(proc);
+        ProcTPCrud.Insert(proc);
     }
 
     public static void InsertOrUpdate(ProcTP proc, bool isNew)
@@ -58,20 +58,20 @@ public class ProcTPs
 
     public static void Delete(ProcTP proc)
     {
-        var command = "DELETE from proctp WHERE ProcTPNum = '" + SOut.Long(proc.ProcTPNum) + "'";
+        var command = "DELETE from proctp WHERE ProcTPNum = '" + (proc.ProcTPNum) + "'";
         Db.NonQ(command);
     }
 
     public static void DeleteForTP(long treatPlanNum)
     {
         var command = "DELETE FROM proctp "
-                      + "WHERE TreatPlanNum=" + SOut.Long(treatPlanNum);
+                      + "WHERE TreatPlanNum=" + (treatPlanNum);
         Db.NonQ(command);
     }
 
     public static List<ProcTP> GetForProcs(List<long> listProcNums)
     {
-        if (listProcNums.Count == 0) return new List<ProcTP>();
+        if (listProcNums.Count == 0) return [];
         var command = "SELECT * FROM proctp "
                       + "WHERE proctp.ProcNumOrig IN (" + string.Join(",", listProcNums) + ")";
         return ProcTPCrud.SelectMany(command);
@@ -80,7 +80,7 @@ public class ProcTPs
     public static List<ProcTP> GetAllLim(List<long> listTreatPlanNums)
     {
         if (listTreatPlanNums.IsNullOrEmpty()) //No need to go through middletier if we know listTreatPlanNums is empty. Return early.
-            return new List<ProcTP>();
+            return [];
 
         var command = "SELECT TreatPlanNum,PatNum,ProcNumOrig FROM proctp "
                       + "WHERE proctp.TreatPlanNum IN (" + string.Join(",", listTreatPlanNums) + ")";

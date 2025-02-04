@@ -25,17 +25,18 @@ public class ProviderClinicCrud
     public static List<ProviderClinic> TableToList(DataTable table)
     {
         var retVal = new List<ProviderClinic>();
-        ProviderClinic providerClinic;
         foreach (DataRow row in table.Rows)
         {
-            providerClinic = new ProviderClinic();
-            providerClinic.ProviderClinicNum = SIn.Long(row["ProviderClinicNum"].ToString());
-            providerClinic.ProvNum = SIn.Long(row["ProvNum"].ToString());
-            providerClinic.ClinicNum = SIn.Long(row["ClinicNum"].ToString());
-            providerClinic.DEANum = SIn.String(row["DEANum"].ToString());
-            providerClinic.StateLicense = SIn.String(row["StateLicense"].ToString());
-            providerClinic.StateRxID = SIn.String(row["StateRxID"].ToString());
-            providerClinic.StateWhereLicensed = SIn.String(row["StateWhereLicensed"].ToString());
+            var providerClinic = new ProviderClinic
+            {
+                ProviderClinicNum = SIn.Long(row["ProviderClinicNum"].ToString()),
+                ProvNum = SIn.Long(row["ProvNum"].ToString()),
+                ClinicNum = SIn.Long(row["ClinicNum"].ToString()),
+                DEANum = SIn.String(row["DEANum"].ToString()),
+                StateLicense = SIn.String(row["StateLicense"].ToString()),
+                StateRxID = SIn.String(row["StateRxID"].ToString()),
+                StateWhereLicensed = SIn.String(row["StateWhereLicensed"].ToString())
+            };
             retVal.Add(providerClinic);
         }
 
@@ -59,20 +60,6 @@ public class ProviderClinicCrud
         {
             providerClinic.ProviderClinicNum = Db.NonQ(command, true, "ProviderClinicNum", "providerClinic");
         }
-    }
-
-    public static void Update(ProviderClinic providerClinic)
-    {
-        var command = "UPDATE providerclinic SET "
-                      + "ProvNum             =  " + SOut.Long(providerClinic.ProvNum) + ", "
-                      + "ClinicNum           =  " + SOut.Long(providerClinic.ClinicNum) + ", "
-                      + "DEANum              = '" + SOut.String(providerClinic.DEANum) + "', "
-                      + "StateLicense        = '" + SOut.String(providerClinic.StateLicense) + "', "
-                      + "StateRxID           = '" + SOut.String(providerClinic.StateRxID) + "', "
-                      + "StateWhereLicensed  = '" + SOut.String(providerClinic.StateWhereLicensed) + "', "
-                      + "CareCreditMerchantId= '" + SOut.String(providerClinic.CareCreditMerchantId) + "' "
-                      + "WHERE ProviderClinicNum = " + SOut.Long(providerClinic.ProviderClinicNum);
-        Db.NonQ(command);
     }
 
     public static bool Update(ProviderClinic providerClinic, ProviderClinic oldProviderClinic)
@@ -147,15 +134,13 @@ public class ProviderClinicCrud
         var idxNew = 0;
         var idxDB = 0;
         var rowsUpdatedCount = 0;
-        ProviderClinic fieldNew;
-        ProviderClinic fieldDB;
         //Because both lists have been sorted using the same criteria, we can now walk each list to determine which list contians the next element.  The next element is determined by Primary Key.
         //If the New list contains the next item it will be inserted.  If the DB contains the next item, it will be deleted.  If both lists contain the next item, the item will be updated.
         while (idxNew < listNew.Count || idxDB < listDB.Count)
         {
-            fieldNew = null;
+            ProviderClinic fieldNew = null;
             if (idxNew < listNew.Count) fieldNew = listNew[idxNew];
-            fieldDB = null;
+            ProviderClinic fieldDB = null;
             if (idxDB < listDB.Count) fieldDB = listDB[idxDB];
             //begin compare
             if (fieldNew != null && fieldDB == null)

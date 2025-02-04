@@ -17,23 +17,17 @@
 
 
 using System;
-using System.Collections;
-using System.ComponentModel;
 using System.Data;
 using System.Drawing;
-using System.Text;
 using System.Windows.Forms;
 using OpenDentBusiness;
-using OpenDental.UI;
 using System.Drawing.Printing;
 using System.Collections.Generic;
 using System.Globalization;
-using System.IO;
-using System.Text.RegularExpressions;
-using Microsoft.Win32;
 using CodeBase;
 using DataConnectionBase;
 using Imedisoft.Core.Entities;
+using Imedisoft.Features.Providers.Dtos;
 using OpenDental.Logic;
 
 
@@ -48,7 +42,7 @@ public partial class FormRpLaserLabels:FormODBase {
 	private string[] colName = new string[20];
 	private int iLabelStart=0;
 	private System.Windows.Forms.PictureBox[] picLabel = new System.Windows.Forms.PictureBox[30];
-	private List<Provider> _listProviders;
+	private List<ProviderDto> _listProviders;
 
 	public FormRpLaserLabels() {
 		InitializeComponent();
@@ -59,7 +53,7 @@ public partial class FormRpLaserLabels:FormODBase {
 	//
 	private void FormLaserLabels_Load(object sender,System.EventArgs e) {
 		_listProviders=Providers.GetDeepCopy(true);
-		listProviders.Items.AddList(_listProviders,x => x.GetLongDesc());
+		listProviders.Items.AddList(_listProviders,x => x.Description);
 		if(listProviders.Items.Count>0) {
 			listProviders.SelectedIndex=0;
 		}
@@ -102,7 +96,7 @@ public partial class FormRpLaserLabels:FormODBase {
 					if(i>0) {
 						whereProv += ",";
 					}
-					whereProv += "'" + SOut.Long(_listProviders[listProviders.SelectedIndices[i]].ProvNum) + "'";
+					whereProv += "'" + SOut.Long(_listProviders[listProviders.SelectedIndices[i]].Id) + "'";
 				}
 				whereProv += ") ";
 				patStat = BuildPatStatList(checkActiveOnly.Checked);
@@ -411,7 +405,7 @@ public partial class FormRpLaserLabels:FormODBase {
 				else {
 					picLabel[cnt].Image = global::OpenDental.Properties.Resources.butLabel;
 				}
-				LayoutManagerForms.Add(picLabel[cnt],panLabels);
+				panLabels.Controls.Add(picLabel[cnt]);
 				cnt += 1;
 			}
 			y += 23;

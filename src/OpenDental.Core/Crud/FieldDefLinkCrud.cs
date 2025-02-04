@@ -18,14 +18,15 @@ public class FieldDefLinkCrud
     public static List<FieldDefLink> TableToList(DataTable table)
     {
         var retVal = new List<FieldDefLink>();
-        FieldDefLink fieldDefLink;
         foreach (DataRow row in table.Rows)
         {
-            fieldDefLink = new FieldDefLink();
-            fieldDefLink.FieldDefLinkNum = SIn.Long(row["FieldDefLinkNum"].ToString());
-            fieldDefLink.FieldDefNum = SIn.Long(row["FieldDefNum"].ToString());
-            fieldDefLink.FieldDefType = (FieldDefTypes) SIn.Int(row["FieldDefType"].ToString());
-            fieldDefLink.FieldLocation = (FieldLocations) SIn.Int(row["FieldLocation"].ToString());
+            var fieldDefLink = new FieldDefLink
+            {
+                FieldDefLinkNum = SIn.Long(row["FieldDefLinkNum"].ToString()),
+                FieldDefNum = SIn.Long(row["FieldDefNum"].ToString()),
+                FieldDefType = (FieldDefTypes) SIn.Int(row["FieldDefType"].ToString()),
+                FieldLocation = (FieldLocations) SIn.Int(row["FieldLocation"].ToString())
+            };
             retVal.Add(fieldDefLink);
         }
 
@@ -108,15 +109,13 @@ public class FieldDefLinkCrud
         var idxNew = 0;
         var idxDB = 0;
         var rowsUpdatedCount = 0;
-        FieldDefLink fieldNew;
-        FieldDefLink fieldDB;
         //Because both lists have been sorted using the same criteria, we can now walk each list to determine which list contians the next element.  The next element is determined by Primary Key.
         //If the New list contains the next item it will be inserted.  If the DB contains the next item, it will be deleted.  If both lists contain the next item, the item will be updated.
         while (idxNew < listNew.Count || idxDB < listDB.Count)
         {
-            fieldNew = null;
+            FieldDefLink fieldNew = null;
             if (idxNew < listNew.Count) fieldNew = listNew[idxNew];
-            fieldDB = null;
+            FieldDefLink fieldDB = null;
             if (idxDB < listDB.Count) fieldDB = listDB[idxDB];
             //begin compare
             if (fieldNew != null && fieldDB == null)

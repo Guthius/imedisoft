@@ -1,10 +1,6 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
 using System.Drawing;
-using System.Drawing.Design;
 using System.Drawing.Drawing2D;
 using System.Drawing.Printing;
 using System.Drawing.Text;
@@ -15,18 +11,14 @@ using System.Windows.Forms;
 using OpenDentBusiness;
 using CodeBase;
 using OpenDental.UI;
-using System.Threading;
-using OpenDentBusiness.WebTypes.WebForms;
-using System.Net;
-using System.Globalization;
 using System.Text.RegularExpressions;
 using System.Xml.Serialization;
 using System.Xml;
 using DataConnectionBase;
 using Imedisoft.Core.Caching;
-using Imedisoft.Core.Data;
 using Imedisoft.Core.Entities;
 using Imedisoft.Core.Features.Clinics;
+using OpenDental.Chart;
 
 namespace OpenDental;
 
@@ -57,10 +49,6 @@ public partial class FormSheetDefEdit:FormODBase {
 	private int _gridSnapDistance=0;
 	///<summary>When you first mouse down, if you clicked on blank space instead of a control, this will be true.</summary>
 	private bool _isDraggingSelectionRect;
-	///<summary>This stores the previous calculations so that we don't have to recal unless certain things have changed.  The key is the index of the sheetfield.  The data is an array of objects of different types as seen in the code.</summary>
-	private Hashtable _hashTableRtfStringCache=new Hashtable();
-	///<summary>Set to true if the web forms have been downloaded or if an error occurred.</summary>
-	private bool _hasSheetsDownloaded=false;
 	///<summary>Keep track of when the bounds of this window are programmatically changed.
 	///Used to help prevent resizing when users are simply moving the window.</summary>
 	private bool _hasWindowBoundsChanged=false;
@@ -87,8 +75,6 @@ public partial class FormSheetDefEdit:FormODBase {
 	private List<SheetDefLanguage> _listSheetDefLanguagesUsed;
 	///<summary>Infinite undo levels.  Every time the user changes something, a new level is added to this list. The last item in this list should normally match what the user is seeing. If they "undo", then we pull from the list, tracking the _undoLevel instead of removing from the list so that they can "redo".</summary>
 	private List<UndoLevel> _listUndoLevels= [];
-	///<summary>If the sheet def is linked to any web sheets, this will hold those web sheet defs.</summary>
-	private List<WebForms_SheetDef> _listWebForms_SheetDefs;
 	private object _lock=new object();
 	///<summary>In panel coords.</summary>
 	private Point _pointMouseCurrentPos;
@@ -110,7 +96,7 @@ public partial class FormSheetDefEdit:FormODBase {
 	private Size _sizeResizeOriginal;
 	///<summary>0-indexed, starting from the end of the list. 0 represents the last item in the undo list. Since it matches what the viewer sees, we are 0 levels deep. An undo will move us to position 1, which is the second from the end in the list. When we are at level 1, we have 1 redo available.</summary>
 	private int _undoLevel;
-	private int counterTemp;
+
 	#endregion Fields - Private
 
 	#region Constructor
@@ -411,9 +397,6 @@ public partial class FormSheetDefEdit:FormODBase {
 		if(!_sheetEditMobileCtrl.MergeMobileSheetFieldDefs(SheetDef_,true,new Action<string>((err) => { MsgBox.Show(this,err); }))) {
 			return;
 		}
-		if(!UpdateWebSheetDef()) {
-			return;
-		}
 		if(!UpdateRevisionID()) {
 			return;
 		}
@@ -637,7 +620,6 @@ public partial class FormSheetDefEdit:FormODBase {
 
 	private void FormSheetDefEdit_KeyDown(object sender,KeyEventArgs e) {
 		var listSheetFieldDefs=listBoxFields.GetListSelected<SheetFieldDef>();
-		var doRefreshBuffer=false;
 		e.Handled=true;
 		if(e.KeyCode==Keys.ControlKey && _isCtrlDown) {
 			return;//I think the Control Key fires repeatedly while held down
@@ -679,7 +661,6 @@ public partial class FormSheetDefEdit:FormODBase {
 			for(var i=listSheetFieldDefs.Count-1;i>=0;i--) { //iterate backward through list
 				var sheetFieldDef=listSheetFieldDefs[i];
 				if(sheetFieldDef.FieldType==SheetFieldType.Image) {
-					doRefreshBuffer=true;
 				}
 				if(sheetFieldDef.FieldType==SheetFieldType.Grid && sheetFieldDef.FieldName=="TreatPlanMain"
 				                                                && SheetDef_.SheetFieldDefs.FindAll(x=>x.FieldType==SheetFieldType.Grid && x.FieldName=="TreatPlanMain").Count==1) 
@@ -699,7 +680,6 @@ public partial class FormSheetDefEdit:FormODBase {
 				var newX=listSheetFieldDefs[i].XPos;
 				var newY=listSheetFieldDefs[i].YPos;
 				if(listSheetFieldDefs[i].FieldType==SheetFieldType.Image) {
-					doRefreshBuffer=true;
 				}
 				switch(e.KeyCode) {
 					case Keys.Up:
@@ -810,7 +790,6 @@ public partial class FormSheetDefEdit:FormODBase {
 		butSigBoxPractice.Visible=listSheetFieldTypes.Contains(SheetFieldType.SigBoxPractice);
 		butSpecial.Visible=listSheetFieldTypes.Contains(SheetFieldType.Special);
 		butGrid.Visible=listSheetFieldTypes.Contains(SheetFieldType.Grid);
-		butScreenChart.Visible=listSheetFieldTypes.Contains(SheetFieldType.ScreenChart);
 		labelMobileHeader.Visible=listSheetFieldTypes.Contains(SheetFieldType.MobileHeader);
 		checkShowOutputText.Visible=listSheetFieldTypes.Contains(SheetFieldType.OutputText);
 		checkShowInputField.Visible=listSheetFieldTypes.Contains(SheetFieldType.InputField);
@@ -825,7 +804,6 @@ public partial class FormSheetDefEdit:FormODBase {
 		checkShowSigBoxPractice.Visible=listSheetFieldTypes.Contains(SheetFieldType.SigBoxPractice);
 		checkShowSpecial.Visible=listSheetFieldTypes.Contains(SheetFieldType.Special);
 		checkShowGrid.Visible=listSheetFieldTypes.Contains(SheetFieldType.Grid);
-		checkShowScreenChart.Visible=listSheetFieldTypes.Contains(SheetFieldType.ScreenChart);
 		checkShowMobileHeader.Visible=listSheetFieldTypes.Contains(SheetFieldType.MobileHeader);
 		_sheetEditMobileCtrl.IsReadOnly=IsInternal;
 		butMobile.Visible=SheetDefs.IsMobileAllowed(SheetDef_.SheetType);
@@ -854,17 +832,6 @@ public partial class FormSheetDefEdit:FormODBase {
 		if(SheetDef_.HasMobileLayout) { //Always open the mobile editor since they want to use the mobile layout.
 			ShowMobile();
 		}
-		var threadGetWebSheetId=new ODThread(GetWebSheetDefs);
-		threadGetWebSheetId.AddExceptionHandler(new ODThread.ExceptionDelegate((Exception _) => {
-			//So that the main thread will know the worker thread is done getting the web sheet defs.
-			_hasSheetsDownloaded=true;
-		}));
-		threadGetWebSheetId.AddExitHandler(new ODThread.WorkerDelegate((ODThread _) => {
-			//So that the main thread will know the worker thread is done getting the web sheet defs.
-			_hasSheetsDownloaded=true;
-		}));
-		threadGetWebSheetId.Name="GetWebSheetIdThread";
-		threadGetWebSheetId.Start(true);
 		this.Text="Sheet Def Edit - Revision "+SheetDef_.RevID;
 		_sheetEditMobileCtrl.SyncSheetFieldsWithDefualt=checkSynchMatchedFields.Checked;
 		//textDescription.Focus();
@@ -976,7 +943,6 @@ public partial class FormSheetDefEdit:FormODBase {
 		_isMouseDown=true;
 		_isDraggingSelectionRect=false;
 		_pointMouseOriginalPos=e.Location;
-		counterTemp=0;
 		_pointMouseCurrentPos=e.Location;
 		var sheetFieldDef=HitTest(pointDoc.X,pointDoc.Y);
 		if(_isTabMode) {
@@ -1380,10 +1346,6 @@ public partial class FormSheetDefEdit:FormODBase {
 	}
 
 	private void butImage_Click(object sender,EventArgs e) {
-		if(false) {
-			MsgBox.Show(this,"Not allowed because not using AtoZ folder");
-			return;
-		}
 		//Font font=new Font(SheetDefCur.FontName,SheetDefCur.FontSize);
 		using var formSheetFieldImage=new FormSheetFieldImage();
 		formSheetFieldImage.SheetDefCur=SheetDef_;
@@ -1400,10 +1362,6 @@ public partial class FormSheetDefEdit:FormODBase {
 	}
 
 	private void butPatImage_Click(object sender,EventArgs e) {
-		if(false) {
-			MsgBox.Show(this,"Not allowed because not using AtoZ folder");
-			return;
-		}
 		//Font font=new Font(SheetDefCur.FontName,SheetDefCur.FontSize);
 		using var formSheetFieldPatImage=new FormSheetFieldPatImage();
 		formSheetFieldPatImage.SheetDefCur=SheetDef_;
@@ -1491,7 +1449,7 @@ public partial class FormSheetDefEdit:FormODBase {
 		formSheetFieldGrid.SheetDefCur=SheetDef_;
 		if(SheetDefs.IsDashboardType(SheetDef_)) {
 			//is resized in dialog window.
-			formSheetFieldGrid.SheetFieldDefCur=SheetFieldDef.NewGrid(DashApptGrid.SheetFieldName,0,0,100,150,growthBehavior:GrowthBehaviorEnum.None); 
+			formSheetFieldGrid.SheetFieldDefCur=SheetFieldDef.NewGrid("ApptsGrid",0,0,100,150,growthBehavior:GrowthBehaviorEnum.None); 
 		}
 		else {
 			var frmSheetFieldGridType=new FrmSheetFieldGridType();
@@ -1521,24 +1479,6 @@ public partial class FormSheetDefEdit:FormODBase {
 		panelMain.Invalidate();
 	}
 
-	private void butScreenChart_Click(object sender,EventArgs e) {
-		var fieldValue="0;d,m,ling;d,m,ling;,,;,,;,,;,,;m,d,ling;m,d,ling;m,d,buc;m,d,buc;,,;,,;,,;,,;d,m,buc;d,m,buc";
-		SheetFieldDef sheetFieldDef=null;
-		if(!HasChartSealantComplete()) {
-			sheetFieldDef=SheetFieldDef.NewScreenChart("ChartSealantComplete",fieldValue,0,0);
-		}
-		else if(!HasChartSealantTreatment()) {
-			sheetFieldDef=SheetFieldDef.NewScreenChart("ChartSealantTreatment",fieldValue,0,0);
-		}
-		else {
-			MsgBox.Show(this,"Only two charts are allowed per screening sheet.");
-			return;
-		}
-		AddNewSheetFieldDef(sheetFieldDef);
-		FillFieldList();
-		panelMain.Invalidate();
-	}
-
 	#endregion Methods - Event Handlers - Add Buttons
 
 	#region Methods - Event Handlers - Show
@@ -1556,7 +1496,6 @@ public partial class FormSheetDefEdit:FormODBase {
 		checkShowSigBoxPractice.Checked=true;
 		checkShowSpecial.Checked=true;
 		checkShowGrid.Checked=true;
-		checkShowScreenChart.Checked=true;
 		checkShowMobileHeader.Checked=true;
 		FillFieldList();
 		panelMain.Invalidate();
@@ -1576,7 +1515,6 @@ public partial class FormSheetDefEdit:FormODBase {
 		checkShowSigBoxPractice.Checked=false;
 		checkShowSpecial.Checked=false;
 		checkShowGrid.Checked=false;
-		checkShowScreenChart.Checked=false;
 		checkShowMobileHeader.Checked=false;
 		FillFieldList();
 		panelMain.Invalidate();
@@ -1684,10 +1622,6 @@ public partial class FormSheetDefEdit:FormODBase {
 		for(var i=0;i<arrThreeLetterLanguages.Count();i++) {
 			if(arrThreeLetterLanguages[i].IsNullOrEmpty()){//Ignore 'Default' 
 				continue;
-			}
-			var countScreenChartsForLanguage=SheetDef_.SheetFieldDefs.FindAll(x=>x.Language==arrThreeLetterLanguages[i] && x.FieldType==SheetFieldType.ScreenChart).Count();
-			if(sheetFieldDefDefault.FieldType==SheetFieldType.ScreenChart && countScreenChartsForLanguage==2) {
-				continue;//only 2 screencharts are allowed per translation
 			}
 			var sheetFieldDefCopy=sheetFieldDefDefault.Copy();
 			sheetFieldDefCopy.Language=arrThreeLetterLanguages[i];
@@ -1966,48 +1900,7 @@ public partial class FormSheetDefEdit:FormODBase {
 		}
 		return listSheetFieldDefs;
 	}
-
-	///<summary>Fills _listWebSheetIds with any webforms_sheetdefs that have the same SheetDefNum of the current SheetDef.</summary>
-	private void GetWebSheetDefs(ODThread odThread) {
-		//Ignore the certificate errors for the staging machine and development machine
-		if(PrefC.GetString(PrefName.WebHostSynchServerURL).In(WebFormL.SynchUrlStaging,WebFormL.SynchUrlDev)) {
-			WebFormL.IgnoreCertificateErrors();
-		}
-		List<WebForms_SheetDef> listWebForms_SheetDefs;
-		if(WebForms_SheetDefs.TryDownloadSheetDefs(out listWebForms_SheetDefs)) {
-			lock(_lock) {
-				_listWebForms_SheetDefs=listWebForms_SheetDefs.FindAll(x => x.SheetDefNum==SheetDef_.SheetDefNum);
-			}
-		}
-	}
-
-	private bool HasScreeningChart(bool isTreatmentChart) {
-		if(SheetDef_.SheetType!=SheetTypeEnum.Screening) {
-			return false;
-		}
-		var listSheetFieldDefsPertinent=SheetDef_.SheetFieldDefs.FindAll( x => x.LayoutMode==_sheetFieldLayoutMode && x.Language==GetSelectedLanguageThreeLetters());
-		var listSheetFieldDefs=listSheetFieldDefsPertinent;
-		if(listSheetFieldDefs.Count==0) {
-			return false;
-		}
-		string chartName;
-		if(isTreatmentChart) {
-			chartName="ChartSealantTreatment";
-		}
-		else {
-			chartName="ChartSealantComplete";
-		}
-		return listSheetFieldDefs.Any(x => x.FieldType==SheetFieldType.ScreenChart && x.FieldName==chartName);
-	}
-
-	private bool HasChartSealantComplete() {
-		return HasScreeningChart(isTreatmentChart:false);
-	}
-
-	private bool HasChartSealantTreatment() {
-		return HasScreeningChart(isTreatmentChart:true);
-	}
-
+	
 	///<summary>Check to see if a diagonal line intersects a specified click or rectangle location by passing in the sheetDef and specified area.<summary>
 	private bool HasSelectedDiagonalLine(SheetFieldDef sheetFieldDef,Rectangle rectangleCheck) {
 		var lineXStart=(double)sheetFieldDef.Bounds.X;//x value starting point
@@ -2254,9 +2147,6 @@ public partial class FormSheetDefEdit:FormODBase {
 		if(sheetFieldType==SheetFieldType.Grid){
 			return checkShowGrid.Checked;
 		}
-		if(sheetFieldType==SheetFieldType.ScreenChart){
-			return checkShowScreenChart.Checked;
-		}
 		if(sheetFieldType==SheetFieldType.MobileHeader){
 			return checkShowMobileHeader.Checked;
 		}
@@ -2435,19 +2325,6 @@ public partial class FormSheetDefEdit:FormODBase {
 					hasClickedDelete=formSheetFieldGrid.SheetFieldDefCur==null;
 				}
 				break;
-			case SheetFieldType.ScreenChart:
-				using(var formSheetFieldChart=new FormSheetFieldChart()){
-					formSheetFieldChart.SheetDefCur=SheetDef_;
-					formSheetFieldChart.SheetFieldDefCur=sheetFieldDef;
-					formSheetFieldChart.IsReadOnly=IsInternal;
-					formSheetFieldChart.IsEditMobile=isEditMobile;
-					formSheetFieldChart.ShowDialog();
-					if(formSheetFieldChart.DialogResult!=DialogResult.OK) {
-						return;
-					}
-					hasClickedDelete=formSheetFieldChart.SheetFieldDefCur==null;
-				}
-				break;
 			case SheetFieldType.MobileHeader:
 				var inputBoxParam=new InputBoxParam();
 				inputBoxParam.InputBoxType_=InputBoxType.TextBox;
@@ -2617,41 +2494,7 @@ public partial class FormSheetDefEdit:FormODBase {
 		//Focus on main form. This ensures that if/when the alt key is released, the proper handler will execute. Fixes bug where user becomes stuck in paste mode.
 		this.Focus();
 	}
-
-	private bool PromptUpdateEClipboardSheetDefs() {
-		var listEClipboardSheetDefs = EClipboardSheetDefs.GetAllForSheetDefForOnceRule(SheetDef_.SheetDefNum);
-		if(listEClipboardSheetDefs == null || listEClipboardSheetDefs.Count == 0) {
-			return true; // nothing to update, no need to prompt.
-		}
-		var message = $"At least one eClipboard sheet currently uses this Sheet Def. If you check the box and press 'OK', patients will be forced to fill this form out again the next time they check in using eClipboard.";
-		var listInputBoxParams=new List<InputBoxParam>();
-		var inputBoxParam=new InputBoxParam();
-		inputBoxParam.InputBoxType_=InputBoxType.CheckBox;
-		inputBoxParam.LabelText=message;
-		inputBoxParam.Text="Force patients to fill out again";
-		inputBoxParam.SizeParam=new System.Windows.Size(200,80);
-		inputBoxParam.PointPosition=new System.Windows.Point(15,30);
-		listInputBoxParams.Add(inputBoxParam);
-		var inputBox = new InputBox(listInputBoxParams);
-		inputBox.ShowDialog();
-		if(inputBox.IsDialogCancel) {
-			return false; // don't save the sheet
-		}
-		if(!inputBox.BoolResult) {
-			return true; // save the sheet but don't update override
-		}
-		message = "Are you sure you want to force all patients to fill out this form again? Clicking 'No' will not update the eClipboard version of this sheet.";
-		if(ODMessageBox.Show(message,"",MessageBoxButtons.YesNo)==DialogResult.No) {
-			return true; // save sheet, but don't update override
-		}
-		//got to here, user wants to update eClipboard sheets and force patients to refill them.
-		for(var i=0;i<listEClipboardSheetDefs.Count();i++) {
-			listEClipboardSheetDefs[i].PrefillStatusOverride=SheetDef_.RevID;
-			EClipboardSheetDefs.Update(listEClipboardSheetDefs[i]);
-		}
-		return true;
-	}
-
+	
 	///<summary>Refreshes local _listUsedLanguages and _listUnusedLanguages data. Called when loading or after user adds a new language for translations.</summary>
 	private void RefreshLanguages(string selectedThreeLetterLanguage=null) {
 		var listAllLanguages=PrefC.GetString(PrefName.LanguagesUsedByPatients)//Must be before initial InitLayoutModes().
@@ -2759,38 +2602,6 @@ public partial class FormSheetDefEdit:FormODBase {
 		}
 	}
 
-	///<summary>Updates the web sheet defs linked to this sheet def if the user agrees. Returns true if this sheet is okay to be saved to the database.</summary>
-	private bool UpdateWebSheetDef() {
-		if(SheetDef_.IsNew) {
-			//There is no Web Form to sync because they just created this sheet def.
-			//Without this return we would show the user that this Sheet Def matches all web forms that are not yet linked to a valid Sheet Def.
-			return true;
-		}
-		Cursor=Cursors.WaitCursor;
-		while(!_hasSheetsDownloaded) {//The thread has not finished getting the list. 
-			Application.DoEvents();
-			Thread.Sleep(100);
-		}
-		Cursor=Cursors.Default;
-		if(_listWebForms_SheetDefs==null || _listWebForms_SheetDefs.Count==0) {//No web forms use this sheet def.
-			return true;
-		}
-		var message=Lan.g(this,"This Sheet Def is used by the following web "+(_listWebForms_SheetDefs.Count==1?"form":"forms"))+":\r\n"
-		                                                                                                                        +string.Join("\r\n",_listWebForms_SheetDefs.Select(x => x.Description))+"\r\n"
-		                                                                                                                        +Lan.g(this,"Do you want to update "+(_listWebForms_SheetDefs.Count==1?"that web form":"those web forms")+"?");
-		if(ODMessageBox.Show(message,"",MessageBoxButtons.YesNo)==DialogResult.No) {
-			return true;
-		}
-		if(!WebFormL.VerifyRequiredFieldsPresent(SheetDef_)) {
-			return false;
-		}
-		Cursor=Cursors.WaitCursor;
-		WebFormL.LoadImagesToSheetDef(SheetDef_);
-		var isSuccess=WebFormL.TryAddOrUpdateSheetDef(this,SheetDef_,false,_listWebForms_SheetDefs);
-		Cursor=Cursors.Default;
-		return isSuccess;
-	}
-
 	///<summary>Updates the sheetdef's revision ID if any fielddef was added or removed from the sheet def or if any static text was changed. If the revision ID is increased, also handles prompting the user if they would like to force patient's to fill out this sheet def again. Returns true if sheetdef is ready to be saved. Returns false if user does not want to save sheet def changes and wants to remain on the form. </summary>
 	private bool UpdateRevisionID() {
 		var sheetDefStored=SheetDefs.GetSheetDef(SheetDef_.SheetDefNum,false);//Go to DB to get current copy of sheetdef.
@@ -2815,9 +2626,6 @@ public partial class FormSheetDefEdit:FormODBase {
 		//If we added/subtracted any field defs or changed any static text, increment the revision ID. 
 		if(sheetDefStored.SheetFieldDefs.Count!=SheetDef_.SheetFieldDefs.Count || staticTextWasChanged) {
 			SheetDef_.RevID++;
-			if(!PromptUpdateEClipboardSheetDefs()) {//Revision number changed, so prompt to generate the sheet again for patients who have already filled the previous version of this sheet.
-				return false;
-			}
 		}
 		return true;
 	}
@@ -3108,9 +2916,6 @@ public partial class FormSheetDefEdit:FormODBase {
 			DrawFieldType(SheetFieldType.ComboBox,listSheetFieldDefs[i],isHighlightEligible,selectedLanguage,listSheetFieldDefsSelected,sheetDef,g);
 		}
 		for(var i=0;i<listSheetFieldDefs.Count;i++) {
-			DrawFieldType(SheetFieldType.ScreenChart,listSheetFieldDefs[i],isHighlightEligible,selectedLanguage,listSheetFieldDefsSelected,sheetDef,g);
-		}
-		for(var i=0;i<listSheetFieldDefs.Count;i++) {
 			DrawFieldType(SheetFieldType.Special,listSheetFieldDefs[i],isHighlightEligible,selectedLanguage,listSheetFieldDefsSelected,sheetDef,g);
 		}
 		for(var i=0;i<listSheetFieldDefs.Count;i++) {
@@ -3161,9 +2966,6 @@ public partial class FormSheetDefEdit:FormODBase {
 			case SheetFieldType.ComboBox:
 				DrawComboBox(sheetFieldDef,g,isFieldSelected);
 				DrawTabMode(sheetFieldDef,g,isHighlightEligible);
-				return;
-			case SheetFieldType.ScreenChart:
-				DrawScreenChart(sheetFieldDef,g,isFieldSelected);
 				return;
 			case SheetFieldType.SigBox:
 			case SheetFieldType.SigBoxPractice:
@@ -3785,27 +3587,7 @@ public partial class FormSheetDefEdit:FormODBase {
 			g.DrawString(sheetFieldDef.TabOrder.ToString(),_fontTabOrder,Brushes.White,rectangleTab.X,rectangleTab.Y-1);
 		}
 	}
-
-	private void DrawScreenChart(SheetFieldDef sheetFieldDef,Graphics g,bool isSelected) {
-		var color=_colorGray;
-		if(isSelected) {
-			color=_colorRed;
-		}
-		using var pen=new Pen(color);
-		using var solidBrush=new SolidBrush(color);
-		g.DrawRectangle(pen,sheetFieldDef.XPos,sheetFieldDef.YPos,sheetFieldDef.Width,sheetFieldDef.Height);
-		var toothChart="("+Lan.g(this,"screen chart")+" "+sheetFieldDef.FieldName;
-		if(sheetFieldDef.FieldValue[0]=='1') {//Primary teeth chart
-			toothChart+=" "+Lan.g(this,"primary teeth");
-		}
-		else {//Permanent teeth chart
-			toothChart+=" "+Lan.g(this,"permanent teeth");
-		}
-		toothChart+=")";
-		using var font=new Font(sheetFieldDef.FontName,8.25f);
-		g.DrawString(toothChart,font,solidBrush,sheetFieldDef.XPos,sheetFieldDef.YPos);
-	}
-
+	
 	///<summary>Returns a color to be used when we want to consider the defs language value.</summary>
 	private Color GetOutlineColorForSheetFieldDef(SheetFieldDef sheetFieldDef,Color colorDefault,bool isSelected=false){
 		if(sheetFieldDef.Language.IsNullOrEmpty()){//Always use defaultPen when working with a non-translated def.
@@ -3852,7 +3634,7 @@ public partial class FormSheetDefEdit:FormODBase {
 		if(_imageToothChart!=null){
 			return;//only designed to run once
 		}
-		var toothChartWrapper=new SparksToothChart.ToothChartWrapper();
+		var toothChartWrapper=new ToothChartWrapper();
 		var toothChartRelay= new ToothChartRelay();
 		toothChartRelay.SetToothChartWrapper(toothChartWrapper);
 		Control controlToothChart=null;//the Sparks3D tooth chart
@@ -3873,7 +3655,7 @@ public partial class FormSheetDefEdit:FormODBase {
 				toothChartWrapper.DrawMode=DrawingMode.Simple2D;
 			}
 			else if(ComputerPrefs.LocalComputer.GraphicsSimple==DrawingMode.DirectX) {
-				toothChartWrapper.DeviceFormat=new SparksToothChart.ToothChartDirectX.DirectXDeviceFormat(ComputerPrefs.LocalComputer.DirectXFormat);
+				toothChartWrapper.DeviceFormat=new ToothChartDirectX.DirectXDeviceFormat(ComputerPrefs.LocalComputer.DirectXFormat);
 				toothChartWrapper.DrawMode=DrawingMode.DirectX;
 			}
 			else{

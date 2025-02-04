@@ -30,10 +30,10 @@ namespace OpenDentBusiness.Bridges {
 
 		///<summary>Returns empty list if no errors.  Otherwise returns a list with error messages.</summary>
 		public static List <string> Validate(long clinicNum) {
-			List <string> listErrors=new List<string>();
+			var listErrors=new List<string>();
 			var clinic=Clinics.GetClinic(clinicNum);
-			Ebill eBillClinic=Ebills.GetForClinic(clinicNum);
-			Ebill eBillDefault=Ebills.GetForClinic(0);
+			var eBillClinic=Ebills.GetForClinic(clinicNum);
+			var eBillDefault=Ebills.GetForClinic(0);
 			EHG_Address addressRemit=null;
 			if(eBillClinic==null) {
 				addressRemit=GetAddress(eBillDefault.RemitAddress,clinic);
@@ -52,8 +52,8 @@ namespace OpenDentBusiness.Bridges {
 		///<summary>Generates all the xml up to the point where the first statement would go.</summary>
 		public static void GeneratePracticeInfo(XmlWriter writer,long clinicNum) {
 			var clinic=Clinics.GetClinic(clinicNum);
-			Ebill eBillClinic=Ebills.GetForClinic(clinicNum);
-			Ebill eBillDefault=Ebills.GetForClinic(0);
+			var eBillClinic=Ebills.GetForClinic(clinicNum);
+			var eBillDefault=Ebills.GetForClinic(0);
 			writer.WriteProcessingInstruction("xml","version = \"1.0\" standalone=\"yes\"");
 			writer.WriteStartElement("EISStatementFile");
 			writer.WriteAttributeString("VendorID",PrefC.GetString(PrefName.BillingElectVendorId));
@@ -63,7 +63,7 @@ namespace OpenDentBusiness.Bridges {
 			writer.WriteElementString("PrimarySubmitter",PrefC.GetString(PrefName.BillingElectVendorPMSCode));
 			writer.WriteElementString("Transmitter","EHG");
 			writer.WriteStartElement("Practice");
-			string billingClientAccountNumber=eBillDefault.ClientAcctNumber;
+			var billingClientAccountNumber=eBillDefault.ClientAcctNumber;
 			if(eBillClinic!=null && eBillClinic.ClientAcctNumber!="") {//clinic eBill entry exists, check the fields for overrides
 				billingClientAccountNumber=eBillClinic.ClientAcctNumber;
 			}
@@ -89,17 +89,17 @@ namespace OpenDentBusiness.Bridges {
 			}
 			writer.WriteEndElement();//remitAddress
 			//Rendering provider------------------------------------------------------
-			Provider prov=Providers.GetProv(PrefC.GetLong(PrefName.PracticeDefaultProv));
+			var prov=Providers.GetById(PrefC.GetLong(PrefName.PracticeDefaultProv));
 			writer.WriteStartElement("RenderingProvider");
-			writer.WriteElementString("Name",prov.GetFormalName());
-			ProviderClinic provClinic=ProviderClinics.GetOneOrDefault(prov.ProvNum,clinicNum);
+			writer.WriteElementString("Name",prov.FormalName);
+			var provClinic=ProviderClinics.GetOneOrDefault(prov.Id,clinicNum);
 			writer.WriteElementString("LicenseNumber",(provClinic==null ? "" : provClinic.StateLicense));
 			writer.WriteElementString("State",PrefC.GetString(PrefName.PracticeST));
 			writer.WriteEndElement();//Rendering provider
 		}
 
 		private static void WriteAddress(XmlWriter writer,EbillAddress eBillAddress,ClinicDto clinic) {
-			EHG_Address address=GetAddress(eBillAddress,clinic);
+			var address=GetAddress(eBillAddress,clinic);
 			writer.WriteElementString("Address1",address.Address1);
 			writer.WriteElementString("Address2",address.Address2);
 			writer.WriteElementString("City",address.City);
@@ -110,7 +110,7 @@ namespace OpenDentBusiness.Bridges {
 
 		///<summary>The clinic variable can be null.</summary>
 		public static EHG_Address GetAddress(EbillAddress eBillAddress,ClinicDto clinic) {
-			EHG_Address address=new EHG_Address();
+			var address=new EHG_Address();
 			if(eBillAddress==EbillAddress.ClinicPhysical) {
 				address.Address1=clinic.AddressLine1;
 				address.Address2=clinic.AddressLine2;
@@ -143,9 +143,9 @@ namespace OpenDentBusiness.Bridges {
 
 		///<summary>Adds the xml for one statement. Validation is performed here. Throws an exception if there is a validation failure.</summary>
 		public static void GenerateOneStatement(XmlWriter writer,Statement stmt,Patient pat,Family fam,DataSet dataSet){
-			DataTable tableMisc=dataSet.Tables["misc"];
-			DataTable tableAccount=dataSet.Tables.OfType<DataTable>().FirstOrDefault(x => x.TableName.StartsWith("account"));
-			Patient guar=fam.ListPats[0];
+			var tableMisc=dataSet.Tables["misc"];
+			var tableAccount=dataSet.Tables.OfType<DataTable>().FirstOrDefault(x => x.TableName.StartsWith("account"));
+			var guar=fam.ListPats[0];
 			if(!Regex.IsMatch(guar.State,"^[A-Z]{2}$")) {
 				throw new ApplicationException(Lans.g("EHG_Statements","Guarantor state must be two uppercase characters.")+" "+guar.FName+" "+guar.LName+" #"+guar.PatNum);
 			}
@@ -178,21 +178,21 @@ namespace OpenDentBusiness.Bridges {
 			}
 			writer.WriteElementString("DueDate",dueDate.ToString("MM/dd/yyyy"));
 			writer.WriteElementString("StatementDate",stmt.DateSent.ToString("MM/dd/yyyy"));
-			double balanceForward=tableMisc.Rows.OfType<DataRow>().Where(x => x["descript"].ToString()=="balanceForward")
+			var balanceForward=tableMisc.Rows.OfType<DataRow>().Where(x => x["descript"].ToString()=="balanceForward")
 				.Select(x => SIn.Double(x["value"].ToString())).FirstOrDefault();//defaults to 0
 			writer.WriteElementString("PriorBalance",balanceForward.ToString("F2"));
 			writer.WriteElementString("RunningBalance","");//for future use
 			writer.WriteElementString("PerPayAdj","");//optional
 			writer.WriteElementString("InsPayAdj","");//optional
 			writer.WriteElementString("Adjustments","");//for future use
-			double charges=tableAccount.Rows.OfType<DataRow>().Sum(x => SIn.Double(x["chargesDouble"].ToString()));
+			var charges=tableAccount.Rows.OfType<DataRow>().Sum(x => SIn.Double(x["chargesDouble"].ToString()));
 			writer.WriteElementString("NewCharges",charges.ToString("F2"));//optional
 			writer.WriteElementString("FinanceCharges","");//for future use
-			double credits=tableAccount.Rows.OfType<DataRow>().Sum(x => SIn.Double(x["creditsDouble"].ToString()));
+			var credits=tableAccount.Rows.OfType<DataRow>().Sum(x => SIn.Double(x["creditsDouble"].ToString()));
 			writer.WriteElementString("Credits",credits.ToString("F2"));
 			//On a regular printed statement, the amount due at the top might be different from the balance at the middle right due to payplan balances.
 			//But in e-bills, there is only one amount due.  Insurance estimate is already subtracted, and payment plan balance is already added.
-			double amountDue=guar.BalTotal;
+			var amountDue=guar.BalTotal;
 			if(PrefC.GetInt(PrefName.PayPlansVersion)==1) {//with version 2, payplan debits/credits are aged individually and are included in guar.BalTotal
 				amountDue+=tableMisc.Rows.OfType<DataRow>().Where(x => x["descript"].ToString()=="payPlanDue")
 					.Select(x => SIn.Double(x["value"].ToString())).DefaultIfEmpty(0).Sum();//add payplan(s) due amt
@@ -201,7 +201,7 @@ namespace OpenDentBusiness.Bridges {
 			if(!PrefC.GetBool(PrefName.BalancesDontSubtractIns)) {//this is typical
 				insEst=guar.InsEst;
 			}
-			InstallmentPlan installPlan=InstallmentPlans.GetOneForFam(guar.PatNum);
+			var installPlan=InstallmentPlans.GetOneForFam(guar.PatNum);
 			if(installPlan!=null && installPlan.MonthlyPayment<(amountDue-insEst)) {
 				amountDue=installPlan.MonthlyPayment;
 				insEst=0;
@@ -234,7 +234,7 @@ namespace OpenDentBusiness.Bridges {
 			//Detail items------------------------------------------------------------------------------
 			writer.WriteStartElement("DetailItems");
 			List<string> lines;
-			int seq=0;
+			var seq=0;
 			//Jessica at DentalXchange says limit is 120.  Specs say limit is 30.
 			//If we send more than 50 characters, DentalXChange will break the line at the 50th character, even if it is in the middle of a word, and wrap
 			//the rest of the line, so up to 70 chars onto line 2, which could easily extend past the end of the description field.  The wrapped line will
@@ -267,7 +267,7 @@ namespace OpenDentBusiness.Bridges {
 				//There are frequently CRs within a procedure description for things like ins est.
 				lines=string.Join(" ",new[] { doJoinProcCode?rowCur["ProcCode"].ToString():"",rowCur["tth"].ToString(),rowCur["description"].ToString() })
 					.Split(new string[] { "\r\n" },StringSplitOptions.RemoveEmptyEntries).Select(x => x.Trim()).ToList();
-				for(int li=0;li<lines.Count;li++) {
+				for(var li=0;li<lines.Count;li++) {
 					lineCur=lines[li];
 					if(lineCur.Length<1 || lineCur.All(x => char.IsWhiteSpace(x))) {//nothing to write
 						continue;
@@ -279,7 +279,7 @@ namespace OpenDentBusiness.Bridges {
 					writer.WriteElementString("PatientName",li==0?rowCur["patient"].ToString():"");
 					if(lineCur.Length>lineMaxLen) {
 						firstIndexNewLine=lineMaxLen;
-						for(int c=lineMaxLen-2;c>-1;c--) {//-2, 1 for length to index and 1 so we can safely check index and index+1
+						for(var c=lineMaxLen-2;c>-1;c--) {//-2, 1 for length to index and 1 so we can safely check index and index+1
 							if(!char.IsWhiteSpace(lineCur[c]) && char.IsWhiteSpace(lineCur[c+1])) {
 								firstIndexNewLine=c+1;
 								break;
@@ -329,17 +329,17 @@ namespace OpenDentBusiness.Bridges {
 		///<summary>Converts a .net color to a hex string.  Includes the #.</summary>
 		private static string ColorToHexString(Color color) {
 			char[] hexDigits={'0','1','2','3','4','5','6','7','8','9','A','B','C','D','E','F'};
-			byte[] bytes = new byte[3];
+			var bytes = new byte[3];
 			bytes[0] = color.R;
 			bytes[1] = color.G;
 			bytes[2] = color.B;
-			char[] chars=new char[bytes.Length * 2];
-			for(int i=0;i<bytes.Length;i++){
+			var chars=new char[bytes.Length * 2];
+			for(var i=0;i<bytes.Length;i++){
 				int b=bytes[i];
 				chars[i*2]=hexDigits[b >> 4];
 				chars[i*2+1]=hexDigits[b & 0xF];
 			}
-			string retVal=new string(chars);
+			var retVal=new string(chars);
 			retVal="#"+retVal;
 			return retVal;
 		}
@@ -362,9 +362,9 @@ namespace OpenDentBusiness.Bridges {
 		public static void Send(string data,long clinicNum,out string alertMessage) {
 			alertMessage="";
 			//Validate the structure of the XML before sending.
-			StringReader sr=new StringReader(data);
+			var sr=new StringReader(data);
 			try {
-				XmlReader xmlr=XmlReader.Create(sr);
+				var xmlr=XmlReader.Create(sr);
 				while(xmlr.Read()) { //Read every node an ensure that there are no exceptions thrown.
 				}
 			}
@@ -374,9 +374,9 @@ namespace OpenDentBusiness.Bridges {
 			finally {
 				sr.Dispose();
 			}
-			string strHistoryFile="";
+			var strHistoryFile="";
 			if(PrefC.GetBool(PrefName.BillingElectSaveHistory)) {
-				string strHistoryDir=CodeBase.ODFileUtils.CombinePaths(ImageStore.GetDataFolder(),"EHG_History");
+				var strHistoryDir=CodeBase.ODFileUtils.CombinePaths(ImageStore.GetDataFolder(),"EHG_History");
 				if(!Directory.Exists(strHistoryDir)) {
 					Directory.CreateDirectory(strHistoryDir);
 				}
@@ -384,20 +384,20 @@ namespace OpenDentBusiness.Bridges {
 				ODFileUtils.WriteAllText(strHistoryFile,data);
 			}
 			//Step 1: Post authentication request:
-			Version myVersion=Assembly.GetExecutingAssembly().GetName().Version;
+			var myVersion=Assembly.GetExecutingAssembly().GetName().Version;
 			HttpWebRequest webReq;
 			WebResponse response;
 			StreamReader readStream;
 			string str;
 			string[] responseParams;
-			string status="";
-			string group="";
-			string userid="";
-			string authid="";
-			string errormsg="";
-			string curParam="";
-			string serverName="https://claimconnect.dentalxchange.com/dci/upload.svl";//live URL for claims (According to phone call with Dentalxchange)
-			string serverNameOverride = PrefC.GetString(PrefName.BillingElectStmtUploadURL);
+			var status="";
+			var group="";
+			var userid="";
+			var authid="";
+			var errormsg="";
+			var curParam="";
+			var serverName="https://claimconnect.dentalxchange.com/dci/upload.svl";//live URL for claims (According to phone call with Dentalxchange)
+			var serverNameOverride = PrefC.GetString(PrefName.BillingElectStmtUploadURL);
 			if(!string.IsNullOrEmpty(serverNameOverride)) {
 				serverName=serverNameOverride;
 			}
@@ -408,11 +408,11 @@ namespace OpenDentBusiness.Bridges {
 				//serverName="https://billconnect.dentalxchange.com/dci/upload.svl";  //live URL for Stmts; probably the correct one to use.
 			}
 			webReq=(HttpWebRequest)WebRequest.Create(serverName);
-			Ebill ebillDefault=Ebills.GetForClinic(0);
-			string billingUserName=ebillDefault.ElectUserName;
-			string billingPasswordEnc=ebillDefault.ElectPassword;
+			var ebillDefault=Ebills.GetForClinic(0);
+			var billingUserName=ebillDefault.ElectUserName;
+			var billingPasswordEnc=ebillDefault.ElectPassword;
 			if(true && clinicNum!=0) {
-				Ebill eBill=Ebills.GetForClinic(clinicNum);
+				var eBill=Ebills.GetForClinic(clinicNum);
 				if(eBill!=null) {//eBill entry exists, check the fields for overrides.
 					if(eBill.ElectUserName!="") {
 						billingUserName=eBill.ElectUserName;
@@ -422,10 +422,10 @@ namespace OpenDentBusiness.Bridges {
 					}
 				}
 			}
-			if(!CDT.Class1.Decrypt(billingPasswordEnc,out string billingPassword)) {
+			if(!CDT.Class1.Decrypt(billingPasswordEnc,out var billingPassword)) {
 				billingPassword=billingPasswordEnc;//If decryption is successful we won't get here. Instead the out parameter is used.
 			}
-			string postData=
+			var postData=
 				"Function=Auth"//CONSTANT; signifies that this is an authentication request
 				+"&Source=STM"//CONSTANT; file format
 				+"&UploaderName=OpenDental"//CONSTANT
@@ -436,9 +436,9 @@ namespace OpenDentBusiness.Bridges {
 			webReq.Method="POST";
 			webReq.ContentType="application/x-www-form-urlencoded";
 			webReq.ContentLength=postData.Length;
-			ASCIIEncoding encoding=new ASCIIEncoding();
-			byte[] bytes=encoding.GetBytes(postData);
-			Stream streamOut=webReq.GetRequestStream();
+			var encoding=new ASCIIEncoding();
+			var bytes=encoding.GetBytes(postData);
+			var streamOut=webReq.GetRequestStream();
 			streamOut.Write(bytes,0,bytes.Length);
 			streamOut.Close();
 			response=webReq.GetResponse();
@@ -453,7 +453,7 @@ namespace OpenDentBusiness.Bridges {
 			//Debug.WriteLine(str);
 			//MessageBox.Show(str);
 			responseParams=str.Split('&');
-			for(int i=0;i<responseParams.Length;i++) {
+			for(var i=0;i<responseParams.Length;i++) {
 				curParam=GetParam(responseParams[i]);
 				switch(curParam) {
 					case "Status":
@@ -498,7 +498,7 @@ namespace OpenDentBusiness.Bridges {
 			}
 			//Step 2: Post upload request:
 			//string fileName=Directory.GetFiles(clearhouse.ExportPath)[0];
-			string boundary="------------7d13e425b00d0";
+			var boundary="------------7d13e425b00d0";
 			postData=
 				"--"+boundary+"\r\n"
 				+"Content-Disposition: form-data; name=\"Function\"\r\n"
@@ -558,7 +558,7 @@ namespace OpenDentBusiness.Bridges {
 				throw new Exception("Unknown lengthy error message received.");
 			}
 			responseParams=str.Split('&');
-			for(int i=0;i<responseParams.Length;i++){
+			for(var i=0;i<responseParams.Length;i++){
 				curParam=GetParam(responseParams[i]);
 				switch(curParam){
 					case "Status":
@@ -592,7 +592,7 @@ namespace OpenDentBusiness.Bridges {
 			if(paramAndValue=="") {
 				return "";
 			}
-			string[] pair=paramAndValue.Split('=');
+			var pair=paramAndValue.Split('=');
 			//if(pair.Length!=2){
 			//	throw new Exception("Unexpected parameter from server: "+paramAndValue);
 			return pair[0];
@@ -602,7 +602,7 @@ namespace OpenDentBusiness.Bridges {
 			if(paramAndValue=="") {
 				return "";
 			}
-			string[] pair=paramAndValue.Split('=');
+			var pair=paramAndValue.Split('=');
 			//if(pair.Length!=2){
 			//	throw new Exception("Unexpected parameter from server: "+paramAndValue);
 			//}

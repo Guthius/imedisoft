@@ -5,12 +5,8 @@ See header in FormOpenDental.cs for complete text.  Redistributions must retain 
 using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Printing;
-using System.Collections;
-using System.ComponentModel;
-using System.Globalization;
 using System.Windows.Forms;
 using OpenDental.UI;
 using OpenDentBusiness;
@@ -18,8 +14,10 @@ using CodeBase;
 using System.Linq;
 using DataConnectionBase;
 using Imedisoft.Core.Caching;
+using Imedisoft.Core.Data;
 using Imedisoft.Core.Entities;
 using Imedisoft.Core.Features.Clinics;
+using Imedisoft.Features.Providers.Dtos;
 using OpenDental.Logic;
 
 namespace OpenDental;
@@ -34,7 +32,7 @@ public partial class FormConfirmList : FormODBase {
 	private DataTable _tableAppointments;
 	private bool _isHeadingPrinted;
 	private int _heightHeadingPrint;
-	private List<Provider> _listProviders;
+	private List<ProviderDto> _listProviders;
 	private List<Def> _listDefsApptConfirmed;
 
 		
@@ -58,7 +56,7 @@ public partial class FormConfirmList : FormODBase {
 		comboProv.SelectedIndex=0;
 		_listProviders=Providers.GetDeepCopy(true);
 		for(var i=0;i<_listProviders.Count;i++) {
-			comboProv.Items.Add(_listProviders[i].GetLongDesc());
+			comboProv.Items.Add(_listProviders[i].Description);
 		}
 		if(PrefC.GetBool(PrefName.EnterpriseApptList)){
 			comboClinic.IncludeAll=false;
@@ -174,7 +172,7 @@ public partial class FormConfirmList : FormODBase {
 		var dateTo=SIn.Date(textDateTo.Text);
 		long provNum=0;
 		if(comboProv.SelectedIndex!=0) {
-			provNum=_listProviders[comboProv.SelectedIndex-1].ProvNum;
+			provNum=_listProviders[comboProv.SelectedIndex-1].Id;
 		}
 		var showRecalls=false;
 		var showNonRecalls=false;

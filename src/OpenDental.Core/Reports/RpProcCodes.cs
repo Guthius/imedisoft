@@ -1,8 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Data;
-using System.Reflection;
-using System.Text;
 using System.Linq;
 using DataConnectionBase;
 using Imedisoft.Core.Entities;
@@ -11,8 +8,8 @@ namespace OpenDentBusiness {
 	public class RpProcCodes {
 
 		public static DataTable GetData(long feeSchedNum,long clinicNum,long provNum,bool isCategories,bool includeBlanks) {
-			DataTable data=GetDataSet(feeSchedNum,clinicNum,provNum);
-			DataTable retVal=new DataTable("ProcCodes");
+			var data=GetDataSet(feeSchedNum,clinicNum,provNum);
+			var retVal=new DataTable("ProcCodes");
 			if(isCategories) {
 				retVal.Columns.Add(new DataColumn("Category"));
 			}
@@ -20,9 +17,9 @@ namespace OpenDentBusiness {
 			retVal.Columns.Add(new DataColumn("Desc"));
 			retVal.Columns.Add(new DataColumn("Abbr"));
 			retVal.Columns.Add(new DataColumn("Fee"));
-			List<ProcedureCode> listProcCodes=new List<ProcedureCode>();
+			var listProcCodes=new List<ProcedureCode>();
 			if(isCategories) {
-				Def[][] arrayDefs=Defs.GetArrayShortNoCache();
+				var arrayDefs=Defs.GetArrayShortNoCache();
 				listProcCodes=ProcedureCodes.GetProcList(arrayDefs)
 					.OrderBy(x => x.ProcCat).ThenBy(x => x.ProcCode).ToList();
 			}
@@ -30,13 +27,13 @@ namespace OpenDentBusiness {
 				listProcCodes=ProcedureCodes.GetAllCodes(); //Ordered by ProcCode, used for the non-category version of the report if they want blanks.
 			}
 			bool isFound;
-			List<Def> listDefs=Defs.GetDefsNoCache(DefCat.ProcCodeCats);
-			for(int i=0;i<listProcCodes.Count;i++){
+			var listDefs=Defs.GetDefsNoCache(DefCat.ProcCodeCats);
+			for(var i=0;i<listProcCodes.Count;i++){
 				isFound=false;
-				DataRow row=retVal.NewRow();
+				var row=retVal.NewRow();
 				if(isCategories) {
 					//reports should no longer use the cache.
-					Def def = listDefs.FirstOrDefault(x => x.DefNum == listProcCodes[i].ProcCat);
+					var def = listDefs.FirstOrDefault(x => x.DefNum == listProcCodes[i].ProcCat);
 					row[0]=def == null ? "" : def.ItemName;
 					row[1]=listProcCodes[i].ProcCode;
 					row[2]=listProcCodes[i].Descript;
@@ -47,10 +44,10 @@ namespace OpenDentBusiness {
 					row[1]=listProcCodes[i].Descript;
 					row[2]=listProcCodes[i].AbbrDesc;
 				}
-				for(int j=0;j<data.Rows.Count;j++){
+				for(var j=0;j<data.Rows.Count;j++){
 					if(data.Rows[j]["ProcCode"].ToString()==listProcCodes[i].ProcCode) {
 						isFound=true;
-						double amt=SIn.Double(data.Rows[j]["Amount"].ToString());
+						var amt=SIn.Double(data.Rows[j]["Amount"].ToString());
 						if(isCategories) {
 							if(amt==-1) {
 								row[4]="";
@@ -85,13 +82,13 @@ namespace OpenDentBusiness {
 		}
 
 		public static DataTable GetDataSet(long feeSchedNum,long clinicNum,long provNum) {
-			string command="SELECT procedurecode.ProcCode,fee.Amount,procedurecode.Descript,"
-				+"procedurecode.AbbrDesc FROM procedurecode,fee "
-				+"WHERE procedurecode.CodeNum=fee.CodeNum "
-				+"AND fee.FeeSched='"+SOut.Long(feeSchedNum)+"' "
-				+"AND fee.ClinicNum='"+SOut.Long(clinicNum)+"' "
-				+"AND fee.ProvNum='"+SOut.Long(provNum)+"' "
-				+"ORDER BY procedurecode.ProcCode";
+			var command="SELECT procedurecode.ProcCode,fee.Amount,procedurecode.Descript,"
+			            +"procedurecode.AbbrDesc FROM procedurecode,fee "
+			            +"WHERE procedurecode.CodeNum=fee.CodeNum "
+			            +"AND fee.FeeSched='"+SOut.Long(feeSchedNum)+"' "
+			            +"AND fee.ClinicNum='"+SOut.Long(clinicNum)+"' "
+			            +"AND fee.ProvNum='"+SOut.Long(provNum)+"' "
+			            +"ORDER BY procedurecode.ProcCode";
 			return DataCore.GetTable(command);
 		}
 

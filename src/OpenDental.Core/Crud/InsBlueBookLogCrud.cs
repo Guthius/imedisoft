@@ -24,15 +24,16 @@ public class InsBlueBookLogCrud
     public static List<InsBlueBookLog> TableToList(DataTable table)
     {
         var retVal = new List<InsBlueBookLog>();
-        InsBlueBookLog insBlueBookLog;
         foreach (DataRow row in table.Rows)
         {
-            insBlueBookLog = new InsBlueBookLog();
-            insBlueBookLog.InsBlueBookLogNum = SIn.Long(row["InsBlueBookLogNum"].ToString());
-            insBlueBookLog.ClaimProcNum = SIn.Long(row["ClaimProcNum"].ToString());
-            insBlueBookLog.AllowedFee = SIn.Double(row["AllowedFee"].ToString());
-            insBlueBookLog.DateTEntry = SIn.DateTime(row["DateTEntry"].ToString());
-            insBlueBookLog.Description = SIn.String(row["Description"].ToString());
+            var insBlueBookLog = new InsBlueBookLog
+            {
+                InsBlueBookLogNum = SIn.Long(row["InsBlueBookLogNum"].ToString()),
+                ClaimProcNum = SIn.Long(row["ClaimProcNum"].ToString()),
+                AllowedFee = SIn.Double(row["AllowedFee"].ToString()),
+                DateTEntry = SIn.DateTime(row["DateTEntry"].ToString()),
+                Description = SIn.String(row["Description"].ToString())
+            };
             retVal.Add(insBlueBookLog);
         }
 

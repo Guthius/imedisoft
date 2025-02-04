@@ -1,14 +1,8 @@
 using System;
-using System.Collections;
 using System.Drawing;
-using System.IO;
 using System.Linq;
-using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading;
 using System.Collections.Generic;
 using CodeBase;
-using System.Web;
 using Imedisoft.Core.Data;
 using Imedisoft.Core.Entities;
 using OpenDentBusiness.Pearl;
@@ -108,7 +102,7 @@ Examples:
 			if(mountItem!=null && mountItem.ItemOrder==-1) {
 				return null;//Image is unmounted, don't send it for results.
 			}
-			Pearl pearl=new Pearl();
+			var pearl=new Pearl();
 			pearl.Patient_=patient;
 			if(mountItem!=null) {
 				pearl.Bitmap_=ImageHelper.ApplyDocumentSettingsToImage(document,bitmap,ImageSettingFlags.ALL);//Creates copy of bitmap
@@ -118,7 +112,7 @@ Examples:
 			}
 			pearl.MountItem_=mountItem;
 			pearl.Document_=document;
-			PearlRequest pearlRequest=PearlRequests.GetOneByDocNum(pearl.Document_.DocNum);
+			var pearlRequest=PearlRequests.GetOneByDocNum(pearl.Document_.DocNum);
 			if(pearlRequest!=null && pearlRequest.RequestStatus!=EnumPearlStatus.TimedOut) {
 				return null;
 			}
@@ -144,8 +138,8 @@ Examples:
 			catch {
 				return false;
 			}
-			List<string> listCategories=categoriesStr.Split(',').ToList();
-			string categoryName=Defs.GetName(DefCat.ImageCats,defNumCategory);
+			var listCategories=categoriesStr.Split(',').ToList();
+			var categoryName=Defs.GetName(DefCat.ImageCats,defNumCategory);
 			if(listCategories.Contains(categoryName)) {
 				return true;
 			}
@@ -154,7 +148,7 @@ Examples:
 
 		///<summary>SetupPearlForSending must be called first. Spawns a new ODThread that uploads images to Pearl and polls for their results.</summary>
 		public void SendOnThread() {
-			ODThread oDThreadPearl=new ODThread(this.SendOnThreadWorker);
+			var oDThreadPearl=new ODThread(this.SendOnThreadWorker);
 			//Swallow all exceptions and allow thread to exit gracefully.
 			oDThreadPearl.AddExceptionHandler(new ODThread.ExceptionDelegate((Exception ex) => { 
 				AlertUserOfError(ex.Message);
@@ -205,20 +199,20 @@ Examples:
 			}
 			EventRefreshDisplay?.Invoke(this,new EventArgs());//Refresh the display to show the user that the image is processing.
 			//Begin polling the API until all images have been processed, or this thread is canceled.
-			DateTime dtStart=DateTime.Now;
+			var dtStart=DateTime.Now;
 			bool isComplete;
-			List<PearlRequest> listPearlRequests=new List<PearlRequest> { _pearlRequest };
+			var listPearlRequests=new List<PearlRequest> { _pearlRequest };
 			PearlRequests.UpdateStatusForRequests(listPearlRequests,EnumPearlStatus.Polling);
 			while(!oDThread.HasQuit) {
 				isComplete=PollRequest();
 				if(isComplete) {
 					return;
 				}
-				int pollRateMs=2_000;
+				var pollRateMs=2_000;
 				if(DateTime.Now.Subtract(dtStart)>TimeSpan.FromMinutes(1)) {
 					pollRateMs=30_000;//After a minute of polling every 2 seconds, start polling every 30 seconds for 10 min, then stop.
 				}
-				int pollTimeoutSecs=600;//10 minutes
+				var pollTimeoutSecs=600;//10 minutes
 				if((DateTime.Now-dtStart).TotalSeconds>=pollTimeoutSecs) {
 					if(!PearlRequests.IsRequestHandled(_pearlRequest)) {
 						PearlRequests.UpdateStatusForRequests(listPearlRequests,EnumPearlStatus.TimedOut);
@@ -232,8 +226,8 @@ Examples:
 		#region Simulate methods
 		///<summary>Returns a fake Pearl requestId and inserts a PearlRequest into the DB.</summary>
 		private string SimulateSendOneImageToPearl(long docNum,Bitmap bitmap,ODThread oDThread) {
-			PearlRequest pearlRequest=new PearlRequest();
-			string requestId=Guid.NewGuid().ToString();
+			var pearlRequest=new PearlRequest();
+			var requestId=Guid.NewGuid().ToString();
 			pearlRequest.RequestId=requestId;
 			pearlRequest.DocNum=docNum;
 			// 1 - Get AWS presigned URL
@@ -254,22 +248,22 @@ Examples:
 
 		///<summary>Returns a fake Pearl result. Does not include every field from the API response, only those necessary for testing.</summary>
 		private OpenDentBusiness.Pearl.Result SimulateGetResultsForOneImage(string requestId,Bitmap bitmap) {
-			OpenDentBusiness.Pearl.Result result=new OpenDentBusiness.Pearl.Result();
+			var result=new OpenDentBusiness.Pearl.Result();
 			result.width=bitmap.Width;
 			result.height=bitmap.Height;
-			List<ToothPart> listToothParts=new List<ToothPart>();
-			List<Annotation> listAnnotations=new List<Annotation>();
+			var listToothParts=new List<ToothPart>();
+			var listAnnotations=new List<Annotation>();
 			//Make Annotation polygons for each EnumCategory type
-			List<EnumCategory> listEnumCategories=((EnumCategory[])Enum.GetValues(typeof(EnumCategory))).ToList();
+			var listEnumCategories=((EnumCategory[])Enum.GetValues(typeof(EnumCategory))).ToList();
 			listEnumCategories.Add(EnumCategory.Caries);//Add Caries a second time for Caries - Incipient
-			for(int i=0;i<listEnumCategories.Count;i++) {
+			for(var i=0;i<listEnumCategories.Count;i++) {
 				if(listEnumCategories[i]==EnumCategory.None) {
 					continue;
 				}
-				float xAnnotation=(float)i/(float)listEnumCategories.Count;//Equally spread out each annotation polygon (filled squares)
-				float yAnnotation=0.2f;
-				float sizeAnnotation=0.5f/(float)listEnumCategories.Count;
-				Annotation annotation=new Annotation();
+				var xAnnotation=(float)i/(float)listEnumCategories.Count;//Equally spread out each annotation polygon (filled squares)
+				var yAnnotation=0.2f;
+				var sizeAnnotation=0.5f/(float)listEnumCategories.Count;
+				var annotation=new Annotation();
 				annotation.category_id=listEnumCategories[i];
 				annotation.polygon=new Polygon[] {
 					new Polygon() { x=xAnnotation,								y=yAnnotation },
@@ -278,7 +272,7 @@ Examples:
 					new Polygon() { x=xAnnotation,								y=yAnnotation+sizeAnnotation },
 				};
 				annotation.stroke_color="#54FFFF54";
-				float dentinMetricVal=0.7875f;
+				var dentinMetricVal=0.7875f;
 				if(i==listEnumCategories.Count-1 && listEnumCategories[i]==EnumCategory.Caries) {
 					dentinMetricVal=0.0f;//Make second Caries a CariesProgressed
 				}
@@ -290,15 +284,15 @@ Examples:
 				listAnnotations.Add(annotation);
 			}
 			//Make Toothpart polygons for each EnumCategory type
-			List<EnumCondition> listEnumConditions=((EnumCondition[])Enum.GetValues(typeof(EnumCondition))).ToList();
-			for(int i=0;i<listEnumConditions.Count;i++) {
+			var listEnumConditions=((EnumCondition[])Enum.GetValues(typeof(EnumCondition))).ToList();
+			for(var i=0;i<listEnumConditions.Count;i++) {
 				if(listEnumConditions[i]==EnumCondition.None) {
 					continue;
 				}
-				float xToothPart=(float)i/(float)listEnumConditions.Count;//Equally spread out each tooth part polygon (filled squares)
-				float yToothPart=0.8f;
-				float sizeToothPart=0.5f/(float)listEnumCategories.Count;
-				ToothPart toothPart=new ToothPart();
+				var xToothPart=(float)i/(float)listEnumConditions.Count;//Equally spread out each tooth part polygon (filled squares)
+				var yToothPart=0.8f;
+				var sizeToothPart=0.5f/(float)listEnumCategories.Count;
+				var toothPart=new ToothPart();
 				toothPart.condition_id=listEnumConditions[i];
 				toothPart.category_id=EnumCategory.ToothParts;
 				toothPart.polygon=new Polygon[] {
@@ -312,7 +306,7 @@ Examples:
 				listToothParts.Add(toothPart);
 			}
 			//Make measurement line
-			Annotation annotationLine=new Annotation();
+			var annotationLine=new Annotation();
 			annotationLine.category_id=EnumCategory.Measurements;
 			annotationLine.line_segment=new LineSegment();
 			annotationLine.line_segment.x1=100;
@@ -327,7 +321,7 @@ Examples:
 			annotationLine.stroke_color="#FFFFFFFF";
 			listAnnotations.Add(annotationLine);
 			//Make contour box
-			Annotation annotationContour=new Annotation();
+			var annotationContour=new Annotation();
 			annotationContour.category_id=EnumCategory.PeriapicalRadiolucency;
 			annotationContour.contour_box=new ContourBox { };
 			annotationContour.contour_box.x=400;
@@ -381,14 +375,14 @@ Examples:
 
 		/// <summary>Either DocNum or MountNum must be specified.</summary>
 		public void ProcessResultsForOneImage(OpenDentBusiness.Pearl.Result result,long docNum,MountItem mountItem,Bitmap bitmap){
-			Point pointMountPos=new Point(0,0);
+			var pointMountPos=new Point(0,0);
 			long mountNum=0;
-			int width=bitmap.Width;
-			int height=bitmap.Height;
-			float scale=1f;
+			var width=bitmap.Width;
+			var height=bitmap.Height;
+			var scale=1f;
 			if(mountItem!=null) {
 				scale=ImageDraws.CalcBitmapScaleToFitMountItem(bitmap.Width,bitmap.Height,mountItem.Width,mountItem.Height);
-				Point pointPadding=ImageDraws.CalcBitmapPaddingToFitMountItem(bitmap.Width,bitmap.Height,mountItem.Width,mountItem.Height,scale);
+				var pointPadding=ImageDraws.CalcBitmapPaddingToFitMountItem(bitmap.Width,bitmap.Height,mountItem.Width,mountItem.Height,scale);
 				//Add padding to line annotations up with centered image in mount item.
 				pointMountPos.X=mountItem.Xpos+pointPadding.X;
 				pointMountPos.Y=mountItem.Ypos+pointPadding.Y;
@@ -399,11 +393,11 @@ Examples:
 			if(result.annotations.IsNullOrEmpty() && result.toothParts.IsNullOrEmpty()) {
 				return;
 			}
-			List<Annotation> listAnnotations=result.annotations.ToList();
-			List<ToothPart> listToothParts=result.toothParts.ToList();
+			var listAnnotations=result.annotations.ToList();
+			var listToothParts=result.toothParts.ToList();
 			//Loop through annotations, create ImageDraw for each.
-			for(int i=0;i<listAnnotations.Count;i++) {
-				ImageDraw imageDraw=new ImageDraw();
+			for(var i=0;i<listAnnotations.Count;i++) {
+				var imageDraw=new ImageDraw();
 				imageDraw.DocNum=docNum;
 				imageDraw.MountNum=mountNum;
 				imageDraw.ColorDraw=PearlColorToSystemColor(listAnnotations[i]?.stroke_color);
@@ -414,13 +408,13 @@ Examples:
 				{
 					imageDraw.PearlLayer=EnumCategoryOD.CariesProgressed;
 				}
-				List<PointF> listPointFsAnnotation=new List<PointF>();
+				var listPointFsAnnotation=new List<PointF>();
 				//Use polygon if provided, otherwise use line segment and text if provided, otherwise use contour box.
 				if(!listAnnotations[i].polygon.IsNullOrEmpty()) {
 					//Process polygon
-					for(int j=0;j<listAnnotations[i].polygon.Count();j++) {
+					for(var j=0;j<listAnnotations[i].polygon.Count();j++) {
 						//Polygon points are a relative coordinate system (0-1)
-						PointF pointF=PearlCoordsToImageCoords(listAnnotations[i].polygon[j],pointMountPos,width,height);
+						var pointF=PearlCoordsToImageCoords(listAnnotations[i].polygon[j],pointMountPos,width,height);
 						listPointFsAnnotation.Add(pointF);
 					}
 					imageDraw.DrawType=ImageDrawType.Polygon;
@@ -428,11 +422,11 @@ Examples:
 				}
 				else if(listAnnotations[i].line_segment!=null && listAnnotations[i].text!=null) {
 					//Process line segment
-					PointF pointFLine1=new PointF();
+					var pointFLine1=new PointF();
 					pointFLine1.X=(float)listAnnotations[i].line_segment.x1;//Line segment points are given in pixels.
 					pointFLine1.Y=(float)listAnnotations[i].line_segment.y1;
 					listPointFsAnnotation.Add(pointFLine1);
-					PointF pointFLine2=new PointF();
+					var pointFLine2=new PointF();
 					pointFLine2.X=(float)listAnnotations[i].line_segment.x2;
 					pointFLine2.Y=(float)listAnnotations[i].line_segment.y2;
 					listPointFsAnnotation.Add(pointFLine2);
@@ -440,15 +434,15 @@ Examples:
 					listPointFsAnnotation=ImageDraws.TranslatePointsToMountItem(listPointFsAnnotation,pointMountPos);
 					imageDraw.DrawType=ImageDrawType.Line;
 					//Process text
-					ImageDraw imageDrawText=imageDraw.Copy();
+					var imageDrawText=imageDraw.Copy();
 					imageDrawText.DrawType=ImageDrawType.Text;
-					PointF pointFText=new PointF();
+					var pointFText=new PointF();
 					pointFText.X=(int)listAnnotations[i].text.x;//Text point is given in pixels.
 					pointFText.Y=(int)listAnnotations[i].text.y;
-					List<PointF> listPointFsText=new List<PointF>() { pointFText };
+					var listPointFsText=new List<PointF>() { pointFText };
 					listPointFsText=ImageDraws.ScalePointsToMountItem(listPointFsText,scale);
 					listPointFsText=ImageDraws.TranslatePointsToMountItem(listPointFsText,pointMountPos);
-					Point pointText=Point.Round(listPointFsText[0]);
+					var pointText=Point.Round(listPointFsText[0]);
 					imageDrawText.SetLocAndText(pointText,listAnnotations[i].text.text);
 					ImageDraws.Insert(imageDrawText);
 				}
@@ -457,12 +451,12 @@ Examples:
 						continue;//Skip measurement contour boxes. They only outline each tooth.
 					}
 					//Process contour box 
-					int contourX=listAnnotations[i].contour_box.x;//Contour box point is given in pixels
-					int contourY=listAnnotations[i].contour_box.y;
-					int contourWidth=listAnnotations[i].contour_box.width;
-					int contourHeight=listAnnotations[i].contour_box.height;
+					var contourX=listAnnotations[i].contour_box.x;//Contour box point is given in pixels
+					var contourY=listAnnotations[i].contour_box.y;
+					var contourWidth=listAnnotations[i].contour_box.width;
+					var contourHeight=listAnnotations[i].contour_box.height;
 					//Show contour box as four connecting lines. (5 points, first and last are equal)
-					List<PointF> listPointFs=new List<PointF>();
+					var listPointFs=new List<PointF>();
 					listPointFs.Add(new PointF() { X=contourX,							Y=contourY });
 					listPointFs.Add(new PointF() { X=contourX+contourWidth,	Y=contourY });
 					listPointFs.Add(new PointF() { X=contourX+contourWidth,	Y=contourY+contourHeight });
@@ -478,14 +472,14 @@ Examples:
 				ImageDraws.Insert(imageDraw);
 			}
 			//Loop through tooth parts, create ImageDraw for each
-			for(int i=0;i<listToothParts.Count;i++) {
-				List<PointF> listPointFsToothPart=new List<PointF>();
-				for(int j=0;j<listToothParts[i].polygon.Count();j++) {
-					PointF pointF=PearlCoordsToImageCoords(listToothParts[i].polygon[j],pointMountPos,width,height);
+			for(var i=0;i<listToothParts.Count;i++) {
+				var listPointFsToothPart=new List<PointF>();
+				for(var j=0;j<listToothParts[i].polygon.Count();j++) {
+					var pointF=PearlCoordsToImageCoords(listToothParts[i].polygon[j],pointMountPos,width,height);
 					listPointFsToothPart.Add(pointF);
 				}
 				//Create ImageDraw
-				ImageDraw imageDraw=new ImageDraw();
+				var imageDraw=new ImageDraw();
 				imageDraw.DocNum=docNum;
 				imageDraw.MountNum=mountNum;
 				imageDraw.ColorDraw=PearlColorToSystemColor(listToothParts[i]?.color?.fill_color);//toothpart.color can be null
@@ -499,7 +493,7 @@ Examples:
 
 		///<summary>Used to communicate error information to the user through an alert.</summary>
 		private void AlertUserOfError(string details="") {
-			AlertItem alertItem=new AlertItem();
+			var alertItem=new AlertItem();
 			//ex: "Pearl AI Imaging Error: John Smith, Panos folder, SmithJohn23.jpg."
 			alertItem.Description=Patient_.GetNameFL()+", "+Defs.GetName(DefCat.ImageCats,Document_.DocCategory)+" folder, "+Document_.FileName+".\r\n";
 			alertItem.Actions=EnumTools.AddFlag(alertItem.Actions,ActionType.ShowItemValue,ActionType.Delete);//Let user see details and delete alert
@@ -514,9 +508,9 @@ Examples:
 		#region ImageDraw helpers
 		///<summary>Converts from Pearl's relative coordinate system to pixels. Translates point to account for mount position.</summary>
 		public static PointF PearlCoordsToImageCoords(Polygon polygonPoint,Point pointMountPos,int width,int height) {
-			PointF pointF=new PointF();
-			float pearlX=(float)polygonPoint.x;
-			float pearlY=(float)polygonPoint.y;
+			var pointF=new PointF();
+			var pearlX=(float)polygonPoint.x;
+			var pearlY=(float)polygonPoint.y;
 			//Convert from relative coordinates to pixels
 			pointF.X=(int)(pearlX*(float)width);
 			pointF.Y=(int)(pearlY*(float)height);
@@ -535,10 +529,10 @@ Examples:
 			//string apart and pass in each part individually.
 			System.Drawing.Color color;
 			try {
-				int r=Convert.ToInt32("0x"+colorStr.Substring(1,2),16);
-				int g=Convert.ToInt32("0x"+colorStr.Substring(3,2),16);
-				int b=Convert.ToInt32("0x"+colorStr.Substring(5,2),16);
-				int a=255;
+				var r=Convert.ToInt32("0x"+colorStr.Substring(1,2),16);
+				var g=Convert.ToInt32("0x"+colorStr.Substring(3,2),16);
+				var b=Convert.ToInt32("0x"+colorStr.Substring(5,2),16);
+				var a=255;
 				if(colorStr.Length>7) {
 					a=Convert.ToInt32("0x"+colorStr.Substring(7,2),16);
 				}
@@ -554,18 +548,18 @@ Examples:
 		///Pearl's API documentation recommends totaling all metric_values and dividing each metric_value by the total to find true percentage.
 		///</summary>
 		public static string RelationshipsToReadableString(List<Relationship> listRelationships,EnumCategoryOD enumCategoryOD) {
-			string retVal=enumCategoryOD.ToString();
-			float totalMetricValue=0f;
+			var retVal=enumCategoryOD.ToString();
+			var totalMetricValue=0f;
 			//Calculate total metric value
-			for(int i=0;i<listRelationships.Count;i++) {
+			for(var i=0;i<listRelationships.Count;i++) {
 				totalMetricValue+=(float)listRelationships[i].metric_value;
 			}
 			//Create string for each relationship and add to retVal
-			for(int i=0;i<listRelationships.Count;i++) {
+			for(var i=0;i<listRelationships.Count;i++) {
 				if(listRelationships[i].metric_value==0f) {
 					continue;//Don't add relationships with 0%
 				}
-				string relationshipArea="";
+				var relationshipArea="";
 				switch(listRelationships[i].prop_value) {
 					case "conditions.anatomy.bone":
 						relationshipArea="Bone";
@@ -593,7 +587,7 @@ Examples:
 						relationshipArea="Background";
 						break;
 				}
-				float percentage=((float)listRelationships[i].metric_value / totalMetricValue) * 100f;
+				var percentage=((float)listRelationships[i].metric_value / totalMetricValue) * 100f;
 				retVal+="\n"+relationshipArea+": "+percentage.ToString("F0")+"%";//Ex: "Enamel: 45%"
 			}
 			return retVal;
@@ -638,7 +632,7 @@ Examples:
 
 		///<summary>Returns list of EnumCategoryODs considered to be "tooth parts".</summary>
 		public static List<EnumCategoryOD> GetToothPartsCategoryODs() {
-			List<EnumCategoryOD> listEnumCategoryODs=new List<EnumCategoryOD>();
+			var listEnumCategoryODs=new List<EnumCategoryOD>();
 			listEnumCategoryODs.Add(EnumCategoryOD.Bone);
 			listEnumCategoryODs.Add(EnumCategoryOD.Cementum);
 			listEnumCategoryODs.Add(EnumCategoryOD.Dentin);
@@ -654,8 +648,8 @@ Examples:
 
 		///<summary>Returns list of all EnumCategoryODs not considered to be "tooth parts".</summary>
 		public static List<EnumCategoryOD> GetAllCategoryODsExceptToothParts() {
-			List<EnumCategoryOD> listEnumCategoryODsToothparts=GetToothPartsCategoryODs();
-			List<EnumCategoryOD> listEnumCategoryODsRet=Enum.GetValues(typeof(EnumCategoryOD))
+			var listEnumCategoryODsToothparts=GetToothPartsCategoryODs();
+			var listEnumCategoryODsRet=Enum.GetValues(typeof(EnumCategoryOD))
 				.Cast<EnumCategoryOD>().Except(listEnumCategoryODsToothparts).ToList();
 			return listEnumCategoryODsRet;
 		}

@@ -3,11 +3,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Windows.Forms;
-using CodeBase;
-using Imedisoft.Core.Caching;
 using Imedisoft.Core.Data;
 using Imedisoft.Core.Entities;
-using OpenDentBusiness;
 
 namespace OpenDental;
 
@@ -92,11 +89,6 @@ public partial class FormHieSetup:FormODBase {
 	}
 
 	private void butBrowse_Click(object sender,EventArgs e) {
-		if(false) {
-			folderBrowserDialog.SelectedPath=PrefC.GetTempFolderPath();
-			textExportPath.Text=folderBrowserDialog.SelectedPath;
-			return;
-		}
 		folderBrowserDialog.SelectedPath=textExportPath.Text;
 		if(folderBrowserDialog.ShowDialog()==DialogResult.OK) {
 			textExportPath.Text=folderBrowserDialog.SelectedPath;

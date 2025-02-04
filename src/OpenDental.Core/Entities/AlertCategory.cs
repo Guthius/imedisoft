@@ -1,24 +1,21 @@
-﻿using System;
-using OpenDentBusiness;
+﻿using OpenDentBusiness;
 
 namespace Imedisoft.Core.Entities;
 
-///<summary>A grouping of alerts that you can subscribe to.</summary>
-[Serializable]
-[CrudTable(IsSynchable=true)]
-public class AlertCategory:TableBase{
-	///<summary>Primary key.</summary>
-	[CrudColumn(IsPriKey=true)]
-	public long AlertCategoryNum;
-	///<summary>False by default, indicates that this is a row that can not be edited or deleted.</summary>
-	public bool IsHQCategory;
-	///<summary>Name used by HQ to identify the type of alert category this started as, allows us to associate new alerts.</summary>
-	public string InternalName;
-	///<summary>Name displayed to user when subscribing to alerts categories.</summary>
-	public string Description;
+public class AlertCategory : TableBase
+{
+    [CrudColumn(IsPriKey = true)]
+    public long AlertCategoryNum;
 
+    ///<summary>False by default, indicates that this is a row that can not be edited or deleted.</summary>
+    public bool IsHQCategory;
 
-	public AlertCategory Copy() {
-		return (AlertCategory)MemberwiseClone();
-	}
+    public string InternalName;
+
+    public string Description;
+    
+    public AlertCategory Copy()
+    {
+        return (AlertCategory) MemberwiseClone();
+    }
 }

@@ -18,14 +18,15 @@ public class AutoNoteCrud
     public static List<AutoNote> TableToList(DataTable table)
     {
         var retVal = new List<AutoNote>();
-        AutoNote autoNote;
         foreach (DataRow row in table.Rows)
         {
-            autoNote = new AutoNote();
-            autoNote.AutoNoteNum = SIn.Long(row["AutoNoteNum"].ToString());
-            autoNote.AutoNoteName = SIn.String(row["AutoNoteName"].ToString());
-            autoNote.MainText = SIn.String(row["MainText"].ToString());
-            autoNote.Category = SIn.Long(row["Category"].ToString());
+            var autoNote = new AutoNote
+            {
+                AutoNoteNum = SIn.Long(row["AutoNoteNum"].ToString()),
+                AutoNoteName = SIn.String(row["AutoNoteName"].ToString()),
+                MainText = SIn.String(row["MainText"].ToString()),
+                Category = SIn.Long(row["Category"].ToString())
+            };
             retVal.Add(autoNote);
         }
 
@@ -45,7 +46,7 @@ public class AutoNoteCrud
         return table;
     }
 
-    public static long Insert(AutoNote autoNote)
+    public static void Insert(AutoNote autoNote)
     {
         var command = "INSERT INTO autonote (";
 
@@ -60,7 +61,6 @@ public class AutoNoteCrud
         {
             autoNote.AutoNoteNum = Db.NonQ(command, true, "AutoNoteNum", "autoNote", paramMainText);
         }
-        return autoNote.AutoNoteNum;
     }
 
     public static void InsertMany(List<AutoNote> listAutoNotes, bool useExistingPK = false)

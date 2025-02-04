@@ -20,7 +20,7 @@ public class InsBlueBooks
 
     public static List<InsBlueBook> GetAllForCarrierGroupLimitByDateAndClaimType(long carrierGroupName, DateTime dateLimit, string claimType, List<long> listProcCodeNums)
     {
-        if (listProcCodeNums.IsNullOrEmpty()) return new List<InsBlueBook>();
+        if (listProcCodeNums.IsNullOrEmpty()) return [];
 
         var command = $@"
 				SELECT insbluebook.*
@@ -32,22 +32,22 @@ public class InsBlueBooks
 				AND insbluebook.AllowedOverride!=-1
 				INNER JOIN procedurecode
 				ON insbluebook.ProcCodeNum=procedurecode.CodeNum
-				AND procedurecode.CodeNum IN({string.Join(",", listProcCodeNums.Select(x => SOut.Long(x)))})
-				WHERE carrier.CarrierGroupName={SOut.Long(carrierGroupName)}";
+				AND procedurecode.CodeNum IN({string.Join(",", listProcCodeNums.Select(x => (x)))})
+				WHERE carrier.CarrierGroupName={(carrierGroupName)}";
         return InsBlueBookCrud.SelectMany(command);
     }
 
     public static List<InsBlueBook> GetAllForCarrierLimitByDateAndClaimType(long carrierNum, DateTime dateLimit, string claimType, List<long> listProcCodeNums)
     {
-        if (listProcCodeNums.IsNullOrEmpty()) return new List<InsBlueBook>();
+        if (listProcCodeNums.IsNullOrEmpty()) return [];
 
         var command = $@"
 				SELECT insbluebook.*
 				FROM insbluebook
 				INNER JOIN procedurecode
 				ON insbluebook.ProcCodeNum=procedurecode.CodeNum
-				AND procedurecode.CodeNum IN({string.Join(",", listProcCodeNums.Select(x => SOut.Long(x)))})
-				WHERE insbluebook.CarrierNum={SOut.Long(carrierNum)}
+				AND procedurecode.CodeNum IN({string.Join(",", listProcCodeNums.Select(x => (x)))})
+				WHERE insbluebook.CarrierNum={(carrierNum)}
 				AND insbluebook.ProcDate >= {SOut.Date(dateLimit)}
 				AND insbluebook.ClaimType='{SOut.String(claimType)}'
 				AND insbluebook.AllowedOverride!=-1";
@@ -86,7 +86,7 @@ public class InsBlueBooks
 					LEFT JOIN claimproc claimproc2
 						ON claimproc1.ClaimProcNum=claimproc2.ClaimProcNum
 							AND claimproc1.Status={SOut.Int((int) ClaimProcStatus.Received)}
-					WHERE claim.ClaimNum IN ({string.Join(",", claimNumArray.Select(x => SOut.Long(x)))})
+					WHERE claim.ClaimNum IN ({string.Join(",", claimNumArray.Select(x => (x)))})
 						AND claim.ClaimType IN ('P','S')
 					GROUP BY claim.ClaimNum,procedurelog.ProcNum
 				) _result
@@ -97,7 +97,7 @@ public class InsBlueBooks
 					AND _result.InsPayAmt >= 0";
         var listInsBlueBooksNew = InsBlueBookCrud.SelectMany(command);
         //Get a list of the insbluebooks that are currently in the DB for the array of ClaimNums.
-        command = $"SELECT insbluebook.* FROM insbluebook WHERE insbluebook.ClaimNum IN ({string.Join(",", claimNumArray.Select(x => SOut.Long(x)))})";
+        command = $"SELECT insbluebook.* FROM insbluebook WHERE insbluebook.ClaimNum IN ({string.Join(",", claimNumArray.Select(x => (x)))})";
         var listInsBlueBooksOld = InsBlueBookCrud.SelectMany(command);
         InsBlueBookCrud.Sync(listInsBlueBooksNew, listInsBlueBooksOld);
     }
@@ -107,7 +107,7 @@ public class InsBlueBooks
         claimNumArray = FilterArrayPrimaryKeysHelper(claimNumArray);
         if (claimNumArray.IsNullOrEmpty()) return;
 
-        var command = $"DELETE FROM insbluebook WHERE insbluebook.ClaimNum IN ({string.Join(",", claimNumArray.Select(x => SOut.Long(x)))})";
+        var command = $"DELETE FROM insbluebook WHERE insbluebook.ClaimNum IN ({string.Join(",", claimNumArray.Select(x => (x)))})";
         Db.NonQ(command);
     }
 
@@ -116,15 +116,15 @@ public class InsBlueBooks
         planNumArray = FilterArrayPrimaryKeysHelper(planNumArray);
         if (planNumArray.IsNullOrEmpty()) return;
 
-        var command = $"DELETE FROM insbluebook WHERE insbluebook.PlanNum IN ({string.Join(",", planNumArray.Select(x => SOut.Long(x)))})";
+        var command = $"DELETE FROM insbluebook WHERE insbluebook.PlanNum IN ({string.Join(",", planNumArray.Select(x => (x)))})";
         Db.NonQ(command);
     }
 
     public static void UpdateByInsPlan(InsPlan insPlan)
     {
         var command = $@"UPDATE insbluebook
-				SET insbluebook.GroupNum='{SOut.String(insPlan.GroupNum)}',insbluebook.CarrierNum={SOut.Long(insPlan.CarrierNum)}
-				WHERE insbluebook.PlanNum={SOut.Long(insPlan.PlanNum)}";
+				SET insbluebook.GroupNum='{SOut.String(insPlan.GroupNum)}',insbluebook.CarrierNum={(insPlan.CarrierNum)}
+				WHERE insbluebook.PlanNum={(insPlan.PlanNum)}";
         Db.NonQ(command);
     }
 }
@@ -132,40 +132,25 @@ public class InsBlueBooks
 [Serializable]
 public class BlueBookEstimateData
 {
-    ///<summary>Carrier of the primary dental insurance plan.</summary>
     public Carrier CarrierPri;
 
-    /// <summary>
-    ///     Dictionary that stores actual DateTime values for each rule's limit type and limit value. Key:
-    ///     InsBlueBookRule.InsBlueBookRuleNum  Value: DateTime, NOW minus increment dictated by the rule (e.g. NOW - 1 years).
-    /// </summary>
     public Dictionary<long, DateTime> DictRuleLimits = new();
 
-    ///<summary>The patients primary dental insurance plan. May be null if they don't have one.</summary>
     public InsPlan InsPlanPrimaryDental;
 
-    ///<summary>All of the InsBlueBookRules in the database. Currently, there are always six of these.</summary>
     public List<InsBlueBookRule> ListInsBlueBookRules;
 
-    ///<summary>All of the InsBlueBooks that are relevant given current rules settings and carrier.</summary>
     public List<InsBlueBook> ListInsBlueBooks;
 
-    /// <summary>
-    ///     Log that will be saved as an InsBlueBookLog if blue book is used to calculate an estimate and changes are
-    ///     saved to db.
-    /// </summary>
     public string LogText;
 
-    ///<summary>Flag used to check if this BlueBookEstimateData was used to calculate an estimate.</summary>
     public bool WasBlueBookUsed;
 
-    ///<summary>Do not use this constructor. Necessary for middle tier serialization.</summary>
     public BlueBookEstimateData()
     {
         //necessary for middle tier serialization
     }
 
-    ///<summary>The listPatPlans and listProcedures parameters cannot be null.</summary>
     public BlueBookEstimateData(List<InsPlan> listInsPlans, List<InsSub> listInsSubs, List<PatPlan> listPatPlans, List<Procedure> listProcedures, List<SubstitutionLink> listSubstitutionLinks)
     {
         var ordinalPrimary = PatPlans.GetOrdinal(PriSecMed.Primary, listPatPlans, listInsPlans, listInsSubs);
@@ -175,10 +160,6 @@ public class BlueBookEstimateData
         Initialize(listProcedures, listSubstitutionLinks);
     }
 
-    /// <summary>
-    ///     Only initializes other member variables if Blue Book feature is turned on and patient has a category percent
-    ///     primary dental insurance plan.
-    /// </summary>
     private void Initialize(List<Procedure> listProcedures, List<SubstitutionLink> listSubstitutionLinks)
     {
         //No need to get other data if patient doesn't have a cat percentage primary dental plan, no fee schedule attached, or the Blue Book feature is not
@@ -204,10 +185,6 @@ public class BlueBookEstimateData
         GetInsBlueBooksNeeded(dateOldestLimit, listProcCodeNums);
     }
 
-    /// <summary>
-    ///     Fills DictRuleLimits with actual DateTime values for each rules limit type and value. Also returns the
-    ///     DateTime for the oldest limit among rules.
-    /// </summary>
     private DateTime FillDictRuleLimits()
     {
         var dateOldestLimit = DateTime.Today;
@@ -241,10 +218,6 @@ public class BlueBookEstimateData
         return dateOldestLimit;
     }
 
-    /// <summary>
-    ///     Gets InsBlueBooks for carrier group if plan's carrier belongs to one. Otherwise returns InsBlueBooks for
-    ///     carrier. Limits by rule with oldest limit date and only gets insbluebooks for primary claims for now.
-    /// </summary>
     private void GetInsBlueBooksNeeded(DateTime dateOldestLimit, List<long> listProcCodeNums)
     {
         if (CarrierPri.CarrierGroupName == 0)
@@ -253,10 +226,6 @@ public class BlueBookEstimateData
             ListInsBlueBooks = InsBlueBooks.GetAllForCarrierGroupLimitByDateAndClaimType(CarrierPri.CarrierGroupName, dateOldestLimit, "P", listProcCodeNums);
     }
 
-    /// <summary>
-    ///     Returns true if the patient has a category percentage primary dental plan, has a fee schedule attached, the
-    ///     Blue Book feature is on, and the claimProc passed in is for the primary dental plan.
-    /// </summary>
     public bool IsValidForEstimate(ClaimProc claimProc, bool canSetBlueBookUsed = true)
     {
         if (canSetBlueBookUsed) WasBlueBookUsed = false;
@@ -268,10 +237,6 @@ public class BlueBookEstimateData
         return true;
     }
 
-    /// <summary>
-    ///     IsValidForEstimate() must return true before calling this. Loop through rules until one returns an allowed
-    ///     amount. If no rule applies, return -1.
-    /// </summary>
     public double GetAllowed(Procedure procedure, Lookup<FeeKey2, Fee> lookupFees, bool isCodeSubstNone, List<SubstitutionLink> listSubstitutionLinks = null)
     {
         var codeNum = procedure.CodeNum;
@@ -317,12 +282,12 @@ public class BlueBookEstimateData
                 {
                     //slight corruption, so we get the FeeSched for default practice provider.
                     LogText += " (Practice Default Provider).";
-                    feeSchedNum = Providers.GetProv(PrefC.GetLong(PrefName.PracticeDefaultProv)).FeeSched;
+                    feeSchedNum = Providers.GetById(PrefC.GetLong(PrefName.PracticeDefaultProv)).FeeScheduleId??0;
                 }
                 else
                 {
                     LogText += ".";
-                    feeSchedNum = Providers.GetProv(procedure.ProvNum).FeeSched;
+                    feeSchedNum = Providers.GetById(procedure.ProvNum).FeeScheduleId??0;
                 }
 
                 if (lookupFees != null) listFees = lookupFees[new FeeKey2(codeNum, feeSchedNum)].ToList();
@@ -383,10 +348,6 @@ public class BlueBookEstimateData
         }
     }
 
-    /// <summary>
-    ///     Creates an InsBlueBookLog for the last allowed amount generated. Returns null if InsEstTotal hasn't changed or
-    ///     blue book wasn't used to generate estimate.
-    /// </summary>
     public InsBlueBookLog CreateInsBlueBookLog(ClaimProc claimProc, bool canSetBlueBookUsed = true)
     {
         var insBlueBookLogLast = InsBlueBookLogs.GetMostRecentForClaimProc(claimProc.ClaimProcNum);
@@ -405,10 +366,6 @@ public class BlueBookEstimateData
         return insBlueBookLog;
     }
     
-    /// <summary>
-    ///     Returns the average, median, or most recent AllowedOverride from the list of InsBlueBooks passed in.
-    ///     MostRecent must find a value at least twice to return it, otherwise -1 is returned.
-    /// </summary>
     private double CalcAllowedByInsBlueBookAllowedFeeMethod(List<InsBlueBook> listInsBlueBooks)
     {
         switch (PrefC.GetEnum<InsBlueBookAllowedFeeMethod>(PrefName.InsBlueBookAllowedFeeMethod))
@@ -475,7 +432,6 @@ public class BlueBookEstimateData
 
     #endregion Median
 
-    ///<summary>Returns the most recent AllowedOverride or -1 if listInsBlueBooks is empty.</summary>
     private double GetMostRecent(List<InsBlueBook> listInsBlueBooks)
     {
         InsBlueBook insBlueBookMostRecent = null;

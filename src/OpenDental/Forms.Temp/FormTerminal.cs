@@ -6,6 +6,7 @@ using System.Linq;
 using System.Windows.Forms;
 using CodeBase;
 using Imedisoft.Core.Caching;
+using Imedisoft.Core.Data;
 using Imedisoft.Core.Entities;
 using OpenDentBusiness;
 
@@ -50,7 +51,7 @@ public partial class FormTerminal:FormODBase {
 		//NOT SimpleMode from here down
 		var process=Process.GetCurrentProcess();
 		//Delete all terminalactives for this computer, except new one, based on CompName and SessionID
-		TerminalActives.DeleteForCmptrSessionAndId(ODEnvironment.MachineName,process.SessionId,excludeId:process.Id);
+		TerminalActives.DeleteForCmptrSessionAndId(Environment.MachineName,process.SessionId,excludeId:process.Id);
 		string clientName=null;
 		string userName=null;
 		try {
@@ -65,14 +66,14 @@ public partial class FormTerminal:FormODBase {
 			clientName=userName;
 			if(process.SessionId<2  || string.IsNullOrWhiteSpace(userName)) {
 				//if sessionId is 0 or 1, this is not a remote session, use MachineName
-				clientName=ODEnvironment.MachineName;
+				clientName=Environment.MachineName;
 			}
 		}
-		if(string.IsNullOrWhiteSpace(clientName) || TerminalActives.IsCompClientNameInUse(ODEnvironment.MachineName,clientName)) {
+		if(string.IsNullOrWhiteSpace(clientName) || TerminalActives.IsCompClientNameInUse(Environment.MachineName,clientName)) {
 			var inputBox=new InputBox("Please enter a unique name to identify this kiosk.");
 			inputBox.SetTitle(Lan.g(this,"Kiosk Session Name"));
 			inputBox.ShowDialog();
-			while(inputBox.IsDialogOK && TerminalActives.IsCompClientNameInUse(ODEnvironment.MachineName,inputBox.StringResult)) {
+			while(inputBox.IsDialogOK && TerminalActives.IsCompClientNameInUse(Environment.MachineName,inputBox.StringResult)) {
 				MsgBox.Show(this,"The name entered is invalid or already in use.");
 				inputBox.ShowDialog();
 			}
@@ -84,7 +85,7 @@ public partial class FormTerminal:FormODBase {
 		}
 		//if we get here, we have a SessionId (which could be 0 if not in a remote session) and a unique client name for this kiosk
 		var terminalActive=new TerminalActive();
-		terminalActive.ComputerName=ODEnvironment.MachineName;
+		terminalActive.ComputerName=Environment.MachineName;
 		terminalActive.SessionId=process.SessionId;
 		terminalActive.SessionName=clientName;
 		terminalActive.ProcessId=process.Id;
@@ -117,7 +118,7 @@ public partial class FormTerminal:FormODBase {
 		TerminalActive terminalActive=null;
 		try{
 			var process=Process.GetCurrentProcess();
-			terminalActive=TerminalActives.GetForCmptrSessionAndId(ODEnvironment.MachineName,process.SessionId,process.Id);
+			terminalActive=TerminalActives.GetForCmptrSessionAndId(Environment.MachineName,process.SessionId,process.Id);
 			labelConnection.Visible=false;
 		}
 		catch(Exception) {//SocketException if db connection gets lost.
@@ -156,7 +157,7 @@ public partial class FormTerminal:FormODBase {
 		}
 		else {//NOT IsSimpleMode
 			try{
-				terminalActive=TerminalActives.GetForCmptrSessionAndId(ODEnvironment.MachineName,process.SessionId,process.Id);
+				terminalActive=TerminalActives.GetForCmptrSessionAndId(Environment.MachineName,process.SessionId,process.Id);
 				labelConnection.Visible=false;
 			}
 			catch(Exception) {//SocketException if db connection gets lost.
@@ -260,7 +261,7 @@ public partial class FormTerminal:FormODBase {
 		TerminalActive terminalActive;
 		var process=Process.GetCurrentProcess();
 		try{
-			terminalActive=TerminalActives.GetForCmptrSessionAndId(ODEnvironment.MachineName,process.SessionId,process.Id);
+			terminalActive=TerminalActives.GetForCmptrSessionAndId(Environment.MachineName,process.SessionId,process.Id);
 			labelConnection.Visible=false;
 		}
 		catch(Exception) {//SocketException if db connection gets lost.
@@ -317,7 +318,7 @@ public partial class FormTerminal:FormODBase {
 		var process=Process.GetCurrentProcess();
 		try {
 			Sheets.ClearFromTerminal(PatNum);
-			TerminalActives.DeleteForCmptrSessionAndId(ODEnvironment.MachineName,process.SessionId,processId:process.Id);
+			TerminalActives.DeleteForCmptrSessionAndId(Environment.MachineName,process.SessionId,processId:process.Id);
 			//Just in case, close remaining forms that are open
 			_formSheetFillEdit?.ForceClose();
 		}

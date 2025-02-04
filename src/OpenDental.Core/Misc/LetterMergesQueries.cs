@@ -44,7 +44,7 @@ public class LetterMergesQueries
         //Db.NonQ(command);
         command = "SET @maxTpDate=(SELECT MAX(treatplan.DateTP) FROM treatplan WHERE PatNum=" + SOut.Long(PatCur.PatNum) + ");";
         command += "SELECT ";
-        for (int i = 0; i < letter.Fields.Count; i++)
+        for (var i = 0; i < letter.Fields.Count; i++)
         {
             if (i > 0)
             {

@@ -34,15 +34,15 @@ public static class InstallmentPlans
         return GetForFams([guarNum]).TryGetValue(guarNum, out var installPlan) ? installPlan : null;
     }
 
-    public static Dictionary<long, InstallmentPlan> GetForFams(List<long> listGuarNums)
+    public static Dictionary<long, InstallmentPlan> GetForFams(List<long> guarNums)
     {
-        if (listGuarNums.Count == 0)
+        if (guarNums.Count == 0)
         {
             return new Dictionary<long, InstallmentPlan>();
         }
 
         return InstallmentPlanCrud
-            .SelectMany("SELECT * FROM installmentplan WHERE PatNum IN (" + string.Join(",", listGuarNums) + ")")
+            .SelectMany("SELECT * FROM installmentplan WHERE PatNum IN (" + string.Join(",", guarNums) + ")")
             .GroupBy(x => x.PatNum)
             .ToDictionary(
                 x => x.Key,

@@ -29,7 +29,7 @@ public partial class UserControlSetupWizFeatures : SetupWizControl
         checkClinical.Checked = !PrefC.GetBool(PrefName.EasyHideClinical);
         checkNoClinics.Checked = true;
         checkMedicalIns.Checked = PrefC.GetBool(PrefName.ShowFeatureMedicalInsurance);
-        checkEhr.Checked = PrefC.GetBool(PrefName.ShowFeatureEhr);
+        checkEhr.Checked = false;
         IsDone = true;
     }
 

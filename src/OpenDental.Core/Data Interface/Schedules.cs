@@ -18,16 +18,16 @@ public class Schedules
 
     public static List<Schedule> RefreshPeriod(DateTime dateStart, DateTime dateEnd, List<long> listProvNums, List<long> listEmpNums, bool includePNotes, bool includeCNotes, long clinicNum)
     {
-        if (listProvNums.Count == 0 && listEmpNums.Count == 0 && !includeCNotes && !includePNotes) return new List<Schedule>();
+        if (listProvNums.Count == 0 && listEmpNums.Count == 0 && !includeCNotes && !includePNotes) return [];
         var listOrClauses = new List<string>();
         if (includePNotes) listOrClauses.Add("(SchedType=" + SOut.Int((int) ScheduleType.Practice) + " AND ClinicNum=0)");
         //if the user has the HQ clinic selected and checks the show clinic holidays and notes, this will show holidays and notes for all clinics
         //if any other clinic is selected, this will show those holidays and notes for the selected clinic
         if (includeCNotes)
             //if HQ, include notes and holidays for all non-HQ clinics, otherwise only include for the selected clinic
-            listOrClauses.Add("(SchedType=" + SOut.Int((int) ScheduleType.Practice) + " AND ClinicNum" + (clinicNum == 0 ? ">0" : "=" + SOut.Long(clinicNum)) + ")");
-        if (listProvNums.Count > 0) listOrClauses.Add("schedule.ProvNum IN (" + string.Join(",", listProvNums.Select(x => SOut.Long(x))) + ")");
-        if (listEmpNums.Count > 0) listOrClauses.Add("schedule.EmployeeNum IN (" + string.Join(",", listEmpNums.Select(x => SOut.Long(x))) + ")");
+            listOrClauses.Add("(SchedType=" + SOut.Int((int) ScheduleType.Practice) + " AND ClinicNum" + (clinicNum == 0 ? ">0" : "=" + (clinicNum)) + ")");
+        if (listProvNums.Count > 0) listOrClauses.Add("schedule.ProvNum IN (" + string.Join(",", listProvNums.Select(x => (x))) + ")");
+        if (listEmpNums.Count > 0) listOrClauses.Add("schedule.EmployeeNum IN (" + string.Join(",", listEmpNums.Select(x => (x))) + ")");
         var command = "SELECT * FROM schedule "
                       + "WHERE SchedDate BETWEEN " + SOut.Date(dateStart) + " AND " + SOut.Date(dateEnd) + " "
                       + "AND (" + string.Join(" OR ", listOrClauses) + ")";
@@ -36,12 +36,12 @@ public class Schedules
 
     public static List<Schedule> RefreshPeriodBlockouts(DateTime dateStart, DateTime dateEnd, List<long> listOpNums)
     {
-        if (listOpNums.Count == 0) return new List<Schedule>();
+        if (listOpNums.Count == 0) return [];
         var command = "SELECT * "
                       + "FROM schedule "
                       + "WHERE SchedType=" + SOut.Int((int) ScheduleType.Blockout) + " "
                       + "AND SchedDate BETWEEN " + SOut.Date(dateStart) + " AND " + SOut.Date(dateEnd) + " "
-                      + "AND ScheduleNum IN (SELECT ScheduleNum FROM scheduleop WHERE OperatoryNum IN(" + string.Join(",", listOpNums.Select(x => SOut.Long(x))) + "))";
+                      + "AND ScheduleNum IN (SELECT ScheduleNum FROM scheduleop WHERE OperatoryNum IN(" + string.Join(",", listOpNums.Select(x => (x))) + "))";
         return RefreshAndFill(command);
     }
 
@@ -59,13 +59,13 @@ public class Schedules
         var listOrClauses = new List<string>();
         if (listProvNums.Count > 0)
             listOrClauses.Add("(SchedType=" + SOut.Int((int) ScheduleType.Provider) + " "
-                              + "AND ProvNum IN (" + string.Join(",", listProvNums.Select(x => SOut.Long(x))) + "))");
+                              + "AND ProvNum IN (" + string.Join(",", listProvNums.Select(x => (x))) + "))");
         if (listEmployeeNums.Count > 0)
             listOrClauses.Add("(SchedType=" + SOut.Int((int) ScheduleType.Employee) + " "
-                              + "AND EmployeeNum IN (" + string.Join(",", listEmployeeNums.Select(x => SOut.Long(x))) + "))");
+                              + "AND EmployeeNum IN (" + string.Join(",", listEmployeeNums.Select(x => (x))) + "))");
         //always include practice notes, plus any clinic notes for the selected clinic
         var pNoteOr = "SchedType=" + SOut.Int((int) ScheduleType.Practice);
-        if (clinicNum > 0) pNoteOr = "(" + pNoteOr + " AND ClinicNum IN (0," + SOut.Long(clinicNum) + "))"; //0 for practice notes, clinicNum for clinic notes
+        if (clinicNum > 0) pNoteOr = "(" + pNoteOr + " AND ClinicNum IN (0," + (clinicNum) + "))"; //0 for practice notes, clinicNum for clinic notes
         listOrClauses.Add(pNoteOr);
         var command = "SELECT schedule.* "
                       + "FROM schedule "
@@ -76,7 +76,7 @@ public class Schedules
 
     public static List<Schedule> GetClinicOverlapsForProv(DateTime dateFrom, DateTime dateTo, long provNum, List<long> listClinicNums)
     {
-        var tableSchedsForProvider = GetPeriodSchedsForProvsAndClinics(dateFrom, dateTo, new List<long> {provNum}, listClinicNums);
+        var tableSchedsForProvider = GetPeriodSchedsForProvsAndClinics(dateFrom, dateTo, [provNum], listClinicNums);
         //The datatable contains a row for each schedule and its clinic for this provider.  Now we go through it and determine if there are any overlaps.
         //Compare schedules and find ones that overlap.  If they do overlap, compare clinics.
         var listSchedulesConflict = new List<Schedule>();
@@ -132,15 +132,6 @@ public class Schedules
         return DataCore.GetTable(command);
     }
 
-    public static List<Schedule> GetTwoYearPeriod(DateTime dateStart)
-    {
-        var command = "SELECT schedule.* "
-                      + "FROM schedule "
-                      + "WHERE SchedDate BETWEEN " + SOut.Date(dateStart) + " AND " + SOut.Date(dateStart.AddYears(2)) + " "
-                      + "AND SchedType IN (0,1,3)"; //Practice or Provider or Employee
-        return RefreshAndFill(command);
-    }
-
     public static List<Schedule> GetSchedulesForAppointmentSearch(DateTime dateStart, DateTime dateEnd, List<long> listClinicNums, List<long> listOpNums, List<long> listProvNums, List<long> listBlockoutTypes, bool isForMakeRecall = false)
     {
         if (!listProvNums.Contains(0)) listProvNums.Add(0); //add 0 so blockouts can be returned.
@@ -193,7 +184,7 @@ public class Schedules
     {
         var listSchedules = ScheduleCrud.TableToList(table);
         if (!table.Columns.Contains("ops")) return listSchedules;
-        for (var i = 0; i < listSchedules.Count; i++) listSchedules[i].Ops = table.Rows[i]["ops"].ToString().Split(new[] {","}, StringSplitOptions.RemoveEmptyEntries).Select(x => SIn.Long(x)).ToList();
+        for (var i = 0; i < listSchedules.Count; i++) listSchedules[i].Ops = table.Rows[i]["ops"].ToString().Split([","], StringSplitOptions.RemoveEmptyEntries).Select(x => SIn.Long(x)).ToList();
         return listSchedules;
     }
 
@@ -201,7 +192,7 @@ public class Schedules
     {
         Validate(schedule);
         ScheduleCrud.Update(schedule);
-        var command = "DELETE FROM scheduleop WHERE ScheduleNum=" + SOut.Long(schedule.ScheduleNum);
+        var command = "DELETE FROM scheduleop WHERE ScheduleNum=" + (schedule.ScheduleNum);
         Db.NonQ(command);
         Signalods.SetInvalidSched(schedule);
         for (var i = 0; i < schedule.Ops.Count; i++)
@@ -223,7 +214,7 @@ public class Schedules
         scheduleOld.Ops.Sort();
         if (scheduleNew.Ops.SequenceEqual(scheduleOld.Ops)) //If both lists contain exactly the same ops.
             return; //no updates to ScheduleOps needed
-        var command = "DELETE FROM scheduleop WHERE ScheduleNum=" + SOut.Long(scheduleNew.ScheduleNum);
+        var command = "DELETE FROM scheduleop WHERE ScheduleNum=" + (scheduleNew.ScheduleNum);
         Db.NonQ(command);
         //re-insert ScheduleOps based on the list of opnums in schedNew.Ops
         for (var i = 0; i < scheduleNew.Ops.Count; i++)
@@ -237,7 +228,7 @@ public class Schedules
 
     public static void Insert(Schedule schedule, bool validate, bool hasSignal = true)
     {
-        Insert(validate, hasSignal, new List<Schedule> {schedule});
+        Insert(validate, hasSignal, [schedule]);
     }
 
     public static void Insert(bool validate, bool hasSignal, List<Schedule> listSchedules = null)
@@ -297,9 +288,9 @@ public class Schedules
 
     public static void Delete(Schedule schedule, bool hasSignal = false)
     {
-        var command = "DELETE from schedule WHERE schedulenum='" + SOut.Long(schedule.ScheduleNum) + "'";
+        var command = "DELETE from schedule WHERE schedulenum='" + (schedule.ScheduleNum) + "'";
         Db.NonQ(command);
-        command = "DELETE FROM scheduleop WHERE ScheduleNum=" + SOut.Long(schedule.ScheduleNum);
+        command = "DELETE FROM scheduleop WHERE ScheduleNum=" + (schedule.ScheduleNum);
         Db.NonQ(command);
         if (hasSignal) Signalods.SetInvalidSched(schedule);
     }
@@ -328,7 +319,7 @@ public class Schedules
         if (listDatesAppt.Count == 0) //Should never happen.  If it does, the query will throw a UE for invalid syntax.
             listDatesAppt.Add(DateTime.Today);
         var command = "SELECT schedule.* FROM schedule INNER JOIN scheduleop ON schedule.ScheduleNum=scheduleop.ScheduleNum "
-                      + "WHERE scheduleop.OperatoryNum=" + SOut.Long(operatory.OperatoryNum) + " AND schedule.SchedDate IN(" + string.Join(",", listDatesAppt.Select(x => SOut.Date(x))) + ")";
+                      + "WHERE scheduleop.OperatoryNum=" + (operatory.OperatoryNum) + " AND schedule.SchedDate IN(" + string.Join(",", listDatesAppt.Select(x => SOut.Date(x))) + ")";
         var listSchedules = ScheduleCrud.SelectMany(command);
         for (var i = 0; i < listSchedules.Count; i++) listSchedules[i].Ops.Add(operatory.OperatoryNum); //we know this schedule has op's operatorynum.  Add it here for later use.
         return listSchedules;
@@ -386,8 +377,8 @@ public class Schedules
             if (listSchedulesPeriod[i].SchedType != ScheduleType.Provider) continue;
             if (dateTime.Date != listSchedulesPeriod[i].SchedDate) continue;
             if (!listSchedulesPeriod[i].Ops.Contains(operatory.OperatoryNum)) continue;
-            if (isSecondary && !Providers.GetIsSec(listSchedulesPeriod[i].ProvNum)) continue;
-            if (!isSecondary && Providers.GetIsSec(listSchedulesPeriod[i].ProvNum)) continue;
+            if (isSecondary && !Providers.IsSecondary(listSchedulesPeriod[i].ProvNum)) continue;
+            if (!isSecondary && Providers.IsSecondary(listSchedulesPeriod[i].ProvNum)) continue;
             //for the time, if the sched starts later than the apt starts
             if (listSchedulesPeriod[i].StartTime > dateTime.TimeOfDay) continue;
             //or if the sched ends (before or at same time) as the apt starts
@@ -493,7 +484,7 @@ public class Schedules
         var command = "SELECT ScheduleNum FROM schedule WHERE SchedDate=" + SOut.Date(date) + " AND SchedType=" + SOut.Int((int) ScheduleType.Blockout);
         var listScheduleNums = Db.GetListLong(command);
         if (listScheduleNums.Count == 0) return; //nothing to delete
-        var schedNumStr = string.Join(",", listScheduleNums.Select(x => SOut.Long(x)));
+        var schedNumStr = string.Join(",", listScheduleNums.Select(x => (x)));
         //first delete schedules
         command = "DELETE FROM schedule WHERE ScheduleNum IN(" + schedNumStr + ")";
         Db.NonQ(command);
@@ -517,7 +508,7 @@ public class Schedules
         var listSchedulesSetInvalid = new List<Schedule>();
         var schedule = new Schedule();
         schedule.SchedDate = dateClear;
-        schedule.Ops = new List<long> {opNum};
+        schedule.Ops = [opNum];
         listSchedulesSetInvalid.Add(schedule);
         Signalods.SetInvalidSchedForOps(listSchedulesSetInvalid);
     }
@@ -548,7 +539,7 @@ public class Schedules
         if (listScheduleNums.Count == 0) return; //nothing to delete
         var command = $@"SELECT ScheduleNum FROM scheduleop WHERE ScheduleNum IN ({string.Join(",", listScheduleNums)})";
         var listScheduleNumsDoNotDelete = Db.GetListLong(command);
-        var listScheduleNumsForDelete = listScheduleNums.Where(x => !listScheduleNumsDoNotDelete.Contains(x)).Select(x => SOut.Long(x))
+        var listScheduleNumsForDelete = listScheduleNums.Where(x => !listScheduleNumsDoNotDelete.Contains(x)).Select(x => (x))
             .ToList();
         if (listScheduleNumsForDelete.Count == 0) return; //nothing to delete
         command = "DELETE FROM schedule WHERE ScheduleNum IN (" + string.Join(",", listScheduleNumsForDelete) + ")";
@@ -565,7 +556,7 @@ public class Schedules
     {
         var command = "SELECT COUNT(*) FROM schedule "
                       //only count holiday schedules for the entire practice or for the currently selected clinic
-                      + "WHERE (ClinicNum=0 OR ClinicNum=" + SOut.Long(Clinics.ClinicNum) + ") "
+                      + "WHERE (ClinicNum=0 OR ClinicNum=" + (Clinics.ClinicNum) + ") "
                       + "AND Status=" + SOut.Int((int) SchedStatus.Holiday) + " "
                       + "AND SchedType=" + SOut.Int((int) ScheduleType.Practice) + " "
                       + "AND SchedDate=" + SOut.Date(date);
@@ -583,7 +574,7 @@ public class Schedules
         var command = "SELECT schedule.* FROM schedule ";
         if (!listOpNums.IsNullOrEmpty())
             command += "INNER JOIN scheduleop ON schedule.ScheduleNum=scheduleop.ScheduleNum AND scheduleop.OperatoryNum IN ("
-                       + string.Join(",", listOpNums.Select(x => SOut.Long(x))) + ") ";
+                       + string.Join(",", listOpNums.Select(x => (x))) + ") ";
         command += "WHERE SchedDate BETWEEN " + SOut.Date(dateSelectedStart) + " AND " + SOut.Date(dateSelectedEnd) + " "
                    + "AND SchedType=" + SOut.Int((int) scheduleType) + " "
                    + "GROUP BY schedule.ScheduleNum";
@@ -595,16 +586,7 @@ public class Schedules
         var command = "SELECT schedule.* FROM schedule "
                       + "WHERE SchedDate BETWEEN " + SOut.Date(dateSelectedStart) + " AND " + SOut.Date(dateSelectedEnd) + " "
                       + "AND Status=" + SOut.Int((int) SchedStatus.Holiday) + " ";
-        if (listClinicNums.Count > 0) command += "AND schedule.ClinicNum IN (" + string.Join(",", listClinicNums.Select(x => SOut.Long(x))) + ") ";
-        return ScheduleCrud.SelectMany(command);
-    }
-
-    public static List<Schedule> GetForProv(DateTime dateSelectedStart, DateTime dateSelectedEnd, long provNum)
-    {
-        var command = "SELECT * FROM schedule "
-                      + "WHERE SchedDate BETWEEN " + SOut.Date(dateSelectedStart) + " AND " + SOut.Date(dateSelectedEnd) + " " //not a datetime. Between is inclusive.
-                      + "AND SchedType=" + SOut.Int((int) ScheduleType.Provider) + " "
-                      + "AND ProvNum=" + SOut.Long(provNum);
+        if (listClinicNums.Count > 0) command += "AND schedule.ClinicNum IN (" + string.Join(",", listClinicNums.Select(x => (x))) + ") ";
         return ScheduleCrud.SelectMany(command);
     }
 
@@ -651,7 +633,7 @@ public class Schedules
         commandScheduleCore += "LEFT JOIN provider ON schedule.ProvNum=provider.ProvNum "
                                + "LEFT JOIN employee ON schedule.EmployeeNum=employee.EmployeeNum "
                                + "WHERE SchedDate BETWEEN " + SOut.Date(dateStart) + " AND " + SOut.Date(dateEnd) + " ";
-        if (showClinicSchedule && clinicNum != 0) commandScheduleCore += "AND operatory.ClinicNum=" + SOut.Long(clinicNum) + " ";
+        if (showClinicSchedule && clinicNum != 0) commandScheduleCore += "AND operatory.ClinicNum=" + (clinicNum) + " ";
 
         #endregion
 
@@ -666,7 +648,7 @@ public class Schedules
             + "LEFT JOIN scheduleop ON schedule.ScheduleNum=scheduleop.ScheduleNum "
             + "WHERE SchedDate BETWEEN " + SOut.Date(dateStart) + " AND " + SOut.Date(dateEnd) + " "
             + "AND scheduleop.ScheduleNum IS NULL ";
-        if (showClinicSchedule && clinicNum != 0) commandDynamicScheduleCore += "AND operatory.ClinicNum=" + SOut.Long(clinicNum) + " ";
+        if (showClinicSchedule && clinicNum != 0) commandDynamicScheduleCore += "AND operatory.ClinicNum=" + (clinicNum) + " ";
 
         #endregion
 
@@ -683,13 +665,13 @@ public class Schedules
             if (clinicNum == 0)
                 filter += ">0";
             else
-                filter += "=" + SOut.Long(clinicNum);
+                filter += "=" + (clinicNum);
             filter += ")";
             listFilters.Add(filter);
         }
 
-        if (listProvNums.Count > 0) listFilters.Add("AND schedule.ProvNum IN(" + string.Join(",", listProvNums.Select(x => SOut.Long(x))) + ")");
-        if (listEmployeeNums.Count > 0) listFilters.Add("AND schedule.EmployeeNum IN(" + string.Join(",", listEmployeeNums.Select(x => SOut.Long(x))) + ")");
+        if (listProvNums.Count > 0) listFilters.Add("AND schedule.ProvNum IN(" + string.Join(",", listProvNums.Select(x => (x))) + ")");
+        if (listEmployeeNums.Count > 0) listFilters.Add("AND schedule.EmployeeNum IN(" + string.Join(",", listEmployeeNums.Select(x => (x))) + ")");
 
         #endregion
 
@@ -808,69 +790,18 @@ public class Schedules
         return table;
     }
 
-    public static List<Schedule> GetSchedulesAndBlockoutsForWebSched(List<long> listProvNums, DateTime dateStart, DateTime dateEnd, bool isRecall, long clinicNum, Logger.IWriteLine log = null, List<Schedule> listSchedulesBlockouts = null, bool isNewPat = false)
-    {
-        var listProvNumsWithZero = new List<long>();
-        if (listProvNums != null) listProvNumsWithZero = listProvNums.Distinct().ToList();
-        if (!listProvNumsWithZero.Contains(0)) listProvNumsWithZero.Add(0); //Always add 0 so that blockouts can be returned.
-        var listBlockoutTypesToIgnore = new List<long>();
-        var listBlockoutTypeDefNums = new List<long>();
-        var listOperatoryNums = new List<long>();
-        var listOperatories = new List<Operatory>();
-        if (isRecall)
-        {
-            listBlockoutTypesToIgnore = PrefC.GetWebSchedRecallAllowedBlockouts;
-            listOperatories = Operatories.GetOpsForWebSched();
-            var listDefLinksRecall = DefLinks.GetDefLinksByType(DefLinkType.RecallType);
-            //If the recall type is not associated with any Restricted-To blockout types, then remove every distinct restricted-to blockout type from
-            //the list of blockouts that can be scheduled over
-            if (listSchedulesBlockouts.IsNullOrEmpty())
-                listBlockoutTypesToIgnore.RemoveAll(x => listDefLinksRecall.Select(y => y.DefNum).Distinct().Contains(x));
-            else //If the recall type is associated with some Restricted-To blockout types, then remove all blockouts from the list that do not match those blockouts
-                listBlockoutTypesToIgnore = listDefLinksRecall.Select(x => x.DefNum).Distinct().ToList();
-        }
-        else
-        {
-            if (isNewPat)
-                listBlockoutTypesToIgnore = PrefC.GetWebSchedNewPatAllowedBlockouts;
-            else
-                listBlockoutTypesToIgnore = PrefC.GetWebSchedExistingPatAllowedBlockouts;
-            //Get all of the operatory nums for operatories for either WSNP or WSEP
-            listOperatories = Operatories.GetOpsForWebSchedNewOrExistingPatAppts(isNewPat);
-            if (listOperatories == null || listOperatories.Count < 1) return new List<Schedule>(); //No operatories setup for this WS type.
-            var listDefLinksBlockout = DefLinks.GetDefLinksByType(DefLinkType.BlockoutType);
-            //If the appointment type is not associated with any Restricted-To blockout types, then remove every distinct restricted-to blockout type from
-            //the list of blockouts that can be scheduled over
-            if (listSchedulesBlockouts.IsNullOrEmpty())
-                listBlockoutTypesToIgnore.RemoveAll(x => listDefLinksBlockout.Select(y => y.FKey).Distinct().Contains(x));
-            else //If the appointment type is associated with some Restricted-To blockout types, then remove all blockouts from the list that do not match those blockouts
-                listBlockoutTypesToIgnore = listDefLinksBlockout.Select(x => x.FKey).Distinct().ToList();
-        }
-
-        //Get all blockout types that are not ignored in order to tell GetSchedulesHelper() which blockouts we need to know about.
-        listBlockoutTypeDefNums = Defs.GetDefsForCategory(DefCat.BlockoutTypes)
-            .FindAll(x => !listBlockoutTypesToIgnore.Contains(x.DefNum)) //listBlockoutTypesToIgnore contains a list of blockouts that can be scheduled on.
-            .Select(x => x.DefNum).ToList();
-        if (!listBlockoutTypeDefNums.Contains(0)) listBlockoutTypeDefNums.Add(0); //Non-blockouts must always be considered.
-        listOperatoryNums.AddRange(listOperatories.Select(x => x.OperatoryNum));
-        var listClinicNums = new List<long>();
-        if (true) listClinicNums.Add(clinicNum);
-        var listSchedTypes = new List<int>();
-        listSchedTypes.Add((int) ScheduleType.Provider);
-        listSchedTypes.Add((int) ScheduleType.Blockout);
-        return GetSchedulesHelper(dateStart, dateEnd, listClinicNums, listOperatoryNums, listProvNumsWithZero, listBlockoutTypeDefNums, listSchedTypes, log);
-    }
-
-    public static List<Schedule> GetSchedulesHelper(DateTime dateStart, DateTime dateEnd, List<long> listClinicNums, List<long> listOpNums, List<long> listProvNums, List<long> listDefNumsBlockout, List<int> listSchedTypes, Logger.IWriteLine log = null, bool isForMakeRecall = false)
+    public static List<Schedule> GetSchedulesHelper(DateTime dateStart, DateTime dateEnd, List<long> listClinicNums, List<long> listOpNums, List<long> listProvNums, List<long> listDefNumsBlockout, List<int> listSchedTypes, bool isForMakeRecall = false)
     {
         //It is very important not to format these filters using DbHelper.DtimeToDate(). This would remove the index but yield the exact same results. 
         //It is already a Date column (no time) so no need to truncate the filter.
-        if (listOpNums == null || listOpNums.Count < 1) return new List<Schedule>();
+        if (listOpNums == null || listOpNums.Count < 1) return [];
         if (listClinicNums.IsNullOrEmpty()) listClinicNums.Add(0); //For customers without clinics. Necessary for filtering listOpNums. 
         if (listDefNumsBlockout == null)
         {
-            listDefNumsBlockout = new List<long>();
-            listDefNumsBlockout.Add(0);
+            listDefNumsBlockout =
+            [
+                0
+            ];
         }
 
         var listOpNumsFiltered = listOpNums;
@@ -885,7 +816,7 @@ public class Schedules
         List<long> listProvNumsHyg;
         var listProvNumsFromAllowedClinics = new List<long>();
         //create list of providers the current user is permitted to access.
-        listProvNumsFromAllowedClinics = Providers.GetProvsForClinicList(listClinicNums).Select(x => x.ProvNum).Distinct().ToList();
+        listProvNumsFromAllowedClinics = Providers.GetProvsForClinicList(listClinicNums).Select(x => x.Id).Distinct().ToList();
         listProvNumsFiltered.RemoveAll(x => !listProvNumsFromAllowedClinics.Contains(x)); //filter passed list of providers to remove those the user cannot access
         if (listProvNums.Contains(0)) listProvNumsFiltered.Add(0); //will correctly display no results if filtered listProvidersNums is empty
         listProvNumsDent = Operatories.GetOperatories(listOpNumsFiltered)
@@ -912,7 +843,7 @@ public class Schedules
             //listDefNumsBlockout could have one item 0, meaning it's not a blockout and we are looking for provider schedules.
             //In that case, we added all the NoSched blockout types, and we will use those later.
             //Or it could have a list of blockout types that we are restricting to.
-            command += $@" schedule.BlockoutType IN ({string.Join(",", listDefNumsBlockout.Select(x => SOut.Long(x)))})
+            command += $@" schedule.BlockoutType IN ({string.Join(",", listDefNumsBlockout.Select(x => (x)))})
 					AND schedule.SchedDate>={SOut.Date(dateStart)}
 					AND schedule.SchedDate<={SOut.Date(dateEnd)}
 					AND schedule.SchedType IN({string.Join(",", listSchedTypes.Select(x => SOut.Int(x)))})
@@ -926,7 +857,7 @@ public class Schedules
 					INNER JOIN operatory ON operatory.OperatoryNum=scheduleop.OperatoryNum
 					WHERE operatory.OperatoryNum IN ({string.Join(",", listOpNumsFiltered)}) ";
             if (!listProvNumsFiltered.IsNullOrEmpty()) command += $" AND schedule.ProvNum IN({string.Join(",", listProvNumsFiltered)})";
-            command += $@" AND schedule.BlockoutType IN ({string.Join(",", listDefNumsBlockout.Select(x => SOut.Long(x)))})
+            command += $@" AND schedule.BlockoutType IN ({string.Join(",", listDefNumsBlockout.Select(x => (x)))})
 					AND schedule.SchedDate>={SOut.Date(dateStart)}
 					AND schedule.SchedDate<={SOut.Date(dateEnd)}
 					AND schedule.SchedType IN({string.Join(",", listSchedTypes.Select(x => SOut.Int(x)))})
@@ -968,7 +899,6 @@ public class Schedules
         }
 
         command += " ORDER BY SchedDate"; //Order the entire result set by SchedDate.
-        log?.WriteLine("command: " + command, LogLevel.Verbose);
         return RefreshAndFill(command);
     }
 
@@ -1105,15 +1035,15 @@ public class Schedules
 
     public static List<Schedule> GetSchedulesToDelete(DateTime dateStart, DateTime dateEnd, List<long> listProvNums, List<long> listEmployeeNums, bool includePNotes, bool includeCNotes, long clinicNum, bool excludeHolidays = false)
     {
-        if (listProvNums.Count == 0 && listEmployeeNums.Count == 0 && !includeCNotes && !includePNotes) return new List<Schedule>();
+        if (listProvNums.Count == 0 && listEmployeeNums.Count == 0 && !includeCNotes && !includePNotes) return [];
 
         var listOrClauses = new List<string>();
         //Only notes with clinicNum==0
         if (includePNotes) listOrClauses.Add("(SchedType=" + SOut.Int((int) ScheduleType.Practice) + " AND ClinicNum=0)");
         //Only notes with clinicNum!=0; Treats HQ/ClinicNum==0 as show all non-practice notes.
-        if (includeCNotes) listOrClauses.Add("(SchedType=" + SOut.Int((int) ScheduleType.Practice) + " AND ClinicNum" + (clinicNum == 0 ? ">0" : "=" + SOut.Long(clinicNum)) + ")");
-        if (listProvNums.Count > 0) listOrClauses.Add("schedule.ProvNum IN(" + string.Join(",", listProvNums.Select(x => SOut.Long(x))) + ")");
-        if (listEmployeeNums.Count > 0) listOrClauses.Add("schedule.EmployeeNum IN(" + string.Join(",", listEmployeeNums.Select(x => SOut.Long(x))) + ")");
+        if (includeCNotes) listOrClauses.Add("(SchedType=" + SOut.Int((int) ScheduleType.Practice) + " AND ClinicNum" + (clinicNum == 0 ? ">0" : "=" + (clinicNum)) + ")");
+        if (listProvNums.Count > 0) listOrClauses.Add("schedule.ProvNum IN(" + string.Join(",", listProvNums.Select(x => (x))) + ")");
+        if (listEmployeeNums.Count > 0) listOrClauses.Add("schedule.EmployeeNum IN(" + string.Join(",", listEmployeeNums.Select(x => (x))) + ")");
         var command = "SELECT * FROM schedule "
                       + "WHERE SchedDate BETWEEN " + SOut.Date(dateStart) + " AND " + SOut.Date(dateEnd) + " "
                       + "AND (" + string.Join(" OR ", listOrClauses) + ") ";
@@ -1130,7 +1060,7 @@ public class Schedules
 				AND schedule.SchedDate BETWEEN {SOut.Date(dateStart)} AND {SOut.Date(dateEnd)}
 ";
         if (!includeWeekend) command += "AND DAYOFWEEK(schedule.SchedDate) BETWEEN 2 AND 6 \r\n"; //1 is Sunday and 7 is Saturday in MySQL
-        command += $"AND scheduleop.OperatoryNum IN({string.Join(",", listOpNums.Select(x => SOut.Long(x)))})";
+        command += $"AND scheduleop.OperatoryNum IN({string.Join(",", listOpNums.Select(x => (x)))})";
         var table = DataCore.GetTable(command);
         if (table.Rows.Count == 0) return;
         command = $@"DELETE FROM scheduleop
@@ -1336,17 +1266,9 @@ public class Schedules
         if (dateStart.Date != dateEnd.Date) //This check is here to prevent filling the grids in week view.
             return table;
         List<long> listProvNums;
-        if (true)
-        {
-            //Using clinics.
-            listProvNums = Providers.GetProvsForClinic(clinicNum).Select(x => x.ProvNum).ToList();
-            if (listProvNums.Count == 0) return table;
-        }
-        else
-        {
-            listProvNums = Providers.GetDeepCopy(true).OrderBy(x => x.ItemOrder).Select(y => y.ProvNum).ToList();
-        }
-
+        //Using clinics.
+        listProvNums = Providers.GetProvsForClinic(clinicNum).Select(x => x.Id).ToList();
+        if (listProvNums.Count == 0) return table;
         var ListSchedulesForDate = GetAllForDateAndType(dateStart, ScheduleType.Provider);
         var listSchedules = ListSchedulesForDate.FindAll(x => listProvNums.Contains(x.ProvNum));
         listSchedules = listSchedules.OrderBy(x => listProvNums.IndexOf(x.ProvNum)).ToList(); //Make list alphabetical.
@@ -1414,7 +1336,7 @@ public class Schedules
                   + "WHERE SchedDate BETWEEN " + SOut.Date(dateStart) + " AND " + SOut.Date(dateEnd) + " ";
         if (listOpNums != null && listOpNums.Count > 0)
         {
-            var listStrOps = listOpNums.Select(x => SOut.Long(x)).ToList();
+            var listStrOps = listOpNums.Select(x => (x)).ToList();
             command += "AND (scheduleop.OperatoryNum IN (" + string.Join(",", listStrOps) + ") OR scheduleop.OperatoryNum IS NULL) ";
         }
 
@@ -1448,39 +1370,6 @@ public class Schedules
         var defBlockoutType = Defs.GetDef(DefCat.BlockoutTypes, blockoutType, listDefs);
         if (defBlockoutType.ItemValue.Contains(BlockoutType.NoSchedule.GetDescription())) return false;
         return true;
-    }
-
-    public static List<Schedule> GetRestrictedToBlockoutsByReason(long defNumReason, DateTime dateStart, DateTime dateStop, List<long> listOpNums, List<DefLink> listDefLinksBlockouts = null)
-    {
-        if (listOpNums == null || listOpNums.Count < 1) return new List<Schedule>();
-        if (listDefLinksBlockouts == null) listDefLinksBlockouts = DefLinks.GetDefLinksByType(DefLinkType.BlockoutType, defNumReason);
-        if (listDefLinksBlockouts == null || listDefLinksBlockouts.Count < 1) return new List<Schedule>();
-        //See comments on schedule.ClinicNum for why it is not included in this query.  Schedules are typically linked to clinics via operatories via scheduleops.
-        var command = $@"SELECT schedule.*
-				FROM schedule
-				INNER JOIN scheduleop ON schedule.ScheduleNum=scheduleop.ScheduleNum
-				WHERE schedule.SchedDate>={SOut.Date(dateStart)} 
-				AND schedule.SchedDate<={SOut.Date(dateStop)}
-				AND scheduleop.OperatoryNum IN ({string.Join(",", listOpNums)})
-				AND schedule.BlockoutType IN ({string.Join(",", listDefLinksBlockouts.Select(x => SOut.Long(x.FKey)))}) 
-				AND schedule.SchedType={SOut.Int((int) ScheduleType.Blockout)}";
-        return RefreshAndFill(command);
-    }
-
-    public static List<Schedule> GetRestrictedToBlockoutsByRecallType(long recallTypeNum, DateTime dateStart, DateTime dateStop, List<long> listOpNums, List<DefLink> listDefLinksBlockouts = null)
-    {
-        if (listOpNums == null || listOpNums.Count < 1) return new List<Schedule>();
-        if (listDefLinksBlockouts == null) listDefLinksBlockouts = DefLinks.GetListByFKey(recallTypeNum, DefLinkType.RecallType);
-        if (listDefLinksBlockouts == null || listDefLinksBlockouts.Count < 1) return new List<Schedule>();
-        var command = $@"SELECT schedule.*
-				FROM schedule
-				INNER JOIN scheduleop ON schedule.ScheduleNum=scheduleop.ScheduleNum
-				WHERE schedule.SchedDate>={SOut.Date(dateStart)} 
-				AND schedule.SchedDate<={SOut.Date(dateStop)}
-				AND scheduleop.OperatoryNum IN ({string.Join(",", listOpNums)})
-				AND schedule.BlockoutType IN ({string.Join(",", listDefLinksBlockouts.Select(x => SOut.Long(x.DefNum)))}) 
-				AND schedule.SchedType={SOut.Int((int) ScheduleType.Blockout)}";
-        return RefreshAndFill(command);
     }
 
     public static List<Schedule> GetDayList(DateTime date)
@@ -1559,7 +1448,7 @@ public class Schedules
             {
                 //Get all of the schedules that were passed in that fall on the corresponding day of the week.
                 List<Schedule> listSchedsForDayOfWeek;
-                if (!dictSchedsByDayOfWeek.TryGetValue(dateSched.DayOfWeek, out listSchedsForDayOfWeek)) listSchedsForDayOfWeek = new List<Schedule>();
+                if (!dictSchedsByDayOfWeek.TryGetValue(dateSched.DayOfWeek, out listSchedsForDayOfWeek)) listSchedsForDayOfWeek = [];
                 for (var i = 0; i < listSchedsForDayOfWeek.Count; i++)
                 {
                     var listProvNums = new List<long>();

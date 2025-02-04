@@ -5,7 +5,6 @@ using System.Drawing;
 using System.Linq;
 using System.Windows.Forms;
 using CodeBase;
-using Imedisoft.Core.Data;
 using Imedisoft.Core.Entities;
 using OpenDentBusiness;
 
@@ -15,22 +14,20 @@ public partial class SheetEditMobileCtrl : UserControl
 {
     #region Fields
 
-    public LayoutManagerForms LayoutManager;
-
     ///<summary>Each new control gets its own name using a unique id. This allows it to be uniquely identified and not mistaken for a different (similar) panel.</summary>
-    private static long _controlIdCount = 0;
+    private static long _controlIdCount;
 
     ///<summary>Drag/drop icon image. Must be disposed after each use.</summary>
-    private Bitmap _dragBitmap = null;
+    private Bitmap _dragBitmap;
 
     ///<summary>Drag/drop icon cursor. Must be disposed after each use.</summary>
-    private Cursor _dragCursor = null;
+    private Cursor _dragCursor;
 
     ///<summary>Scroll position to jump on next timer tick if dragging near top/bottom of panelPreview.</summary>
-    private int _scrollJump = 0;
+    private int _scrollJump;
 
     ///<summary>Allows this control to be floated in a separate form.</summary>
-    private Form _formFloat = null;
+    private Form _formFloat;
 
     ///<summary>Event thrown when new selection is made.</summary>
     public event EventHandler<long> SheetFieldDefSelected;
@@ -52,13 +49,13 @@ public partial class SheetEditMobileCtrl : UserControl
     private Color _colorPanelBG = Color.White;
 
     private Color _colorFieldsError = Color.Red;
-    private bool _isReadOnly = false;
+    private bool _isReadOnly;
 
     ///<summary>Set this to provide Lan.g() translations.</summary>
     public Func<string, string> TranslationProvider;
 
     ///<summary>True if user presses "Order fields from Desktop". Mimic the order from desktop into mobile.</summary>
-    private bool _tabOrderMobileToMimicTabOrder = false;
+    private bool _tabOrderMobileToMimicTabOrder;
 
     private Color _colorFieldsNeedMove = Color.LightSalmon;
 
@@ -374,7 +371,6 @@ public partial class SheetEditMobileCtrl : UserControl
                     SetControlAndChildrenBackColor(panel, _colorPanelBG);
                 }
             });
-            var isCheckBox = false;
             var addCheckBox = new Func<SheetFieldDef, SheetEditMobileRadioButton>((sheetFieldRadioItem) =>
             {
                 var radioItem = new SheetEditMobileRadioButton(isReadOnly)
@@ -410,7 +406,6 @@ public partial class SheetEditMobileCtrl : UserControl
                 panel.ButtonLabel = GetTranslation("Drag to change order or click checkbox button to edit single item");
                 panel.Controls.Add(radioItem);
                 //This is a checkbox panel so we won't register for DoubleClick below. Checkbox will take care of that.
-                isCheckBox = true;
                 return radioItem;
             });
             if (sheetFields.Count > 1 && sheetField.FieldType == SheetFieldType.CheckBox && sheetField.FieldName == "misc" && sheetFields.GroupBy(x => x.UiLabelMobile).Count() == 1
@@ -1492,21 +1487,12 @@ public partial class SheetEditMobileCtrl : UserControl
 
     private void checkUseMobileLayout_CheckedChanged(object sender, EventArgs e)
     {
-        if (!checkUseMobileLayout.Checked && _sheetDef != null && _sheetDef.SheetDefNum > 0 && EClipboardSheetDefs.IsSheetDefInUse(_sheetDef.SheetDefNum))
+        if (_sheetDef != null)
         {
-            MsgBox.Show("This sheet is currently being used by eClipboard, which requires sheets to have a mobile layout. " +
-                        "You must remove this form from eClipboard rules before you can remove the mobile layout for this sheet.");
-            checkUseMobileLayout.Checked = true;
+            _sheetDef.HasMobileLayout = checkUseMobileLayout.Checked;
         }
-        else
-        {
-            if (_sheetDef != null)
-            {
-                _sheetDef.HasMobileLayout = checkUseMobileLayout.Checked;
-            }
 
-            HasMobileLayoutChanged?.Invoke(this, checkUseMobileLayout.Checked);
-        }
+        HasMobileLayoutChanged?.Invoke(this, checkUseMobileLayout.Checked);
     }
 
     private void butAddHeader_Click(object sender, EventArgs e)
@@ -1618,10 +1604,10 @@ public partial class SheetEditMobileCtrl : UserControl
 public class SheetEditMobileRadioButton : CheckBox, IHasDragAttributes
 {
     public DragAttributes DragAtt { get; set; }
-    private bool _isHighlighted = false;
+    private bool _isHighlighted;
     private Rectangle _rText = Rectangle.Empty;
     Rectangle _rDraggable = Rectangle.Empty;
-    private bool _isOverText = false;
+    private bool _isOverText;
     public event EventHandler TextClick;
     public event EventHandler Selected;
     private Func<bool> _isReadOnly;
@@ -1748,8 +1734,8 @@ public class SheetEditMobilePanel : FlowLayoutPanel, IHasDragAttributes
 {
     private const int PEN_WIDTH = 2;
     private const int DEFAULT_HEIGHT = 60;
-    private bool _isHighlighted = false;
-    private bool _isHeaderValid = false;
+    private bool _isHighlighted;
+    private bool _isHeaderValid;
 
     ///<summary>Displays double-click command in top-right.</summary>
     private string _buttonLabel = "";
@@ -1837,7 +1823,7 @@ public class SheetEditMobilePanel : FlowLayoutPanel, IHasDragAttributes
     public bool NeedsMove { get; set; }
 
     public bool HasErrors { get; set; }
-    private bool _isOverBounds = false;
+    private bool _isOverBounds;
     private Func<bool> _isReadOnly;
 
     ///<summary>Sets several pertinent fields that make this a SheetEditMobilePanel instead of a plain FlowLayoutPanel.</summary>
@@ -2001,7 +1987,7 @@ public class SheetEditMobilePanelandControl
 ///This invariably forces the panel to scroll up. This little hack prevents that.</summary>
 public class SheetEditMobilePreviewPanel : FlowLayoutPanel
 {
-    bool _allowScroll = false;
+    bool _allowScroll;
 
     protected override Point ScrollToControl(Control activeControl)
     {

@@ -9,16 +9,16 @@ public static class AlertSubs
 {
     public static List<AlertSub> GetAllForUser(long userNum, long clinicNum = -1)
     {
-        var command = "SELECT * FROM alertsub WHERE UserNum=" + userNum;
-        
+        var commandText = "SELECT * FROM alertsub WHERE UserNum = " + userNum;
+
         if (clinicNum != -1)
         {
-            command += " AND ClinicNum=" + clinicNum;
+            commandText += " AND ClinicNum = " + clinicNum;
         }
-        
-        return AlertSubCrud.SelectMany(command);
+
+        return AlertSubCrud.SelectMany(commandText);
     }
-    
+
     public static void Sync(List<AlertSub> listAlertSubsNew, List<AlertSub> listAlertSubsOld)
     {
         AlertSubCrud.Sync(listAlertSubsNew, listAlertSubsOld);

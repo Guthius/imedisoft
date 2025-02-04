@@ -907,7 +907,6 @@
 			this.monthCalendarOD.Size = new System.Drawing.Size(227, 162);
 			this.monthCalendarOD.TabIndex = 23;
 			this.monthCalendarOD.DateChanged += new System.EventHandler(this.Calendar2_DateSelected);
-			this.monthCalendarOD.SizeChanged += new System.EventHandler(this.Calendar2_SizeChanged);
 			// 
 			// contrApptPanel
 			// 
@@ -944,7 +943,6 @@
 			this.Controls.Add(this.contrApptPanel);
 			this.Name = "ControlAppt";
 			this.Size = new System.Drawing.Size(1076, 741);
-			this.Load += new System.EventHandler(this.ContrAppt_Load);
 			this.Resize += new System.EventHandler(this.ContrAppt_Resize);
 			this.panelCalendar.ResumeLayout(false);
 			this.panelCalendarLower.ResumeLayout(false);

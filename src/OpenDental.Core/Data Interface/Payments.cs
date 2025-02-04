@@ -6,6 +6,7 @@ using CodeBase;
 using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Crud;
+using Imedisoft.Core.Data;
 using Imedisoft.Core.Entities;
 using Imedisoft.Core.Features.Clinics;
 using OpenDentBusiness.WebTypes.Shared.XWeb;
@@ -24,16 +25,16 @@ public class Payments
 
     public static List<Payment> GetPayments(List<long> listPayNums)
     {
-        if (listPayNums.IsNullOrEmpty()) return new List<Payment>();
+        if (listPayNums.IsNullOrEmpty()) return [];
 
-        var command = $"SELECT * FROM payment WHERE PayNum IN({string.Join(",", listPayNums.Select(x => SOut.Long(x)))})";
+        var command = $"SELECT * FROM payment WHERE PayNum IN({string.Join(",", listPayNums.Select(x => (x)))})";
         return PaymentCrud.SelectMany(command);
     }
 
     public static List<Payment> GetTransfers(List<long> listPatNums)
     {
         var command = "SELECT * FROM payment WHERE PayType=0";
-        if (!listPatNums.IsNullOrEmpty()) command += $" AND PatNum IN({string.Join(",", listPatNums.Select(x => SOut.Long(x)))})";
+        if (!listPatNums.IsNullOrEmpty()) command += $" AND PatNum IN({string.Join(",", listPatNums.Select(x => (x)))})";
         return PaymentCrud.SelectMany(command);
     }
     
@@ -47,7 +48,7 @@ public class Payments
             //Only consider payments that have the "None (Income Transfer)" payment type check box checked as income transfers.
             command += "WHERE payment.PayType=0 ";
         //Conditionally filter the list of payments by the array of PatNums passed in.
-        if (!arrayPatNums.IsNullOrEmpty()) command += $"AND payment.PatNum IN({string.Join(",", arrayPatNums.Select(x => SOut.Long(x)))}) ";
+        if (!arrayPatNums.IsNullOrEmpty()) command += $"AND payment.PatNum IN({string.Join(",", arrayPatNums.Select(x => (x)))}) ";
         if (isPayTypeIgnored)
             //Treat all payments that have payment splits that sum up to $0 as a income transfers.
             command += "GROUP BY payment.PayNum "
@@ -59,7 +60,7 @@ public class Payments
     {
         var command =
             "SELECT * FROM payment "
-            + "WHERE DepositNum = " + SOut.Long(depositNum) + " "
+            + "WHERE DepositNum = " + (depositNum) + " "
             //Order by the date on the payment, and then the incremental order of the creation of each payment (doesn't affect random primary keys).
             //It was an internal complaint that checks on the same date show up in a 'random' order.
             //The real fix for this issue would be to add a time column and order by it by that instead of the PK.
@@ -73,14 +74,14 @@ public class Payments
             "SELECT * FROM payment "
             + "WHERE DepositNum = 0 "
             + "AND PayDate >= " + SOut.Date(dateStart) + " ";
-        if (clinicNum != 0) command += "AND ClinicNum=" + SOut.Long(clinicNum);
+        if (clinicNum != 0) command += "AND ClinicNum=" + (clinicNum);
         for (var i = 0; i < payTypes.Count; i++)
         {
             if (i == 0)
                 command += " AND (";
             else
                 command += " OR ";
-            command += "PayType=" + SOut.Long(payTypes[i]);
+            command += "PayType=" + (payTypes[i]);
             if (i == payTypes.Count - 1) command += ")";
         }
 
@@ -88,7 +89,7 @@ public class Payments
         //It was an internal complaint that checks on the same date show up in a 'random' order.
         //The real fix for this issue would be to add a time column and order by it by that instead of the PK.
         command += " ORDER BY PayDate,PayNum"; //Not usual pattern to order by PK
-        object[] parameters = {command, payTypes};
+        object[] parameters = [command, payTypes];
         command = (string) parameters[0];
         return PaymentCrud.SelectMany(command);
     }
@@ -116,7 +117,7 @@ public class Payments
         if (listPayNums.Count == 0) return 0;
         var command = "";
         command = "SELECT COUNT(*) FROM payment WHERE PayNum IN(" + string.Join(",", listPayNums) + ") AND DepositNum!=0";
-        if (ignoreDepositNum != 0) command += " AND DepositNum!=" + SOut.Long(ignoreDepositNum);
+        if (ignoreDepositNum != 0) command += " AND DepositNum!=" + (ignoreDepositNum);
         return SIn.Int(Db.GetCount(command));
     }
 
@@ -131,7 +132,7 @@ public class Payments
     {
         //Security.CurUser.UserNum gets set on MT by the DtoProcessor so it matches the user from the client WS.
         pay.SecUserNumEntry = Security.CurUser.UserNum;
-        PaymentCrud.Insert(pay, useExistingPK);
+        PaymentCrud.Insert(pay);
     }
 
     public static long Insert(Payment pay, List<PaySplit> listPaySplits)
@@ -161,8 +162,6 @@ public class Payments
             Receipt = receipt,
             PayNote = payNote
         };
-        var defNumPayTypeM2P = EServiceLogs.UseMessageToPayPrefPayType(logGuid);
-        if (defNumPayTypeM2P != 0) payment.PayType = defNumPayTypeM2P;
         if (PrefC.GetBool(PrefName.OnlinePaymentsMarkAsProcessed)) payment.ProcessStatus = ProcessStat.OnlineProcessed;
         var patient = Patients.GetPat(patNum);
         var retVal = ProcessPaymentForWeb(payment, patient, amount);
@@ -171,42 +170,7 @@ public class Payments
         var logSource = LogSources.None;
         if (CreditCards.GetCreditCardSourcesForOnlinePayments().Contains(ccSource)) logSource = LogSources.PaymentPortal;
         SecurityLogs.MakeLogEntry(EnumPermType.PaymentCreate, patNum, ccSourceString + " " + Lans.g("Payments.InsertFromXWeb", "payment by") + " " + Patients.GetLim(patNum).GetNameLF() + ", " + amount.ToString("c"), logSource);
-        if (logGuid != "") //There should be a log GUID for all Payment Portal payments.
-            EServiceLogs.MakeLogEntry(eServiceAction.PayPortalPaymentSucceeded, eServiceType.PaymentPortal,
-                FKeyType.PayNum, patNum, FKey: retVal, clinicNum: clinicNum, logGuid: logGuid, note: amount.ToString("c") + ",EdgeExpress,Hosted form");
         return retVal;
-    }
-
-    public static long InsertFromPayConnect(long patNum, long clinicNum, double amount, string payNote, string receipt, CreditCardSource ccSource, string logGuid = "", double merchantFee = 0)
-    {
-        var payment = new Payment
-        {
-            ClinicNum = clinicNum,
-            IsRecurringCC = false,
-            IsSplit = false,
-            PatNum = patNum,
-            PayAmt = amount,
-            PayDate = DateTime.Now,
-            PaymentSource = ccSource,
-            PayType = SIn.Long(ProgramProperties.GetPropVal(Programs.GetCur(ProgramName.PayConnect).ProgramNum, "PaymentType", clinicNum)),
-            ProcessStatus = ProcessStat.OnlinePending,
-            Receipt = receipt,
-            PayNote = payNote,
-            MerchantFee = merchantFee
-        };
-        var defNumPayTypeM2P = EServiceLogs.UseMessageToPayPrefPayType(logGuid);
-        if (defNumPayTypeM2P != 0) payment.PayType = defNumPayTypeM2P;
-        if (PrefC.GetBool(PrefName.OnlinePaymentsMarkAsProcessed)) payment.ProcessStatus = ProcessStat.OnlineProcessed;
-        var patient = Patients.GetPat(patNum);
-        var ret = ProcessPaymentForWeb(payment, patient, amount);
-        var logSource = LogSources.None;
-        if (CreditCards.GetCreditCardSourcesForOnlinePayments().Contains(ccSource)) logSource = LogSources.PaymentPortal;
-        SecurityLogs.MakeLogEntry(EnumPermType.PaymentCreate, patNum, Lans.g("Payments.InsertFromPayConnect", "PayConnect payment by") + " "
-                                                                                                                                       + Patients.GetLim(patNum).GetNameLF() + ", " + amount.ToString("c"), logSource);
-        if (logGuid != "") //There should be a log GUID for all Payment Portal payments.
-            EServiceLogs.MakeLogEntry(eServiceAction.PayPortalPaymentSucceeded, eServiceType.PaymentPortal,
-                FKeyType.PayNum, patNum, clinicNum, ret, logGuid, amount.ToString("c") + ",PayConnect,Hosted form");
-        return ret;
     }
 
     public static Payment InsertReturnXWebPayment(Payment payment, string payNote, double payAmt, ProcessStat processStat = ProcessStat.OfficeProcessed)
@@ -339,7 +303,7 @@ public class Payments
         PaymentCrud.Update(pay);
         if (!excludeDepositNum)
         {
-            var command = "UPDATE payment SET DepositNum=" + SOut.Long(pay.DepositNum) + " WHERE PayNum = " + SOut.Long(pay.PayNum);
+            var command = "UPDATE payment SET DepositNum=" + (pay.DepositNum) + " WHERE PayNum = " + (pay.PayNum);
             Db.NonQ(command);
         }
     }
@@ -356,25 +320,25 @@ public class Payments
     
     public static void Delete(long payNum)
     {
-        var command = "SELECT DepositNum,PayAmt FROM payment WHERE PayNum=" + SOut.Long(payNum);
+        var command = "SELECT DepositNum,PayAmt FROM payment WHERE PayNum=" + (payNum);
         var table = DataCore.GetTable(command);
         if (table.Rows.Count == 0) return;
         if (table.Rows[0]["DepositNum"].ToString() != "0" //if payment is already attached to a deposit
             && SIn.Double(table.Rows[0]["PayAmt"].ToString()) != 0) //and it's not new
             throw new ApplicationException(Lans.g("Payments", "Not allowed to delete a payment attached to a deposit."));
-        command = "DELETE from payment WHERE PayNum = " + SOut.Long(payNum);
+        command = "DELETE from payment WHERE PayNum = " + (payNum);
         Db.NonQ(command);
         //this needs to be improved to handle EstBal
-        command = "DELETE from paysplit WHERE PayNum = " + SOut.Long(payNum);
+        command = "DELETE from paysplit WHERE PayNum = " + (payNum);
         Db.NonQ(command);
-        command = "UPDATE recurringcharge SET PayNum=0 WHERE PayNum=" + SOut.Long(payNum);
+        command = "UPDATE recurringcharge SET PayNum=0 WHERE PayNum=" + (payNum);
         Db.NonQ(command);
     }
     
     public static bool AllocationRequired(double payAmt, long patNum)
     {
         var command = "SELECT EstBalance FROM patient "
-                      + "WHERE PatNum = " + SOut.Long(patNum);
+                      + "WHERE PatNum = " + (patNum);
         var table = DataCore.GetTable(command);
         double estBal = 0;
         if (table.Rows.Count > 0) estBal = SIn.Double(table.Rows[0][0].ToString());
@@ -382,7 +346,7 @@ public class Payments
         {
             command = @"SELECT SUM(InsPayEst)+SUM(Writeoff) 
 					FROM claimproc
-					WHERE PatNum=" + SOut.Long(patNum) + " "
+					WHERE PatNum=" + (patNum) + " "
                       + "AND Status=0"; //NotReceived
             table = DataCore.GetTable(command);
             if (table.Rows.Count > 0) estBal -= SIn.Double(table.Rows[0][0].ToString());
@@ -398,9 +362,9 @@ public class Payments
 
         var command =
             "SELECT Guarantor FROM patient "
-            + "WHERE PatNum = " + SOut.Long(pay.PatNum);
+            + "WHERE PatNum = " + (pay.PatNum);
         var table = DataCore.GetTable(command);
-        if (table.Rows.Count == 0) return new List<PaySplit>();
+        if (table.Rows.Count == 0) return [];
         command =
             "SELECT patient.PatNum,EstBalance,PriProv,SUM(InsPayEst)+SUM(Writeoff) insEst_ "
             + "FROM patient "
@@ -791,16 +755,5 @@ public class Payments
         Ledgers.ComputeAging(odbFamily.Guarantor.PatNum, DateTime.Now);
         Signalods.SetInvalid(InvalidType.BillingList);
         return ret;
-    }
-
-    public static bool ArePaySplitHashesValid(long payNum, List<PaySplit> listPaySplits)
-    {
-        if (listPaySplits.Count == 0) return true;
-        var listPaySplitsForPayment = listPaySplits.FindAll(x => x.PayNum == payNum);
-        for (var i = 0; i < listPaySplitsForPayment.Count; i++)
-            if (!PaySplits.IsPaySplitHashValid(listPaySplitsForPayment[i]))
-                return false;
-
-        return true;
     }
 }

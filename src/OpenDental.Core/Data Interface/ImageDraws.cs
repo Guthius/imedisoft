@@ -11,13 +11,13 @@ public class ImageDraws
 {
     public static List<ImageDraw> RefreshForDoc(long docNum)
     {
-        var command = "SELECT * FROM imagedraw WHERE DocNum = " + SOut.Long(docNum);
+        var command = "SELECT * FROM imagedraw WHERE DocNum = " + (docNum);
         return ImageDrawCrud.SelectMany(command);
     }
 
     public static List<ImageDraw> RefreshForMount(long mountNum)
     {
-        var command = "SELECT * FROM imagedraw WHERE MountNum = " + SOut.Long(mountNum);
+        var command = "SELECT * FROM imagedraw WHERE MountNum = " + (mountNum);
         return ImageDrawCrud.SelectMany(command);
     }
 
@@ -38,13 +38,13 @@ public class ImageDraws
 
     public static void DeleteByDocNum(long docNum)
     {
-        var command = "DELETE FROM imagedraw WHERE DocNum=" + SOut.Long(docNum);
+        var command = "DELETE FROM imagedraw WHERE DocNum=" + (docNum);
         Db.NonQ(command);
     }
 
     public static void DeleteByDocNumAndVendor(long docNum, EnumImageAnnotVendor enumImageAnnotVendor)
     {
-        var command = "DELETE FROM imagedraw WHERE DocNum=" + SOut.Long(docNum) + " AND ImageAnnotVendor=" + SOut.Enum(enumImageAnnotVendor);
+        var command = "DELETE FROM imagedraw WHERE DocNum=" + (docNum) + " AND ImageAnnotVendor=" + SOut.Enum(enumImageAnnotVendor);
         Db.NonQ(command);
     }
 

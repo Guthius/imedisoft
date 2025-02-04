@@ -1,12 +1,8 @@
 using System;
-using System.Data;
 using System.Drawing;
-using System.Collections;
-using System.ComponentModel;
 using System.Windows.Forms;
 using OpenDentBusiness;
 using OpenDental.ReportingComplex;
-using System.Collections.Generic;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Entities;
 

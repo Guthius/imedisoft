@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections;
-using System.IO;
-using System.Text;
+﻿using System.IO;
 using System.Windows.Forms;
 using CodeBase;
 using Imedisoft.Core.Entities;

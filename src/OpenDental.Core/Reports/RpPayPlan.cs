@@ -2,11 +2,9 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
-using System.Reflection;
 using DataConnectionBase;
 using Imedisoft.Core.Entities;
 using Imedisoft.Core.Features.Clinics;
-using Imedisoft.Core.Features.Clinics.Dtos;
 
 namespace OpenDentBusiness {
 	public class RpPayPlan {
@@ -177,7 +175,7 @@ namespace OpenDentBusiness {
 			if(hasClinicsEnabled) {
 				command+="ORDER BY ClinicNum,LName,FName";
 			}
-			var raw=ReportsComplex.GetTable(command);
+			var raw=DataCore.GetTable(command);
 			var listProvs=Providers.GetAll();
 			var listClinics = Clinics.GetClinicsNoCache();
 			//DateTime payplanDate;
@@ -215,7 +213,7 @@ namespace OpenDentBusiness {
 				pat.FName=raw.Rows[i]["FName"].ToString();
 				pat.MiddleI=raw.Rows[i]["MiddleI"].ToString();
 				pat.Preferred=raw.Rows[i]["Preferred"].ToString();
-				row["provider"]=Providers.GetLName(SIn.Long(raw.Rows[i]["ProvNum"].ToString()),listProvs);
+				row["provider"]=Providers.GetLastName(SIn.Long(raw.Rows[i]["ProvNum"].ToString()),listProvs);
 				row["guarantor"]=pat.GetNameLF();
 				row["ins"]="";
 				if(raw.Rows[i]["PlanNum"].ToString()!="0") {//Is Insurance PayPlan
@@ -247,7 +245,7 @@ namespace OpenDentBusiness {
 				if(hasClinicsEnabled) {//Using clinics
 					var clinicAbbr=Clinics.GetAbbr(SIn.Long(raw.Rows[i]["ClinicNum"].ToString()),listClinics);
 					clinicAbbr=(clinicAbbr=="")?Lans.g("FormRpPayPlans","Unassigned"):clinicAbbr;
-					if(!String.IsNullOrEmpty(clinicAbbrOld) && clinicAbbr!=clinicAbbrOld) {//Reset all the total values
+					if(!string.IsNullOrEmpty(clinicAbbrOld) && clinicAbbr!=clinicAbbrOld) {//Reset all the total values
 						var rowTot=tableTotals.NewRow();
 						rowTot["clinicName"]=clinicAbbrOld;
 						rowTot["princ"]=princTot.ToString();

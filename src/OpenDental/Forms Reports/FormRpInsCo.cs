@@ -1,13 +1,8 @@
 using System;
-using System.Diagnostics;
 using System.Drawing;
-using System.Collections;
-using System.ComponentModel;
 using System.Windows.Forms;
 using OpenDentBusiness;
 using OpenDental.ReportingComplex;
-using System.Data;
-using CodeBase;
 using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Entities;
@@ -15,7 +10,6 @@ using Imedisoft.Core.Entities;
 namespace OpenDental;
 
 public partial class FormRpInsCo : FormODBase {
-	private FormQuery FormQuery2;
 	private string carrier;
 
 		

@@ -193,72 +193,53 @@ public class ODprintout
 public enum PrintSituation
 {
     [Description("Default")]
-    Default,
+    Default = 0,
         
     [Description("Statements")]
-    Statement,
+    Statement = 1,
         
     [Description("Labels - Single")]
-    LabelSingle,
+    LabelSingle = 2,
 
     [Description("Claims")]
-    Claim,
+    Claim = 3,
         
     [Description("Treatment Plans and Perio")]
-    TPPerio,
-        
-    [Description("Rx's")]
-    Rx,
+    TPPerio = 4,
         
     [Description("Labels - Sheet")]
-    LabelSheet,
+    LabelSheet = 6,
 
     [Description("Postcards")]
-    Postcard,
+    Postcard = 7,
 
     [Description("Appointments")]
-    Appointments,
-
-    [Description("Controlled Rx's")]
-    RxControlled,
-
+    Appointments = 8,
+    
     [Description("Receipts")]
-    Receipt,
-
-    [Description("Multi Rx's")]
-    RxMulti
+    Receipt = 10,
 }
     
 public enum PrintoutErrorCode
 {
     [Description("No error.")]
     Success,
-
-    ///<summary>1</summary>
+    
     [Description("Error: No printers installed.")]
     NoInstalledPrinter,
-
-    ///<summary>2</summary>
+    
     [Description("Error: Printers settings not found.")]
     PrinterSettingsNotFound,
-
-    ///<summary>3</summary>
-    [Description("Error: Printer name not found.")]
-    PrinterNameNotFound,
-
-    ///<summary>4</summary>
+    
     [Description("Error: Printer settings found but are flagged as invalid.")]
     InvalidPrinterSettings,
-
-    ///<summary>5</summary>
+    
     [Description("Error: An error occurred while attempting to connect to the printer.")]
     PrinterConnectionError,
 
-    ///<summary>6</summary>
     [Description("Error: No active print spooler service found.")]
     InactivePrintSpoolerService,
 }
-
 
 public enum PrintoutOrigin
 {

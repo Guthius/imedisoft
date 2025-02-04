@@ -3,8 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Windows.Forms;
+using Imedisoft.Core.Data;
 using Imedisoft.Core.Entities;
-using OpenDentBusiness;
 using OpenDental.UI;
 
 namespace OpenDental;

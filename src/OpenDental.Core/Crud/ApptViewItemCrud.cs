@@ -19,21 +19,22 @@ public class ApptViewItemCrud
     public static List<ApptViewItem> TableToList(DataTable table)
     {
         var retVal = new List<ApptViewItem>();
-        ApptViewItem apptViewItem;
         foreach (DataRow row in table.Rows)
         {
-            apptViewItem = new ApptViewItem();
-            apptViewItem.ApptViewItemNum = SIn.Long(row["ApptViewItemNum"].ToString());
-            apptViewItem.ApptViewNum = SIn.Long(row["ApptViewNum"].ToString());
-            apptViewItem.OpNum = SIn.Long(row["OpNum"].ToString());
-            apptViewItem.ProvNum = SIn.Long(row["ProvNum"].ToString());
-            apptViewItem.ElementDesc = SIn.String(row["ElementDesc"].ToString());
-            apptViewItem.ElementOrder = SIn.Byte(row["ElementOrder"].ToString());
-            apptViewItem.ElementColor = Color.FromArgb(SIn.Int(row["ElementColor"].ToString()));
-            apptViewItem.ElementAlignment = (ApptViewAlignment) SIn.Int(row["ElementAlignment"].ToString());
-            apptViewItem.ApptFieldDefNum = SIn.Long(row["ApptFieldDefNum"].ToString());
-            apptViewItem.PatFieldDefNum = SIn.Long(row["PatFieldDefNum"].ToString());
-            apptViewItem.IsMobile = SIn.Bool(row["IsMobile"].ToString());
+            var apptViewItem = new ApptViewItem
+            {
+                ApptViewItemNum = SIn.Long(row["ApptViewItemNum"].ToString()),
+                ApptViewNum = SIn.Long(row["ApptViewNum"].ToString()),
+                OpNum = SIn.Long(row["OpNum"].ToString()),
+                ProvNum = SIn.Long(row["ProvNum"].ToString()),
+                ElementDesc = SIn.String(row["ElementDesc"].ToString()),
+                ElementOrder = SIn.Byte(row["ElementOrder"].ToString()),
+                ElementColor = Color.FromArgb(SIn.Int(row["ElementColor"].ToString())),
+                ElementAlignment = (ApptViewAlignment) SIn.Int(row["ElementAlignment"].ToString()),
+                ApptFieldDefNum = SIn.Long(row["ApptFieldDefNum"].ToString()),
+                PatFieldDefNum = SIn.Long(row["PatFieldDefNum"].ToString()),
+                IsMobile = SIn.Bool(row["IsMobile"].ToString())
+            };
             retVal.Add(apptViewItem);
         }
 

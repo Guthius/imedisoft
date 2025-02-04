@@ -17,22 +17,23 @@ public class ClaimAttachCrud
     public static List<ClaimAttach> TableToList(DataTable table)
     {
         var retVal = new List<ClaimAttach>();
-        ClaimAttach claimAttach;
         foreach (DataRow row in table.Rows)
         {
-            claimAttach = new ClaimAttach();
-            claimAttach.ClaimAttachNum = SIn.Long(row["ClaimAttachNum"].ToString());
-            claimAttach.ClaimNum = SIn.Long(row["ClaimNum"].ToString());
-            claimAttach.DisplayedFileName = SIn.String(row["DisplayedFileName"].ToString());
-            claimAttach.ActualFileName = SIn.String(row["ActualFileName"].ToString());
-            claimAttach.ImageReferenceId = SIn.Int(row["ImageReferenceId"].ToString());
+            var claimAttach = new ClaimAttach
+            {
+                ClaimAttachNum = SIn.Long(row["ClaimAttachNum"].ToString()),
+                ClaimNum = SIn.Long(row["ClaimNum"].ToString()),
+                DisplayedFileName = SIn.String(row["DisplayedFileName"].ToString()),
+                ActualFileName = SIn.String(row["ActualFileName"].ToString()),
+                ImageReferenceId = SIn.Int(row["ImageReferenceId"].ToString())
+            };
             retVal.Add(claimAttach);
         }
 
         return retVal;
     }
 
-    public static long Insert(ClaimAttach claimAttach)
+    public static void Insert(ClaimAttach claimAttach)
     {
         var command = "INSERT INTO claimattach (";
 
@@ -46,6 +47,5 @@ public class ClaimAttachCrud
         {
             claimAttach.ClaimAttachNum = Db.NonQ(command, true, "ClaimAttachNum", "claimAttach");
         }
-        return claimAttach.ClaimAttachNum;
     }
 }

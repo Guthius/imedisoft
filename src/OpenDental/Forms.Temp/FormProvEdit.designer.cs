@@ -53,25 +53,15 @@ namespace OpenDental {
 			this.label22 = new System.Windows.Forms.Label();
 			this.textSchedRules = new System.Windows.Forms.TextBox();
 			this.labelSchedRules = new System.Windows.Forms.Label();
-			this.checkUseErx = new OpenDental.UI.CheckBox();
 			this.checkIsHiddenOnReports = new OpenDental.UI.CheckBox();
-			this.label21 = new System.Windows.Forms.Label();
-			this.textCustomID = new System.Windows.Forms.TextBox();
 			this.label20 = new System.Windows.Forms.Label();
 			this.textProviderID = new System.Windows.Forms.TextBox();
 			this.comboProv = new OpenDental.UI.ComboBox();
 			this.label19 = new System.Windows.Forms.Label();
 			this.checkIsNotPerson = new OpenDental.UI.CheckBox();
-			this.textEcwID = new System.Windows.Forms.TextBox();
-			this.labelEcwID = new System.Windows.Forms.Label();
 			this.checkIsCDAnet = new OpenDental.UI.CheckBox();
 			this.textTaxonomyOverride = new System.Windows.Forms.TextBox();
 			this.label4 = new System.Windows.Forms.Label();
-			this.groupAnesthProvType = new OpenDental.UI.GroupBox();
-			this.radAsstCirc = new System.Windows.Forms.RadioButton();
-			this.radAnesthSurg = new System.Windows.Forms.RadioButton();
-			this.radNone = new System.Windows.Forms.RadioButton();
-			this.labelAnesthProvs = new System.Windows.Forms.Label();
 			this.textCanadianOfficeNum = new System.Windows.Forms.TextBox();
 			this.labelCanadianOfficeNum = new System.Windows.Forms.Label();
 			this.textNationalProvID = new System.Windows.Forms.TextBox();
@@ -103,13 +93,6 @@ namespace OpenDental {
 			this.labelColor = new System.Windows.Forms.Label();
 			this.dateTerm = new OpenDental.UI.ODDatePicker();
 			this.tabSupplementalIDs = new OpenDental.UI.TabPage();
-			this.tabWebSched = new OpenDental.UI.TabPage();
-			this.butPictureNone = new OpenDental.UI.Button();
-			this.butPickPict = new OpenDental.UI.Button();
-			this.label24 = new System.Windows.Forms.Label();
-			this.label23 = new System.Windows.Forms.Label();
-			this.pictureWebSched = new System.Windows.Forms.PictureBox();
-			this.textWebSchedDescript = new System.Windows.Forms.TextBox();
 			this.tabClinics = new OpenDental.UI.TabPage();
 			this.labelClinicsDesc = new System.Windows.Forms.Label();
 			this.checkAllClinics = new OpenDental.UI.CheckBox();
@@ -119,11 +102,8 @@ namespace OpenDental {
 			this.tabControlProvider.SuspendLayout();
 			this.tabGeneral.SuspendLayout();
 			this.groupClinicOverrides.SuspendLayout();
-			this.groupAnesthProvType.SuspendLayout();
 			this.groupBox1.SuspendLayout();
 			this.tabSupplementalIDs.SuspendLayout();
-			this.tabWebSched.SuspendLayout();
-			((System.ComponentModel.ISupportInitialize)(this.pictureWebSched)).BeginInit();
 			this.tabClinics.SuspendLayout();
 			this.SuspendLayout();
 			// 
@@ -135,7 +115,7 @@ namespace OpenDental {
 			this.butSave.Size = new System.Drawing.Size(75, 24);
 			this.butSave.TabIndex = 35;
 			this.butSave.Text = "&Save";
-			this.butSave.Click += new System.EventHandler(this.butSave_Click);
+			this.butSave.Click += new System.EventHandler(this.ButtonSave_Click);
 			// 
 			// colorDialog1
 			// 
@@ -159,7 +139,7 @@ namespace OpenDental {
 			this.gridProvIdent.Name = "gridProvIdent";
 			this.gridProvIdent.Size = new System.Drawing.Size(319, 88);
 			this.gridProvIdent.TabIndex = 45;
-			this.gridProvIdent.CellDoubleClick += new OpenDental.UI.ODGridClickEventHandler(this.gridProvIdent_CellDoubleClick);
+			this.gridProvIdent.CellDoubleClick += new OpenDental.UI.ODGridClickEventHandler(this.GridProvIdent_CellDoubleClick);
 			// 
 			// butAdd
 			// 
@@ -170,7 +150,7 @@ namespace OpenDental {
 			this.butAdd.Size = new System.Drawing.Size(90, 24);
 			this.butAdd.TabIndex = 0;
 			this.butAdd.Text = "Add";
-			this.butAdd.Click += new System.EventHandler(this.butAdd_Click);
+			this.butAdd.Click += new System.EventHandler(this.ButtonAdd_Click);
 			// 
 			// butDelete
 			// 
@@ -181,7 +161,7 @@ namespace OpenDental {
 			this.butDelete.Size = new System.Drawing.Size(90, 24);
 			this.butDelete.TabIndex = 1;
 			this.butDelete.Text = "Delete";
-			this.butDelete.Click += new System.EventHandler(this.butDelete_Click);
+			this.butDelete.Click += new System.EventHandler(this.ButtonDelete_Click);
 			// 
 			// label2
 			// 
@@ -196,7 +176,6 @@ namespace OpenDental {
 			// 
 			this.tabControlProvider.Controls.Add(this.tabGeneral);
 			this.tabControlProvider.Controls.Add(this.tabSupplementalIDs);
-			this.tabControlProvider.Controls.Add(this.tabWebSched);
 			this.tabControlProvider.Controls.Add(this.tabClinics);
 			this.tabControlProvider.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F);
 			this.tabControlProvider.Location = new System.Drawing.Point(12, 12);
@@ -219,21 +198,15 @@ namespace OpenDental {
 			this.tabGeneral.Controls.Add(this.label22);
 			this.tabGeneral.Controls.Add(this.textSchedRules);
 			this.tabGeneral.Controls.Add(this.labelSchedRules);
-			this.tabGeneral.Controls.Add(this.checkUseErx);
 			this.tabGeneral.Controls.Add(this.checkIsHiddenOnReports);
-			this.tabGeneral.Controls.Add(this.label21);
-			this.tabGeneral.Controls.Add(this.textCustomID);
 			this.tabGeneral.Controls.Add(this.label20);
 			this.tabGeneral.Controls.Add(this.textProviderID);
 			this.tabGeneral.Controls.Add(this.comboProv);
 			this.tabGeneral.Controls.Add(this.label19);
 			this.tabGeneral.Controls.Add(this.checkIsNotPerson);
-			this.tabGeneral.Controls.Add(this.textEcwID);
-			this.tabGeneral.Controls.Add(this.labelEcwID);
 			this.tabGeneral.Controls.Add(this.checkIsCDAnet);
 			this.tabGeneral.Controls.Add(this.textTaxonomyOverride);
 			this.tabGeneral.Controls.Add(this.label4);
-			this.tabGeneral.Controls.Add(this.groupAnesthProvType);
 			this.tabGeneral.Controls.Add(this.textCanadianOfficeNum);
 			this.tabGeneral.Controls.Add(this.labelCanadianOfficeNum);
 			this.tabGeneral.Controls.Add(this.textNationalProvID);
@@ -338,7 +311,7 @@ namespace OpenDental {
 			this.butClinicOverrides.TabIndex = 329;
 			this.butClinicOverrides.Text = "Edit";
 			this.butClinicOverrides.UseVisualStyleBackColor = true;
-			this.butClinicOverrides.Click += new System.EventHandler(this.butClinicOverrides_Click);
+			this.butClinicOverrides.Click += new System.EventHandler(this.ButtonClinicOverrides_Click);
 			// 
 			// label3
 			// 
@@ -460,14 +433,6 @@ namespace OpenDental {
 			this.labelSchedRules.Text = "Scheduling Note";
 			this.labelSchedRules.TextAlign = System.Drawing.ContentAlignment.BottomLeft;
 			// 
-			// checkUseErx
-			// 
-			this.checkUseErx.Location = new System.Drawing.Point(419, 526);
-			this.checkUseErx.Name = "checkUseErx";
-			this.checkUseErx.Size = new System.Drawing.Size(212, 17);
-			this.checkUseErx.TabIndex = 310;
-			this.checkUseErx.Text = "Use Electronic Prescriptions (eRx)";
-			// 
 			// checkIsHiddenOnReports
 			// 
 			this.checkIsHiddenOnReports.Location = new System.Drawing.Point(419, 510);
@@ -475,23 +440,6 @@ namespace OpenDental {
 			this.checkIsHiddenOnReports.Size = new System.Drawing.Size(158, 17);
 			this.checkIsHiddenOnReports.TabIndex = 309;
 			this.checkIsHiddenOnReports.Text = "Hidden On Reports";
-			// 
-			// label21
-			// 
-			this.label21.Location = new System.Drawing.Point(417, 301);
-			this.label21.Name = "label21";
-			this.label21.Size = new System.Drawing.Size(107, 14);
-			this.label21.TabIndex = 324;
-			this.label21.Text = "Custom ID";
-			this.label21.TextAlign = System.Drawing.ContentAlignment.BottomLeft;
-			// 
-			// textCustomID
-			// 
-			this.textCustomID.Location = new System.Drawing.Point(419, 318);
-			this.textCustomID.MaxLength = 255;
-			this.textCustomID.Name = "textCustomID";
-			this.textCustomID.Size = new System.Drawing.Size(108, 20);
-			this.textCustomID.TabIndex = 301;
 			// 
 			// label20
 			// 
@@ -536,24 +484,6 @@ namespace OpenDental {
 			this.checkIsNotPerson.TabIndex = 307;
 			this.checkIsNotPerson.Text = "Not a Person (for example, a dummy provider representing the organization)";
 			// 
-			// textEcwID
-			// 
-			this.textEcwID.Location = new System.Drawing.Point(202, 17);
-			this.textEcwID.MaxLength = 255;
-			this.textEcwID.Name = "textEcwID";
-			this.textEcwID.ReadOnly = true;
-			this.textEcwID.Size = new System.Drawing.Size(121, 20);
-			this.textEcwID.TabIndex = 316;
-			// 
-			// labelEcwID
-			// 
-			this.labelEcwID.Location = new System.Drawing.Point(65, 21);
-			this.labelEcwID.Name = "labelEcwID";
-			this.labelEcwID.Size = new System.Drawing.Size(136, 14);
-			this.labelEcwID.TabIndex = 317;
-			this.labelEcwID.Text = "eCW ID";
-			this.labelEcwID.TextAlign = System.Drawing.ContentAlignment.TopRight;
-			// 
 			// checkIsCDAnet
 			// 
 			this.checkIsCDAnet.Location = new System.Drawing.Point(419, 430);
@@ -579,59 +509,6 @@ namespace OpenDental {
 			this.label4.TabIndex = 315;
 			this.label4.Text = "Taxonomy Code Override";
 			this.label4.TextAlign = System.Drawing.ContentAlignment.BottomLeft;
-			// 
-			// groupAnesthProvType
-			// 
-			this.groupAnesthProvType.Controls.Add(this.radAsstCirc);
-			this.groupAnesthProvType.Controls.Add(this.radAnesthSurg);
-			this.groupAnesthProvType.Controls.Add(this.radNone);
-			this.groupAnesthProvType.Controls.Add(this.labelAnesthProvs);
-			this.groupAnesthProvType.Location = new System.Drawing.Point(407, 346);
-			this.groupAnesthProvType.Name = "groupAnesthProvType";
-			this.groupAnesthProvType.Size = new System.Drawing.Size(347, 83);
-			this.groupAnesthProvType.TabIndex = 303;
-			this.groupAnesthProvType.Text = "Anesthesia Provider Groups (optional)";
-			// 
-			// radAsstCirc
-			// 
-			this.radAsstCirc.AutoSize = true;
-			this.radAsstCirc.Location = new System.Drawing.Point(16, 56);
-			this.radAsstCirc.Name = "radAsstCirc";
-			this.radAsstCirc.Size = new System.Drawing.Size(116, 17);
-			this.radAsstCirc.TabIndex = 9;
-			this.radAsstCirc.Text = "Assistant/Circulator";
-			this.radAsstCirc.UseVisualStyleBackColor = true;
-			// 
-			// radAnesthSurg
-			// 
-			this.radAnesthSurg.AutoSize = true;
-			this.radAnesthSurg.Location = new System.Drawing.Point(16, 37);
-			this.radAnesthSurg.Name = "radAnesthSurg";
-			this.radAnesthSurg.Size = new System.Drawing.Size(122, 17);
-			this.radAnesthSurg.TabIndex = 8;
-			this.radAnesthSurg.Text = "Anesthetist/Surgeon";
-			this.radAnesthSurg.UseVisualStyleBackColor = true;
-			// 
-			// radNone
-			// 
-			this.radNone.AutoSize = true;
-			this.radNone.Checked = true;
-			this.radNone.Location = new System.Drawing.Point(16, 18);
-			this.radNone.Name = "radNone";
-			this.radNone.Size = new System.Drawing.Size(51, 17);
-			this.radNone.TabIndex = 7;
-			this.radNone.TabStop = true;
-			this.radNone.Text = "None";
-			this.radNone.UseVisualStyleBackColor = true;
-			// 
-			// labelAnesthProvs
-			// 
-			this.labelAnesthProvs.Location = new System.Drawing.Point(157, 22);
-			this.labelAnesthProvs.Name = "labelAnesthProvs";
-			this.labelAnesthProvs.Size = new System.Drawing.Size(188, 52);
-			this.labelAnesthProvs.TabIndex = 4;
-			this.labelAnesthProvs.Text = "Assign this user to a group. This will populate the corresponding dropdowns on th" +
-    "e Anesthetic Record.";
 			// 
 			// textCanadianOfficeNum
 			// 
@@ -759,7 +636,7 @@ namespace OpenDental {
 			this.radioTIN.Size = new System.Drawing.Size(104, 18);
 			this.radioTIN.TabIndex = 1;
 			this.radioTIN.Text = "TIN";
-			this.radioTIN.Click += new System.EventHandler(this.radioTIN_Click);
+			this.radioTIN.Click += new System.EventHandler(this.RadioButtonTin_Click);
 			// 
 			// radioSSN
 			// 
@@ -770,7 +647,7 @@ namespace OpenDental {
 			this.radioSSN.TabIndex = 0;
 			this.radioSSN.TabStop = true;
 			this.radioSSN.Text = "SSN";
-			this.radioSSN.Click += new System.EventHandler(this.radioSSN_Click);
+			this.radioSSN.Click += new System.EventHandler(this.RadioButtonSsn_Click);
 			// 
 			// textSSN
 			// 
@@ -917,82 +794,6 @@ namespace OpenDental {
 			this.tabSupplementalIDs.TabIndex = 1;
 			this.tabSupplementalIDs.Text = "Supplemental IDs";
 			// 
-			// tabWebSched
-			// 
-			this.tabWebSched.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(252)))), ((int)(((byte)(253)))), ((int)(((byte)(254)))));
-			this.tabWebSched.Controls.Add(this.butPictureNone);
-			this.tabWebSched.Controls.Add(this.butPickPict);
-			this.tabWebSched.Controls.Add(this.label24);
-			this.tabWebSched.Controls.Add(this.label23);
-			this.tabWebSched.Controls.Add(this.pictureWebSched);
-			this.tabWebSched.Controls.Add(this.textWebSchedDescript);
-			this.tabWebSched.Location = new System.Drawing.Point(2, 21);
-			this.tabWebSched.Name = "tabWebSched";
-			this.tabWebSched.Padding = new System.Windows.Forms.Padding(3);
-			this.tabWebSched.Size = new System.Drawing.Size(866, 588);
-			this.tabWebSched.TabIndex = 3;
-			this.tabWebSched.Text = "Web Sched";
-			// 
-			// butPictureNone
-			// 
-			this.butPictureNone.Location = new System.Drawing.Point(320, 141);
-			this.butPictureNone.Name = "butPictureNone";
-			this.butPictureNone.Size = new System.Drawing.Size(57, 23);
-			this.butPictureNone.TabIndex = 117;
-			this.butPictureNone.TabStop = false;
-			this.butPictureNone.Text = "None";
-			this.butPictureNone.Click += new System.EventHandler(this.butPictureNone_Click);
-			// 
-			// butPickPict
-			// 
-			this.butPickPict.Location = new System.Drawing.Point(286, 141);
-			this.butPickPict.Name = "butPickPict";
-			this.butPickPict.Size = new System.Drawing.Size(27, 23);
-			this.butPickPict.TabIndex = 116;
-			this.butPickPict.Text = "...";
-			this.butPickPict.Click += new System.EventHandler(this.butPickPict_Click);
-			// 
-			// label24
-			// 
-			this.label24.Location = new System.Drawing.Point(54, 141);
-			this.label24.Name = "label24";
-			this.label24.Size = new System.Drawing.Size(93, 16);
-			this.label24.TabIndex = 115;
-			this.label24.Text = "Picture";
-			this.label24.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
-			// 
-			// label23
-			// 
-			this.label23.Location = new System.Drawing.Point(54, 37);
-			this.label23.Name = "label23";
-			this.label23.Size = new System.Drawing.Size(93, 16);
-			this.label23.TabIndex = 114;
-			this.label23.Text = "Description";
-			this.label23.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
-			// 
-			// pictureWebSched
-			// 
-			this.pictureWebSched.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-			this.pictureWebSched.Location = new System.Drawing.Point(153, 141);
-			this.pictureWebSched.Name = "pictureWebSched";
-			this.pictureWebSched.Size = new System.Drawing.Size(128, 128);
-			this.pictureWebSched.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
-			this.pictureWebSched.TabIndex = 113;
-			this.pictureWebSched.TabStop = false;
-			// 
-			// textWebSchedDescript
-			// 
-			this.textWebSchedDescript.AcceptsReturn = true;
-			this.textWebSchedDescript.AcceptsTab = true;
-			this.textWebSchedDescript.BackColor = System.Drawing.SystemColors.Window;
-			this.textWebSchedDescript.Location = new System.Drawing.Point(153, 36);
-			this.textWebSchedDescript.MaxLength = 500;
-			this.textWebSchedDescript.Multiline = true;
-			this.textWebSchedDescript.Name = "textWebSchedDescript";
-			this.textWebSchedDescript.ScrollBars = System.Windows.Forms.ScrollBars.Vertical;
-			this.textWebSchedDescript.Size = new System.Drawing.Size(366, 96);
-			this.textWebSchedDescript.TabIndex = 1;
-			// 
 			// tabClinics
 			// 
 			this.tabClinics.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(252)))), ((int)(((byte)(253)))), ((int)(((byte)(254)))));
@@ -1023,7 +824,7 @@ namespace OpenDental {
 			this.checkAllClinics.Size = new System.Drawing.Size(154, 16);
 			this.checkAllClinics.TabIndex = 45;
 			this.checkAllClinics.Text = "All";
-			this.checkAllClinics.CheckedChanged += new System.EventHandler(this.checkAllClinics_CheckedChanged);
+			this.checkAllClinics.CheckedChanged += new System.EventHandler(this.CheckBoxAllClinics_CheckedChanged);
 			// 
 			// listBoxClinics
 			// 
@@ -1032,7 +833,7 @@ namespace OpenDental {
 			this.listBoxClinics.SelectionMode = OpenDental.UI.SelectionMode.MultiExtended;
 			this.listBoxClinics.Size = new System.Drawing.Size(154, 186);
 			this.listBoxClinics.TabIndex = 46;
-			this.listBoxClinics.SelectedIndexChanged += new System.EventHandler(this.listBoxClinics_SelectedIndexChanged);
+			this.listBoxClinics.SelectedIndexChanged += new System.EventHandler(this.ListBoxClinics_SelectedIndexChanged);
 			// 
 			// labelClinics
 			// 
@@ -1064,14 +865,9 @@ namespace OpenDental {
 			this.tabGeneral.PerformLayout();
 			this.groupClinicOverrides.ResumeLayout(false);
 			this.groupClinicOverrides.PerformLayout();
-			this.groupAnesthProvType.ResumeLayout(false);
-			this.groupAnesthProvType.PerformLayout();
 			this.groupBox1.ResumeLayout(false);
 			this.groupBox1.PerformLayout();
 			this.tabSupplementalIDs.ResumeLayout(false);
-			this.tabWebSched.ResumeLayout(false);
-			this.tabWebSched.PerformLayout();
-			((System.ComponentModel.ISupportInitialize)(this.pictureWebSched)).EndInit();
 			this.tabClinics.ResumeLayout(false);
 			this.ResumeLayout(false);
 
@@ -1091,10 +887,7 @@ namespace OpenDental {
 		private Label label22;
 		private TextBox textSchedRules;
 		private Label labelSchedRules;
-		private OpenDental.UI.CheckBox checkUseErx;
 		private OpenDental.UI.CheckBox checkIsHiddenOnReports;
-		private Label label21;
-		private TextBox textCustomID;
 		private Label label20;
 		private TextBox textProviderID;
 		private UI.ComboBox comboProv;
@@ -1104,16 +897,9 @@ namespace OpenDental {
 		private OpenDental.UI.CheckBox checkIsNotPerson;
 		private TextBox textStateRxID;
 		private Label label12;
-		private TextBox textEcwID;
-		private Label labelEcwID;
 		private OpenDental.UI.CheckBox checkIsCDAnet;
 		private TextBox textTaxonomyOverride;
 		private Label label4;
-		private OpenDental.UI.GroupBox groupAnesthProvType;
-		private RadioButton radAsstCirc;
-		private RadioButton radAnesthSurg;
-		private RadioButton radNone;
-		private Label labelAnesthProvs;
 		private TextBox textCanadianOfficeNum;
 		private Label labelCanadianOfficeNum;
 		private TextBox textNationalProvID;
@@ -1148,13 +934,6 @@ namespace OpenDental {
 		private OpenDental.UI.CheckBox checkIsHidden;
 		private Label labelColor;
 		private OpenDental.UI.TabPage tabSupplementalIDs;
-		private OpenDental.UI.TabPage tabWebSched;
-		private TextBox textWebSchedDescript;
-		private Label label24;
-		private Label label23;
-		private PictureBox pictureWebSched;
-		private UI.Button butPickPict;
-		private UI.Button butPictureNone;
 		private OpenDental.UI.TabPage tabClinics;
 		private OpenDental.UI.CheckBox checkAllClinics;
 		private UI.ListBox listBoxClinics;

@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
-using System.Reflection;
 using DataConnectionBase;
 using Imedisoft.Core.Entities;
 
@@ -11,10 +10,10 @@ namespace OpenDentBusiness {
 
 		public static DataTable GetNewPatients(DateTime dateFrom,DateTime dateTo,List<long> listProvNums,bool includeAddress,bool excludeNoProd,bool hasAllProvs) {
 			//used to limit procedurelog in query, getting codenums from the cache so we don't have to join the procedurecode table.
-			string missApptProcs = String.Join(",",ProcedureCodes.GetWhere(x => new List<string>{ "D9986","D9987"}.Contains(x.ProcCode)).Select(x => x.CodeNum));
-			string addressFields = ",patient.Preferred,patient.Address,patient.Address2,patient.City,patient.State,patient.Zip ";
-			string provWhere = $" AND patient.PriProv IN({String.Join(",",listProvNums)}) ";
-			string query = $@"SET @pos=0;
+			var missApptProcs = string.Join(",",ProcedureCodes.GetWhere(x => new List<string>{ "D9986","D9987"}.Contains(x.ProcCode)).Select(x => x.CodeNum));
+			var addressFields = ",patient.Preferred,patient.Address,patient.Address2,patient.City,patient.State,patient.Zip ";
+			var provWhere = $" AND patient.PriProv IN({string.Join(",",listProvNums)}) ";
+			var query = $@"SET @pos=0;
 				SELECT
 				    @pos:=@pos+1 patCount,
 				    result.*

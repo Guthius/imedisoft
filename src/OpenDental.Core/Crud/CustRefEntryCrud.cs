@@ -17,22 +17,23 @@ public class CustRefEntryCrud
     public static List<CustRefEntry> TableToList(DataTable table)
     {
         var retVal = new List<CustRefEntry>();
-        CustRefEntry custRefEntry;
         foreach (DataRow row in table.Rows)
         {
-            custRefEntry = new CustRefEntry();
-            custRefEntry.CustRefEntryNum = SIn.Long(row["CustRefEntryNum"].ToString());
-            custRefEntry.PatNumCust = SIn.Long(row["PatNumCust"].ToString());
-            custRefEntry.PatNumRef = SIn.Long(row["PatNumRef"].ToString());
-            custRefEntry.DateEntry = SIn.Date(row["DateEntry"].ToString());
-            custRefEntry.Note = SIn.String(row["Note"].ToString());
+            var custRefEntry = new CustRefEntry
+            {
+                CustRefEntryNum = SIn.Long(row["CustRefEntryNum"].ToString()),
+                PatNumCust = SIn.Long(row["PatNumCust"].ToString()),
+                PatNumRef = SIn.Long(row["PatNumRef"].ToString()),
+                DateEntry = SIn.Date(row["DateEntry"].ToString()),
+                Note = SIn.String(row["Note"].ToString())
+            };
             retVal.Add(custRefEntry);
         }
 
         return retVal;
     }
 
-    public static long Insert(CustRefEntry custRefEntry)
+    public static void Insert(CustRefEntry custRefEntry)
     {
         var command = "INSERT INTO custrefentry (";
 
@@ -46,7 +47,6 @@ public class CustRefEntryCrud
         {
             custRefEntry.CustRefEntryNum = Db.NonQ(command, true, "CustRefEntryNum", "custRefEntry");
         }
-        return custRefEntry.CustRefEntryNum;
     }
 
     public static void Update(CustRefEntry custRefEntry)

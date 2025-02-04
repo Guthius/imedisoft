@@ -1,8 +1,5 @@
 ﻿using System;
-using System.Diagnostics;
-using System.Drawing;
 using System.Windows.Forms;
-using CodeBase;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Entities;
 using OpenDentBusiness;
@@ -53,15 +50,6 @@ public partial class UserControlChartProcedures:UserControl {
 		}
 	}
 
-	private void linkLabelProcLockingIsAllowedDetails_LinkClicked(object sender,LinkLabelLinkClickedEventArgs e) {
-		try {
-			Process.Start("https://www.opendental.com/manual/procedurelocking.html");
-		}
-		catch(Exception ex) {
-			ODMessageBox.Show(Lan.g(this,"Could not find")+" "+"https://www.opendental.com/manual/procedurelocking.html"+"\r\n"
-			                  +Lan.g(this,"Please set up a default web browser."));
-		}
-	}
 	#endregion Methods - Event Handlers
 
 	#region Methods - Private

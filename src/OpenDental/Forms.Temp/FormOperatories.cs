@@ -1,8 +1,5 @@
 using System;
-using System.Drawing;
-using System.Collections;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Windows.Forms;
 using OpenDentBusiness;
 using OpenDental.UI;
@@ -48,10 +45,6 @@ public partial class FormOperatories : FormODBase {
 		gridMain.Columns.Clear();
 		var widthOpName=180;
 		var widthClinic=85;
-		if(!true) {
-			//Clinics are hidden so add the width of the clinic column to the Op Name column because the clinic column will not show.
-			widthOpName+=widthClinic;
-		}
 		var col=new GridColumn(Lan.g("TableOperatories","Op Name"),widthOpName);
 		gridMain.Columns.Add(col);
 		col=new GridColumn(Lan.g("TableOperatories","Abbrev"),70);
@@ -104,8 +97,8 @@ public partial class FormOperatories : FormODBase {
 				row.Cells.Add("");
 			}
 			row.Cells.Add(_listOperatories[i].IsWebSched?"X":"");
-			row.Cells.Add((_listOperatories[i].ListWSNPAOperatoryDefNums!=null && _listOperatories[i].ListWSNPAOperatoryDefNums.Count > 0) ? "X" : "");
-			row.Cells.Add((_listOperatories[i].ListWSEPOperatoryDefNums!=null && _listOperatories[i].ListWSEPOperatoryDefNums.Count > 0) ? "X" : "");
+			row.Cells.Add("");
+			row.Cells.Add("");
 			row.Tag=_listOperatories[i];
 			gridMain.ListGridRows.Add(row);
 		}

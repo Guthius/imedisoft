@@ -13,7 +13,7 @@ public class FileAtoZ
     {
         try
         {
-            var tempFile = ODFileUtils.CombinePaths(PrefC.GetTempFolderPath(), displayedFileName == "" ? Path.GetFileName(actualFilePath) : displayedFileName);
+            var tempFile = Path.Combine(PrefC.GetTempFolderPath(), displayedFileName == "" ? Path.GetFileName(actualFilePath) : displayedFileName);
 
             File.Copy(actualFilePath, tempFile, true);
 
@@ -25,19 +25,9 @@ public class FileAtoZ
         }
     }
 
-    public static string CombinePaths(params string[] paths)
-    {
-        return Path.Combine(paths);
-    }
-
     public static string AppendSuffix(string filePath, string suffix)
     {
         return ODFileUtils.AppendSuffix(filePath, suffix);
-    }
-
-    public static bool Exists(string path)
-    {
-        return File.Exists(path);
     }
 
     public static Bitmap GetImage(string path)

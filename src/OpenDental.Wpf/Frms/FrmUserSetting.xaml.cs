@@ -1,16 +1,9 @@
 using System;
-using System.Collections.Generic;
-using System.Data;
 using System.Linq;
-using System.Text;
-using System.Windows;
 using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
 using Imedisoft.Core.Data;
 using Imedisoft.Core.Entities;
 using OpenDentBusiness;
-using WpfControls.UI;
 
 namespace OpenDental {
 	///<summary>This form (per Nathan) should be used for any future features that could be categorized as a user setting. The intent of this class was to

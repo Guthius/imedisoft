@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Data;
 using System.Globalization;
 using CodeBase;
-using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Crud;
 using Imedisoft.Core.Entities;
@@ -18,8 +17,8 @@ public class RequiredFields
         switch (requiredFieldType)
         {
             case RequiredFieldType.PatientInfo:
-                retVal = new List<RequiredFieldName>
-                {
+                retVal =
+                [
                     RequiredFieldName.Address, RequiredFieldName.Address2, RequiredFieldName.AddressPhoneNotes, RequiredFieldName.AdmitDate,
                     RequiredFieldName.AskArriveEarly, RequiredFieldName.BillingType, RequiredFieldName.Birthdate, RequiredFieldName.Carrier,
                     RequiredFieldName.ChartNumber, RequiredFieldName.City, RequiredFieldName.Clinic, RequiredFieldName.CollegeName, RequiredFieldName.County,
@@ -36,15 +35,15 @@ public class RequiredFields
                     RequiredFieldName.SocialSecurityNumber, RequiredFieldName.State, RequiredFieldName.StudentStatus, RequiredFieldName.TextOK, RequiredFieldName.Title,
                     RequiredFieldName.TreatmentUrgency, RequiredFieldName.TrophyFolder, RequiredFieldName.Ward, RequiredFieldName.WirelessPhone,
                     RequiredFieldName.WorkPhone, RequiredFieldName.Zip
-                };
+                ];
                 break;
             case RequiredFieldType.InsPayEdit:
-                retVal = new List<RequiredFieldName>
-                {
+                retVal =
+                [
                     RequiredFieldName.BatchNumber, RequiredFieldName.CheckDate, RequiredFieldName.CheckNumber,
                     RequiredFieldName.DepositAccountNumber, RequiredFieldName.DepositDate, RequiredFieldName.InsPayEditClinic,
                     RequiredFieldName.PaymentAmount, RequiredFieldName.PaymentType
-                };
+                ];
                 break;
         }
 
@@ -58,7 +57,7 @@ public class RequiredFields
 
     public static void Delete(long requiredFieldNum)
     {
-        var command = "DELETE FROM requiredfieldcondition WHERE RequiredFieldNum=" + SOut.Long(requiredFieldNum);
+        var command = "DELETE FROM requiredfieldcondition WHERE RequiredFieldNum=" + (requiredFieldNum);
         Db.NonQ(command);
         RequiredFieldCrud.Delete(requiredFieldNum);
     }
@@ -74,7 +73,7 @@ public class RequiredFields
         listRequiredFields.RemoveAll(x => x.FieldName == RequiredFieldName.GroupName);
         listRequiredFields.RemoveAll(x => x.FieldName == RequiredFieldName.GroupNum);
         //Remove RequiredFields where the text field is invisible.
-        if (!PrefC.GetBool(PrefName.ShowFeatureEhr))
+        if (!false)
         {
             listRequiredFields.RemoveAll(x => x.FieldName == RequiredFieldName.MothersMaidenFirstName);
             listRequiredFields.RemoveAll(x => x.FieldName == RequiredFieldName.MothersMaidenLastName);

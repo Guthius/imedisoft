@@ -24,23 +24,24 @@ public class CertEmployeeCrud
     public static List<CertEmployee> TableToList(DataTable table)
     {
         var retVal = new List<CertEmployee>();
-        CertEmployee certEmployee;
         foreach (DataRow row in table.Rows)
         {
-            certEmployee = new CertEmployee();
-            certEmployee.CertEmployeeNum = SIn.Long(row["CertEmployeeNum"].ToString());
-            certEmployee.CertNum = SIn.Long(row["CertNum"].ToString());
-            certEmployee.EmployeeNum = SIn.Long(row["EmployeeNum"].ToString());
-            certEmployee.DateCompleted = SIn.Date(row["DateCompleted"].ToString());
-            certEmployee.Note = SIn.String(row["Note"].ToString());
-            certEmployee.UserNum = SIn.Long(row["UserNum"].ToString());
+            var certEmployee = new CertEmployee
+            {
+                CertEmployeeNum = SIn.Long(row["CertEmployeeNum"].ToString()),
+                CertNum = SIn.Long(row["CertNum"].ToString()),
+                EmployeeNum = SIn.Long(row["EmployeeNum"].ToString()),
+                DateCompleted = SIn.Date(row["DateCompleted"].ToString()),
+                Note = SIn.String(row["Note"].ToString()),
+                UserNum = SIn.Long(row["UserNum"].ToString())
+            };
             retVal.Add(certEmployee);
         }
 
         return retVal;
     }
 
-    public static long Insert(CertEmployee certEmployee)
+    public static void Insert(CertEmployee certEmployee)
     {
         var command = "INSERT INTO certemployee (";
 
@@ -55,7 +56,6 @@ public class CertEmployeeCrud
         {
             certEmployee.CertEmployeeNum = Db.NonQ(command, true, "CertEmployeeNum", "certEmployee");
         }
-        return certEmployee.CertEmployeeNum;
     }
 
     public static void Update(CertEmployee certEmployee)

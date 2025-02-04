@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Reflection;
 using DataConnectionBase;
 
 namespace OpenDentBusiness {
@@ -10,21 +9,21 @@ namespace OpenDentBusiness {
 		public static DataTable GetAdjTable(DateTime dateStart,DateTime dateEnd,List<long> listProvNums,List<long> listClinicNums,
 			List<string> listAdjType,bool hasAllClinics,bool hasClinicsEnabled) 
 		{
-			string whereProv="";
+			var whereProv="";
 			if(listProvNums.Count > 0) {
 				whereProv+=" AND adjustment.ProvNum IN("+string.Join(",",listProvNums)+") ";
 			}
-			string whereClin="";
+			var whereClin="";
 			if(hasClinicsEnabled && listClinicNums.Count > 0) {//Using clinics
 				whereClin+=" AND adjustment.ClinicNum IN("+string.Join(",",listClinicNums)+") ";
 			}
-			string whereType="";
+			var whereType="";
 			if(listAdjType.Count > 0) {
 				whereType=" AND adjustment.AdjType IN("+string.Join(",",listAdjType)+") ";
 			}
-			string query="SELECT adjustment.AdjDate,"
-					+DbHelper.Concat("patient.LName","', '","patient.FName","', '","patient.MiddleI")+","
-					+"provider.Abbr,";
+			var query="SELECT adjustment.AdjDate,"
+			          +DbHelper.Concat("patient.LName","', '","patient.FName","', '","patient.MiddleI")+","
+			          +"provider.Abbr,";
 			if(hasClinicsEnabled) {
 				query+="IF(clinic.IsHidden,CONCAT(clinic.Abbr,'("+SOut.String(Lans.g("FormRpAdjSheet","hidden"))+")'),clinic.Abbr),";
 			}
@@ -41,7 +40,7 @@ namespace OpenDentBusiness {
 			}
 			query+=whereType;
 			query+="ORDER BY adjustment.AdjDate";
-			return ReportsComplex.GetTable(query);
+			return DataCore.GetTable(query);
 		}	
 	}
 

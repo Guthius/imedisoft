@@ -183,7 +183,7 @@ public partial class FormApptTypeEdit : FormODBase
 
         tbTime.Refresh();
 
-        LayoutManagerForms.MoveLocation(butSlider, new Point(tbTime.Location.X + 2, tbTime.Location.Y + _stringBuilderTime.Length * 14 + 1));
+        butSlider.Location = new Point(tbTime.Location.X + 2, tbTime.Location.Y + _stringBuilderTime.Length * 14 + 1);
 
         textTime.Text = _stringBuilderTime.Length > 0 ? (_stringBuilderTime.Length * PrefC.GetInt(PrefName.AppointmentTimeIncrement)).ToString() : "Use procedure time pattern";
     }

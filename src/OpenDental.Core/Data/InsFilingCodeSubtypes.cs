@@ -72,9 +72,9 @@ public static class InsFilingCodeSubtypes
 
     private static readonly InsFilingCodeSubtypeCache Cache = new();
 
-    public static List<InsFilingCodeSubtype> GetWhere(Predicate<InsFilingCodeSubtype> match, bool isShort = false)
+    public static List<InsFilingCodeSubtype> GetWhere(Predicate<InsFilingCodeSubtype> predicate, bool shortList = false)
     {
-        return Cache.GetWhere(match, isShort);
+        return Cache.GetWhere(predicate, shortList);
     }
 
     public static void RefreshCache()
@@ -82,9 +82,9 @@ public static class InsFilingCodeSubtypes
         GetTableFromCache(true);
     }
 
-    public static DataTable GetTableFromCache(bool doRefreshCache)
+    public static DataTable GetTableFromCache(bool refreshCache)
     {
-        return Cache.GetTableFromCache(doRefreshCache);
+        return Cache.GetTableFromCache(refreshCache);
     }
 
     public static void ClearCache()

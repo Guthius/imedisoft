@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using System.Data;
-using CodeBase;
 using OpenDentBusiness;
 
 namespace Imedisoft.Core.Caching;
@@ -24,8 +23,6 @@ public abstract class CacheAbs<TItem> where TItem : TableBase
 
     private void FillCache(FillCacheSource source, DataTable table)
     {
-        Logger.LogToPath();
-
         var items = source switch
         {
             FillCacheSource.Database => GetCacheFromDb(),
@@ -34,13 +31,6 @@ public abstract class CacheAbs<TItem> where TItem : TableBase
         };
 
         OnNewCacheReceived(items);
-
-        Logger.LogToPath();
-    }
-
-    public void FillCacheFromTable(DataTable table)
-    {
-        FillCache(FillCacheSource.DataTable, table);
     }
 
     public DataTable GetTableFromCache(bool refreshCache)

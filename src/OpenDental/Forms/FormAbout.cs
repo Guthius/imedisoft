@@ -40,16 +40,6 @@ public partial class FormAbout : FormODBase
         labelDatabase.Text += serviceInfo[4];
     }
 
-    private void ButtonDiagnostics_Click(object sender, EventArgs e)
-    {
-        var diagnostics = BugSubmissions.GetDiagnostics(FormOpenDental.PatNumCur);
-
-        using var msgBoxCopyPaste = new MsgBoxCopyPaste(diagnostics);
-
-        msgBoxCopyPaste.Text = "Diagnostics";
-        msgBoxCopyPaste.ShowDialog();
-    }
-
     private void ButtonLicense_Click(object sender, EventArgs e)
     {
         using var formLicense = new FormLicense();

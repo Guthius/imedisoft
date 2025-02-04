@@ -251,9 +251,9 @@ public static class UserQueries
 
     private static readonly UserQueryCache Cache = new();
 
-    public static List<UserQuery> GetDeepCopy(bool isShort = false)
+    public static List<UserQuery> GetDeepCopy(bool shortList = false)
     {
-        return Cache.GetDeepCopy(isShort);
+        return Cache.GetDeepCopy(shortList);
     }
 
     public static DataTable GetTableFromCache(bool refreshCache)

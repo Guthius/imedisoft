@@ -1,13 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel;
 using System.Drawing;
-using System.Data;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
-using OpenDentBusiness;
 using CodeBase;
 
 namespace OpenDental.UI;
@@ -22,7 +17,7 @@ public partial class ODDateRangePicker:UserControl {
 	public event EventHandler CalendarClosed=null;
 	///<summary>Event is fired when either calendar has made a selection.</summary>
 	public event EventHandler CalendarSelectionChanged=null;
-	public LayoutManagerForms LayoutManager=new LayoutManagerForms();
+	
 
 	#region Properties - Public
 	///<summary>Set true to enable butWeekPrevious and butWeekNext</summary>
@@ -113,7 +108,7 @@ public partial class ODDateRangePicker:UserControl {
 			}
 			return dateTime.AddHours(23).AddMinutes(59).AddSeconds(59);
 		}
-		catch(Exception ex) {
+		catch {
 			if(isDefaultMaxDateT) {
 				return DateTime.MaxValue;
 			}

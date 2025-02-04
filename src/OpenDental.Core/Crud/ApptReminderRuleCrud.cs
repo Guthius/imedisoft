@@ -19,31 +19,32 @@ public class ApptReminderRuleCrud
     public static List<ApptReminderRule> TableToList(DataTable table)
     {
         var retVal = new List<ApptReminderRule>();
-        ApptReminderRule apptReminderRule;
         foreach (DataRow row in table.Rows)
         {
-            apptReminderRule = new ApptReminderRule();
-            apptReminderRule.ApptReminderRuleNum = SIn.Long(row["ApptReminderRuleNum"].ToString());
-            apptReminderRule.TypeCur = (ApptReminderType) SIn.Int(row["TypeCur"].ToString());
-            apptReminderRule.TSPrior = TimeSpan.FromTicks(SIn.Long(row["TSPrior"].ToString()));
-            apptReminderRule.SendOrder = SIn.String(row["SendOrder"].ToString());
-            apptReminderRule.IsSendAll = SIn.Bool(row["IsSendAll"].ToString());
-            apptReminderRule.TemplateSMS = SIn.String(row["TemplateSMS"].ToString());
-            apptReminderRule.TemplateEmailSubject = SIn.String(row["TemplateEmailSubject"].ToString());
-            apptReminderRule.TemplateEmail = SIn.String(row["TemplateEmail"].ToString());
-            apptReminderRule.ClinicNum = SIn.Long(row["ClinicNum"].ToString());
-            apptReminderRule.TemplateSMSAggShared = SIn.String(row["TemplateSMSAggShared"].ToString());
-            apptReminderRule.TemplateSMSAggPerAppt = SIn.String(row["TemplateSMSAggPerAppt"].ToString());
-            apptReminderRule.TemplateEmailSubjAggShared = SIn.String(row["TemplateEmailSubjAggShared"].ToString());
-            apptReminderRule.TemplateEmailAggShared = SIn.String(row["TemplateEmailAggShared"].ToString());
-            apptReminderRule.TemplateEmailAggPerAppt = SIn.String(row["TemplateEmailAggPerAppt"].ToString());
-            apptReminderRule.DoNotSendWithin = TimeSpan.FromTicks(SIn.Long(row["DoNotSendWithin"].ToString()));
-            apptReminderRule.IsEnabled = SIn.Bool(row["IsEnabled"].ToString());
-            apptReminderRule.TemplateAutoReply = SIn.String(row["TemplateAutoReply"].ToString());
-            apptReminderRule.TemplateAutoReplyAgg = SIn.String(row["TemplateAutoReplyAgg"].ToString());
-            apptReminderRule.TemplateFailureAutoReply = SIn.String(row["TemplateFailureAutoReply"].ToString());
-            apptReminderRule.IsAutoReplyEnabled = SIn.Bool(row["IsAutoReplyEnabled"].ToString());
-            apptReminderRule.Language = SIn.String(row["Language"].ToString());
+            var apptReminderRule = new ApptReminderRule
+            {
+                ApptReminderRuleNum = SIn.Long(row["ApptReminderRuleNum"].ToString()),
+                TypeCur = (ApptReminderType) SIn.Int(row["TypeCur"].ToString()),
+                TSPrior = TimeSpan.FromTicks(SIn.Long(row["TSPrior"].ToString())),
+                SendOrder = SIn.String(row["SendOrder"].ToString()),
+                IsSendAll = SIn.Bool(row["IsSendAll"].ToString()),
+                TemplateSMS = SIn.String(row["TemplateSMS"].ToString()),
+                TemplateEmailSubject = SIn.String(row["TemplateEmailSubject"].ToString()),
+                TemplateEmail = SIn.String(row["TemplateEmail"].ToString()),
+                ClinicNum = SIn.Long(row["ClinicNum"].ToString()),
+                TemplateSMSAggShared = SIn.String(row["TemplateSMSAggShared"].ToString()),
+                TemplateSMSAggPerAppt = SIn.String(row["TemplateSMSAggPerAppt"].ToString()),
+                TemplateEmailSubjAggShared = SIn.String(row["TemplateEmailSubjAggShared"].ToString()),
+                TemplateEmailAggShared = SIn.String(row["TemplateEmailAggShared"].ToString()),
+                TemplateEmailAggPerAppt = SIn.String(row["TemplateEmailAggPerAppt"].ToString()),
+                DoNotSendWithin = TimeSpan.FromTicks(SIn.Long(row["DoNotSendWithin"].ToString())),
+                IsEnabled = SIn.Bool(row["IsEnabled"].ToString()),
+                TemplateAutoReply = SIn.String(row["TemplateAutoReply"].ToString()),
+                TemplateAutoReplyAgg = SIn.String(row["TemplateAutoReplyAgg"].ToString()),
+                TemplateFailureAutoReply = SIn.String(row["TemplateFailureAutoReply"].ToString()),
+                IsAutoReplyEnabled = SIn.Bool(row["IsAutoReplyEnabled"].ToString()),
+                Language = SIn.String(row["Language"].ToString())
+            };
             var emailTemplateType = row["EmailTemplateType"].ToString();
             if (emailTemplateType == "")
                 apptReminderRule.EmailTemplateType = 0;
@@ -368,15 +369,13 @@ public class ApptReminderRuleCrud
         var idxNew = 0;
         var idxDB = 0;
         var rowsUpdatedCount = 0;
-        ApptReminderRule fieldNew;
-        ApptReminderRule fieldDB;
         //Because both lists have been sorted using the same criteria, we can now walk each list to determine which list contians the next element.  The next element is determined by Primary Key.
         //If the New list contains the next item it will be inserted.  If the DB contains the next item, it will be deleted.  If both lists contain the next item, the item will be updated.
         while (idxNew < listNew.Count || idxDB < listDB.Count)
         {
-            fieldNew = null;
+            ApptReminderRule fieldNew = null;
             if (idxNew < listNew.Count) fieldNew = listNew[idxNew];
-            fieldDB = null;
+            ApptReminderRule fieldDB = null;
             if (idxDB < listDB.Count) fieldDB = listDB[idxDB];
             //begin compare
             if (fieldNew != null && fieldDB == null)

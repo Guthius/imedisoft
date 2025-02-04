@@ -1,17 +1,9 @@
-﻿using OpenDental.UI.Design;
-using System;
-using System.Collections;
+﻿using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.ComponentModel.Design;
 using System.Drawing;
-using System.Drawing.Drawing2D;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
-using System.Windows.Forms.Design;
 
 namespace OpenDental.UI;
 
@@ -21,7 +13,7 @@ namespace OpenDental.UI;
 public class SplitContainer:UserControl {
 	//There are a number of reasons we needed this:  Neither the MS Splitter nor MS SplitContainer work well with our custom layout manager. They are especially troublesome when nested or when interacting with TabControls. They also have issues with docking vs anchoring to 4 sides. They do not support high dpi layout, which is a deal breaker. The MS SplitContainer also has an ugly drag animation and is also just buggy. Completely separately from our layout manager issues, the MS SplitContainer will frequently inaccurately serialize/deserialize in the designer, causing a mangled layout. This is unacceptable.  We did not replace all of the MS splitContainers.  A few still remain in forms related to JobManager.
 	#region Fields - Public
-	public LayoutManagerForms LayoutManager=new LayoutManagerForms();
+	
 	#endregion Fields - Public
 
 	#region Fields - Private

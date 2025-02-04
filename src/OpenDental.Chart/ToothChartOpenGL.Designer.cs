@@ -1,4 +1,4 @@
-namespace SparksToothChart {
+namespace OpenDental.Chart {
 	partial class ToothChartOpenGL {
 		/// <summary>
 		/// Required designer variable.

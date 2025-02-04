@@ -1,14 +1,8 @@
-using Microsoft.CSharp;
 //using Microsoft.Vsa;
-using System.CodeDom.Compiler;
 using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
 using System.Drawing;
 using System.Drawing.Printing;
-using System.Reflection;
 using System.Windows.Forms;
 using OpenDentBusiness;
 using OpenDental.UI;

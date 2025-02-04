@@ -17,21 +17,22 @@ public class AutomationCrud
     public static List<Automation> TableToList(DataTable table)
     {
         var retVal = new List<Automation>();
-        Automation automation;
         foreach (DataRow row in table.Rows)
         {
-            automation = new Automation();
-            automation.AutomationNum = SIn.Long(row["AutomationNum"].ToString());
-            automation.Description = SIn.String(row["Description"].ToString());
-            automation.Autotrigger = (EnumAutomationTrigger) SIn.Int(row["Autotrigger"].ToString());
-            automation.ProcCodes = SIn.String(row["ProcCodes"].ToString());
-            automation.AutoAction = (AutomationAction) SIn.Int(row["AutoAction"].ToString());
-            automation.SheetDefNum = SIn.Long(row["SheetDefNum"].ToString());
-            automation.CommType = SIn.Long(row["CommType"].ToString());
-            automation.MessageContent = SIn.String(row["MessageContent"].ToString());
-            automation.AptStatus = (ApptStatus) SIn.Int(row["AptStatus"].ToString());
-            automation.AppointmentTypeNum = SIn.Long(row["AppointmentTypeNum"].ToString());
-            automation.PatStatus = (PatientStatus) SIn.Int(row["PatStatus"].ToString());
+            var automation = new Automation
+            {
+                AutomationNum = SIn.Long(row["AutomationNum"].ToString()),
+                Description = SIn.String(row["Description"].ToString()),
+                Autotrigger = (EnumAutomationTrigger) SIn.Int(row["Autotrigger"].ToString()),
+                ProcCodes = SIn.String(row["ProcCodes"].ToString()),
+                AutoAction = (AutomationAction) SIn.Int(row["AutoAction"].ToString()),
+                SheetDefNum = SIn.Long(row["SheetDefNum"].ToString()),
+                CommType = SIn.Long(row["CommType"].ToString()),
+                MessageContent = SIn.String(row["MessageContent"].ToString()),
+                AptStatus = (ApptStatus) SIn.Int(row["AptStatus"].ToString()),
+                AppointmentTypeNum = SIn.Long(row["AppointmentTypeNum"].ToString()),
+                PatStatus = (PatientStatus) SIn.Int(row["PatStatus"].ToString())
+            };
             retVal.Add(automation);
         }
 
@@ -58,7 +59,7 @@ public class AutomationCrud
         return table;
     }
 
-    public static long Insert(Automation automation)
+    public static void Insert(Automation automation)
     {
         var command = "INSERT INTO automation (";
 
@@ -84,7 +85,6 @@ public class AutomationCrud
         {
             automation.AutomationNum = Db.NonQ(command, true, "AutomationNum", "automation", paramDescription, paramProcCodes, paramMessageContent);
         }
-        return automation.AutomationNum;
     }
 
     public static void Update(Automation automation)

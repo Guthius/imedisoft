@@ -1,13 +1,8 @@
 using System;
-using System.Data;
-using System.Drawing;
-using System.Collections;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Windows.Forms;
 using OpenDental.ReportingComplex;
 using OpenDentBusiness;
-using CodeBase;
 using System.Linq;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Entities;
@@ -29,28 +24,21 @@ public partial class FormRpInsOverpaid:FormODBase {
 		dateStart.SelectionEnd=DateTime.Today.AddMonths(-1);
 		dateEnd.SelectionStart=DateTime.Today;
 		dateEnd.SelectionEnd=DateTime.Today;
-		if(true) {
-			_listClinics=Clinics.GetForUserod(Security.CurUser);
-			if(!Security.CurUser.ClinicIsRestricted) {
-				listClin.Items.Add(Lan.g(this,"Unassigned"));
-				listClin.SetSelected(0);
-			}
-			for(var i=0;i<_listClinics.Count;i++) {
-				listClin.Items.Add(_listClinics[i].Abbr);
-				if(Clinics.ClinicNum==0) {
-					listClin.SetSelected(listClin.Items.Count-1);
-					checkAllClin.Checked=true;
-				}
-				if(_listClinics[i].Id==Clinics.ClinicNum) {
-					listClin.ClearSelected();
-					listClin.SetSelected(listClin.Items.Count-1);
-				}
-			}
+		_listClinics=Clinics.GetForUserod(Security.CurUser);
+		if(!Security.CurUser.ClinicIsRestricted) {
+			listClin.Items.Add(Lan.g(this,"Unassigned"));
+			listClin.SetSelected(0);
 		}
-		else {
-			listClin.Visible=false;
-			labelClin.Visible=false;
-			checkAllClin.Visible=false;
+		for(var i=0;i<_listClinics.Count;i++) {
+			listClin.Items.Add(_listClinics[i].Abbr);
+			if(Clinics.ClinicNum==0) {
+				listClin.SetSelected(listClin.Items.Count-1);
+				checkAllClin.Checked=true;
+			}
+			if(_listClinics[i].Id==Clinics.ClinicNum) {
+				listClin.ClearSelected();
+				listClin.SetSelected(listClin.Items.Count-1);
+			}
 		}
 	}
 

@@ -1,74 +1,63 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System.Collections.Generic;
 
-namespace OpenDentBusiness {
-	public class DTP271 {
-		public X12Segment Segment;
-		private static Dictionary<string,string> DTP01;
+namespace OpenDentBusiness;
 
-		public DTP271(X12Segment segment) {
-			Segment=segment;
-		}
+public class DTP271(X12Segment segment)
+{
+    public readonly X12Segment Segment = segment;
 
-		public static string GetDateStr(string qualifier,string date) {
-			if(qualifier=="D8") {//Segment.Get(2)=="D8") {//single date
-				DateTime dt=X12Parse.ToDate(date);//Segment.Get(3));
-				return dt.ToShortDateString();
-			}
-			else {
-				string[] strArray=date.Split('-');//Segment.Get(3).Split('-');
-				DateTime dt1=X12Parse.ToDate(strArray[0]);
-				DateTime dt2=X12Parse.ToDate(strArray[1]);
-				return dt1.ToShortDateString()+"-"+dt2.ToShortDateString();
-			}
-		}
+    private static readonly Dictionary<string, string> Descriptions = new()
+    {
+        {"102", "Issue"},
+        {"152", "Effective Date of Change"},
+        {"193", "Period Start"},
+        {"194", "Period End"},
+        {"198", "Completion"},
+        {"290", "Coordination of Benefits"},
+        {"291", "Plan"},
+        {"292", "Benefit"},
+        {"295", "Primary Care Provider"},
+        {"304", "Latest Visit or Consultation"},
+        {"307", "Eligibility"},
+        {"318", "Added"},
+        {"340", "Consolidated Omnibus Budget Reconciliation Act (COBRA) Begin"},
+        {"341", "Consolidated Omnibus Budget Reconciliation Act (COBRA) End"},
+        {"342", "Premium Paid to Date Begin"},
+        {"343", "Premium Paid to Date End"},
+        {"346", "Plan Begin"},
+        {"347", "Plan End"},
+        {"348", "Benefit Begin"},
+        {"349", "Benefit End"},
+        {"356", "Eligibility Begin"},
+        {"357", "Eligibility End"},
+        {"382", "Enrollment"},
+        {"435", "Admission"},
+        {"442", "Date of Death"},
+        {"458", "Certification"},
+        {"472", "Service"},
+        {"539", "Policy Effective"},
+        {"540", "Policy Expiration"},
+        {"636", "Date of Last Update"},
+        {"771", "Status"}
+    };
 
-		public static string GetQualifierDescript(string code) {
-			if(DTP01==null) {
-				FillDictionaries();
-			}
-			if(!DTP01.ContainsKey(code)) {
-				return "";
-			}
-			return DTP01[code];//Segment.Get(1)];
-		}
+    public static string GetDate(string qualifier, string date)
+    {
+        if (qualifier == "D8")
+        {
+            return X12Parse.ToDate(date).ToShortDateString();
+        }
 
-		private static void FillDictionaries() {
-			DTP01=new Dictionary<string,string>();
-			DTP01.Add("102","Issue");
-			DTP01.Add("152","Effective Date of Change");
-			DTP01.Add("193","Period Start");
-			DTP01.Add("194","Period End");
-			DTP01.Add("198","Completion");
-			DTP01.Add("290","Coordination of Benefits");
-			DTP01.Add("291","Plan");
-			DTP01.Add("292","Benefit");
-			DTP01.Add("295","Primary Care Provider");
-			DTP01.Add("304","Latest Visit or Consultation");
-			DTP01.Add("307","Eligibility");
-			DTP01.Add("318","Added");
-			DTP01.Add("340","Consolidated Omnibus Budget Reconciliation Act (COBRA) Begin");
-			DTP01.Add("341","Consolidated Omnibus Budget Reconciliation Act (COBRA) End");
-			DTP01.Add("342","Premium Paid to Date Begin");
-			DTP01.Add("343","Premium Paid to Date End");
-			DTP01.Add("346","Plan Begin");
-			DTP01.Add("347","Plan End");
-			DTP01.Add("348","Benefit Begin");
-			DTP01.Add("349","Benefit End");
-			DTP01.Add("356","Eligibility Begin");
-			DTP01.Add("357","Eligibility End");
-			DTP01.Add("382","Enrollment");
-			DTP01.Add("435","Admission");
-			DTP01.Add("442","Date of Death");
-			DTP01.Add("458","Certification");
-			DTP01.Add("472","Service");
-			DTP01.Add("539","Policy Effective");
-			DTP01.Add("540","Policy Expiration");
-			DTP01.Add("636","Date of Last Update");
-			DTP01.Add("771","Status");
-		}
+        var dates = date.Split('-');
 
+        var date1 = X12Parse.ToDate(dates[0]);
+        var date2 = X12Parse.ToDate(dates[1]);
 
-	}
+        return date1.ToShortDateString() + "-" + date2.ToShortDateString();
+    }
+
+    public static string GetQualifierDescription(string code)
+    {
+        return !Descriptions.TryGetValue(code, value: out var descript) ? "" : descript;
+    }
 }

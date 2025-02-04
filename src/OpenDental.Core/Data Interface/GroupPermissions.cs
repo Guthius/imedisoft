@@ -323,47 +323,6 @@ public static class GroupPermissions
         return permType is EnumPermType.AccountingCreate or EnumPermType.AccountingEdit or EnumPermType.AdjustmentCreate or EnumPermType.AdjustmentEdit or EnumPermType.ClaimDelete or EnumPermType.ClaimHistoryEdit or EnumPermType.ClaimProcReceivedEdit or EnumPermType.ClaimSentEdit or EnumPermType.CommlogEdit or EnumPermType.DepositSlips or EnumPermType.EFormEdit or EnumPermType.EquipmentDelete or EnumPermType.ImageDelete or EnumPermType.InsPayEdit or EnumPermType.InsWriteOffEdit or EnumPermType.NewClaimsProcNotBilled or EnumPermType.OrthoChartEditFull or EnumPermType.OrthoChartEditUser or EnumPermType.PaymentEdit or EnumPermType.PerioEdit or EnumPermType.PreAuthSentEdit or EnumPermType.ProcComplCreate or EnumPermType.ProcCompleteEdit or EnumPermType.ProcCompleteNote or EnumPermType.ProcCompleteEditMisc or EnumPermType.ProcCompleteStatusEdit or EnumPermType.ProcCompleteAddAdj or EnumPermType.ProcExistingEdit or EnumPermType.ProcDelete or EnumPermType.SheetEdit or EnumPermType.TimecardDeleteEntry or EnumPermType.TreatPlanEdit or EnumPermType.TreatPlanSign or EnumPermType.PaymentCreate or EnumPermType.ImageEdit or EnumPermType.ImageExport;
     }
 
-    public static List<EnumPermType> GetPermsFromCrudAuditPerm(CrudAuditPerm crudAuditPerm)
-    {
-        var perms = new List<EnumPermType>();
-
-        if (crudAuditPerm.HasFlag(CrudAuditPerm.AppointmentCompleteEdit))
-            perms.Add(EnumPermType.AppointmentCompleteEdit);
-        if (crudAuditPerm.HasFlag(CrudAuditPerm.AppointmentCreate))
-            perms.Add(EnumPermType.AppointmentCreate);
-        if (crudAuditPerm.HasFlag(CrudAuditPerm.AppointmentEdit))
-            perms.Add(EnumPermType.AppointmentEdit);
-        if (crudAuditPerm.HasFlag(CrudAuditPerm.AppointmentMove))
-            perms.Add(EnumPermType.AppointmentMove);
-        if (crudAuditPerm.HasFlag(CrudAuditPerm.ClaimHistoryEdit))
-            perms.Add(EnumPermType.ClaimHistoryEdit);
-        if (crudAuditPerm.HasFlag(CrudAuditPerm.ImageDelete))
-            perms.Add(EnumPermType.ImageDelete);
-        if (crudAuditPerm.HasFlag(CrudAuditPerm.ImageEdit))
-            perms.Add(EnumPermType.ImageEdit);
-        if (crudAuditPerm.HasFlag(CrudAuditPerm.InsPlanChangeCarrierName))
-            perms.Add(EnumPermType.InsPlanChangeCarrierName);
-        if (crudAuditPerm.HasFlag(CrudAuditPerm.RxCreate))
-            perms.Add(EnumPermType.RxCreate);
-        if (crudAuditPerm.HasFlag(CrudAuditPerm.RxEdit))
-            perms.Add(EnumPermType.RxEdit);
-        if (crudAuditPerm.HasFlag(CrudAuditPerm.TaskNoteEdit))
-            perms.Add(EnumPermType.TaskNoteEdit);
-        if (crudAuditPerm.HasFlag(CrudAuditPerm.PatientPortal))
-            perms.Add(EnumPermType.PatientPortal);
-        if (crudAuditPerm.HasFlag(CrudAuditPerm.ProcFeeEdit))
-            perms.Add(EnumPermType.ProcFeeEdit);
-        if (crudAuditPerm.HasFlag(CrudAuditPerm.LogFeeEdit))
-            perms.Add(EnumPermType.LogFeeEdit);
-        if (crudAuditPerm.HasFlag(CrudAuditPerm.LogSubscriberEdit))
-            perms.Add(EnumPermType.LogSubscriberEdit);
-        if (crudAuditPerm.HasFlag(CrudAuditPerm.AppointmentDelete))
-            perms.Add(EnumPermType.AppointmentDelete);
-        if (crudAuditPerm.HasFlag(CrudAuditPerm.AppointmentCompleteDelete))
-            perms.Add(EnumPermType.AppointmentCompleteDelete);
-        return perms;
-    }
-
     public static DateTime GetDateRestrictedForPermission(EnumPermType permType, List<long> userGroupNums)
     {
         var nowDate = DateTime.MinValue;

@@ -1,16 +1,11 @@
 ﻿using System;
 using System.ComponentModel;
-using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
 using System.Windows.Forms;
 using OpenDentBusiness;
 using OpenDentBusiness.UI;
-using NHunspell;
 using System.Text.RegularExpressions;
-using OpenDental.UI;
 using System.Drawing;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -40,12 +35,11 @@ public class ODtextBox:RichTextBox {//System.ComponentModel.Component
 
 	#endregion
 
-	public LayoutManagerForms LayoutManager=new LayoutManagerForms();
+	
 	///<summary>User can open a dialog from textBox for AutoNote or QuickPaste. This flag is set to true during that time so that TextBox_LostFocus doesn't try to dispose of the textBox in FormSheetFillEdit.</summary>
 	public bool IsDlgOpen=false;
 	private System.Windows.Forms.ContextMenu contextMenu;
 	private IContainer components;// Required designer variable.
-	private static Hunspell HunspellGlobal;//We create this object one time for every instance of this textbox control within the entire program.
 	private EnumQuickPasteType _quickPasteType;
 	private Graphics _graphicsBuffer;
 	public Timer timerSpellCheck;
@@ -71,7 +65,6 @@ public class ODtextBox:RichTextBox {//System.ComponentModel.Component
 	private static IntPtr _intPtrLib;
 	private bool isImeComposition;
 	private bool _enableDetectLinks=true;
-	private bool _hasAutoNotes;
 	///<summary>Must track menuitems that we have added, so that we know which ones to take away when reconstructing context menu.</summary>
 	private List<MenuItem> _listMenuItemsLinks;
 	///<summary>Stores the current words for all odtextboxes and if they are spelled correctly.  Speeds up spell checking.
@@ -187,7 +180,7 @@ public class ODtextBox:RichTextBox {//System.ComponentModel.Component
 				isImeComposition=PrefC.GetBool(PrefName.ImeCompositionCompatibility);
 			}
 		}
-		catch(Exception ex) {
+		catch {
 		}
 		InitializeComponent();// Required for Windows.Forms Class Composition Designer support
 		this.AcceptsTab=true;//Causes CR to not also trigger OK button on a form when that button is set as AcceptButton on the form.
@@ -396,34 +389,6 @@ public class ODtextBox:RichTextBox {//System.ComponentModel.Component
 			contextMenu.MenuItems[7].Visible=false;//Disable Spell Check
 			contextMenu.MenuItems[8].Visible=false;//separator
 		}
-		else if(IsUsingSpellCheck()
-		        && IsOnMisspelled(_pointClick)) {//clicked on or near a misspelled word AND spell check is enabled
-			var suggestions=SpellSuggest();
-			if(suggestions.Count==0) {//no suggestions
-				contextMenu.MenuItems[0].Text=Lan.g(this,"No Spelling Suggestions");
-				contextMenu.MenuItems[0].Visible=true;
-				contextMenu.MenuItems[0].Enabled=false;//suggestion 1 set to "No Spelling Suggestions"
-				contextMenu.MenuItems[1].Visible=false;//suggestion 2
-				contextMenu.MenuItems[2].Visible=false;//suggestion 3
-				contextMenu.MenuItems[3].Visible=false;//suggestion 4
-				contextMenu.MenuItems[4].Visible=false;//suggestion 5
-			}
-			else {//must be on misspelled word and spell check is enabled globally and locally
-				for(var i=0;i<5;i++) {//Only display first 5 suggestions if available
-					if(i>=suggestions.Count) {
-						contextMenu.MenuItems[i].Visible=false;
-						continue;
-					}
-					contextMenu.MenuItems[i].Text=suggestions[i];
-					contextMenu.MenuItems[i].Visible=true;
-					contextMenu.MenuItems[i].Enabled=true;
-				}
-			}
-			contextMenu.MenuItems[5].Visible=true;//contextMenu separator, will display whether or not there is a suggestion for the misspelled word
-			contextMenu.MenuItems[6].Visible=true;//Add to Dictionary
-			contextMenu.MenuItems[7].Visible=true;//Disable Spell Check
-			contextMenu.MenuItems[8].Visible=true;//contextMenu separator
-		}
 		if(HasAutoNotes) {
 			contextMenu.MenuItems[11].Visible=true;//Insert Auto Note
 			contextMenu.MenuItems[11].Enabled=true;
@@ -486,11 +451,6 @@ public class ODtextBox:RichTextBox {//System.ComponentModel.Component
 			return true;
 		}
 		return false;
-	}
-
-	private List<string> SpellSuggest() {
-		var suggestions=HunspellGlobal.Suggest(MatchReplWord.Value);
-		return suggestions;
 	}
 
 	protected override void OnMouseDown(MouseEventArgs e) {
@@ -742,13 +702,6 @@ public class ODtextBox:RichTextBox {//System.ComponentModel.Component
 		_graphicsBuffer=Graphics.FromImage(bitmapOverlay);
 		_graphicsBuffer.Clear(Color.Transparent);//We don't want to overwrite the text in the rich text box.
 		var graphicsTextBox=Graphics.FromHwnd(this.Handle);
-		if(/* ODBuild.IsDebug() */ false) {
-			if(spellCheckResult==null) {
-				spellCheckResult=new SpellCheckResult();
-			}
-			spellCheckResult.WavyLineArea=new WavyLineArea();
-			spellCheckResult.WavyLineArea.ListWavyLineRects= [];
-		}
 		//Now we start checking where we need to clear lines
 		if(Text.Length==0) {//all text was deleted, clear the entire text box
 			var rectangleWavyLineArea=new Rectangle(1,1,this.Width,this.Height);
@@ -756,20 +709,11 @@ public class ODtextBox:RichTextBox {//System.ComponentModel.Component
 			graphicsTextBox.DrawImage(bitmapOverlay,0,0,Width,Height);
 			graphicsTextBox.Dispose();
 			bitmapOverlay.Dispose();
-			if(/* ODBuild.IsDebug() */ false) {
-				spellCheckResult.WavyLineArea.ListWavyLineRects.Add(rectangleWavyLineArea);
-			}
 			return;
 		}
 		var charBounds=GetVisibleCharIndices();
 		//Get the visible start and end char indices and use them to get the visible line heights.
 		var listVisibleLineHeights=GetVisibleLineHeights(widthOverride);//Used for measuring line heights
-		if(/* ODBuild.IsDebug() */ false) {
-			spellCheckResult.WavyLineArea.startCharIndex=charBounds.StartCharIndex;
-			spellCheckResult.WavyLineArea.startLineIndex=this.GetLineFromCharIndex(charBounds.StartCharIndex);
-			spellCheckResult.WavyLineArea.endCharIndex=charBounds.EndCharIndex;
-			spellCheckResult.ListVisibleLineHeights=listVisibleLineHeights;
-		}
 		//The start index is also our offset from the start of the text.
 		//The minimum value returned is 0.  If the point is above the text, it will default to 0.
 		var start=this.GetPositionFromCharIndex(charBounds.StartCharIndex);//start at first character of the textbox
@@ -781,9 +725,6 @@ public class ODtextBox:RichTextBox {//System.ComponentModel.Component
 			}
 			var rectangleWavyLineArea=new Rectangle(1,start.Y,this.Width,2);
 			_graphicsBuffer.FillRectangle(new SolidBrush(BackColor),rectangleWavyLineArea);
-			if(/* ODBuild.IsDebug() */ false) {
-				spellCheckResult.WavyLineArea.ListWavyLineRects.Add(rectangleWavyLineArea);
-			}
 		}
 		graphicsTextBox.DrawImage(bitmapOverlay,0,0,Width,Height);
 		graphicsTextBox.Dispose();
@@ -795,9 +736,6 @@ public class ODtextBox:RichTextBox {//System.ComponentModel.Component
 	///Returns a SpellCheckResult which is a helper object designed for unit tests that only gets filled in debug mode.</summary>
 	public SpellCheckResult SpellCheck() {
 		SpellCheckResult spellCheckResult=null;//Never keep track of this type of information in a live environment.
-		if(/* ODBuild.IsDebug() */ false) {
-			spellCheckResult=new SpellCheckResult();
-		}
 		//Only spell check if enabled
 		if(!IsUsingSpellCheck()
 		   || PrefC.GetBool(PrefName.ImeCompositionCompatibility))
@@ -811,10 +749,6 @@ public class ODtextBox:RichTextBox {//System.ComponentModel.Component
 		}
 		//Clear out old lines from last draw.
 		var listVisibleWords=GetVisibleWords();
-		if(/* ODBuild.IsDebug() */ false) {
-			spellCheckResult.ListVisibleLineHeights=GetVisibleLineHeights();
-			spellCheckResult.ListVisibleWords=listVisibleWords;
-		}
 		//Skip if there aren't any words.
 		if(listVisibleWords.Count==0) {				
 			//Clear lines and return becuase there's no words to check.
@@ -843,13 +777,7 @@ public class ODtextBox:RichTextBox {//System.ComponentModel.Component
 				//see if the casing as they typed it is correct by Hunspell ("google" is incorrect but "Google" is correct)
 				SpellingType wordType;
 				var word=wordCur.Value;
-				if(HunspellGlobal.Spell(wordCur.Value)) {
-					wordType=SpellingType.HunspellExact;
-				}
-				else if(HunspellGlobal.Spell(wordCur.Value.ToLower()) ) {
-					wordType=SpellingType.HunspellLower;
-				}
-				else if(DictCustoms.GetFirstOrDefault(x => x.WordText.ToLower()==wordCur.Value.ToLower())!=null) {
+				if(DictCustoms.GetFirstOrDefault(x => x.WordText.ToLower()==wordCur.Value.ToLower())!=null) {
 					wordType=SpellingType.Custom;
 					word=word.ToLower();
 				}
@@ -869,19 +797,12 @@ public class ODtextBox:RichTextBox {//System.ComponentModel.Component
 		}			
 		//Wait until now to clear lines minimize the amount of time between old and new underlines.
 		ClearWavyLines(spellCheckResult:spellCheckResult);
-		if(/* ODBuild.IsDebug() */ false) {
-			spellCheckResult.ListMisspelledWords=listMisspelledWords;
-		}
 		//If we have no lines to draw we return before starting any underlining.
 		if(listMisspelledWords.Count==0) {
 			return spellCheckResult;
 		}
 		var listVisibleLineHeights=GetVisibleLineHeights();
 		List<WavyLine> listWavyLines=null;
-		if(/* ODBuild.IsDebug() */ false) {
-			listWavyLines= [];
-			spellCheckResult.WavyLineArea.ListWavyLines=listWavyLines;
-		}
 		//Now we draw all the new lines to the textbox.
 		using var bitmapOverlay=new Bitmap(this.Width,this.Height);
 		_graphicsBuffer?.Dispose();
@@ -967,7 +888,7 @@ public class ODtextBox:RichTextBox {//System.ComponentModel.Component
 			//The Rtf property will throw an ArgumentException saying "File format is not valid" when this is the case.
 			richTextBox.Rtf=this.Rtf;
 		}
-		catch(ArgumentException ae) {
+		catch(ArgumentException) {
 			return [];//Do nothing, it's just spell checking.  Maybe it will be valid RTF the next time around.
 		}
 		richTextBox.Size=new Size(widthOverride==-1 ? this.Size.Width : widthOverride,this.Size.Height);
@@ -1022,13 +943,6 @@ public class ODtextBox:RichTextBox {//System.ComponentModel.Component
 		pointStart.Y=pointStart.Y+startLineHeight;//move from top of line to bottom of line
 		pointEnd.Y=pointEnd.Y+startLineHeight;//move from top of line to bottom of line
 		var wavyLine=new WavyLine();
-		if(/* ODBuild.IsDebug() */ false) {
-			wavyLine.LineIndex=startLineIndex;
-			wavyLine.LineHeight=startLineHeight;
-			wavyLine.PointStart=new Point(pointStart.X,pointStart.Y);
-			wavyLine.PointEnd=new Point(pointEnd.X,pointEnd.Y);
-			wavyLine.ListPointFs= [];
-		}
 		if(pointStart.Y<=4 || pointStart.Y>=this.Height) {//Don't draw lines for text which is currently not visible.
 			return;
 		}
@@ -1042,16 +956,6 @@ public class ODtextBox:RichTextBox {//System.ComponentModel.Component
 			var pointEndTemp=pointStart;
 			pointEndTemp.X=this.Width;
 			while(pointEndTemp.Y<=pointEnd.Y && lineIndex<listVisibleLineHeights.Count) {//One line at a time.
-				if(/* ODBuild.IsDebug() */ false) {
-					if(wavyLine==null) {
-						wavyLine=new WavyLine();
-						wavyLine.LineIndex=lineIndex;
-						wavyLine.LineHeight=listVisibleLineHeights[lineIndex];
-						wavyLine.ListPointFs= [];
-						wavyLine.PointEnd=pointEnd;
-						wavyLine.PointStart=pointStart;
-					}
-				}
 				//This is actually a sawtooth line, so two line segments for each V shaped wave.
 				float lengthWave=4;//four pixels wide at 96dpi
 				var countWaves=(int)((pointEndTemp.X-pointStart.X)/lengthWave);//round down the count
@@ -1062,15 +966,9 @@ public class ODtextBox:RichTextBox {//System.ComponentModel.Component
 						listPointFs.Add(new PointF(pointStart.X+i*lengthWave+lengthWave/2f,pointStart.Y+1));
 					}
 					_graphicsBuffer.DrawLines(pen,listPointFs.ToArray());
-					if(/* ODBuild.IsDebug() */ false) {
-						wavyLine.ListPointFs.AddRange(listPointFs);
-					}
 				}
 				else {
 					_graphicsBuffer.DrawLine(pen,pointStart,pointEnd);
-					if(/* ODBuild.IsDebug() */ false) {
-						wavyLine.ListPointFs.AddRange(new List<PointF> { pointStart,pointEnd });
-					}
 				}
 				pointStart.X=1;
 				//There is a known issue where if a word spans more than 1 line, the fontheight will only calculate correctly for
@@ -1085,13 +983,6 @@ public class ODtextBox:RichTextBox {//System.ComponentModel.Component
 				else {//not the last line of mispelled word, so draw wavy line to end of this line
 					pointEndTemp.X=this.Width;
 				}
-				if(/* ODBuild.IsDebug() */ false) {
-					if(listWavyLines!=null) {
-						listWavyLines.Add(wavyLine);
-					}
-					//Null out the wavyLine object so that the while loop knows to make a new one for the next line (if one is needed).
-					wavyLine=null;
-				}
 				lineIndex++;
 			}
 		}
@@ -1105,20 +996,9 @@ public class ODtextBox:RichTextBox {//System.ComponentModel.Component
 					listPointFs.Add(new PointF(pointStart.X+i*lengthWave+lengthWave/2f,pointStart.Y+1));
 				}
 				_graphicsBuffer.DrawLines(pen,listPointFs.ToArray());
-				if(/* ODBuild.IsDebug() */ false) {
-					wavyLine.ListPointFs.AddRange(listPointFs);
-				}
 			}
 			else {
 				_graphicsBuffer.DrawLine(pen,pointStart,pointEnd);
-				if(/* ODBuild.IsDebug() */ false) {
-					wavyLine.ListPointFs.AddRange(new List<PointF> { pointStart,pointEnd });
-				}
-			}
-			if(/* ODBuild.IsDebug() */ false) {
-				if(listWavyLines!=null) {
-					listWavyLines.Add(wavyLine);
-				}
 			}
 		}
 		return;
@@ -1157,22 +1037,16 @@ public class ODtextBox:RichTextBox {//System.ComponentModel.Component
 	}
 
 	///<summary>Holds the start and end char indices for the currently visible text.</summary>
-	public class CharBounds:ODTuple<int,int> {
+	public class CharBounds:Tuple<int,int> {
 		public int StartCharIndex {
 			get {
 				return Item1;
-			}
-			set {
-				Item1=value;
 			}
 		}
 
 		public int EndCharIndex {
 			get {
 				return Item2;
-			}
-			set {
-				Item2=value;
 			}
 		}
 

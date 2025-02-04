@@ -15,7 +15,7 @@ namespace OpenDental.UI;
 
 public partial class PinBoard:Control {
 	#region Fields - Public
-	public LayoutManagerForms LayoutManager=new LayoutManagerForms();
+	
 	#endregion Fields - Public
 
 	#region Fields - Private
@@ -212,11 +212,11 @@ public partial class PinBoard:Control {
 		//So, we have now set the size of contrTempPinAppt.
 		contrTempPinAppt.Visible=false;//Visible flag gets flipped when the mouse moves. We are just preparing it to be shown here.
 		_pointMouseOrigin=e.Location;//local pinboard coords.
-		LayoutManagerForms.MoveLocation(contrTempPinAppt,
-			new Point(Left+Parent.Left+Parent.Parent.Left,Top+Parent.Top+Parent.Parent.Top+SelectedIndex*13));
+		contrTempPinAppt.Location = 
+			new Point(Left+Parent.Left+Parent.Parent.Left,Top+Parent.Top+Parent.Parent.Top+SelectedIndex*13);
 		if(contrTempPinAppt.Right<Left+Parent.Left+Parent.Parent.Left+_pointMouseOrigin.X){//appointment is very narrow
-			LayoutManagerForms.MoveLocation(contrTempPinAppt,new Point(
-				Left+Parent.Left+Parent.Parent.Left+_pointMouseOrigin.X-contrTempPinAppt.Width,contrTempPinAppt.Top));//so move it to the right
+			contrTempPinAppt.Location = new Point(
+				Left+Parent.Left+Parent.Parent.Left+_pointMouseOrigin.X-contrTempPinAppt.Width,contrTempPinAppt.Top);//so move it to the right
 		}
 		_pointApptOrigin=contrTempPinAppt.Location;
 	}
@@ -237,9 +237,9 @@ public partial class PinBoard:Control {
 			return;
 		}
 		//since this usercontrol belongs to ContrAppt, coordinates are in ContrAppt frame.
-		LayoutManagerForms.MoveLocation(contrTempPinAppt,new Point(
+		contrTempPinAppt.Location = new Point(
 			_pointApptOrigin.X+e.X-_pointMouseOrigin.X,
-			_pointApptOrigin.Y+e.Y-_pointMouseOrigin.Y));
+			_pointApptOrigin.Y+e.Y-_pointMouseOrigin.Y);
 		contrTempPinAppt.Visible=true;
 	}
 
@@ -433,7 +433,7 @@ public partial class PinBoard:Control {
 			contrTempPinAppt.Visible=false;
 			contrTempPinAppt.Size=new Size(100,100);
 			contrTempPinAppt.Paint+=TempPinAppt_Paint;
-			LayoutManagerForms.Add(contrTempPinAppt,Parent.Parent.Parent);
+			Parent.Parent.Parent.Controls.Add(contrTempPinAppt);
 			contrTempPinAppt.BringToFront();
 		}
 		if(bitmap==null){//ContrAppt is telling pinboard that we can't drag appt off.

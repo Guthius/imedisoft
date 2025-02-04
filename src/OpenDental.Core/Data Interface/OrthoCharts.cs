@@ -15,7 +15,7 @@ public class OrthoCharts
 {
     public static List<OrthoChart> GetPatientData(long patNum)
     {
-        var command = "SELECT * FROM orthochart WHERE PatNum =" + SOut.Long(patNum)
+        var command = "SELECT * FROM orthochart WHERE PatNum =" + (patNum)
                                                                 //FieldValue='' were stored as a result of a bug. DBM now removes those rows from the DB. This prevents them from being seen until DBM is run.
                                                                 + " AND FieldValue!=''";
         return OrthoChartCrud.SelectMany(command);
@@ -23,9 +23,9 @@ public class OrthoCharts
 
     public static List<OrthoChart> GetByOrthoChartRowNums(List<long> listOrthoChartRowNums)
     {
-        if (listOrthoChartRowNums.IsNullOrEmpty()) return new List<OrthoChart>();
+        if (listOrthoChartRowNums.IsNullOrEmpty()) return [];
 
-        var command = $"SELECT * FROM orthochart WHERE OrthoChartRowNum IN({string.Join(",", listOrthoChartRowNums.Select(x => SOut.Long(x)))}) ORDER BY OrthoChartNum";
+        var command = $"SELECT * FROM orthochart WHERE OrthoChartRowNum IN({string.Join(",", listOrthoChartRowNums.Select(x => (x)))}) ORDER BY OrthoChartNum";
         return OrthoChartCrud.SelectMany(command);
     }
 
@@ -56,7 +56,7 @@ public class OrthoCharts
         if (orthoChart.PatNum != orthoChartOld.PatNum)
         {
             if (command != "") command += ",";
-            command += "PatNum = " + SOut.Long(orthoChart.PatNum) + "";
+            command += "PatNum = " + (orthoChart.PatNum) + "";
         }
 
         if (orthoChart.DateService != orthoChartOld.DateService)
@@ -80,19 +80,19 @@ public class OrthoCharts
         if (orthoChart.UserNum != orthoChartOld.UserNum)
         {
             if (command != "") command += ",";
-            command += "UserNum = '" + SOut.Long(orthoChart.UserNum) + "'";
+            command += "UserNum = '" + (orthoChart.UserNum) + "'";
         }
 
         if (command == "") return;
         command = "UPDATE orthochart SET " + command
-                                           + " WHERE OrthoChartNum = " + SOut.Long(orthoChartOld.OrthoChartNum);
+                                           + " WHERE OrthoChartNum = " + (orthoChartOld.OrthoChartNum);
         Db.NonQ(command);
         //Crud.OrthoChartCrud.Update(orthoChartNew,orthoChartOld);
     }
 
     public static void Delete(long orthoChartNum)
     {
-        var command = "DELETE FROM orthochart WHERE OrthoChartNum = " + SOut.Long(orthoChartNum);
+        var command = "DELETE FROM orthochart WHERE OrthoChartNum = " + (orthoChartNum);
         Db.NonQ(command);
     }
 
@@ -262,7 +262,7 @@ public class OrthoCharts
         {
             if (securityLog.LogText.StartsWith(Lans.g("FormOrthoChart", "Ortho chart field edited.  Field date")))
             {
-                var tokens = securityLog.LogText.Split(new[] {": "}, StringSplitOptions.None);
+                var tokens = securityLog.LogText.Split([": "], StringSplitOptions.None);
                 dateRetVal = DateTime.Parse(tokens[1].Replace(Lans.g("FormOrthoChart", "Field name"), ""));
                 if (dateRetVal != DateTime.MinValue) return dateRetVal;
             }

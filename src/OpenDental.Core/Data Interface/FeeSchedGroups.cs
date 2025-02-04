@@ -91,7 +91,7 @@ public class FeeSchedGroups
 
     public static List<FeeSchedGroup> GetListFeeSchedGroups(List<long> listFeeSchedNums)
     {
-        if (listFeeSchedNums.IsNullOrEmpty()) return new List<FeeSchedGroup>();
+        if (listFeeSchedNums.IsNullOrEmpty()) return [];
 
         var command = "SELECT * FROM feeschedgroup WHERE FeeSchedNum IN (" + string.Join(",", listFeeSchedNums.Distinct()) + ")";
         return FeeSchedGroupCrud.SelectMany(command);
@@ -182,8 +182,7 @@ public class FeeSchedGroups
     {
         if (listFeeNumsToUpdate.IsNullOrEmpty()) return;
 
-        var command = "UPDATE fee SET Amount=" + SOut.Double(newAmount)
-                                               + " WHERE fee.FeeNum IN(" + string.Join(",", listFeeNumsToUpdate.Select(x => x)) + ")";
+        var command = "UPDATE fee SET Amount=" + SOut.Double(newAmount) + " WHERE fee.FeeNum IN(" + string.Join(",", listFeeNumsToUpdate.Select(x => x)) + ")";
         Db.NonQ(command);
     }
 }

@@ -1,8 +1,5 @@
 using System;
-using System.Data;
 using System.Drawing;
-using System.Collections;
-using System.ComponentModel;
 using System.Globalization;
 using System.Windows.Forms;
 using OpenDentBusiness;
@@ -12,11 +9,12 @@ using CodeBase;
 using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Entities;
+using Imedisoft.Features.Providers.Dtos;
 
 namespace OpenDental;
 
 public partial class FormRpReferralAnalysis:FormODBase {
-	private List<Provider> _listProviders;
+	private List<ProviderDto> _listProviders;
 
 		
 	public FormRpReferralAnalysis() {
@@ -33,7 +31,7 @@ public partial class FormRpReferralAnalysis:FormODBase {
 			,DateTime.DaysInMonth(DateTime.Today.Year,DateTime.Today.Month)).ToShortDateString();
 		listProv.Items.Add(Lan.g(this,"All"));
 		for(var i=0;i<_listProviders.Count;i++){
-			listProv.Items.Add(_listProviders[i].GetLongDesc());
+			listProv.Items.Add(_listProviders[i].Description);
 		}
 		listProv.SetSelected(0);
 	}
@@ -124,7 +122,7 @@ public partial class FormRpReferralAnalysis:FormODBase {
 		}
 		for(var i=0;i<listProv.SelectedIndices.Count;i++) {
 			//Minus 1 due to the 'All' option.
-			listProvNums.Add(_listProviders[listProv.SelectedIndices[i]-1].ProvNum);
+			listProvNums.Add(_listProviders[listProv.SelectedIndices[i]-1].Id);
 			listProvNames.Add(_listProviders[listProv.SelectedIndices[i]-1].Abbr);
 		}
 		ReportComplex report;
@@ -146,7 +144,7 @@ public partial class FormRpReferralAnalysis:FormODBase {
 			report.AddSubTitle("Provider Subtitle",Lan.g(this,"All Providers"));
 		}
 		else if(listProv.SelectedIndices.Count==1) {
-			report.AddSubTitle("Provider SubTitle",Lan.g(this,"Prov:")+" "+_listProviders[listProv.SelectedIndices[0]-1].GetLongDesc());
+			report.AddSubTitle("Provider SubTitle",Lan.g(this,"Prov:")+" "+_listProviders[listProv.SelectedIndices[0]-1].Description);
 		}
 		else {
 			report.AddSubTitle("Provider SubTitle",string.Join(", ",listProvNames));

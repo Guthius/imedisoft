@@ -8,14 +8,6 @@ namespace Imedisoft.Core.Crud;
 
 public class ActiveInstanceCrud
 {
-    public static ActiveInstance SelectOne(long activeInstanceNum)
-    {
-        var command = "SELECT * FROM activeinstance "
-                      + "WHERE ActiveInstanceNum = " + SOut.Long(activeInstanceNum);
-        var list = TableToList(DataCore.GetTable(command));
-        return list.Count == 0 ? null : list[0];
-    }
-
     public static ActiveInstance SelectOne(string command)
     {
         var list = TableToList(DataCore.GetTable(command));
@@ -31,24 +23,25 @@ public class ActiveInstanceCrud
     public static List<ActiveInstance> TableToList(DataTable table)
     {
         var retVal = new List<ActiveInstance>();
-        ActiveInstance activeInstance;
         foreach (DataRow row in table.Rows)
         {
-            activeInstance = new ActiveInstance();
-            activeInstance.ActiveInstanceNum = SIn.Long(row["ActiveInstanceNum"].ToString());
-            activeInstance.ComputerNum = SIn.Long(row["ComputerNum"].ToString());
-            activeInstance.UserNum = SIn.Long(row["UserNum"].ToString());
-            activeInstance.ProcessId = SIn.Long(row["ProcessId"].ToString());
-            activeInstance.DateTimeLastActive = SIn.DateTime(row["DateTimeLastActive"].ToString());
-            activeInstance.DateTRecorded = SIn.DateTime(row["DateTRecorded"].ToString());
-            activeInstance.ConnectionType = (ConnectionTypes) SIn.Int(row["ConnectionType"].ToString());
+            var activeInstance = new ActiveInstance
+            {
+                ActiveInstanceNum = SIn.Long(row["ActiveInstanceNum"].ToString()),
+                ComputerNum = SIn.Long(row["ComputerNum"].ToString()),
+                UserNum = SIn.Long(row["UserNum"].ToString()),
+                ProcessId = SIn.Long(row["ProcessId"].ToString()),
+                DateTimeLastActive = SIn.DateTime(row["DateTimeLastActive"].ToString()),
+                DateTRecorded = SIn.DateTime(row["DateTRecorded"].ToString()),
+                ConnectionType = (ConnectionTypes) SIn.Int(row["ConnectionType"].ToString())
+            };
             retVal.Add(activeInstance);
         }
 
         return retVal;
     }
 
-    public static long Insert(ActiveInstance activeInstance)
+    public static void Insert(ActiveInstance activeInstance)
     {
         var command = "INSERT INTO activeinstance (";
 
@@ -63,7 +56,6 @@ public class ActiveInstanceCrud
                                                   + SOut.Int((int) activeInstance.ConnectionType) + ")";
 
         activeInstance.ActiveInstanceNum = Db.NonQ(command, true, "ActiveInstanceNum", "activeInstance");
-        return activeInstance.ActiveInstanceNum;
     }
 
     public static void Update(ActiveInstance activeInstance)
@@ -76,13 +68,6 @@ public class ActiveInstanceCrud
                       + "DateTRecorded     =  " + SOut.DateTime(activeInstance.DateTRecorded) + ", "
                       + "ConnectionType    =  " + SOut.Int((int) activeInstance.ConnectionType) + " "
                       + "WHERE ActiveInstanceNum = " + SOut.Long(activeInstance.ActiveInstanceNum);
-        Db.NonQ(command);
-    }
-
-    public static void Delete(long activeInstanceNum)
-    {
-        var command = "DELETE FROM activeinstance "
-                      + "WHERE ActiveInstanceNum = " + SOut.Long(activeInstanceNum);
         Db.NonQ(command);
     }
 }

@@ -102,19 +102,19 @@ public static class AppointmentRules
 
     private static readonly AppointmentRuleCache Cache = new();
 
-    public static int GetCount(bool isShort = false)
+    public static int GetCount(bool shortList = false)
     {
-        return Cache.GetCount(isShort);
+        return Cache.GetCount(shortList);
     }
 
-    public static List<AppointmentRule> GetDeepCopy(bool isShort = false)
+    public static List<AppointmentRule> GetDeepCopy(bool shortList = false)
     {
-        return Cache.GetDeepCopy(isShort);
+        return Cache.GetDeepCopy(shortList);
     }
 
-    public static List<AppointmentRule> GetWhere(Predicate<AppointmentRule> match, bool isShort = false)
+    public static List<AppointmentRule> GetWhere(Predicate<AppointmentRule> predicate, bool shortList = false)
     {
-        return Cache.GetWhere(match, isShort);
+        return Cache.GetWhere(predicate, shortList);
     }
 
     public static void RefreshCache()
@@ -122,9 +122,9 @@ public static class AppointmentRules
         GetTableFromCache(true);
     }
 
-    public static DataTable GetTableFromCache(bool doRefreshCache)
+    public static DataTable GetTableFromCache(bool refreshCache)
     {
-        return Cache.GetTableFromCache(doRefreshCache);
+        return Cache.GetTableFromCache(refreshCache);
     }
 
     public static void ClearCache()

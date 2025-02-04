@@ -67,12 +67,12 @@ public partial class FormClaimPayTotal : FormODBase {
 		textPatResp.Visible=_doShowPatResp;
 		if(!CultureInfo.CurrentCulture.Name.EndsWith("CA")) {//Canadian. en-CA or fr-CA
 			textLabFees.Visible=false;
-			LayoutManagerForms.MoveLocation(textDedApplied,textLabFees.Location);
-			LayoutManagerForms.MoveLocation(textInsPayAllowed,new Point(textDedApplied.Right-1,textInsPayAllowed.Location.Y));
-			LayoutManagerForms.MoveLocation(textInsPayAmt,new Point(textInsPayAllowed.Right-1,textInsPayAllowed.Location.Y));
-			LayoutManagerForms.MoveLocation(textWriteOff,new Point(textInsPayAmt.Right-1,textInsPayAllowed.Location.Y));
+			textDedApplied.Location = textLabFees.Location;
+			textInsPayAllowed.Location = new Point(textDedApplied.Right-1,textInsPayAllowed.Location.Y);
+			textInsPayAmt.Location = new Point(textInsPayAllowed.Right-1,textInsPayAllowed.Location.Y);
+			textWriteOff.Location = new Point(textInsPayAmt.Right-1,textInsPayAllowed.Location.Y);
 			if(_doShowPatResp) {
-				LayoutManagerForms.MoveLocation(textPatResp,new Point(textWriteOff.Right-1,textInsPayAllowed.Location.Y));
+				textPatResp.Location = new Point(textWriteOff.Right-1,textInsPayAllowed.Location.Y);
 			}
 		}
 		_listDefs=Defs.GetDefsForCategory(DefCat.ClaimPaymentTracking,true);

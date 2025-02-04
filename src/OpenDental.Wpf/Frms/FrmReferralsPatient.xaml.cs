@@ -1,14 +1,8 @@
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
 using System.Linq;
-using System.Windows;
 using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using CodeBase;
-using Imedisoft.Core.Caching;
+using Imedisoft.Core.Data;
 using Imedisoft.Core.Entities;
 using OpenDentBusiness;
 using WpfControls;
@@ -341,7 +335,7 @@ namespace OpenDental {
 				MsgBox.Show(this,"Please select a referral first");
 				return;
 			}
-			if(IsSelectionMode && PrefC.GetBool(PrefName.ShowFeatureEhr)) {
+			if(IsSelectionMode && false) {
 				string warning="";
 				if(_listRefAttaches[gridMain.GetSelectedIndex()].ProvNum==0) {
 					warning+=Lans.g("Selected patient referral does not have a referring provider set.");

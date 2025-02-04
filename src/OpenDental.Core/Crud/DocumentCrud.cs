@@ -1,14 +1,9 @@
-#region
-
 using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Linq;
 using DataConnectionBase;
 using Imedisoft.Core.Entities;
 using OpenDentBusiness;
-
-#endregion
 
 namespace Imedisoft.Core.Crud;
 
@@ -30,43 +25,38 @@ public class DocumentCrud
         return list[0];
     }
 
-    public static List<Document> SelectMany(string command)
-    {
-        var list = TableToList(DataCore.GetTable(command));
-        return list;
-    }
-
     public static List<Document> TableToList(DataTable table)
     {
         var retVal = new List<Document>();
-        Document document;
         foreach (DataRow row in table.Rows)
         {
-            document = new Document();
-            document.DocNum = SIn.Long(row["DocNum"].ToString());
-            document.Description = SIn.String(row["Description"].ToString());
-            document.DateCreated = SIn.DateTime(row["DateCreated"].ToString());
-            document.DocCategory = SIn.Long(row["DocCategory"].ToString());
-            document.PatNum = SIn.Long(row["PatNum"].ToString());
-            document.FileName = SIn.String(row["FileName"].ToString());
-            document.ImgType = (ImageType) SIn.Int(row["ImgType"].ToString());
-            document.IsFlipped = SIn.Bool(row["IsFlipped"].ToString());
-            document.DegreesRotated = SIn.Float(row["DegreesRotated"].ToString());
-            document.ToothNumbers = SIn.String(row["ToothNumbers"].ToString());
-            document.Note = SIn.String(row["Note"].ToString());
-            document.SigIsTopaz = SIn.Bool(row["SigIsTopaz"].ToString());
-            document.Signature = SIn.String(row["Signature"].ToString());
-            document.CropX = SIn.Int(row["CropX"].ToString());
-            document.CropY = SIn.Int(row["CropY"].ToString());
-            document.CropW = SIn.Int(row["CropW"].ToString());
-            document.CropH = SIn.Int(row["CropH"].ToString());
-            document.WindowingMin = SIn.Int(row["WindowingMin"].ToString());
-            document.WindowingMax = SIn.Int(row["WindowingMax"].ToString());
-            document.MountItemNum = SIn.Long(row["MountItemNum"].ToString());
-            document.DateTStamp = SIn.DateTime(row["DateTStamp"].ToString());
-            document.RawBase64 = SIn.String(row["RawBase64"].ToString());
-            document.Thumbnail = SIn.String(row["Thumbnail"].ToString());
-            document.ExternalGUID = SIn.String(row["ExternalGUID"].ToString());
+            var document = new Document
+            {
+                DocNum = SIn.Long(row["DocNum"].ToString()),
+                Description = SIn.String(row["Description"].ToString()),
+                DateCreated = SIn.DateTime(row["DateCreated"].ToString()),
+                DocCategory = SIn.Long(row["DocCategory"].ToString()),
+                PatNum = SIn.Long(row["PatNum"].ToString()),
+                FileName = SIn.String(row["FileName"].ToString()),
+                ImgType = (ImageType) SIn.Int(row["ImgType"].ToString()),
+                IsFlipped = SIn.Bool(row["IsFlipped"].ToString()),
+                DegreesRotated = SIn.Float(row["DegreesRotated"].ToString()),
+                ToothNumbers = SIn.String(row["ToothNumbers"].ToString()),
+                Note = SIn.String(row["Note"].ToString()),
+                SigIsTopaz = SIn.Bool(row["SigIsTopaz"].ToString()),
+                Signature = SIn.String(row["Signature"].ToString()),
+                CropX = SIn.Int(row["CropX"].ToString()),
+                CropY = SIn.Int(row["CropY"].ToString()),
+                CropW = SIn.Int(row["CropW"].ToString()),
+                CropH = SIn.Int(row["CropH"].ToString()),
+                WindowingMin = SIn.Int(row["WindowingMin"].ToString()),
+                WindowingMax = SIn.Int(row["WindowingMax"].ToString()),
+                MountItemNum = SIn.Long(row["MountItemNum"].ToString()),
+                DateTStamp = SIn.DateTime(row["DateTStamp"].ToString()),
+                RawBase64 = SIn.String(row["RawBase64"].ToString()),
+                Thumbnail = SIn.String(row["Thumbnail"].ToString()),
+                ExternalGUID = SIn.String(row["ExternalGUID"].ToString())
+            };
             var externalSource = row["ExternalSource"].ToString();
             if (externalSource == "")
                 document.ExternalSource = 0;
@@ -83,7 +73,7 @@ public class DocumentCrud
             document.ProvNum = SIn.Long(row["ProvNum"].ToString());
             document.IsCropOld = SIn.Bool(row["IsCropOld"].ToString());
             document.OcrResponseData = SIn.String(row["OcrResponseData"].ToString());
-            document.ImageCaptureType = (EnumOcrCaptureType) SIn.Int(row["ImageCaptureType"].ToString());
+            document.ImageCaptureType = SIn.Int(row["ImageCaptureType"].ToString());
             document.PrintHeading = SIn.Bool(row["PrintHeading"].ToString());
             document.ChartLetterStatus = (EnumDocChartLetterStatus) SIn.Int(row["ChartLetterStatus"].ToString());
             document.UserNum = SIn.Long(row["UserNum"].ToString());
@@ -94,54 +84,7 @@ public class DocumentCrud
         return retVal;
     }
 
-    public static DataTable ListToTable(List<Document> listDocuments, string tableName = "")
-    {
-        if (string.IsNullOrEmpty(tableName)) tableName = "Document";
-        var table = new DataTable(tableName);
-        table.Columns.Add("DocNum");
-        table.Columns.Add("Description");
-        table.Columns.Add("DateCreated");
-        table.Columns.Add("DocCategory");
-        table.Columns.Add("PatNum");
-        table.Columns.Add("FileName");
-        table.Columns.Add("ImgType");
-        table.Columns.Add("IsFlipped");
-        table.Columns.Add("DegreesRotated");
-        table.Columns.Add("ToothNumbers");
-        table.Columns.Add("Note");
-        table.Columns.Add("SigIsTopaz");
-        table.Columns.Add("Signature");
-        table.Columns.Add("CropX");
-        table.Columns.Add("CropY");
-        table.Columns.Add("CropW");
-        table.Columns.Add("CropH");
-        table.Columns.Add("WindowingMin");
-        table.Columns.Add("WindowingMax");
-        table.Columns.Add("MountItemNum");
-        table.Columns.Add("DateTStamp");
-        table.Columns.Add("RawBase64");
-        table.Columns.Add("Thumbnail");
-        table.Columns.Add("ExternalGUID");
-        table.Columns.Add("ExternalSource");
-        table.Columns.Add("ProvNum");
-        table.Columns.Add("IsCropOld");
-        table.Columns.Add("OcrResponseData");
-        table.Columns.Add("ImageCaptureType");
-        table.Columns.Add("PrintHeading");
-        table.Columns.Add("ChartLetterStatus");
-        table.Columns.Add("UserNum");
-        table.Columns.Add("ChartLetterHash");
-        foreach (var document in listDocuments)
-            table.Rows.Add(SOut.Long(document.DocNum), document.Description, SOut.DateTime(document.DateCreated, false), SOut.Long(document.DocCategory), SOut.Long(document.PatNum), document.FileName, SOut.Int((int) document.ImgType), SOut.Bool(document.IsFlipped), SOut.Float(document.DegreesRotated), document.ToothNumbers, document.Note, SOut.Bool(document.SigIsTopaz), document.Signature, SOut.Int(document.CropX), SOut.Int(document.CropY), SOut.Int(document.CropW), SOut.Int(document.CropH), SOut.Int(document.WindowingMin), SOut.Int(document.WindowingMax), SOut.Long(document.MountItemNum), SOut.DateTime(document.DateTStamp, false), document.RawBase64, document.Thumbnail, document.ExternalGUID, SOut.Int((int) document.ExternalSource), SOut.Long(document.ProvNum), SOut.Bool(document.IsCropOld), document.OcrResponseData, SOut.Int((int) document.ImageCaptureType), SOut.Bool(document.PrintHeading), SOut.Int((int) document.ChartLetterStatus), SOut.Long(document.UserNum), document.ChartLetterHash);
-        return table;
-    }
-
     public static long Insert(Document document)
-    {
-        return Insert(document, false);
-    }
-
-    public static long Insert(Document document, bool useExistingPK)
     {
         var command = "INSERT INTO document (";
 
@@ -193,68 +136,6 @@ public class DocumentCrud
         {
             document.DocNum = Db.NonQ(command, true, "DocNum", "document", paramNote, paramSignature, paramRawBase64, paramThumbnail, paramOcrResponseData);
         }
-        return document.DocNum;
-    }
-
-    public static long InsertNoCache(Document document)
-    {
-        return InsertNoCache(document, false);
-    }
-
-    public static long InsertNoCache(Document document, bool useExistingPK)
-    {
-        const bool isRandomKeys = false;
-        var command = "INSERT INTO document (";
-        if (isRandomKeys || useExistingPK) command += "DocNum,";
-        command += "Description,DateCreated,DocCategory,PatNum,FileName,ImgType,IsFlipped,DegreesRotated,ToothNumbers,Note,SigIsTopaz,Signature,CropX,CropY,CropW,CropH,WindowingMin,WindowingMax,MountItemNum,RawBase64,Thumbnail,ExternalGUID,ExternalSource,ProvNum,IsCropOld,OcrResponseData,ImageCaptureType,PrintHeading,ChartLetterStatus,UserNum,ChartLetterHash) VALUES(";
-        if (isRandomKeys || useExistingPK) command += SOut.Long(document.DocNum) + ",";
-        command +=
-            "'" + SOut.String(document.Description) + "',"
-            + SOut.DateTime(document.DateCreated) + ","
-            + SOut.Long(document.DocCategory) + ","
-            + SOut.Long(document.PatNum) + ","
-            + "'" + SOut.String(document.FileName) + "',"
-            + SOut.Int((int) document.ImgType) + ","
-            + SOut.Bool(document.IsFlipped) + ","
-            + SOut.Float(document.DegreesRotated) + ","
-            + "'" + SOut.String(document.ToothNumbers) + "',"
-            + DbHelper.ParamChar + "paramNote,"
-            + SOut.Bool(document.SigIsTopaz) + ","
-            + DbHelper.ParamChar + "paramSignature,"
-            + SOut.Int(document.CropX) + ","
-            + SOut.Int(document.CropY) + ","
-            + SOut.Int(document.CropW) + ","
-            + SOut.Int(document.CropH) + ","
-            + SOut.Int(document.WindowingMin) + ","
-            + SOut.Int(document.WindowingMax) + ","
-            + SOut.Long(document.MountItemNum) + ","
-            //DateTStamp can only be set by MySQL
-            + DbHelper.ParamChar + "paramRawBase64,"
-            + DbHelper.ParamChar + "paramThumbnail,"
-            + "'" + SOut.String(document.ExternalGUID) + "',"
-            + "'" + SOut.String(document.ExternalSource.ToString()) + "',"
-            + SOut.Long(document.ProvNum) + ","
-            + SOut.Bool(document.IsCropOld) + ","
-            + DbHelper.ParamChar + "paramOcrResponseData,"
-            + SOut.Int((int) document.ImageCaptureType) + ","
-            + SOut.Bool(document.PrintHeading) + ","
-            + SOut.Int((int) document.ChartLetterStatus) + ","
-            + SOut.Long(document.UserNum) + ","
-            + "'" + SOut.String(document.ChartLetterHash) + "')";
-        if (document.Note == null) document.Note = "";
-        var paramNote = new OdSqlParameter("paramNote", SOut.StringParam(document.Note));
-        if (document.Signature == null) document.Signature = "";
-        var paramSignature = new OdSqlParameter("paramSignature", SOut.StringParam(document.Signature));
-        if (document.RawBase64 == null) document.RawBase64 = "";
-        var paramRawBase64 = new OdSqlParameter("paramRawBase64", SOut.StringParam(document.RawBase64));
-        if (document.Thumbnail == null) document.Thumbnail = "";
-        var paramThumbnail = new OdSqlParameter("paramThumbnail", SOut.StringParam(document.Thumbnail));
-        if (document.OcrResponseData == null) document.OcrResponseData = "";
-        var paramOcrResponseData = new OdSqlParameter("paramOcrResponseData", SOut.StringParam(document.OcrResponseData));
-        if (useExistingPK || isRandomKeys)
-            Db.NonQ(command, paramNote, paramSignature, paramRawBase64, paramThumbnail, paramOcrResponseData);
-        else
-            document.DocNum = Db.NonQ(command, true, "DocNum", "document", paramNote, paramSignature, paramRawBase64, paramThumbnail, paramOcrResponseData);
         return document.DocNum;
     }
 
@@ -514,43 +395,6 @@ public class DocumentCrud
         return true;
     }
 
-    public static bool UpdateComparison(Document document, Document oldDocument)
-    {
-        if (document.Description != oldDocument.Description) return true;
-        if (document.DateCreated != oldDocument.DateCreated) return true;
-        if (document.DocCategory != oldDocument.DocCategory) return true;
-        if (document.PatNum != oldDocument.PatNum) return true;
-        if (document.FileName != oldDocument.FileName) return true;
-        if (document.ImgType != oldDocument.ImgType) return true;
-        if (document.IsFlipped != oldDocument.IsFlipped) return true;
-        if (document.DegreesRotated != oldDocument.DegreesRotated) return true;
-        if (document.ToothNumbers != oldDocument.ToothNumbers) return true;
-        if (document.Note != oldDocument.Note) return true;
-        if (document.SigIsTopaz != oldDocument.SigIsTopaz) return true;
-        if (document.Signature != oldDocument.Signature) return true;
-        if (document.CropX != oldDocument.CropX) return true;
-        if (document.CropY != oldDocument.CropY) return true;
-        if (document.CropW != oldDocument.CropW) return true;
-        if (document.CropH != oldDocument.CropH) return true;
-        if (document.WindowingMin != oldDocument.WindowingMin) return true;
-        if (document.WindowingMax != oldDocument.WindowingMax) return true;
-        if (document.MountItemNum != oldDocument.MountItemNum) return true;
-        //DateTStamp can only be set by MySQL
-        if (document.RawBase64 != oldDocument.RawBase64) return true;
-        if (document.Thumbnail != oldDocument.Thumbnail) return true;
-        if (document.ExternalGUID != oldDocument.ExternalGUID) return true;
-        if (document.ExternalSource != oldDocument.ExternalSource) return true;
-        if (document.ProvNum != oldDocument.ProvNum) return true;
-        if (document.IsCropOld != oldDocument.IsCropOld) return true;
-        if (document.OcrResponseData != oldDocument.OcrResponseData) return true;
-        if (document.ImageCaptureType != oldDocument.ImageCaptureType) return true;
-        if (document.PrintHeading != oldDocument.PrintHeading) return true;
-        if (document.ChartLetterStatus != oldDocument.ChartLetterStatus) return true;
-        if (document.UserNum != oldDocument.UserNum) return true;
-        if (document.ChartLetterHash != oldDocument.ChartLetterHash) return true;
-        return false;
-    }
-
     public static void Delete(long docNum)
     {
         ClearFkey(docNum);
@@ -559,26 +403,10 @@ public class DocumentCrud
         Db.NonQ(command);
     }
 
-    public static void DeleteMany(List<long> listDocNums)
-    {
-        if (listDocNums == null || listDocNums.Count == 0) return;
-        ClearFkey(listDocNums);
-        var command = "DELETE FROM document "
-                      + "WHERE DocNum IN(" + string.Join(",", listDocNums.Select(x => SOut.Long(x))) + ")";
-        Db.NonQ(command);
-    }
-
     public static void ClearFkey(long docNum)
     {
         if (docNum == 0) return;
         var command = "UPDATE securitylog SET FKey=0 WHERE FKey=" + SOut.Long(docNum) + " AND PermType IN (44,89)";
-        Db.NonQ(command);
-    }
-
-    public static void ClearFkey(List<long> listDocNums)
-    {
-        if (listDocNums == null || listDocNums.FindAll(x => x != 0).Count == 0) return;
-        var command = "UPDATE securitylog SET FKey=0 WHERE FKey IN(" + string.Join(",", listDocNums.FindAll(x => x != 0)) + ") AND PermType IN (44,89)";
         Db.NonQ(command);
     }
 }

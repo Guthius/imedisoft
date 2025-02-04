@@ -46,7 +46,7 @@ public static class QuickPasteCats
         }
 
         var quickPasteCats = GetDeepCopy();
-        
+
         for (var i = 0; i < quickPasteCats.Count; i++)
         {
             var types = quickPasteCats[i].DefaultForTypes == "" ? [] : quickPasteCats[i].DefaultForTypes.Split(',');

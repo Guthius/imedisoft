@@ -1,35 +1,14 @@
-#region
-
 using System.Collections.Generic;
 using System.Data;
-using System.Linq;
 using System.Text;
 using DataConnectionBase;
 using Imedisoft.Core.Entities;
 using OpenDentBusiness;
 
-#endregion
-
 namespace Imedisoft.Core.Crud;
 
 public class ScheduleCrud
 {
-    public static Schedule SelectOne(long scheduleNum)
-    {
-        var command = "SELECT * FROM schedule "
-                      + "WHERE ScheduleNum = " + SOut.Long(scheduleNum);
-        var list = TableToList(DataCore.GetTable(command));
-        if (list.Count == 0) return null;
-        return list[0];
-    }
-
-    public static Schedule SelectOne(string command)
-    {
-        var list = TableToList(DataCore.GetTable(command));
-        if (list.Count == 0) return null;
-        return list[0];
-    }
-
     public static List<Schedule> SelectMany(string command)
     {
         var list = TableToList(DataCore.GetTable(command));
@@ -39,55 +18,29 @@ public class ScheduleCrud
     public static List<Schedule> TableToList(DataTable table)
     {
         var retVal = new List<Schedule>();
-        Schedule schedule;
         foreach (DataRow row in table.Rows)
         {
-            schedule = new Schedule();
-            schedule.ScheduleNum = SIn.Long(row["ScheduleNum"].ToString());
-            schedule.SchedDate = SIn.Date(row["SchedDate"].ToString());
-            schedule.StartTime = SIn.TimeSpan(row["StartTime"].ToString());
-            schedule.StopTime = SIn.TimeSpan(row["StopTime"].ToString());
-            schedule.SchedType = (ScheduleType) SIn.Int(row["SchedType"].ToString());
-            schedule.ProvNum = SIn.Long(row["ProvNum"].ToString());
-            schedule.BlockoutType = SIn.Long(row["BlockoutType"].ToString());
-            schedule.Note = SIn.String(row["Note"].ToString());
-            schedule.Status = (SchedStatus) SIn.Int(row["Status"].ToString());
-            schedule.EmployeeNum = SIn.Long(row["EmployeeNum"].ToString());
-            schedule.DateTStamp = SIn.DateTime(row["DateTStamp"].ToString());
-            schedule.ClinicNum = SIn.Long(row["ClinicNum"].ToString());
+            var schedule = new Schedule
+            {
+                ScheduleNum = SIn.Long(row["ScheduleNum"].ToString()),
+                SchedDate = SIn.Date(row["SchedDate"].ToString()),
+                StartTime = SIn.TimeSpan(row["StartTime"].ToString()),
+                StopTime = SIn.TimeSpan(row["StopTime"].ToString()),
+                SchedType = (ScheduleType) SIn.Int(row["SchedType"].ToString()),
+                ProvNum = SIn.Long(row["ProvNum"].ToString()),
+                BlockoutType = SIn.Long(row["BlockoutType"].ToString()),
+                Note = SIn.String(row["Note"].ToString()),
+                Status = (SchedStatus) SIn.Int(row["Status"].ToString()),
+                EmployeeNum = SIn.Long(row["EmployeeNum"].ToString()),
+                ClinicNum = SIn.Long(row["ClinicNum"].ToString())
+            };
             retVal.Add(schedule);
         }
 
         return retVal;
     }
 
-    public static DataTable ListToTable(List<Schedule> listSchedules, string tableName = "")
-    {
-        if (string.IsNullOrEmpty(tableName)) tableName = "Schedule";
-        var table = new DataTable(tableName);
-        table.Columns.Add("ScheduleNum");
-        table.Columns.Add("SchedDate");
-        table.Columns.Add("StartTime");
-        table.Columns.Add("StopTime");
-        table.Columns.Add("SchedType");
-        table.Columns.Add("ProvNum");
-        table.Columns.Add("BlockoutType");
-        table.Columns.Add("Note");
-        table.Columns.Add("Status");
-        table.Columns.Add("EmployeeNum");
-        table.Columns.Add("DateTStamp");
-        table.Columns.Add("ClinicNum");
-        foreach (var schedule in listSchedules)
-            table.Rows.Add(SOut.Long(schedule.ScheduleNum), SOut.DateTime(schedule.SchedDate, false), SOut.Time(schedule.StartTime, false), SOut.Time(schedule.StopTime, false), SOut.Int((int) schedule.SchedType), SOut.Long(schedule.ProvNum), SOut.Long(schedule.BlockoutType), schedule.Note, SOut.Int((int) schedule.Status), SOut.Long(schedule.EmployeeNum), SOut.DateTime(schedule.DateTStamp, false), SOut.Long(schedule.ClinicNum));
-        return table;
-    }
-
-    public static long Insert(Schedule schedule)
-    {
-        return Insert(schedule, false);
-    }
-
-    public static long Insert(Schedule schedule, bool useExistingPK)
+    public static void Insert(Schedule schedule)
     {
         var command = "INSERT INTO schedule (";
 
@@ -110,7 +63,6 @@ public class ScheduleCrud
         {
             schedule.ScheduleNum = Db.NonQ(command, true, "ScheduleNum", "schedule", paramNote);
         }
-        return schedule.ScheduleNum;
     }
 
     public static void InsertMany(List<Schedule> listSchedules)
@@ -184,39 +136,6 @@ public class ScheduleCrud
         }
     }
 
-    public static long InsertNoCache(Schedule schedule)
-    {
-        return InsertNoCache(schedule, false);
-    }
-
-    public static long InsertNoCache(Schedule schedule, bool useExistingPK)
-    {
-        const bool isRandomKeys = false;
-        var command = "INSERT INTO schedule (";
-        if (isRandomKeys || useExistingPK) command += "ScheduleNum,";
-        command += "SchedDate,StartTime,StopTime,SchedType,ProvNum,BlockoutType,Note,Status,EmployeeNum,ClinicNum) VALUES(";
-        if (isRandomKeys || useExistingPK) command += SOut.Long(schedule.ScheduleNum) + ",";
-        command +=
-            SOut.Date(schedule.SchedDate) + ","
-                                          + SOut.Time(schedule.StartTime) + ","
-                                          + SOut.Time(schedule.StopTime) + ","
-                                          + SOut.Int((int) schedule.SchedType) + ","
-                                          + SOut.Long(schedule.ProvNum) + ","
-                                          + SOut.Long(schedule.BlockoutType) + ","
-                                          + DbHelper.ParamChar + "paramNote,"
-                                          + SOut.Int((int) schedule.Status) + ","
-                                          + SOut.Long(schedule.EmployeeNum) + ","
-                                          //DateTStamp can only be set by MySQL
-                                          + SOut.Long(schedule.ClinicNum) + ")";
-        if (schedule.Note == null) schedule.Note = "";
-        var paramNote = new OdSqlParameter("paramNote", SOut.StringParam(schedule.Note));
-        if (useExistingPK || isRandomKeys)
-            Db.NonQ(command, paramNote);
-        else
-            schedule.ScheduleNum = Db.NonQ(command, true, "ScheduleNum", "schedule", paramNote);
-        return schedule.ScheduleNum;
-    }
-
     public static void Update(Schedule schedule)
     {
         var command = "UPDATE schedule SET "
@@ -237,7 +156,7 @@ public class ScheduleCrud
         Db.NonQ(command, paramNote);
     }
 
-    public static bool Update(Schedule schedule, Schedule oldSchedule)
+    public static void Update(Schedule schedule, Schedule oldSchedule)
     {
         var command = "";
         if (schedule.SchedDate.Date != oldSchedule.SchedDate.Date)
@@ -301,13 +220,12 @@ public class ScheduleCrud
             command += "ClinicNum = " + SOut.Long(schedule.ClinicNum) + "";
         }
 
-        if (command == "") return false;
+        if (command == "") return;
         if (schedule.Note == null) schedule.Note = "";
         var paramNote = new OdSqlParameter("paramNote", SOut.StringParam(schedule.Note));
         command = "UPDATE schedule SET " + command
                                          + " WHERE ScheduleNum = " + SOut.Long(schedule.ScheduleNum);
         Db.NonQ(command, paramNote);
-        return true;
     }
 
     public static bool UpdateComparison(Schedule schedule, Schedule oldSchedule)
@@ -324,20 +242,5 @@ public class ScheduleCrud
         //DateTStamp can only be set by MySQL
         if (schedule.ClinicNum != oldSchedule.ClinicNum) return true;
         return false;
-    }
-
-    public static void Delete(long scheduleNum)
-    {
-        var command = "DELETE FROM schedule "
-                      + "WHERE ScheduleNum = " + SOut.Long(scheduleNum);
-        Db.NonQ(command);
-    }
-
-    public static void DeleteMany(List<long> listScheduleNums)
-    {
-        if (listScheduleNums == null || listScheduleNums.Count == 0) return;
-        var command = "DELETE FROM schedule "
-                      + "WHERE ScheduleNum IN(" + string.Join(",", listScheduleNums.Select(x => SOut.Long(x))) + ")";
-        Db.NonQ(command);
     }
 }

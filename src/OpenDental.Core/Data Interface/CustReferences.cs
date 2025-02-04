@@ -36,7 +36,7 @@ public class CustReferences
                 else
                     billingSnippet += "OR ";
 
-                billingSnippet += "BillingType=" + SOut.Long(listBillingTypes[i]) + " ";
+                billingSnippet += "BillingType=" + (listBillingTypes[i]) + " ";
                 if (i == listBillingTypes.Count - 1) billingSnippet += ") ";
             }
 
@@ -153,7 +153,7 @@ public class CustReferences
     {
         var command = "SELECT * "
                       + "FROM custreference "
-                      + "WHERE PatNum=" + SOut.Long(patNum) + " "
+                      + "WHERE PatNum=" + (patNum) + " "
                       + "ORDER BY DateMostRecent DESC";
         var listCustReferences = CustReferenceCrud.SelectMany(command);
         if (listCustReferences.Count == 0) return null;

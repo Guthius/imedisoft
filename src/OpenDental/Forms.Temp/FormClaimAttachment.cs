@@ -1,13 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
 using System.Diagnostics;
 using System.Drawing;
-using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
-using System.Runtime.InteropServices;
 using System.Threading;
 using System.Text;
 using System.Windows.Forms;
@@ -15,7 +11,6 @@ using CodeBase;
 using OpenDental.UI;
 using OpenDentBusiness;
 using OpenDentBusiness.Eclaims;
-using Dicom.Imaging.Mathematics;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Entities;
 
@@ -424,22 +419,14 @@ public partial class FormClaimAttachment:FormODBase {
 		timerMonitorClipboard.Start();
 	}
 
-	private void buttonSnipTool_Click(object sender,EventArgs e) {
-		if(/* ODEnvironment.IsCloudServer */ false) {
-			ODProgress.ShowAction(()=>StartSnipping(),"Opening snipping tool...");
-		}
-		else {
-			StartSnipping();
-		}
+	private void buttonSnipTool_Click(object sender,EventArgs e)
+	{
+		StartSnipping();
 	}
 
-	public void StartSnippingFromControlAccount() {
-		if(/* ODEnvironment.IsCloudServer */ false) {
-			ODProgress.ShowAction(()=>StartSnipping(),"Opening snipping tool...");
-		}
-		else {
-			StartSnipping();
-		}
+	public void StartSnippingFromControlAccount()
+	{
+		StartSnipping();
 	}
 
 	///<summary>Caller should dispose of this bitmap.</summary>
@@ -462,21 +449,17 @@ public partial class FormClaimAttachment:FormODBase {
 			return;
 		}
 		if(_eclaimsCommBridge==EclaimsCommBridge.ClaimConnect) {//Will never use ClaimConnect
-			var imageAttachmentDXC=formClaimAttachmentItemEdit.ImageAttachmentDXC;
+			var imageAttachmentDXC=formClaimAttachmentItemEdit.ImageAttachmentDxc;
 			_listImageAttachmentsDXC.Add(imageAttachmentDXC);
 		}
 		else if(_eclaimsCommBridge==EclaimsCommBridge.EDS) {
-			var imageAttachmentEDS=formClaimAttachmentItemEdit.ImageAttachmentEDS;
+			var imageAttachmentEDS=formClaimAttachmentItemEdit.ImageAttachmentEds;
 			_listImageAttachmentsEDS.Add(imageAttachmentEDS);
 		}
 		FillGrid();
-		if(formClaimAttachmentItemEdit.DoNewSnip) {
-			if(/* ODEnvironment.IsCloudServer */ false) {
-				ODProgress.ShowAction(()=>StartSnipping(),"Opening snipping tool...");
-			}
-			else {
-				StartSnipping();
-			}
+		if(formClaimAttachmentItemEdit.DoNewSnip)
+		{
+			StartSnipping();
 		}
 	}
 
@@ -502,7 +485,7 @@ public partial class FormClaimAttachment:FormODBase {
 		catch(System.IO.FileNotFoundException ex) {
 			FriendlyException.Show(Lan.g(this,"The selected file at")+": "+selectedFile+" "+Lan.g(this,"could not be found"),ex);
 		}
-		catch(System.OutOfMemoryException ex) {
+		catch(System.OutOfMemoryException) {
 			//Image.FromFile() will throw an OOM exception when the image format is invalid or not supported.
 			//See MSDN if you have trust issues:  https://msdn.microsoft.com/en-us/library/stf701f5(v=vs.110).aspx
 			MsgBox.Show(Lan.g(this,"The file does not have a valid image format. Please try again or call support."));
@@ -570,7 +553,7 @@ public partial class FormClaimAttachment:FormODBase {
 				_eclaimsCommBridge);
 			formClaimAttachmentItemEdit.ShowDialog();
 			if(formClaimAttachmentItemEdit.DialogResult==DialogResult.OK) {//Update row
-				_listImageAttachmentsDXC[gridAttachedImages.GetSelectedIndex()]=formClaimAttachmentItemEdit.ImageAttachmentDXC;
+				_listImageAttachmentsDXC[gridAttachedImages.GetSelectedIndex()]=formClaimAttachmentItemEdit.ImageAttachmentDxc;
 				FillGrid();
 			}
 		}
@@ -587,7 +570,7 @@ public partial class FormClaimAttachment:FormODBase {
 				imageAttachmentSelected.Narrative);
 			formClaimAttachmentItemEdit.ShowDialog();
 			if(formClaimAttachmentItemEdit.DialogResult==DialogResult.OK) {//Update row
-				_listImageAttachmentsEDS[gridAttachedImages.GetSelectedIndex()]=formClaimAttachmentItemEdit.ImageAttachmentEDS;
+				_listImageAttachmentsEDS[gridAttachedImages.GetSelectedIndex()]=formClaimAttachmentItemEdit.ImageAttachmentEds;
 				FillGrid();
 			}
 		}

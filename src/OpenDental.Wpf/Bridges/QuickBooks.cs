@@ -1,11 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Entities;
 using Interop.QBFC10;
-using OpenDentBusiness;
 
 namespace OpenDental.Bridges {
 	///<summary>Contains all logic for QuickBook connections and requests to the QB company file.</summary>

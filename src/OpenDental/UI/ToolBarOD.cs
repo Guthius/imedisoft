@@ -2,7 +2,6 @@ using System;
 using System.ComponentModel;
 using System.Drawing;
 using System.Drawing.Drawing2D;
-using System.Drawing.Imaging;
 using System.Windows.Forms;
 using CodeBase;
 using OpenDentBusiness;
@@ -47,7 +46,7 @@ public class ToolBarOD : System.Windows.Forms.UserControl{
 	private ImageList imageList;
 	private bool _isMouseDown;
 	///<summary>Just holds the scaling factor.</summary>
-	public LayoutManagerForms LayoutManager=new LayoutManagerForms();
+	
 	///<summary>A hot button is either: 1.The button that the mouseDown happened on, regardless of the current position of the mouse, or 2.If the mouse is not down, the button in State.Hover. Keeping track of which one is hot allows faster painting during mouse events.</summary>
 	///<summary>Either 1 or 2, depending on the scale.  Float thicknesses don't look good.  Not all lines are affected, only the ones that need to be seen.</summary>
 	private int _lineThickness;
@@ -649,7 +648,7 @@ public class ToolBarOD : System.Windows.Forms.UserControl{
 						textPageNav.KeyDown+=TextPageNav_KeyDown;
 						textPageNav.MinVal=1;//There is no such thing as 0 pages in a preview, always set min to 1.
 						textPageNav.TextAlign=HorizontalAlignment.Right;
-						LayoutManagerForms.Add(textPageNav,this);
+						Controls.Add(textPageNav);
 					}
 					var xCenter=button.Bounds.X+button.Bounds.Width/2;
 					var yCenter=button.Bounds.Y+button.Bounds.Height/2;

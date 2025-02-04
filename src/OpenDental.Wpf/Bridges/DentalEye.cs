@@ -1,11 +1,5 @@
 #if !DISABLE_WINDOWS_BRIDGES
-using System;
-using System.Collections;
-using System.Diagnostics;
 using System.IO;
-using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading;
 using System.Windows.Forms;
 using OpenDentBusiness;
 using System.Collections.Generic;

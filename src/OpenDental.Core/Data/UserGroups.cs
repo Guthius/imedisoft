@@ -20,26 +20,26 @@ public static class UserGroups
     {
         UserGroupCrud.Update(userGroup);
     }
-    
+
     public static void Insert(UserGroup userGroup)
     {
         UserGroupCrud.Insert(userGroup);
     }
-    
+
     public static void Delete(UserGroup userGroup)
     {
         var command = "SELECT COUNT(*) FROM usergroupattach WHERE UserGroupNum=" + userGroup.UserGroupNum;
-        
+
         var dataTable = DataCore.GetTable(command);
         if (dataTable.Rows[0][0].ToString() != "0")
         {
             throw new Exception("Must move users to another group first.");
         }
-        
+
         Db.NonQ("DELETE FROM usergroup WHERE UserGroupNum=" + userGroup.UserGroupNum);
         Db.NonQ("DELETE FROM grouppermission WHERE UserGroupNum=" + userGroup.UserGroupNum);
     }
-    
+
     public static UserGroup GetGroup(long userGroupNum)
     {
         return GetFirstOrDefault(x => x.UserGroupNum == userGroupNum);
@@ -48,7 +48,7 @@ public static class UserGroups
     public static List<UserGroup> GetList(List<long> userGroupNums)
     {
         var result = new List<UserGroup>();
-        
+
         var userGroups = GetList();
 
         foreach (var userGroupNum in userGroupNums)
@@ -70,10 +70,10 @@ public static class UserGroups
             .Select(x => x.UserGroupNum)
             .Distinct()
             .ToList();
-        
+
         return GetWhere(x => userGroupNums.Contains(x.UserGroupNum));
     }
-    
+
     public static List<UserGroup> GetForUser(long userNum)
     {
         return GetList(UserGroupAttaches.GetForUser(userNum).Select(x => x.UserGroupNum).ToList());
@@ -82,10 +82,10 @@ public static class UserGroups
     public static bool IsAdminGroup(List<long> userGroupNums)
     {
         var groupPermissions = GroupPermissions.GetWhere(x => x.PermType == EnumPermType.SecurityAdmin);
-        
+
         return userGroupNums.Any(x => groupPermissions.Select(y => y.UserGroupNum).Contains(x));
     }
-    
+
     private class UserGroupCache : CacheListAbs<UserGroup>
     {
         protected override List<UserGroup> GetCacheFromDb()
@@ -113,24 +113,24 @@ public static class UserGroups
             UserGroups.GetTableFromCache(false);
         }
     }
-    
+
     private static readonly UserGroupCache Cache = new();
 
-    public static List<UserGroup> GetDeepCopy(bool isShort = false)
+    public static List<UserGroup> GetDeepCopy(bool shortList = false)
     {
-        return Cache.GetDeepCopy(isShort);
+        return Cache.GetDeepCopy(shortList);
     }
 
-    public static UserGroup GetFirstOrDefault(Func<UserGroup, bool> match, bool isShort = false)
+    public static UserGroup GetFirstOrDefault(Func<UserGroup, bool> predicate, bool shortList = false)
     {
-        return Cache.GetFirstOrDefault(match, isShort);
+        return Cache.GetFirstOrDefault(predicate, shortList);
     }
 
-    public static List<UserGroup> GetWhere(Predicate<UserGroup> match, bool isShort = false)
+    public static List<UserGroup> GetWhere(Predicate<UserGroup> predicate, bool shortList = false)
     {
-        return Cache.GetWhere(match, isShort);
+        return Cache.GetWhere(predicate, shortList);
     }
-    
+
     public static void RefreshCache()
     {
         GetTableFromCache(true);

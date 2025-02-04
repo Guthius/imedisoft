@@ -7,13 +7,8 @@ public class DateTimeOD
     public static DateTime GetMostRecentValidDate(int year, int month, int day)
     {
         var maxDay = DateTime.DaysInMonth(year, month);
-        
-        return new DateTime(year, month, Math.Min(day, maxDay));
-    }
 
-    public static DateTime GetDateTimeHourAndMins(DateTime dateTime)
-    {
-        return dateTime.Date.AddHours(dateTime.Hour).AddMinutes(dateTime.Minute);
+        return new DateTime(year, month, Math.Min(day, maxDay));
     }
 
     public static DateTime CalculateForEndOfMonthOffset(DateTime date, int numMonthsInPast)

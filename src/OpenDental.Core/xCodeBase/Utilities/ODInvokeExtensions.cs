@@ -5,11 +5,6 @@ namespace CodeBase;
 
 public static class ODInvokeExtensions
 {
-    public static void Invoke(this Control control, Action action)
-    {
-        control.Invoke(action);
-    }
-
     public static void InvokeIfRequired(this Control control, Action action)
     {
         if (control.InvokeRequired)
@@ -45,10 +40,5 @@ public static class ODInvokeExtensions
                 throw;
             }
         }
-    }
-
-    public static void BeginInvoke(this Control control, Action action)
-    {
-        control.BeginInvoke(action);
     }
 }

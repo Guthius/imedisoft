@@ -1,12 +1,8 @@
 using System;
-using System.Drawing;
-using System.Collections;
-using System.ComponentModel;
-using System.Globalization;
 using System.Windows.Forms;
 using CodeBase;
+using Imedisoft.Core.Data;
 using Imedisoft.Core.Entities;
-using OpenDentBusiness;
 
 namespace OpenDental;
 

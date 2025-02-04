@@ -17,15 +17,16 @@ public class EmailTemplateCrud
     public static List<EmailTemplate> TableToList(DataTable table)
     {
         var retVal = new List<EmailTemplate>();
-        EmailTemplate emailTemplate;
         foreach (DataRow row in table.Rows)
         {
-            emailTemplate = new EmailTemplate();
-            emailTemplate.EmailTemplateNum = SIn.Long(row["EmailTemplateNum"].ToString());
-            emailTemplate.Subject = SIn.String(row["Subject"].ToString());
-            emailTemplate.BodyText = SIn.String(row["BodyText"].ToString());
-            emailTemplate.Description = SIn.String(row["Description"].ToString());
-            emailTemplate.TemplateType = (EmailType) SIn.Int(row["TemplateType"].ToString());
+            var emailTemplate = new EmailTemplate
+            {
+                EmailTemplateNum = SIn.Long(row["EmailTemplateNum"].ToString()),
+                Subject = SIn.String(row["Subject"].ToString()),
+                BodyText = SIn.String(row["BodyText"].ToString()),
+                Description = SIn.String(row["Description"].ToString()),
+                TemplateType = (EmailType) SIn.Int(row["TemplateType"].ToString())
+            };
             retVal.Add(emailTemplate);
         }
 

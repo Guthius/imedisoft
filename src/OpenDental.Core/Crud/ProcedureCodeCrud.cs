@@ -1,15 +1,9 @@
-#region
-
 using System.Collections.Generic;
 using System.Data;
 using System.Drawing;
-using System.Linq;
-using System.Text;
 using DataConnectionBase;
 using Imedisoft.Core.Entities;
 using OpenDentBusiness;
-
-#endregion
 
 namespace Imedisoft.Core.Crud;
 
@@ -24,13 +18,6 @@ public class ProcedureCodeCrud
         return list[0];
     }
 
-    public static ProcedureCode SelectOne(string command)
-    {
-        var list = TableToList(DataCore.GetTable(command));
-        if (list.Count == 0) return null;
-        return list[0];
-    }
-
     public static List<ProcedureCode> SelectMany(string command)
     {
         var list = TableToList(DataCore.GetTable(command));
@@ -40,47 +27,48 @@ public class ProcedureCodeCrud
     public static List<ProcedureCode> TableToList(DataTable table)
     {
         var retVal = new List<ProcedureCode>();
-        ProcedureCode procedureCode;
         foreach (DataRow row in table.Rows)
         {
-            procedureCode = new ProcedureCode();
-            procedureCode.CodeNum = SIn.Long(row["CodeNum"].ToString());
-            procedureCode.ProcCode = SIn.String(row["ProcCode"].ToString());
-            procedureCode.Descript = SIn.String(row["Descript"].ToString());
-            procedureCode.AbbrDesc = SIn.String(row["AbbrDesc"].ToString());
-            procedureCode.ProcTime = SIn.String(row["ProcTime"].ToString());
-            procedureCode.ProcCat = SIn.Long(row["ProcCat"].ToString());
-            procedureCode.TreatArea = (TreatmentArea) SIn.Int(row["TreatArea"].ToString());
-            procedureCode.NoBillIns = SIn.Bool(row["NoBillIns"].ToString());
-            procedureCode.IsProsth = SIn.Bool(row["IsProsth"].ToString());
-            procedureCode.DefaultNote = SIn.String(row["DefaultNote"].ToString());
-            procedureCode.IsHygiene = SIn.Bool(row["IsHygiene"].ToString());
-            procedureCode.GTypeNum = SIn.Int(row["GTypeNum"].ToString());
-            procedureCode.AlternateCode1 = SIn.String(row["AlternateCode1"].ToString());
-            procedureCode.MedicalCode = SIn.String(row["MedicalCode"].ToString());
-            procedureCode.IsTaxed = SIn.Bool(row["IsTaxed"].ToString());
-            procedureCode.PaintType = (ToothPaintingType) SIn.Int(row["PaintType"].ToString());
-            procedureCode.GraphicColor = Color.FromArgb(SIn.Int(row["GraphicColor"].ToString()));
-            procedureCode.LaymanTerm = SIn.String(row["LaymanTerm"].ToString());
-            procedureCode.IsCanadianLab = SIn.Bool(row["IsCanadianLab"].ToString());
-            procedureCode.PreExisting = SIn.Bool(row["PreExisting"].ToString());
-            procedureCode.BaseUnits = SIn.Int(row["BaseUnits"].ToString());
-            procedureCode.SubstitutionCode = SIn.String(row["SubstitutionCode"].ToString());
-            procedureCode.SubstOnlyIf = (SubstitutionCondition) SIn.Int(row["SubstOnlyIf"].ToString());
-            procedureCode.DateTStamp = SIn.DateTime(row["DateTStamp"].ToString());
-            procedureCode.IsMultiVisit = SIn.Bool(row["IsMultiVisit"].ToString());
-            procedureCode.DrugNDC = SIn.String(row["DrugNDC"].ToString());
-            procedureCode.RevenueCodeDefault = SIn.String(row["RevenueCodeDefault"].ToString());
-            procedureCode.ProvNumDefault = SIn.Long(row["ProvNumDefault"].ToString());
-            procedureCode.CanadaTimeUnits = SIn.Double(row["CanadaTimeUnits"].ToString());
-            procedureCode.IsRadiology = SIn.Bool(row["IsRadiology"].ToString());
-            procedureCode.DefaultClaimNote = SIn.String(row["DefaultClaimNote"].ToString());
-            procedureCode.DefaultTPNote = SIn.String(row["DefaultTPNote"].ToString());
-            procedureCode.BypassGlobalLock = (BypassLockStatus) SIn.Int(row["BypassGlobalLock"].ToString());
-            procedureCode.TaxCode = SIn.String(row["TaxCode"].ToString());
-            procedureCode.PaintText = SIn.String(row["PaintText"].ToString());
-            procedureCode.AreaAlsoToothRange = SIn.Bool(row["AreaAlsoToothRange"].ToString());
-            procedureCode.DiagnosticCodes = SIn.String(row["DiagnosticCodes"].ToString());
+            var procedureCode = new ProcedureCode
+            {
+                CodeNum = SIn.Long(row["CodeNum"].ToString()),
+                ProcCode = SIn.String(row["ProcCode"].ToString()),
+                Descript = SIn.String(row["Descript"].ToString()),
+                AbbrDesc = SIn.String(row["AbbrDesc"].ToString()),
+                ProcTime = SIn.String(row["ProcTime"].ToString()),
+                ProcCat = SIn.Long(row["ProcCat"].ToString()),
+                TreatArea = (TreatmentArea) SIn.Int(row["TreatArea"].ToString()),
+                NoBillIns = SIn.Bool(row["NoBillIns"].ToString()),
+                IsProsth = SIn.Bool(row["IsProsth"].ToString()),
+                DefaultNote = SIn.String(row["DefaultNote"].ToString()),
+                IsHygiene = SIn.Bool(row["IsHygiene"].ToString()),
+                GTypeNum = SIn.Int(row["GTypeNum"].ToString()),
+                AlternateCode1 = SIn.String(row["AlternateCode1"].ToString()),
+                MedicalCode = SIn.String(row["MedicalCode"].ToString()),
+                IsTaxed = SIn.Bool(row["IsTaxed"].ToString()),
+                PaintType = (ToothPaintingType) SIn.Int(row["PaintType"].ToString()),
+                GraphicColor = Color.FromArgb(SIn.Int(row["GraphicColor"].ToString())),
+                LaymanTerm = SIn.String(row["LaymanTerm"].ToString()),
+                IsCanadianLab = SIn.Bool(row["IsCanadianLab"].ToString()),
+                PreExisting = SIn.Bool(row["PreExisting"].ToString()),
+                BaseUnits = SIn.Int(row["BaseUnits"].ToString()),
+                SubstitutionCode = SIn.String(row["SubstitutionCode"].ToString()),
+                SubstOnlyIf = (SubstitutionCondition) SIn.Int(row["SubstOnlyIf"].ToString()),
+                DateTStamp = SIn.DateTime(row["DateTStamp"].ToString()),
+                IsMultiVisit = SIn.Bool(row["IsMultiVisit"].ToString()),
+                DrugNDC = SIn.String(row["DrugNDC"].ToString()),
+                RevenueCodeDefault = SIn.String(row["RevenueCodeDefault"].ToString()),
+                ProvNumDefault = SIn.Long(row["ProvNumDefault"].ToString()),
+                CanadaTimeUnits = SIn.Double(row["CanadaTimeUnits"].ToString()),
+                IsRadiology = SIn.Bool(row["IsRadiology"].ToString()),
+                DefaultClaimNote = SIn.String(row["DefaultClaimNote"].ToString()),
+                DefaultTPNote = SIn.String(row["DefaultTPNote"].ToString()),
+                BypassGlobalLock = (BypassLockStatus) SIn.Int(row["BypassGlobalLock"].ToString()),
+                TaxCode = SIn.String(row["TaxCode"].ToString()),
+                PaintText = SIn.String(row["PaintText"].ToString()),
+                AreaAlsoToothRange = SIn.Bool(row["AreaAlsoToothRange"].ToString()),
+                DiagnosticCodes = SIn.String(row["DiagnosticCodes"].ToString())
+            };
             retVal.Add(procedureCode);
         }
 
@@ -133,12 +121,7 @@ public class ProcedureCodeCrud
         return table;
     }
 
-    public static long Insert(ProcedureCode procedureCode)
-    {
-        return Insert(procedureCode, false);
-    }
-
-    public static long Insert(ProcedureCode procedureCode, bool useExistingPK)
+    public static void Insert(ProcedureCode procedureCode)
     {
         var command = "INSERT INTO procedurecode (";
 
@@ -190,190 +173,6 @@ public class ProcedureCodeCrud
         {
             procedureCode.CodeNum = Db.NonQ(command, true, "CodeNum", "procedureCode", paramDefaultNote, paramDefaultClaimNote, paramDefaultTPNote);
         }
-        return procedureCode.CodeNum;
-    }
-
-    public static void InsertMany(List<ProcedureCode> listProcedureCodes)
-    {
-        InsertMany(listProcedureCodes, false);
-    }
-
-    public static void InsertMany(List<ProcedureCode> listProcedureCodes, bool useExistingPK)
-    {
-        StringBuilder sbCommands = null;
-        var index = 0;
-        var countRows = 0;
-        while (index < listProcedureCodes.Count)
-        {
-            var procedureCode = listProcedureCodes[index];
-            var sbRow = new StringBuilder("(");
-            var hasComma = false;
-            if (sbCommands == null)
-            {
-                sbCommands = new StringBuilder();
-                sbCommands.Append("INSERT INTO procedurecode (");
-                if (useExistingPK) sbCommands.Append("CodeNum,");
-                sbCommands.Append("ProcCode,Descript,AbbrDesc,ProcTime,ProcCat,TreatArea,NoBillIns,IsProsth,DefaultNote,IsHygiene,GTypeNum,AlternateCode1,MedicalCode,IsTaxed,PaintType,GraphicColor,LaymanTerm,IsCanadianLab,PreExisting,BaseUnits,SubstitutionCode,SubstOnlyIf,IsMultiVisit,DrugNDC,RevenueCodeDefault,ProvNumDefault,CanadaTimeUnits,IsRadiology,DefaultClaimNote,DefaultTPNote,BypassGlobalLock,TaxCode,PaintText,AreaAlsoToothRange,DiagnosticCodes) VALUES ");
-                countRows = 0;
-            }
-            else
-            {
-                hasComma = true;
-            }
-
-            if (useExistingPK)
-            {
-                sbRow.Append(SOut.Long(procedureCode.CodeNum));
-                sbRow.Append(",");
-            }
-
-            sbRow.Append("'" + SOut.String(procedureCode.ProcCode) + "'");
-            sbRow.Append(",");
-            sbRow.Append("'" + SOut.String(procedureCode.Descript) + "'");
-            sbRow.Append(",");
-            sbRow.Append("'" + SOut.String(procedureCode.AbbrDesc) + "'");
-            sbRow.Append(",");
-            sbRow.Append("'" + SOut.String(procedureCode.ProcTime) + "'");
-            sbRow.Append(",");
-            sbRow.Append(SOut.Long(procedureCode.ProcCat));
-            sbRow.Append(",");
-            sbRow.Append(SOut.Int((int) procedureCode.TreatArea));
-            sbRow.Append(",");
-            sbRow.Append(SOut.Bool(procedureCode.NoBillIns));
-            sbRow.Append(",");
-            sbRow.Append(SOut.Bool(procedureCode.IsProsth));
-            sbRow.Append(",");
-            sbRow.Append("'" + SOut.String(procedureCode.DefaultNote) + "'");
-            sbRow.Append(",");
-            sbRow.Append(SOut.Bool(procedureCode.IsHygiene));
-            sbRow.Append(",");
-            sbRow.Append(SOut.Int(procedureCode.GTypeNum));
-            sbRow.Append(",");
-            sbRow.Append("'" + SOut.String(procedureCode.AlternateCode1) + "'");
-            sbRow.Append(",");
-            sbRow.Append("'" + SOut.String(procedureCode.MedicalCode) + "'");
-            sbRow.Append(",");
-            sbRow.Append(SOut.Bool(procedureCode.IsTaxed));
-            sbRow.Append(",");
-            sbRow.Append(SOut.Int((int) procedureCode.PaintType));
-            sbRow.Append(",");
-            sbRow.Append(SOut.Int(procedureCode.GraphicColor.ToArgb()));
-            sbRow.Append(",");
-            sbRow.Append("'" + SOut.String(procedureCode.LaymanTerm) + "'");
-            sbRow.Append(",");
-            sbRow.Append(SOut.Bool(procedureCode.IsCanadianLab));
-            sbRow.Append(",");
-            sbRow.Append(SOut.Bool(procedureCode.PreExisting));
-            sbRow.Append(",");
-            sbRow.Append(SOut.Int(procedureCode.BaseUnits));
-            sbRow.Append(",");
-            sbRow.Append("'" + SOut.String(procedureCode.SubstitutionCode) + "'");
-            sbRow.Append(",");
-            sbRow.Append(SOut.Int((int) procedureCode.SubstOnlyIf));
-            sbRow.Append(",");
-            //DateTStamp can only be set by MySQL
-            sbRow.Append(SOut.Bool(procedureCode.IsMultiVisit));
-            sbRow.Append(",");
-            sbRow.Append("'" + SOut.String(procedureCode.DrugNDC) + "'");
-            sbRow.Append(",");
-            sbRow.Append("'" + SOut.String(procedureCode.RevenueCodeDefault) + "'");
-            sbRow.Append(",");
-            sbRow.Append(SOut.Long(procedureCode.ProvNumDefault));
-            sbRow.Append(",");
-            sbRow.Append(SOut.Double(procedureCode.CanadaTimeUnits));
-            sbRow.Append(",");
-            sbRow.Append(SOut.Bool(procedureCode.IsRadiology));
-            sbRow.Append(",");
-            sbRow.Append("'" + SOut.String(procedureCode.DefaultClaimNote) + "'");
-            sbRow.Append(",");
-            sbRow.Append("'" + SOut.String(procedureCode.DefaultTPNote) + "'");
-            sbRow.Append(",");
-            sbRow.Append(SOut.Int((int) procedureCode.BypassGlobalLock));
-            sbRow.Append(",");
-            sbRow.Append("'" + SOut.String(procedureCode.TaxCode) + "'");
-            sbRow.Append(",");
-            sbRow.Append("'" + SOut.String(procedureCode.PaintText) + "'");
-            sbRow.Append(",");
-            sbRow.Append(SOut.Bool(procedureCode.AreaAlsoToothRange));
-            sbRow.Append(",");
-            sbRow.Append("'" + SOut.String(procedureCode.DiagnosticCodes) + "'");
-            sbRow.Append(")");
-            if (sbCommands.Length + sbRow.Length + 1 > TableBase.MaxAllowedPacketCount && countRows > 0)
-            {
-                Db.NonQ(sbCommands.ToString());
-                sbCommands = null;
-            }
-            else
-            {
-                if (hasComma) sbCommands.Append(",");
-                sbCommands.Append(sbRow);
-                countRows++;
-                if (index == listProcedureCodes.Count - 1) Db.NonQ(sbCommands.ToString());
-                index++;
-            }
-        }
-    }
-
-    public static long InsertNoCache(ProcedureCode procedureCode)
-    {
-        return InsertNoCache(procedureCode, false);
-    }
-
-    public static long InsertNoCache(ProcedureCode procedureCode, bool useExistingPK)
-    {
-        const bool isRandomKeys = false;
-        var command = "INSERT INTO procedurecode (";
-        if (isRandomKeys || useExistingPK) command += "CodeNum,";
-        command += "ProcCode,Descript,AbbrDesc,ProcTime,ProcCat,TreatArea,NoBillIns,IsProsth,DefaultNote,IsHygiene,GTypeNum,AlternateCode1,MedicalCode,IsTaxed,PaintType,GraphicColor,LaymanTerm,IsCanadianLab,PreExisting,BaseUnits,SubstitutionCode,SubstOnlyIf,IsMultiVisit,DrugNDC,RevenueCodeDefault,ProvNumDefault,CanadaTimeUnits,IsRadiology,DefaultClaimNote,DefaultTPNote,BypassGlobalLock,TaxCode,PaintText,AreaAlsoToothRange,DiagnosticCodes) VALUES(";
-        if (isRandomKeys || useExistingPK) command += SOut.Long(procedureCode.CodeNum) + ",";
-        command +=
-            "'" + SOut.String(procedureCode.ProcCode) + "',"
-            + "'" + SOut.String(procedureCode.Descript) + "',"
-            + "'" + SOut.String(procedureCode.AbbrDesc) + "',"
-            + "'" + SOut.String(procedureCode.ProcTime) + "',"
-            + SOut.Long(procedureCode.ProcCat) + ","
-            + SOut.Int((int) procedureCode.TreatArea) + ","
-            + SOut.Bool(procedureCode.NoBillIns) + ","
-            + SOut.Bool(procedureCode.IsProsth) + ","
-            + DbHelper.ParamChar + "paramDefaultNote,"
-            + SOut.Bool(procedureCode.IsHygiene) + ","
-            + SOut.Int(procedureCode.GTypeNum) + ","
-            + "'" + SOut.String(procedureCode.AlternateCode1) + "',"
-            + "'" + SOut.String(procedureCode.MedicalCode) + "',"
-            + SOut.Bool(procedureCode.IsTaxed) + ","
-            + SOut.Int((int) procedureCode.PaintType) + ","
-            + SOut.Int(procedureCode.GraphicColor.ToArgb()) + ","
-            + "'" + SOut.String(procedureCode.LaymanTerm) + "',"
-            + SOut.Bool(procedureCode.IsCanadianLab) + ","
-            + SOut.Bool(procedureCode.PreExisting) + ","
-            + SOut.Int(procedureCode.BaseUnits) + ","
-            + "'" + SOut.String(procedureCode.SubstitutionCode) + "',"
-            + SOut.Int((int) procedureCode.SubstOnlyIf) + ","
-            //DateTStamp can only be set by MySQL
-            + SOut.Bool(procedureCode.IsMultiVisit) + ","
-            + "'" + SOut.String(procedureCode.DrugNDC) + "',"
-            + "'" + SOut.String(procedureCode.RevenueCodeDefault) + "',"
-            + SOut.Long(procedureCode.ProvNumDefault) + ","
-            + SOut.Double(procedureCode.CanadaTimeUnits) + ","
-            + SOut.Bool(procedureCode.IsRadiology) + ","
-            + DbHelper.ParamChar + "paramDefaultClaimNote,"
-            + DbHelper.ParamChar + "paramDefaultTPNote,"
-            + SOut.Int((int) procedureCode.BypassGlobalLock) + ","
-            + "'" + SOut.String(procedureCode.TaxCode) + "',"
-            + "'" + SOut.String(procedureCode.PaintText) + "',"
-            + SOut.Bool(procedureCode.AreaAlsoToothRange) + ","
-            + "'" + SOut.String(procedureCode.DiagnosticCodes) + "')";
-        if (procedureCode.DefaultNote == null) procedureCode.DefaultNote = "";
-        var paramDefaultNote = new OdSqlParameter("paramDefaultNote", SOut.StringParam(procedureCode.DefaultNote));
-        if (procedureCode.DefaultClaimNote == null) procedureCode.DefaultClaimNote = "";
-        var paramDefaultClaimNote = new OdSqlParameter("paramDefaultClaimNote", SOut.StringParam(procedureCode.DefaultClaimNote));
-        if (procedureCode.DefaultTPNote == null) procedureCode.DefaultTPNote = "";
-        var paramDefaultTPNote = new OdSqlParameter("paramDefaultTPNote", SOut.StringParam(procedureCode.DefaultTPNote));
-        if (useExistingPK || isRandomKeys)
-            Db.NonQ(command, paramDefaultNote, paramDefaultClaimNote, paramDefaultTPNote);
-        else
-            procedureCode.CodeNum = Db.NonQ(command, true, "CodeNum", "procedureCode", paramDefaultNote, paramDefaultClaimNote, paramDefaultTPNote);
-        return procedureCode.CodeNum;
     }
 
     public static void Update(ProcedureCode procedureCode)
@@ -645,71 +444,6 @@ public class ProcedureCodeCrud
                                               + " WHERE CodeNum = " + SOut.Long(procedureCode.CodeNum);
         Db.NonQ(command, paramDefaultNote, paramDefaultClaimNote, paramDefaultTPNote);
         return true;
-    }
-
-    public static bool UpdateComparison(ProcedureCode procedureCode, ProcedureCode oldProcedureCode)
-    {
-        //ProcCode excluded from update
-        if (procedureCode.Descript != oldProcedureCode.Descript) return true;
-        if (procedureCode.AbbrDesc != oldProcedureCode.AbbrDesc) return true;
-        if (procedureCode.ProcTime != oldProcedureCode.ProcTime) return true;
-        if (procedureCode.ProcCat != oldProcedureCode.ProcCat) return true;
-        if (procedureCode.TreatArea != oldProcedureCode.TreatArea) return true;
-        if (procedureCode.NoBillIns != oldProcedureCode.NoBillIns) return true;
-        if (procedureCode.IsProsth != oldProcedureCode.IsProsth) return true;
-        if (procedureCode.DefaultNote != oldProcedureCode.DefaultNote) return true;
-        if (procedureCode.IsHygiene != oldProcedureCode.IsHygiene) return true;
-        if (procedureCode.GTypeNum != oldProcedureCode.GTypeNum) return true;
-        if (procedureCode.AlternateCode1 != oldProcedureCode.AlternateCode1) return true;
-        if (procedureCode.MedicalCode != oldProcedureCode.MedicalCode) return true;
-        if (procedureCode.IsTaxed != oldProcedureCode.IsTaxed) return true;
-        if (procedureCode.PaintType != oldProcedureCode.PaintType) return true;
-        if (procedureCode.GraphicColor != oldProcedureCode.GraphicColor) return true;
-        if (procedureCode.LaymanTerm != oldProcedureCode.LaymanTerm) return true;
-        if (procedureCode.IsCanadianLab != oldProcedureCode.IsCanadianLab) return true;
-        if (procedureCode.PreExisting != oldProcedureCode.PreExisting) return true;
-        if (procedureCode.BaseUnits != oldProcedureCode.BaseUnits) return true;
-        if (procedureCode.SubstitutionCode != oldProcedureCode.SubstitutionCode) return true;
-        if (procedureCode.SubstOnlyIf != oldProcedureCode.SubstOnlyIf) return true;
-        //DateTStamp can only be set by MySQL
-        if (procedureCode.IsMultiVisit != oldProcedureCode.IsMultiVisit) return true;
-        if (procedureCode.DrugNDC != oldProcedureCode.DrugNDC) return true;
-        if (procedureCode.RevenueCodeDefault != oldProcedureCode.RevenueCodeDefault) return true;
-        if (procedureCode.ProvNumDefault != oldProcedureCode.ProvNumDefault) return true;
-        if (procedureCode.CanadaTimeUnits != oldProcedureCode.CanadaTimeUnits) return true;
-        if (procedureCode.IsRadiology != oldProcedureCode.IsRadiology) return true;
-        if (procedureCode.DefaultClaimNote != oldProcedureCode.DefaultClaimNote) return true;
-        if (procedureCode.DefaultTPNote != oldProcedureCode.DefaultTPNote) return true;
-        if (procedureCode.BypassGlobalLock != oldProcedureCode.BypassGlobalLock) return true;
-        if (procedureCode.TaxCode != oldProcedureCode.TaxCode) return true;
-        if (procedureCode.PaintText != oldProcedureCode.PaintText) return true;
-        if (procedureCode.AreaAlsoToothRange != oldProcedureCode.AreaAlsoToothRange) return true;
-        if (procedureCode.DiagnosticCodes != oldProcedureCode.DiagnosticCodes) return true;
-        return false;
-    }
-
-    public static void Delete(long codeNum)
-    {
-        ClearFkey(codeNum);
-        var command = "DELETE FROM procedurecode "
-                      + "WHERE CodeNum = " + SOut.Long(codeNum);
-        Db.NonQ(command);
-    }
-
-    public static void DeleteMany(List<long> listCodeNums)
-    {
-        if (listCodeNums == null || listCodeNums.Count == 0) return;
-        ClearFkey(listCodeNums);
-        var command = "DELETE FROM procedurecode "
-                      + "WHERE CodeNum IN(" + string.Join(",", listCodeNums.Select(x => SOut.Long(x))) + ")";
-        Db.NonQ(command);
-    }
-
-    public static void ClearFkey(long codeNum)
-    {
-        if (codeNum == 0) return;
-        var command = "UPDATE securitylog SET FKey=0 WHERE FKey=" + SOut.Long(codeNum) + " AND PermType IN (64)";
-        Db.NonQ(command);
     }
 
     public static void ClearFkey(List<long> listCodeNums)

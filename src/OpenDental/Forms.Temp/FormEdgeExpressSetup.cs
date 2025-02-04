@@ -31,20 +31,14 @@ public partial class FormEdgeExpressSetup:FormODBase {
 		if(_program==null) {
 			return;//should never happen
 		}
-		if(true) {
-			groupPaySettings.Text=Lan.g(this,"Clinic Payment Settings");
-			if(Security.CurUser.ClinicIsRestricted) {
-				//if program link is enabled, disable the enable check box so the restricted user cannot disable for all clinics
-				checkEnabled.Enabled=!_program.Enabled;
-			}
-			comboClinic.ClinicNumSelected=Clinics.ClinicNum;
-			_clinicNumRevert=Clinics.ClinicNum;
+		groupPaySettings.Text=Lan.g(this,"Clinic Payment Settings");
+		if(Security.CurUser.ClinicIsRestricted) {
+			//if program link is enabled, disable the enable check box so the restricted user cannot disable for all clinics
+			checkEnabled.Enabled=!_program.Enabled;
 		}
-		else {//clinics not enabled
-			checkEnabled.Text=Lan.g(this,"Enabled");
-			labelClinicEnable.Visible=false;
-			groupPaySettings.Text=Lan.g(this,"Payment Settings");
-		}
+		comboClinic.ClinicNumSelected=Clinics.ClinicNum;
+		_clinicNumRevert=Clinics.ClinicNum;
+
 		checkEnabled.Checked=_program.Enabled;
 		_listProgramProperties=ProgramProperties.GetForProgram(_program.ProgramNum);
 		FillFields();

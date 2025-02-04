@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Data;
 using System.Drawing;
 using System.Globalization;
 using System.Windows.Forms;
@@ -10,11 +9,12 @@ using CodeBase;
 using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Entities;
+using Imedisoft.Features.Providers.Dtos;
 
 namespace OpenDental;
 
 public partial class FormRpNewPatients:FormODBase {
-	private List<Provider> _listProviders;
+	private List<ProviderDto> _listProviders;
 
 		
 	public FormRpNewPatients() {
@@ -30,7 +30,7 @@ public partial class FormRpNewPatients:FormODBase {
 			,DateTime.DaysInMonth(DateTime.Today.Year,DateTime.Today.Month)).ToShortDateString();
 		listProv.Items.Add(Lan.g(this,"all"));
 		for(var i=0;i<_listProviders.Count;i++){
-			listProv.Items.Add(_listProviders[i].GetLongDesc());
+			listProv.Items.Add(_listProviders[i].Description);
 		}
 		listProv.SetSelected(0);
 	}
@@ -118,13 +118,13 @@ public partial class FormRpNewPatients:FormODBase {
 		var subtitleProvs="";
 		if(listProv.SelectedIndices[0]==0) {//'All' is selected
 			for(var i=0;i<listProvs.Count;i++) {
-				listProvNums.Add(listProvs[i].ProvNum);
+				listProvNums.Add(listProvs[i].Id);
 				subtitleProvs=Lan.g(this,"All Providers");
 			}
 		}
 		else {
 			for(var i=0;i<listProv.SelectedIndices.Count;i++) {
-				listProvNums.Add(listProvs[listProv.SelectedIndices[i]-1].ProvNum);//Minus 1 from the selected index to account for 'All' option
+				listProvNums.Add(listProvs[listProv.SelectedIndices[i]-1].Id);//Minus 1 from the selected index to account for 'All' option
 				if(i>0) {
 					subtitleProvs+=", ";
 				}

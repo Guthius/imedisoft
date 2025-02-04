@@ -6,6 +6,7 @@ using System.Windows.Forms;
 using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Entities;
+using Imedisoft.Features.Providers.Dtos;
 using OpenDentBusiness;
 
 namespace OpenDental;
@@ -197,7 +198,7 @@ public partial class FormAdjust : FormODBase
 
     private void ButtonPickProv_Click(object sender, EventArgs e)
     {
-        var frmProviderPick = new FrmProviderPick(comboProv.Items.GetAll<Provider>())
+        var frmProviderPick = new FrmProviderPick(comboProv.Items.GetAll<ProviderDto>())
         {
             ProvNumSelected = comboProv.GetSelectedProvNum()
         };

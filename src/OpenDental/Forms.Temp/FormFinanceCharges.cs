@@ -16,12 +16,9 @@ namespace OpenDental;
 public partial class FormFinanceCharges : FormODBase {
 	//private ArrayList ALPosIndices;
 	private List<Def> _listDefsBillingType;
-	///<summary>Filtered list of providers based on the current clinic--used to populate the Combo Box Providers.</summary>
-	private List<Provider> _listProviders;
 	private int _chargesAdded=0;
 	private int _chargesProcessed=0;
-
-		
+	
 	public FormFinanceCharges(){
 		InitializeComponent();
 	}

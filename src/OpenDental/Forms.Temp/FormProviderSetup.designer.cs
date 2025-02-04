@@ -21,10 +21,13 @@ namespace OpenDental {
 
 		#region Windows Form Designer generated code
 
-		private void InitializeComponent(){
+		/// <summary>
+		/// Required method for Designer support - do not modify
+		/// the contents of this method with the code editor.
+		/// </summary>
+		private void InitializeComponent()
+		{
 			System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(FormProviderSetup));
-			this.butDown = new OpenDental.UI.Button();
-			this.butUp = new OpenDental.UI.Button();
 			this.butAdd = new OpenDental.UI.Button();
 			this.butCreateUsers = new OpenDental.UI.Button();
 			this.groupCreateUsers = new OpenDental.UI.GroupBox();
@@ -40,45 +43,16 @@ namespace OpenDental {
 			this.butMovePri = new OpenDental.UI.Button();
 			this.gridMain = new OpenDental.UI.GridOD();
 			this.checkShowDeleted = new OpenDental.UI.CheckBox();
-			this.groupBox1 = new OpenDental.UI.GroupBox();
-			this.butAlphabetize = new OpenDental.UI.Button();
 			this.checkShowHidden = new OpenDental.UI.CheckBox();
-			this.checkShowPatientCount = new OpenDental.UI.CheckBox();
 			this.labelSearch = new System.Windows.Forms.Label();
 			this.textSearch = new System.Windows.Forms.TextBox();
 			this.groupCreateUsers.SuspendLayout();
 			this.groupMovePats.SuspendLayout();
-			this.groupBox1.SuspendLayout();
 			this.SuspendLayout();
-			// 
-			// butDown
-			// 
-			this.butDown.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-			this.butDown.Image = global::OpenDental.Properties.Resources.down;
-			this.butDown.ImageAlign = System.Drawing.ContentAlignment.MiddleLeft;
-			this.butDown.Location = new System.Drawing.Point(6, 58);
-			this.butDown.Name = "butDown";
-			this.butDown.Size = new System.Drawing.Size(82, 24);
-			this.butDown.TabIndex = 5;
-			this.butDown.Text = "&Down";
-			this.butDown.Click += new System.EventHandler(this.butDown_Click);
-			// 
-			// butUp
-			// 
-			this.butUp.AdjustImageLocation = new System.Drawing.Point(0, 1);
-			this.butUp.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-			this.butUp.Image = global::OpenDental.Properties.Resources.up;
-			this.butUp.ImageAlign = System.Drawing.ContentAlignment.MiddleLeft;
-			this.butUp.Location = new System.Drawing.Point(6, 19);
-			this.butUp.Name = "butUp";
-			this.butUp.Size = new System.Drawing.Size(82, 24);
-			this.butUp.TabIndex = 4;
-			this.butUp.Text = "&Up";
-			this.butUp.Click += new System.EventHandler(this.butUp_Click);
 			// 
 			// butAdd
 			// 
-			this.butAdd.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+			this.butAdd.Anchor = ((System.Windows.Forms.AnchorStyles) ((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
 			this.butAdd.Icon = OpenDental.UI.EnumIcons.Add;
 			this.butAdd.ImageAlign = System.Drawing.ContentAlignment.MiddleLeft;
 			this.butAdd.Location = new System.Drawing.Point(885, 522);
@@ -86,11 +60,11 @@ namespace OpenDental {
 			this.butAdd.Size = new System.Drawing.Size(82, 24);
 			this.butAdd.TabIndex = 6;
 			this.butAdd.Text = "&Add";
-			this.butAdd.Click += new System.EventHandler(this.butAdd_Click);
+			this.butAdd.Click += new System.EventHandler(this.ButtonAdd_Click);
 			// 
 			// butCreateUsers
 			// 
-			this.butCreateUsers.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+			this.butCreateUsers.Anchor = ((System.Windows.Forms.AnchorStyles) ((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
 			this.butCreateUsers.Location = new System.Drawing.Point(182, 42);
 			this.butCreateUsers.Name = "butCreateUsers";
 			this.butCreateUsers.Size = new System.Drawing.Size(82, 24);
@@ -100,7 +74,7 @@ namespace OpenDental {
 			// 
 			// groupCreateUsers
 			// 
-			this.groupCreateUsers.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+			this.groupCreateUsers.Anchor = ((System.Windows.Forms.AnchorStyles) ((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
 			this.groupCreateUsers.Controls.Add(this.comboUserGroup);
 			this.groupCreateUsers.Controls.Add(this.label3);
 			this.groupCreateUsers.Controls.Add(this.butCreateUsers);
@@ -130,7 +104,7 @@ namespace OpenDental {
 			// 
 			// groupMovePats
 			// 
-			this.groupMovePats.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+			this.groupMovePats.Anchor = ((System.Windows.Forms.AnchorStyles) ((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
 			this.groupMovePats.Controls.Add(this.butMoveSec);
 			this.groupMovePats.Controls.Add(this.butProvPick);
 			this.groupMovePats.Controls.Add(this.textMoveTo);
@@ -146,7 +120,7 @@ namespace OpenDental {
 			// 
 			// butMoveSec
 			// 
-			this.butMoveSec.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+			this.butMoveSec.Anchor = ((System.Windows.Forms.AnchorStyles) ((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
 			this.butMoveSec.Location = new System.Drawing.Point(182, 46);
 			this.butMoveSec.Name = "butMoveSec";
 			this.butMoveSec.Size = new System.Drawing.Size(82, 24);
@@ -157,7 +131,7 @@ namespace OpenDental {
 			// 
 			// butProvPick
 			// 
-			this.butProvPick.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+			this.butProvPick.Anchor = ((System.Windows.Forms.AnchorStyles) ((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
 			this.butProvPick.Location = new System.Drawing.Point(237, 17);
 			this.butProvPick.Name = "butProvPick";
 			this.butProvPick.Size = new System.Drawing.Size(27, 26);
@@ -176,7 +150,7 @@ namespace OpenDental {
 			// 
 			// butReassign
 			// 
-			this.butReassign.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+			this.butReassign.Anchor = ((System.Windows.Forms.AnchorStyles) ((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
 			this.butReassign.Location = new System.Drawing.Point(182, 98);
 			this.butReassign.Name = "butReassign";
 			this.butReassign.Size = new System.Drawing.Size(82, 24);
@@ -204,7 +178,7 @@ namespace OpenDental {
 			// 
 			// butMovePri
 			// 
-			this.butMovePri.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+			this.butMovePri.Anchor = ((System.Windows.Forms.AnchorStyles) ((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
 			this.butMovePri.Location = new System.Drawing.Point(94, 46);
 			this.butMovePri.Name = "butMovePri";
 			this.butMovePri.Size = new System.Drawing.Size(82, 24);
@@ -215,9 +189,7 @@ namespace OpenDental {
 			// gridMain
 			// 
 			this.gridMain.AllowSortingByColumn = true;
-			this.gridMain.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
-            | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
+			this.gridMain.Anchor = ((System.Windows.Forms.AnchorStyles) ((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) | System.Windows.Forms.AnchorStyles.Left) | System.Windows.Forms.AnchorStyles.Right)));
 			this.gridMain.HScrollVisible = true;
 			this.gridMain.Location = new System.Drawing.Point(7, 31);
 			this.gridMain.Name = "gridMain";
@@ -226,11 +198,11 @@ namespace OpenDental {
 			this.gridMain.TabIndex = 13;
 			this.gridMain.Title = "Providers";
 			this.gridMain.TranslationName = "TableProviderSetup";
-			this.gridMain.CellDoubleClick += new OpenDental.UI.ODGridClickEventHandler(this.gridMain_CellDoubleClick);
+			this.gridMain.CellDoubleClick += new OpenDental.UI.ODGridClickEventHandler(this.GridMain_CellDoubleClick);
 			// 
 			// checkShowDeleted
 			// 
-			this.checkShowDeleted.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+			this.checkShowDeleted.Anchor = ((System.Windows.Forms.AnchorStyles) ((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
 			this.checkShowDeleted.CheckAlign = System.Drawing.ContentAlignment.MiddleRight;
 			this.checkShowDeleted.Location = new System.Drawing.Point(561, 12);
 			this.checkShowDeleted.Name = "checkShowDeleted";
@@ -239,31 +211,9 @@ namespace OpenDental {
 			this.checkShowDeleted.Text = "Show Deleted";
 			this.checkShowDeleted.CheckedChanged += new System.EventHandler(this.checkShowDeleted_CheckedChanged);
 			// 
-			// groupBox1
-			// 
-			this.groupBox1.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-			this.groupBox1.Controls.Add(this.butAlphabetize);
-			this.groupBox1.Controls.Add(this.butUp);
-			this.groupBox1.Controls.Add(this.butDown);
-			this.groupBox1.Location = new System.Drawing.Point(703, 411);
-			this.groupBox1.Name = "groupBox1";
-			this.groupBox1.Size = new System.Drawing.Size(273, 91);
-			this.groupBox1.TabIndex = 19;
-			this.groupBox1.Text = "Provider Order";
-			// 
-			// butAlphabetize
-			// 
-			this.butAlphabetize.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-			this.butAlphabetize.Location = new System.Drawing.Point(133, 38);
-			this.butAlphabetize.Name = "butAlphabetize";
-			this.butAlphabetize.Size = new System.Drawing.Size(131, 26);
-			this.butAlphabetize.TabIndex = 16;
-			this.butAlphabetize.Text = "Alphabetize Providers";
-			this.butAlphabetize.Click += new System.EventHandler(this.butAlphabetize_Click);
-			// 
 			// checkShowHidden
 			// 
-			this.checkShowHidden.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+			this.checkShowHidden.Anchor = ((System.Windows.Forms.AnchorStyles) ((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
 			this.checkShowHidden.CheckAlign = System.Drawing.ContentAlignment.MiddleRight;
 			this.checkShowHidden.Checked = true;
 			this.checkShowHidden.CheckState = System.Windows.Forms.CheckState.Checked;
@@ -273,17 +223,6 @@ namespace OpenDental {
 			this.checkShowHidden.TabIndex = 28;
 			this.checkShowHidden.Text = "Show Hidden";
 			this.checkShowHidden.Click += new System.EventHandler(this.checkShowHidden_Click);
-			// 
-			// checkShowPatientCount
-			// 
-			this.checkShowPatientCount.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-			this.checkShowPatientCount.CheckAlign = System.Drawing.ContentAlignment.MiddleRight;
-			this.checkShowPatientCount.Location = new System.Drawing.Point(249, 12);
-			this.checkShowPatientCount.Name = "checkShowPatientCount";
-			this.checkShowPatientCount.Size = new System.Drawing.Size(166, 14);
-			this.checkShowPatientCount.TabIndex = 29;
-			this.checkShowPatientCount.Text = "Show Patient Count";
-			this.checkShowPatientCount.CheckedChanged += new System.EventHandler(this.checkShowPatientCount_CheckedChanged);
 			// 
 			// labelSearch
 			// 
@@ -307,15 +246,13 @@ namespace OpenDental {
 			this.ClientSize = new System.Drawing.Size(982, 707);
 			this.Controls.Add(this.labelSearch);
 			this.Controls.Add(this.textSearch);
-			this.Controls.Add(this.checkShowPatientCount);
 			this.Controls.Add(this.checkShowHidden);
-			this.Controls.Add(this.groupBox1);
 			this.Controls.Add(this.checkShowDeleted);
 			this.Controls.Add(this.groupMovePats);
 			this.Controls.Add(this.groupCreateUsers);
 			this.Controls.Add(this.butAdd);
 			this.Controls.Add(this.gridMain);
-			this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
+			this.Icon = ((System.Drawing.Icon) (resources.GetObject("$this.Icon")));
 			this.MaximizeBox = false;
 			this.MinimizeBox = false;
 			this.Name = "FormProviderSetup";
@@ -327,14 +264,11 @@ namespace OpenDental {
 			this.groupCreateUsers.ResumeLayout(false);
 			this.groupMovePats.ResumeLayout(false);
 			this.groupMovePats.PerformLayout();
-			this.groupBox1.ResumeLayout(false);
 			this.ResumeLayout(false);
 			this.PerformLayout();
-
 		}
 		#endregion
-		private OpenDental.UI.Button butDown;
-		private OpenDental.UI.Button butUp;
+
 		private OpenDental.UI.Button butAdd;
 		private OpenDental.UI.GridOD gridMain;
 		private OpenDental.UI.Button butCreateUsers;
@@ -349,11 +283,8 @@ namespace OpenDental {
 		private TextBox textMoveTo;
 		private UI.Button butMoveSec;
 		private OpenDental.UI.CheckBox checkShowDeleted;
-		private OpenDental.UI.GroupBox groupBox1;
-		private UI.Button butAlphabetize;
 		private OpenDental.UI.CheckBox checkShowHidden;
 		private UI.ComboBox comboUserGroup;
-		private OpenDental.UI.CheckBox checkShowPatientCount;
 		private Label labelSearch;
 		private TextBox textSearch;
 	}

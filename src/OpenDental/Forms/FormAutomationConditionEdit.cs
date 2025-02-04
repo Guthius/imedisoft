@@ -48,7 +48,7 @@ public partial class FormAutomationConditionEdit : FormODBase
         textCompareString.Text = _automationCondition.CompareString;
         listCompareField.SelectedIndex = (int) _automationCondition.CompareField;
 
-        if (_automationCondition.CompareField is not (AutoCondField.InsuranceNotEffective or AutoCondField.IsControlled or AutoCondField.IsProcRequired or AutoCondField.IsPatientInstructionPresent))
+        if (_automationCondition.CompareField is not AutoCondField.InsuranceNotEffective)
         {
             listComparison.SelectedIndex = (int) _automationCondition.Comparison;
         }
@@ -71,7 +71,7 @@ public partial class FormAutomationConditionEdit : FormODBase
 
         switch (autoCondField)
         {
-            case AutoCondField.InsuranceNotEffective or AutoCondField.IsControlled or AutoCondField.IsProcRequired or AutoCondField.IsPatientInstructionPresent:
+            case AutoCondField.InsuranceNotEffective:
             {
                 labelWarning.Visible = true;
 
@@ -217,7 +217,7 @@ public partial class FormAutomationConditionEdit : FormODBase
 
         switch (autoCondField)
         {
-            case AutoCondField.InsuranceNotEffective or AutoCondField.IsProcRequired or AutoCondField.IsControlled or AutoCondField.IsPatientInstructionPresent:
+            case AutoCondField.InsuranceNotEffective:
                 _automationCondition.CompareString = "";
                 _automationCondition.Comparison = AutoCondComparison.None;
                 break;

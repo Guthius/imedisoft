@@ -17,15 +17,16 @@ public class AppointmentRuleCrud
     public static List<AppointmentRule> TableToList(DataTable table)
     {
         var retVal = new List<AppointmentRule>();
-        AppointmentRule appointmentRule;
         foreach (DataRow row in table.Rows)
         {
-            appointmentRule = new AppointmentRule();
-            appointmentRule.AppointmentRuleNum = SIn.Long(row["AppointmentRuleNum"].ToString());
-            appointmentRule.RuleDesc = SIn.String(row["RuleDesc"].ToString());
-            appointmentRule.CodeStart = SIn.String(row["CodeStart"].ToString());
-            appointmentRule.CodeEnd = SIn.String(row["CodeEnd"].ToString());
-            appointmentRule.IsEnabled = SIn.Bool(row["IsEnabled"].ToString());
+            var appointmentRule = new AppointmentRule
+            {
+                AppointmentRuleNum = SIn.Long(row["AppointmentRuleNum"].ToString()),
+                RuleDesc = SIn.String(row["RuleDesc"].ToString()),
+                CodeStart = SIn.String(row["CodeStart"].ToString()),
+                CodeEnd = SIn.String(row["CodeEnd"].ToString()),
+                IsEnabled = SIn.Bool(row["IsEnabled"].ToString())
+            };
             retVal.Add(appointmentRule);
         }
 
@@ -46,7 +47,7 @@ public class AppointmentRuleCrud
         return table;
     }
 
-    public static long Insert(AppointmentRule appointmentRule)
+    public static void Insert(AppointmentRule appointmentRule)
     {
         var command = "INSERT INTO appointmentrule (";
 
@@ -60,7 +61,6 @@ public class AppointmentRuleCrud
         {
             appointmentRule.AppointmentRuleNum = Db.NonQ(command, true, "AppointmentRuleNum", "appointmentRule");
         }
-        return appointmentRule.AppointmentRuleNum;
     }
 
     public static void Update(AppointmentRule appointmentRule)

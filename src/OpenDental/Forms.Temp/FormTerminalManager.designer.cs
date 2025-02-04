@@ -31,14 +31,12 @@
 			this.label2 = new System.Windows.Forms.Label();
 			this.butSave = new OpenDental.UI.Button();
 			this.groupBoxPatient = new OpenDental.UI.GroupBox();
-			this.butRemoveTreatPlan = new OpenDental.UI.Button();
 			this.listTreatPlans = new OpenDental.UI.ListBox();
 			this.labelTreatPlans = new System.Windows.Forms.Label();
 			this.butPatForms = new OpenDental.UI.Button();
 			this.labelSheets = new System.Windows.Forms.Label();
 			this.labelPatient = new System.Windows.Forms.Label();
 			this.listSheets = new OpenDental.UI.ListBox();
-			this.butByod = new OpenDental.UI.Button();
 			this.label1 = new System.Windows.Forms.Label();
 			this.contrClinicPicker = new OpenDental.UI.ComboBoxClinicPicker();
 			this.groupBoxPassword.SuspendLayout();
@@ -100,7 +98,6 @@
 			// 
 			this.groupBoxPatient.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Right)));
-			this.groupBoxPatient.Controls.Add(this.butRemoveTreatPlan);
 			this.groupBoxPatient.Controls.Add(this.listTreatPlans);
 			this.groupBoxPatient.Controls.Add(this.labelTreatPlans);
 			this.groupBoxPatient.Controls.Add(this.butPatForms);
@@ -113,25 +110,12 @@
 			this.groupBoxPatient.TabIndex = 11;
 			this.groupBoxPatient.Text = "Current Patient";
 			// 
-			// butRemoveTreatPlan
-			// 
-			this.butRemoveTreatPlan.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-			this.butRemoveTreatPlan.Location = new System.Drawing.Point(11, 357);
-			this.butRemoveTreatPlan.Name = "butRemoveTreatPlan";
-			this.butRemoveTreatPlan.Size = new System.Drawing.Size(158, 24);
-			this.butRemoveTreatPlan.TabIndex = 19;
-			this.butRemoveTreatPlan.Text = "Remove Treatment Plan";
-			this.butRemoveTreatPlan.UseVisualStyleBackColor = true;
-			this.butRemoveTreatPlan.Click += new System.EventHandler(this.butRemoveTreatPlan_Click);
-			// 
 			// listTreatPlans
 			// 
 			this.listTreatPlans.Location = new System.Drawing.Point(11, 233);
 			this.listTreatPlans.Name = "listTreatPlans";
 			this.listTreatPlans.Size = new System.Drawing.Size(158, 121);
 			this.listTreatPlans.TabIndex = 18;
-			this.listTreatPlans.SelectedIndexChanged += new System.EventHandler(this.listTreatPlans_SelectedIndexChanged);
 			// 
 			// labelTreatPlans
 			// 
@@ -179,16 +163,6 @@
 			this.listSheets.Size = new System.Drawing.Size(158, 121);
 			this.listSheets.TabIndex = 8;
 			// 
-			// butByod
-			// 
-			this.butByod.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-			this.butByod.Location = new System.Drawing.Point(864, 486);
-			this.butByod.Name = "butByod";
-			this.butByod.Size = new System.Drawing.Size(158, 24);
-			this.butByod.TabIndex = 17;
-			this.butByod.Text = "Send eClipboard BYOD Text";
-			this.butByod.Click += new System.EventHandler(this.butByod_Click);
-			// 
 			// label1
 			// 
 			this.label1.Location = new System.Drawing.Point(18, 13);
@@ -209,7 +183,6 @@
 			// FormTerminalManager
 			// 
 			this.ClientSize = new System.Drawing.Size(1045, 609);
-			this.Controls.Add(this.butByod);
 			this.Controls.Add(this.contrClinicPicker);
 			this.Controls.Add(this.gridMain);
 			this.Controls.Add(this.groupBoxPassword);
@@ -243,9 +216,7 @@
 		private OpenDental.UI.GroupBox groupBoxPassword;
 		private UI.Button butPatForms;
 		private UI.ComboBoxClinicPicker contrClinicPicker;
-		private UI.Button butByod;
 		private UI.ListBox listTreatPlans;
 		private System.Windows.Forms.Label labelTreatPlans;
-		private UI.Button butRemoveTreatPlan;
 	}
 }

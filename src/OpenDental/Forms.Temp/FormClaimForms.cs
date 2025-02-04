@@ -1,23 +1,13 @@
 using System;
-using System.Drawing;
-using System.Collections;
-using System.ComponentModel;
 using System.IO;
 using System.Windows.Forms;
-using System.Xml;
 using System.Xml.Serialization;
 using OpenDentBusiness;
 using OpenDental.UI;
-using System.Collections.Generic;
-using System.Linq;
 using CodeBase;
-using System.Resources;
-using System.Globalization;
-using System.Text;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Data;
 using Imedisoft.Core.Entities;
-using OpenDental.Thinfinity;
 
 namespace OpenDental;
 
@@ -188,7 +178,7 @@ public partial class FormClaimForms : FormODBase {
 		try {
 			saveFileDialog.InitialDirectory=PrefC.GetString(PrefName.ExportPath);
 		}
-		catch(Exception ex) {
+		catch {
 			MsgBox.Show(this,"Export failed.  This could be due to lack of permissions in the designated folder.");
 			return;
 		}

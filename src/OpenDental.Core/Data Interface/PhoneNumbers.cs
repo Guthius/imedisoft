@@ -34,7 +34,7 @@ public class PhoneNumbers
         ODEvent.Fire(ODEventType.ProgressBar, Lans.g("PhoneNumber", "Cleaning up..."));
         while (listPhoneNumberNumsToDelete.Count > 0)
         {
-            command = $"DELETE FROM phonenumber WHERE PhoneNumberNum IN ({string.Join(",", listPhoneNumberNumsToDelete.Take(SyncBatchSize).Select(x => SOut.Long(x)))})";
+            command = $"DELETE FROM phonenumber WHERE PhoneNumberNum IN ({string.Join(",", listPhoneNumberNumsToDelete.Take(SyncBatchSize).Select(x => (x)))})";
             Db.NonQ(command);
             listPhoneNumberNumsToDelete.RemoveRange(0, Math.Min(listPhoneNumberNumsToDelete.Count, SyncBatchSize));
         }
@@ -52,7 +52,7 @@ public class PhoneNumbers
         };
         if (string.IsNullOrWhiteSpace(field)) return; //Skip on unknown field.
         //Get PatNums for all the patients with any value in this phone number field.
-        var command = $"SELECT PatNum FROM patient WHERE {SOut.String(field)}!='' AND ClinicNum={SOut.Long(clinic.Id)}";
+        var command = $"SELECT PatNum FROM patient WHERE {SOut.String(field)}!='' AND ClinicNum={(clinic.Id)}";
         var listPatNums = Db.GetListLong(command);
         var countPatNums = listPatNums.Count;
         var countPatsProcessed = 0;
@@ -71,7 +71,7 @@ public class PhoneNumbers
 					'' PhoneNumberDigits,
 					{(int) phoneType} PhoneType
 				FROM patient
-				WHERE PatNum IN ({string.Join(",", listPatNumsBatch.Select(x => SOut.Long(x)))})";
+				WHERE PatNum IN ({string.Join(",", listPatNumsBatch.Select(x => (x)))})";
             var listPhoneNumbers = PhoneNumberCrud.SelectMany(command);
             //Normalize PhoneNumberDigits field.
             listPhoneNumbers.ForEach(x => x.PhoneNumberDigits = RemoveNonDigitsAndTrimStart(x.PhoneNumberVal));
@@ -91,7 +91,7 @@ public class PhoneNumbers
     {
         if (listPats.Count == 0) return;
         var command = $@"DELETE FROM phonenumber
-				WHERE PatNum IN ({string.Join(",", listPats.Select(x => SOut.Long(x.PatNum)))}) AND PhoneType!={(int) PhoneType.Other}";
+				WHERE PatNum IN ({string.Join(",", listPats.Select(x => (x.PatNum)))}) AND PhoneType!={(int) PhoneType.Other}";
         Db.NonQ(command);
         var listForInsert = listPats
             .SelectMany(x => Enumerable.Range(1, 3)

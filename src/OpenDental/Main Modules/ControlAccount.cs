@@ -1,8 +1,5 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Diagnostics;
 using System.Drawing;
 using System.Data;
 using System.Globalization;
@@ -12,16 +9,15 @@ using System.Windows.Forms;
 using OpenDental.UI;
 using OpenDentBusiness;
 using CodeBase;
-using OpenDentBusiness.WebTypes;
 using System.Text;
 using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Data;
 using Imedisoft.Core.Entities;
 using Imedisoft.Core.Features.Clinics;
+using Imedisoft.Features.Providers.Dtos;
 using OpenDental.Logic;
 using OpenDentBusiness.WebTypes.Shared.XWeb;
-using PdfSharp.Pdf;
 using OpenDentBusiness.Eclaims;
 
 namespace OpenDental;
@@ -31,7 +27,7 @@ public partial class ControlAccount:UserControl {
 	///<summary>Public so this can be checked from FormOpenDental and the note can be saved.  Necessary because in some cases the leave event doesn't
 	///fire, like when a user switches to a non-modal form, like big phones, and switches patients from that form.</summary>
 	public bool IsFinNoteChanged;
-	public LayoutManagerForms LayoutManager=new LayoutManagerForms();
+	
 	///<summary>Public so this can be checked from FormOpenDental and the note can be saved.  Necessary because in some cases the leave event doesn't
 	///fire, like when a user switches to a non-modal form, like big phones, and switches patients from that form.</summary>
 	public bool IsUrgFinNoteChanged;
@@ -75,8 +71,6 @@ public partial class ControlAccount:UserControl {
 	private bool _showGridRepeating;
 	private List<Patient> _listPatientsSuperFamilyGuarantors;
 	private List<Patient> _listPatientsSuperFamilyMembers;
-	private List<PatField> _listPatFieldsForSuperFam;
-	private SortStrategy _sortStrategySuperFam;
 	private bool _useSuperFam;
 	private bool _superFamPrefEnabled;
 	#endregion Fields - Private
@@ -84,7 +78,6 @@ public partial class ControlAccount:UserControl {
 	#region Constructor
 		
 	public ControlAccount() {
-		Logger.LogToPath();
 		InitializeComponent();// This call is required by the Windows.Forms Form Designer.
 		Font=new("Microsoft Sans Serif", 8.25f);
 		Controls.Add(gridUnearnedBreakdown);
@@ -788,14 +781,6 @@ public partial class ControlAccount:UserControl {
 		if(gridPayPlan.Columns[e.Col].Heading!="eClipboard") {
 			return;
 		}
-		if(payPlan.MobileAppDeviceNum<=0) {
-			return;
-		}
-		if(MsgBox.Show(this,MsgBoxButtons.YesNo,"Would you like to recall this payment plan from the mobile device?")) {
-			MobileNotifications.CI_RemovePaymentPlan(payPlan.MobileAppDeviceNum,payPlan);
-			//Signalods.SetInvalid(InvalidType.AccModule,KeyType.PatNum,payPlan.PatNum);
-			return;
-		}
 	}
 
 	private void gridPayPlan_CellDoubleClick(object sender,ODGridClickEventArgs e) {
@@ -1301,7 +1286,7 @@ public partial class ControlAccount:UserControl {
 			if(formInvoiceItemSelect.ShowDialog()==DialogResult.Cancel) {
 				return;
 			}
-			listDataRowsSuperFam=formInvoiceItemSelect.ListDataRowsSelected;
+			listDataRowsSuperFam=formInvoiceItemSelect.SelectedDataRows;
 		}
 		for(var i=0;i<gridAccount.SelectedIndices.Length;i++) {
 			var dataRow=table.Rows[gridAccount.SelectedIndices[i]];
@@ -1715,7 +1700,7 @@ public partial class ControlAccount:UserControl {
 			return;
 		}
 		var listProcCodesAdded=new List<string>();
-		var provider=Providers.GetProv(_patient.PriProv);
+		var provider=Providers.GetById(_patient.PriProv);
 		for(var i=0;i<stringArrayProcCodes.Length;i++) {
 			if(AddProcAndValidate(stringArrayProcCodes[i],provider)) {
 				listProcCodesAdded.Add(stringArrayProcCodes[i]);
@@ -1911,38 +1896,6 @@ public partial class ControlAccount:UserControl {
 		ModuleSelected(_patient.PatNum);
 	}
 
-	private void menuItemSendPaymentToDevice_Click(object sender,EventArgs e) {
-		if(_patient==null) {
-			MsgBox.Show("Please select a patient first.");
-			return;
-		}
-		if(!MobileAppDevices.IsClinicSignedUpForEClipboard(Clinics.ClinicNum)) {
-			if(true) {
-				MsgBox.Show(this,"Please enable eClipboard for the current clinic to use this feature.");
-				return;
-			}
-			MsgBox.Show(this,"Please enable eClipboard to use this feature.");
-			return;
-		}
-		var error="";
-		if(!PrefC.HasOnlinePaymentEnabled(out var progName)) {
-			error+="Please enable online payments.\n";
-		}
-		if(!IsWebPaymentsEnabled()) {
-			error+="Please enable payments for eClipboard to use this feature.\n";
-		}
-		if(!error.IsNullOrEmpty()) {
-			MsgBox.Show(error);
-			return;
-		}
-		var mobileAppDevice=MobileAppDevices.ShouldCreateMobileNotification(_patient.PatNum);
-		if(mobileAppDevice != null) {
-			PushPaymentToEclipboard(mobileAppDevice);
-			return;
-		}
-		OpenUnlockCodeForPayment();
-	}
-
 	private void menuItemSendMessageToPay_Click(object sender,EventArgs e) {
 		if(_patient==null) {
 			MsgBox.Show("Please select a patient first.");
@@ -2068,7 +2021,7 @@ public partial class ControlAccount:UserControl {
 			return;
 		}
 		var quickProcText=textQuickProcs.Text;//because the text seems to disappear from textbox in menu bar when MsgBox comes up.
-		var provider=Providers.GetProv(_patient.PriProv);
+		var provider=Providers.GetById(_patient.PriProv);
 		if(AddProcAndValidate(quickProcText,provider)) {
 			SecurityLogs.MakeLogEntry(EnumPermType.AccountProcsQuickAdd,_patient.PatNum
 				,Lan.g(this,"The following procedures were added via the Quick Charge button from the Account module")
@@ -2275,7 +2228,7 @@ public partial class ControlAccount:UserControl {
 		else {
 			checkShowCommAuto.Checked=SIn.Bool(userOdPrefShowAutoCommlog.ValueString);
 		}
-		Logger.LogAction(() => RefreshModuleData(patNum,isSelectingFamily));
+		RefreshModuleData(patNum,isSelectingFamily);
 		if(_patient!=null && _patient.PatStatus==PatientStatus.Deleted) {
 			MsgBox.Show("Selected patient has been deleted by another workstation.");
 			PatientL.RemoveFromMenu(_patient.PatNum);
@@ -2312,26 +2265,8 @@ public partial class ControlAccount:UserControl {
 				msgBoxCopyPaste.Show();
 			}
 		}
-		Logger.LogAction(() => RefreshModuleScreen(isSelectingFamily));
+		RefreshModuleScreen(isSelectingFamily);
 		ODEvent.Fire(ODEventType.ModuleSelected,_loadData);
-		if(_patient!=null && DatabaseIntegrities.DoShowPopup(_patient.PatNum,EnumModuleType.Account)) {
-			var listPayPlans=PayPlans.GetForPatNum(_patient.PatNum);
-			var tableAccount=_dataSetMain.Tables["account"];
-			var listPayNums=tableAccount.Select().Select(x => SIn.Long(x["PayNum"].ToString())).ToList();
-			listPayNums.RemoveAll(x => x==0); //remove all non payment PKs
-			var listPaySplits=PaySplits.GetForPayments(listPayNums);
-			var listClaims=new List<Claim>(_loadData.ListClaims);
-			var listClaimProcs=ClaimProcs.Refresh([_patient.PatNum]);
-			var areHashesValid=Patients.AreAllHashesValid(_patient, [],listPayPlans,listPaySplits,listClaims,listClaimProcs);
-			if(!areHashesValid) {
-				DatabaseIntegrities.AddPatientModuleToCache(_patient.PatNum,EnumModuleType.Account); //Add to cached list for next time
-				//show popup
-				var databaseIntegrity=DatabaseIntegrities.GetModule();
-				var frmDatabaseIntegrity=new FrmDatabaseIntegrity();
-				frmDatabaseIntegrity.MessageToShow=databaseIntegrity.Message;
-				frmDatabaseIntegrity.ShowDialog();
-			}
-		}
 	}
 
 	private void ToggleUseSuperFamCheckboxEnabled(bool prefEnabled) {
@@ -2636,8 +2571,9 @@ public partial class ControlAccount:UserControl {
 		}
 		var doGetAutoOrtho=PrefC.GetBool(PrefName.OrthoEnabled);
 		Action action=()=> _loadData=AccountModules.GetAll(patNum,dateFrom,dateTo,isSelectingFamily,checkShowDetail.Checked,true,true,doMakeSecLog,doGetAutoOrtho);
-		try {
-			Logger.LogAction(action);
+		try
+		{
+			action();
 		}
 		catch(ApplicationException ex) {
 			if(ex.Message=="Missing codenum") {
@@ -2658,7 +2594,6 @@ public partial class ControlAccount:UserControl {
 		if(PrefC.GetBool(PrefName.ShowFeatureSuperfamilies)) {
 			_listPatientsSuperFamilyGuarantors=_loadData.SuperFamilyGuarantors;
 			_listPatientsSuperFamilyMembers=_loadData.SuperFamilyMembers;
-			_listPatFieldsForSuperFam=_loadData.ListPatFieldsSuperFam;
 		}
 		_listPaySplitsHidden=_loadData.ListUnearnedSplits
 			.FindAll(x => PaySplits.GetHiddenUnearnedDefNums().Contains(x.UnearnedType) && _family.GetPatNums().Contains(x.PatNum));//Don't show out of family pay splits for the payer.
@@ -2668,19 +2603,19 @@ public partial class ControlAccount:UserControl {
 
 	private void RefreshModuleScreen(bool isSelectingFamily) {
 		UpdateToolbarButtons();
-		Logger.LogAction(() => FillPats(isSelectingFamily));
-		Logger.LogAction(() => FillMisc());
-		Logger.LogAction(() => FillAging(isSelectingFamily));
+		FillPats(isSelectingFamily);
+		FillMisc();
+		FillAging(isSelectingFamily);
 		//must be in this order.
-		Logger.LogAction(() => FillRepeatCharges());//1
-		Logger.LogAction(() => FillPaymentPlans());//2
+		FillRepeatCharges();//1
+		FillPaymentPlans();//2
 		if(PrefC.GetBool(PrefName.OrthoEnabled)) {
 			FillAutoOrtho(false);
 		}
 		if(OrthoCases.HasOrthoCasesEnabled()) {
 			FillOrthoCasesGrid();
 		}
-		Logger.LogAction(() => FillPatInfo());
+		FillPatInfo();
 		FillTpUnearned();
 		LayoutPanelsAndRefreshMainGrids(true);
 	}
@@ -3233,10 +3168,6 @@ public partial class ControlAccount:UserControl {
 		gridAccount.Columns.Clear();
 		GridColumn col;
 		_listDisplayFieldsForMainGrid=DisplayFields.GetForCategory(DisplayFieldCategory.AccountModule);
-		if(!true) {
-			//remove clinics from displayfields if clinics are disabled
-			_listDisplayFieldsForMainGrid.RemoveAll(x => x.InternalName.ToLower().Contains("clinic"));
-		}
 		HorizontalAlignment horizontalAlignment;
 		for(var i=0;i<_listDisplayFieldsForMainGrid.Count;i++) {
 			horizontalAlignment=HorizontalAlignment.Left;
@@ -3945,7 +3876,7 @@ public partial class ControlAccount:UserControl {
 
 	#region Methods - Private Other
 	///<summary>Validated the procedure code using FormProcEdit and prompts user for input if required.</summary>
-	private bool AddProcAndValidate(string procString,Provider provider) {
+	private bool AddProcAndValidate(string procString,ProviderDto provider) {
 		var procedurecode=ProcedureCodes.GetProcCode(procString);
 		if(procedurecode.CodeNum==0) {
 			MsgBox.Show(Lan.g(this,"Invalid Procedure Code:")+" "+procString);
@@ -3971,7 +3902,7 @@ public partial class ControlAccount:UserControl {
 		}
 		procedure.ProvNum=procedurecode.ProvNumDefault;//use proc default prov if set
 		if(procedure.ProvNum==0) { //if none set, use primary provider.
-			procedure.ProvNum=provider.ProvNum;
+			procedure.ProvNum=provider.Id;
 		}
 		var listInsSubs=InsSubs.RefreshForFam(_family);
 		var listInsPlans=InsPlans.RefreshForSubList(listInsSubs);
@@ -4011,7 +3942,7 @@ public partial class ControlAccount:UserControl {
 		gridComm.ListGridRows.Clear();
 		LayoutPanels();
 		if(doLogFillMain) {//Only log this fill on the refresh method call
-			Logger.LogAction(() => FillMain());
+			FillMain();
 		}
 		else {
 			FillMain();
@@ -4073,20 +4004,20 @@ public partial class ControlAccount:UserControl {
 			tabControlAccount.TabPages.Remove(tabPageAutoOrtho);
 		}
 		else if(!tabControlAccount.TabPages.Contains(tabPageAutoOrtho)) {
-			LayoutManagerForms.Add(tabPageAutoOrtho,tabControlAccount);
+			tabControlAccount.Controls.Add(tabPageAutoOrtho);
 		}
 		if(!OrthoCases.HasOrthoCasesEnabled()) {
 			tabControlAccount.TabPages.Remove(tabPageOrthoCases);
 		}
 		else if(!tabControlAccount.TabPages.Contains(tabPageOrthoCases)) {
-			LayoutManagerForms.Add(tabPageOrthoCases,tabControlAccount);
+			tabControlAccount.Controls.Add(tabPageOrthoCases);
 		}
 		if(_listPaySplitsHidden.Count==0) {//might need to get updated more often than from loadData. Not sure how much we care. 
 			tabControlAccount.TabPages.Remove(tabPageHiddenSplits);
 		}
 		else{
 			if(!tabControlAccount.TabPages.Contains(tabPageHiddenSplits)) {
-				LayoutManagerForms.Add(tabPageHiddenSplits,tabControlAccount);
+				tabControlAccount.Controls.Add(tabPageHiddenSplits);
 			}
 			var listPaySplits=gridTpSplits.GetTags<PaySplit>();
 			var totPaySplitAmount=listPaySplits.Sum(x => x.SplitAmt);
@@ -4183,12 +4114,6 @@ public partial class ControlAccount:UserControl {
 		var dataSet=AccountModules.GetAccount(statement.PatNum,statement,doShowHiddenPaySplits:statement.IsReceipt);
 		Statements.CalcBalTotalInsEst(statement,dataSet);
 		Statements.Insert(statement);
-		//When the statement gets inserted into the db, check and see if a pat is on a mobile device to refresh payments
-		var listMobileAppDevices=MobileAppDevices.GetAll();
-		var mobileAppDevice=listMobileAppDevices.Find(x => x.PatNum==_patient.PatNum);
-		if(mobileAppDevice!=null && mobileAppDevice.LastCheckInActivity>DateTime.Now.AddHours(-1)) {
-			MobileNotifications.CI_RefreshPayment(mobileAppDevice.MobileAppDeviceNum,_patient.PatNum);
-		}
 		var sheetDef=SheetUtil.GetStatementSheetDef(statement);
 		var sheet=SheetUtil.CreateSheet(sheetDef,statement.PatNum,statement.HidePayment);
 		sheet.Parameters.Add(new SheetParameter(true,"Statement") { ParamValue=statement });
@@ -4304,34 +4229,9 @@ public partial class ControlAccount:UserControl {
 			}
 		}
 		//The sorting below happens when they are both active or both inactive.
-		switch(_sortStrategySuperFam) {
-			case SortStrategy.NameAsc:
-				return patient1.GetNameLF().CompareTo(patient2.GetNameLF());
-			case SortStrategy.NameDesc:
-				return patient2.GetNameLF().CompareTo(patient1.GetNameLF());
-			case SortStrategy.PatNumAsc:
-				return patient1.PatNum.CompareTo(patient2.PatNum);
-			case SortStrategy.PatNumDesc:
-				return patient2.PatNum.CompareTo(patient1.PatNum);
-			default:
-				return patient1.PatNum.CompareTo(patient2.PatNum);//Default behavior
-		}
+		return patient1.GetNameLF().CompareTo(patient2.GetNameLF());
 	}
 
-	///<summary>Call this before inserting new repeat charge to update patient.BillingCycleDay if no other repeat charges exist.
-	///Changes the patient's BillingCycleDay to today if no other active repeat charges are on the patient's account</summary>
-	private void UpdatePatientBillingDay(long patNum) {
-		if(RepeatCharges.ActiveRepeatChargeExists(patNum)) {
-			return;
-		}
-		var patientOld=Patients.GetPat(patNum);
-		if(patientOld.BillingCycleDay==DateTime.Today.Day) {
-			return;
-		}
-		var patientNew=patientOld.Copy();
-		patientNew.BillingCycleDay=DateTime.Today.Day;
-		Patients.Update(patientNew,patientOld);
-	}
 	#endregion Methods - Private Other
 
 	#region Methods - Helpers
@@ -4517,35 +4417,6 @@ public partial class ControlAccount:UserControl {
 			if(!string.IsNullOrEmpty(msg)) {
 				ODMessageBox.Show(this,msg+"\r\n"+Lan.g(this,"The account will have to be suspended manually using the A/R Manager or the TSI web portal."));
 			}
-		}
-	}
-
-	///<summary>If the "Make Payment" action item in eClip isn't present, this will add it.</summary>
-	private void PushPaymentToEclipboard(MobileAppDevice mobileAppDevice) {
-		var errMsg=MobileNotifications.CI_SendPayment(mobileAppDevice.MobileAppDeviceNum,_patient.PatNum);
-		if(errMsg.IsNullOrEmpty()) {
-			MsgBox.Show($"Payment option sent to: {mobileAppDevice.DeviceName}");
-			return;
-		}
-		//Error occurred
-		MsgBox.Show($"Error sending payment option: {errMsg}");
-	}
-
-	///<summary>Opens a FormMobileCode window.</summary>
-	private void OpenUnlockCodeForPayment() {
-		MobileDataByte funcInsertDataForUnlockCode(string unlockCode) {
-			var mobileDataByte=new MobileDataByte {
-				PatNum=_patient.PatNum,
-				RawBase64Code=unlockCode.IsNullOrEmpty()?"":Convert.ToBase64String(Encoding.UTF8.GetBytes(unlockCode)),
-				ActionType=eActionType.MakePayment,
-			};
-			if(MobileDataBytes.Insert(mobileDataByte)>0) {
-				return mobileDataByte;
-			}
-			return null;
-		}
-		using(var formMobileCode=new FormMobileCode(funcInsertDataForUnlockCode)) {
-			formMobileCode.ShowDialog();
 		}
 	}
 

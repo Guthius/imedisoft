@@ -1,11 +1,8 @@
 using System;
-using System.Collections.Generic;
-using System.Data;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.Globalization;
 using System.IO;
-using System.Text;
 using System.Windows.Forms;
 using CodeBase;
 using DataConnectionBase;
@@ -14,7 +11,6 @@ using Imedisoft.Core.Data;
 using Imedisoft.Core.Entities;
 using Microsoft.Web.WebView2.Core;
 using Newtonsoft.Json;
-using OpenDental.Bridges;
 using OpenDentBusiness;
 using OpenDentBusiness.PayConnectService;
 using static OpenDentBusiness.PayConnect2;
@@ -56,9 +52,6 @@ public partial class FormPayConnect2:FormODBase {
 			MsgBox.Show(this,"PayConnect does not exist in the database.");
 			DialogResult=DialogResult.Cancel;
 			return;
-		}
-		if(/* ODEnvironment.IsCloudServer */ false){
-			sigBoxWrapper.Enabled=false;
 		}
 		comboTerminal.Items.Clear();
 		var listPayTerminals = PayTerminals.Refresh(_clinicNum);
@@ -127,7 +120,7 @@ public partial class FormPayConnect2:FormODBase {
 		try {
 			return PayConnect2.FormatAmountForApi(amount);
 		}
-		catch(Exception ex) {
+		catch {
 			MsgBox.Show(this,"Transaction amount is formatted incorrectly.");
 			return -1;
 		}
@@ -230,7 +223,7 @@ public partial class FormPayConnect2:FormODBase {
 					try {
 						_payConnect2Response=PayConnect2.PostCreateTransactionByToken(_patient,_creditCard,amountInCents,_clinicNum);
 					}
-					catch(Exception ex) {
+					catch {
 						MsgBox.Show(this,"Invalid data, unable to send sale transaction");
 						return false;
 					}
@@ -249,7 +242,7 @@ public partial class FormPayConnect2:FormODBase {
 				try {
 					_payConnect2Response=PayConnect2.PostCreateTransactionByToken(_patient,_creditCard,amountInCents,_clinicNum,PayConnect2.TransactionType.AuthorizeOnly);
 				}
-				catch(Exception ex) {
+				catch {
 					MsgBox.Show(this,"Invalid data, unable to send auth transaction");
 					return false;
 				}
@@ -373,15 +366,6 @@ public partial class FormPayConnect2:FormODBase {
 				Size=new Size(959, 516);
 			}
 		}
-		if(false) {
-			//Unable to support PayConnect 2 on OD Cloud for the following reasons: OD Cloud uses Thinfinity, which does not allow for using WebView2 controls, meaning cloud would need to use the
-			//old WebBrowser control. This issue with this is we currently do not know of a way to retrieve the iFrame response from a WebBrowser control. Maybe when Payment Portal is finished
-			//we could try using a modified version of that to send the transaction data to the office's eConnector. We could also try making a "dummy" html page that contains the iFrame that is
-			//capable of storing the iFrame response and then parse the DOM afterthe user is finished.
-			MsgBox.Show(this,"Open Dental Cloud does not currently support PayConnect version 2.");
-			DialogResult=DialogResult.Cancel;
-			return;
-		}
 		var url = "";
 		Size=new Size(959, 516);
 		try {
@@ -392,31 +376,21 @@ public partial class FormPayConnect2:FormODBase {
 			return;
 		}
 		//Cloud requires using the old web browser control due to constraints from thinfinity.
-		if(false) {
-			webViewMain.Visible=false;
-			webBrowserMain.Visible=true;
-			//webBrowserMain.Navigate();
-			//webBrowserMain.DocumentCompleted+= webBrowserMain_DocumentCompleted;
-			webBrowserMain.Navigate(url);
-			iframeOpen=true;
-		}
-		else {
-			webViewMain.Visible=true;
-			webBrowserMain.Visible=false;
-			if(!update) {
-				try {
-					await webViewMain.Init();
-					webViewMain.CoreWebView2.WebMessageReceived+=GetTransactionResult;
-					await webViewMain.CoreWebView2.AddScriptToExecuteOnDocumentCreatedAsync("window.addEventListener(\'message\', e => { window.chrome.webview.postMessage(e.data); })");
-				}
-				catch(Exception ex) {
-					FriendlyException.Show("Error initializing window.",ex);
-					return;
-				}
+		webViewMain.Visible=true;
+		webBrowserMain.Visible=false;
+		if(!update) {
+			try {
+				await webViewMain.Init();
+				webViewMain.CoreWebView2.WebMessageReceived+=GetTransactionResult;
+				await webViewMain.CoreWebView2.AddScriptToExecuteOnDocumentCreatedAsync("window.addEventListener(\'message\', e => { window.chrome.webview.postMessage(e.data); })");
 			}
-			webViewMain.CoreWebView2.Navigate(url);
-			iframeOpen=true;
+			catch(Exception ex) {
+				FriendlyException.Show("Error initializing window.",ex);
+				return;
+			}
 		}
+		webViewMain.CoreWebView2.Navigate(url);
+		iframeOpen=true;
 	}
 
 	///<summary>Originally from FormPayConnect2IFrame_Load().</summary>
@@ -446,7 +420,7 @@ public partial class FormPayConnect2:FormODBase {
 		try {
 			response=JsonConvert.DeserializeObject<iFrameResponse>(args.WebMessageAsJson);
 		}
-		catch(JsonException jEx) {
+		catch(JsonException) {
 			//failed to deserialize, we probably did not recieve a success response from the iFrame.
 		}
 		catch (Exception ex) {

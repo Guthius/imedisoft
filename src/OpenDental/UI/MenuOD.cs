@@ -1,12 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.ComponentModel;
-using System.Diagnostics;
 using System.Drawing;
-using System.Drawing.Text;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace OpenDental.UI;
@@ -44,8 +38,7 @@ public class MenuOD:Control{
 	#region Fields
 		
 	private MenuStripOD _menuStripOD;
-	///<summary>Just holds the scaling factor.</summary>
-	private LayoutManagerForms _layoutManager=new LayoutManagerForms();
+
 	#endregion Fields
 
 	#region Constructor
@@ -69,15 +62,6 @@ public class MenuOD:Control{
 	#region Properties
 	protected override Size DefaultSize => new Size(200,24);//shouldn't change this unless we change all existing menus heights
 
-	[Browsable(false)]
-	[DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
-	public LayoutManagerForms LayoutManager{
-		get => _layoutManager; 
-		set{
-			_layoutManager = value;
-			_menuStripOD.LayoutManager=_layoutManager;
-		}
-	}
 	#endregion Properties
 
 	#region Methods - Public
@@ -169,7 +153,7 @@ public class MenuStripOD:MenuStrip{
 	#region Fields
 	public bool IsUpdating;
 	///<summary>Just holds the scaling factor.</summary>
-	public LayoutManagerForms LayoutManager=new LayoutManagerForms();
+	
 	#endregion Fields
 
 	#region Constructor
@@ -196,9 +180,6 @@ public class MenuStripOD:MenuStrip{
 	public void LayoutItems(){
 		if(IsUpdating){
 			return;
-		}
-		if(LayoutManager==null){
-			LayoutManager=new LayoutManagerForms();
 		}
 		//Font=new Font("Segoe UI",LayoutManager.ScaleF(9));
 		//"Microsoft Sans Serif",Dpi.ScaleF(this,8.25f));//

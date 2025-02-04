@@ -1,141 +1,94 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Data;
+using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Printing;
-using System.Data;
-using System.Globalization;
 using System.Linq;
-using System.Text;
 using System.Windows.Forms;
 using CodeBase;
-using OpenDental.UI;
-using OpenDentBusiness;
-using OpenDentBusiness.HL7;
-using System.Windows.Interop;
 using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Data;
 using Imedisoft.Core.Entities;
 using Imedisoft.Core.Features.Clinics;
+using Imedisoft.Features.Providers.Dtos;
+using OpenDental.Bridges;
 using OpenDental.Forms;
 using OpenDental.Logic;
+using OpenDental.UI;
+using OpenDentBusiness;
+using OpenDentBusiness.AutoComm;
+using OpenDentBusiness.HL7;
+using ProgramL = WpfControls.ProgramL;
 
 namespace OpenDental;
 
-///<summary>The Appointments Module.</summary>
 public partial class ControlAppt : UserControl
 {
-    #region Fields - Private
-
-    ///<summary>Used for blockouts.  OpNum.</summary>
     private long _opNumClickedBlockout;
-
-    ///<summary>Used for blockouts.  Already handles week view.  Time is not rounded.</summary>
     private DateTime _dateTimeClickedBlockout;
-
-    ///<summary>The last dateTime that the waiting room was refreshed.  Local computer time.</summary>
     private DateTime _dateTimeWaitingRmRefreshed;
-
     private bool _isPrintCardFamily;
-    private FormASAP _formASAP;
+    private FormASAP _formAsap;
     private FormConfirmList _formConfirmList;
     private FormRecallList _formRecallList;
     private FormTrackNext _formTrackNext;
     private FormUnsched _formUnsched;
-
-    ///<summary>This prevents extra refreshes during the convoluted startup sequence.  Remains false until the end of InitializeOnStartup().</summary>
     private bool _hasInitializedOnStartup;
-
-    ///<summary>So that SetInitialStartTime only runs once.</summary>
     private bool _hasSetInitialStartTime;
-
-    public LayoutManagerForms LayoutManager = new LayoutManagerForms();
-    private List<Provider> _listProvidersSearch;
+    private List<ProviderDto> _listProvidersSearch;
     private List<ScheduleOpening> _listScheduleOpenings;
-    private ToolStripMenuItem toolStripMenuItem;
+    private ToolStripMenuItem _toolStripMenuItem;
     private Patient _patient;
-
-    ///<summary>If the user has done a blockout/copy, then this will contain the blockout that is on the "clipboard".</summary>
     private Schedule _scheduleBlockoutClipboard;
-
-    private OpenDentBusiness.AutoComm.Arrivals _arrivalsLoaded;
-
-    #endregion Fields - Private
-
-    #region Constructor
-
+    private Arrivals _arrivalsLoaded;
+    
     public ControlAppt()
     {
         InitializeComponent();
-        Font = new("Microsoft Sans Serif", 8.25f);
+        
         gridReminders.ContextMenu = menuReminderEdit;
     }
-
-    #endregion Constructor
-
-    #region Properties
-
-    //protected override bool ScaleChildren => false;
-    private OpenDentBusiness.AutoComm.Arrivals GetArrivalsLoaded()
+    
+    private Arrivals GetArrivalsLoaded()
     {
-        if (_arrivalsLoaded is null)
-        {
-            _arrivalsLoaded = OpenDentBusiness.AutoComm.Arrivals.LoadArrivals();
-        }
-
-        return _arrivalsLoaded;
+        return _arrivalsLoaded ??= Arrivals.LoadArrivals();
     }
 
-    private void SetArrivalsLoaded(OpenDentBusiness.AutoComm.Arrivals value)
+    private void SetArrivalsLoaded(Arrivals value)
     {
         _arrivalsLoaded = value;
     }
 
-    #endregion Properties
-
-    #region Methods - Event Handlers ContrAppt
-
-    private void ContrAppt_Load(object sender, EventArgs e)
-    {
-    }
-
     private void ContrAppt_Resize(object sender, EventArgs e)
     {
-        //This handles dpi changes, and the property is designed to ignore if no change.
         if (_hasInitializedOnStartup)
         {
             contrApptPanel.SizeFont = float.Parse(PrefC.GetString(PrefName.ApptFontSize));
         }
-        //LayoutPanels();
-        //if(groupSearch.Visible){
-        //	groupSearch.Location=new Point(panelCalendar.Location.X,panelCalendar.Location.Y+pinBoard.Bottom+2);
-        //}
     }
-
-    #endregion Methods - Event Handlers ContrAppt
-
-    #region Methods - Event Handlers ContrApptPanel
-
-    private void contrApptPanel_ApptDoubleClicked(object sender, UI.ApptEventArgs e)
+    
+    private void contrApptPanel_ApptDoubleClicked(object sender, ApptEventArgs e)
     {
-        //security handled inside the form
         var patnum = e.Appt.PatNum;
+        
         using var formApptEdit = new FormApptEdit(contrApptPanel.SelectedAptNum);
-        formApptEdit.ShowDialog();
-        if (formApptEdit.DialogResult == DialogResult.OK)
+ 
+        if (formApptEdit.ShowDialog() == DialogResult.OK)
         {
-            //appt already saved or deleted inside that window
             var appointment = Appointments.GetOneApt(contrApptPanel.SelectedAptNum);
-            if (appointment != null)
+            if (appointment is not null)
             {
-                var appointmentOld = appointment.Copy(); //this needs to happen before TryAdjustAppointmentPattern.
-                //if appts appttype is associated to blockouts and appt would start on an unassociated blockout, send to pinboard.
+                var appointmentOld = appointment.Copy();
+                
                 if (!CanScheduleAppointmentTypeOnBlockoutType(appointment))
                 {
                     MsgBox.Show(this, "Appointment type cannot be scheduled on this blockout.  Moving appointment to pinboard.");
+                    
                     SendToPinBoardAptNums([appointment.AptNum]);
+                    
                     UpdateAppointmentToUnscheduled(appointment, appointmentOld);
                 }
                 else if (TryAdjustAppointmentPattern(appointment, contrApptPanel.ListOpsVisible))
@@ -143,7 +96,7 @@ public partial class ControlAppt : UserControl
                     MsgBox.Show(this, "Appointment is too long and would overlap another appointment or blockout.  Automatically shortened to fit.");
                     try
                     {
-                        Appointments.Update(appointment, appointmentOld); //Appointments S-Class handles Signalods
+                        Appointments.Update(appointment, appointmentOld);
                     }
                     catch (ApplicationException ex)
                     {
@@ -152,28 +105,31 @@ public partial class ControlAppt : UserControl
                 }
             }
 
-            ModuleSelected(patnum); //apt.PatNum);//apt might be null if user deleted appt.
+            ModuleSelected(patnum);
         }
         else if (formApptEdit.DialogResult == DialogResult.Cancel && formApptEdit.HasProcsChangedAndCancel)
         {
             //If user canceled but changed the procs on appt first
             //Refresh the grid, don't need to check length because it didn't change.  Plus user might not want to change length.
             ModuleSelected(patnum);
+            
             Signalods.SetInvalidAppt(formApptEdit.GetAppointmentOld()); //use old here because they cancelled.  Only calling this because there is no S-Class call.
         }
     }
 
-    private void contrApptPanel_ApptMainAreaDoubleClicked(object sender, UI.ApptMainClickEventArgs e)
+    private void contrApptPanel_ApptMainAreaDoubleClicked(object sender, ApptMainClickEventArgs e)
     {
         if (Operatories.GetOperatory(e.OpNum) is null)
         {
-            //Prevents user from making an appointment by clicking into the rectangles along the operatory header and the bottom scroll bar
             return;
         }
 
-        var frmPatientSelect = new FrmPatientSelect();
-        frmPatientSelect.CanAddPatients = true;
-        if (_patient != null)
+        var frmPatientSelect = new FrmPatientSelect
+        {
+            CanAddPatients = true
+        };
+        
+        if (_patient is not null)
         {
             frmPatientSelect.PatNumInitial = _patient.PatNum;
         }
@@ -206,7 +162,7 @@ public partial class ControlAppt : UserControl
 
         if (_patient != null && _patient.PatStatus.In(PatientStatus.Archived, PatientStatus.Deceased))
         {
-            MsgBox.Show(Lan.g(this, "Appointments cannot be scheduled for ") + _patient.PatStatus.ToString().ToLower() + Lan.g(this, " patients."));
+            MsgBox.Show("Appointments cannot be scheduled for " + _patient.PatStatus.ToString().ToLower() + " patients.");
             return;
         }
 
@@ -215,18 +171,17 @@ public partial class ControlAppt : UserControl
         if (frmPatientSelect.IsNewPatientAdded)
         {
             var operatory = Operatories.GetOperatory(e.OpNum);
-            //if(contrApptPanel.IsWeeklyView) {//handled before this event
-            //	dateSelected=WeekStartDate.AddDays(SheetClickedonDay);
+
             var dateTimeAskedToArrive = DateTime.MinValue;
             if (_patient.AskToArriveEarly > 0)
             {
                 dateTimeAskedToArrive = e.DateT.AddMinutes(-_patient.AskToArriveEarly);
-                ODMessageBox.Show(Lan.g(this, "Ask patient to arrive ") + _patient.AskToArriveEarly
-                                                                        + Lan.g(this, " minutes early at ") + dateTimeAskedToArrive.ToShortTimeString() + ".");
+                
+                ODMessageBox.Show("Ask patient to arrive " + _patient.AskToArriveEarly + " minutes early at " + dateTimeAskedToArrive.ToShortTimeString() + ".");
             }
 
             appointment = Appointments.CreateNewAppointment(_patient, operatory, e.DateT, dateTimeAskedToArrive, null, contrApptPanel.ListSchedules);
-            //New patient. Set to prospective if operatory is set to set prospective.
+
             if (operatory.SetProspective)
             {
                 if (MsgBox.Show(this, MsgBoxButtons.OKCancel, "Patient's status will be set to Prospective."))
@@ -235,16 +190,18 @@ public partial class ControlAppt : UserControl
                     _patient.PatStatus = PatientStatus.Prospective;
                     Patients.UpdateRecalls(_patient, patientOld, "Appointment Module, New Patient appointment created in prospective operatory");
                     Patients.Update(_patient, patientOld);
-                    var logEntry = Lan.g(this, "Patient's status changed from ") + patientOld.PatStatus.GetDescription() + Lan.g(this, " to ")
-                                   + _patient.PatStatus.GetDescription() + Lan.g(this, " by creating an appointment in a prospective operatory.");
+                    var logEntry = "Patient's status changed from " + patientOld.PatStatus.GetDescription() + " to "
+                                   + _patient.PatStatus.GetDescription() + 
+                                   " by creating an appointment in a prospective operatory.";
                     SecurityLogs.MakeLogEntry(EnumPermType.PatientEdit, _patient.PatNum, logEntry);
                 }
             }
 
-            using var formApptEdit = new FormApptEdit(appointment.AptNum); //this is where security log entry is made
+            using var formApptEdit = new FormApptEdit(appointment.AptNum);
+            
             formApptEdit.IsNew = true;
-            formApptEdit.ShowDialog();
-            if (formApptEdit.DialogResult == DialogResult.OK)
+            
+            if (formApptEdit.ShowDialog() == DialogResult.OK)
             {
                 if (appointment.IsNewPatient)
                 {
@@ -306,13 +263,13 @@ public partial class ControlAppt : UserControl
             }
         }
 
-        if (appointment == null)
+        if (appointment is null)
         {
-            return; // appointment was already moved to pinboard from other dialogue, no need to continue method.
+            return;
         }
 
         var appointmentOld = appointment.Copy();
-        //if appts appttype is associated to blockouts and appt would start on an unassociated blockout, send to pinboard.
+        
         if (!CanScheduleAppointmentTypeOnBlockoutType(appointment))
         {
             MsgBox.Show(this, "Appointment type cannot be scheduled on this blockout.  Moving appointment to pinboard.");
@@ -365,29 +322,31 @@ public partial class ControlAppt : UserControl
             RefreshModuleScreenButtonsRight();
         }
     }
-
-    ///<summary>Throws an ODException if we can't find a certain ToolStripItem with custom exception message. Added for attempted bug fix job 43418.</summary>
+    
     private ToolStripItem FindBlockoutToolStripItem(string name)
     {
-        var arrayToolStripItems = menuBlockout.Items.Find(name, false);
-        if (arrayToolStripItems.Length == 0)
+        var toolStripItems = menuBlockout.Items.Find(name, false);
+        if (toolStripItems.Length > 0)
         {
-            var patNum = "No Patient Selected";
-            if (_patient != null)
-            {
-                patNum = _patient.PatNum.ToString();
-            }
-
-            var odException = new ODException($"Patnum: {patNum}\r\n"
-                                              + $"OD Version: {Application.ProductVersion}\r\n"
-                                              + $"Missing ToolStripItem: {name}");
-            throw odException;
+            return toolStripItems[0];
+        }
+        
+        var patient = "No Patient Selected";
+        if (_patient is not null)
+        {
+            patient = _patient.PatNum.ToString();
         }
 
-        return arrayToolStripItems[0];
+        throw new ODException(
+            $"""
+             Patnum: {patient}
+             OD Version: {Application.ProductVersion}
+             Missing ToolStripItem: {name}
+             """);
+
     }
 
-    private void ContrApptPanel_ApptMainAreaRightClicked(object sender, UI.ApptMainClickEventArgs e)
+    private void ContrApptPanel_ApptMainAreaRightClicked(object sender, ApptMainClickEventArgs e)
     {
         var toolStripItemEdit = FindBlockoutToolStripItem(MenuItemNames.EditBlockout);
         var toolStripItemCut = FindBlockoutToolStripItem(MenuItemNames.CutBlockout);
@@ -399,18 +358,9 @@ public partial class ControlAppt : UserControl
         ToolStripItem toolStripItemClearForDay = new ToolStripMenuItem();
         ToolStripItem toolStripItemClearForDayOp = new ToolStripMenuItem();
         ToolStripItem toolStripItemClearForDayClinics = new ToolStripMenuItem();
-        if (true)
-        {
-            //No clear for day if clinics enabled
-            toolStripItemClearForDayOp = FindBlockoutToolStripItem(MenuItemNames.ClearAllBlockoutsForDayOpOnly);
-            toolStripItemClearForDayClinics = FindBlockoutToolStripItem(MenuItemNames.ClearAllBlockoutsForDayClinicOnly);
-        }
-        else
-        {
-            //Clinics disabled, no clear for day clinics
-            toolStripItemClearForDay = FindBlockoutToolStripItem(MenuItemNames.ClearAllBlockoutsForDay);
-            toolStripItemClearForDayOp = FindBlockoutToolStripItem(MenuItemNames.ClearAllBlockoutsForDayOpOnly);
-        }
+        //No clear for day if clinics enabled
+        toolStripItemClearForDayOp = FindBlockoutToolStripItem(MenuItemNames.ClearAllBlockoutsForDayOpOnly);
+        toolStripItemClearForDayClinics = FindBlockoutToolStripItem(MenuItemNames.ClearAllBlockoutsForDayClinicOnly);
 
         if (!Security.IsAuthorized(EnumPermType.Blockouts, true))
         {
@@ -518,47 +468,25 @@ public partial class ControlAppt : UserControl
         }
 
         var isTextingEnabled = SmsPhones.IsIntegratedTextingEnabled();
-        var isDeleteAsapBlockoutVisible = false;
-        if (PrefC.GetBool(PrefName.WebSchedAsapEnabled))
-        {
-            if (!SmsPhones.IsIntegratedTextingEnabled())
-            {
-                //Some customers have the Bundle without texting
-                textASAPContextMenuHelper(true, "Email ASAP List");
-            }
-            else
-            {
-                textASAPContextMenuHelper(true, "Text ASAP List");
-            }
 
-            if (Security.IsAuthorized(EnumPermType.Blockouts))
-            {
-                var schedule = GetClickedSchedule(ScheduleType.WebSchedASAP);
-                if (schedule != null)
-                {
-                    isDeleteAsapBlockoutVisible = true;
-                }
-            }
-        }
-        else if (isTextingEnabled)
+        if (isTextingEnabled)
         {
-            //Don't have Web Sched ASAP but do have texting
             textASAPContextMenuHelper(true, "Text ASAP List (manual)");
         }
         else
         {
-            //Don't have Web Sched ASAP or texting
             textASAPContextMenuHelper(false);
         }
 
-        SetMenuItemProperty(menuBlockout, MenuItemNames.DeleteWebSchedAsapBlockout, x => x.Visible = isDeleteAsapBlockoutVisible);
+        SetMenuItemProperty(menuBlockout, MenuItemNames.DeleteWebSchedAsapBlockout, x => x.Visible = false);
         SetMenuItemProperty(menuBlockout, MenuItemNames.TextApptsForDayOp, x => x.Visible = isTextingEnabled);
         SetMenuItemProperty(menuBlockout, MenuItemNames.TextApptsForDayView, x => x.Visible = isTextingEnabled);
         SetMenuItemProperty(menuBlockout, MenuItemNames.TextApptsForDay, x =>
         {
             x.Visible = isTextingEnabled;
-            x.Text = MenuItemNames.TextApptsForDay + (true ? ", Clinic only" : "");
+            x.Text = MenuItemNames.TextApptsForDay + ", Clinic only";
         });
+        
         menuBlockout.Show(contrApptPanel, e.Location);
     }
 
@@ -572,7 +500,7 @@ public partial class ControlAppt : UserControl
         }
     }
 
-    private void contrApptPanel_ApptMoved(object sender, UI.ApptMovedEventArgs e)
+    private void contrApptPanel_ApptMoved(object sender, ApptMovedEventArgs e)
     {
         var appointment = e.Appt;
         var appointmentOld = e.ApptOld;
@@ -609,15 +537,12 @@ public partial class ControlAppt : UserControl
         ODEvent.Fire(ODEventType.AppointmentEdited, appointment);
 
         #endregion Update UI and cache
-
-        //The first hook's naming convention was maintained to allow it to continue to function.
-        //Plugin developers should use the "ContrAppt.contrApptPanel_ApptMoved_end" hook instead.
     }
 
-    private void contrApptPanel_ApptMovedToPinboard(object sender, UI.ApptDataRowEventArgs e)
+    private void contrApptPanel_ApptMovedToPinboard(object sender, ApptDataRowEventArgs e)
     {
-        SendToPinboardDataRow(e.DataRowAppt); //sets selectedAptNum=-1. do before refresh prev
-        //If pref BrokenApptRequiredOnMove is on, refresh pinboard right away to show broken appt.
+        SendToPinboardDataRow(e.DataRowAppt);
+        
         if (PrefC.GetBool(PrefName.BrokenApptRequiredOnMove))
         {
             RefreshPinboardImages();
@@ -627,10 +552,11 @@ public partial class ControlAppt : UserControl
     private void contrApptPanel_ApptNullFound(object sender, EventArgs e)
     {
         MsgBox.Show(this, "Selected appointment no longer exists.");
+        
         RefreshPeriod();
     }
 
-    private void contrApptPanel_ApptResized(object sender, UI.ApptEventArgs e)
+    private void contrApptPanel_ApptResized(object sender, ApptEventArgs e)
     {
         RefreshModuleDataPatient(e.Appt.PatNum);
         GlobalFormOpenDental.PatientSelected(_patient, true, false);
@@ -638,13 +564,13 @@ public partial class ControlAppt : UserControl
         ODEvent.Fire(ODEventType.AppointmentEdited, e.Appt);
     }
 
-    private void ContrApptPanel_ApptRightClicked(object sender, UI.ApptRightClickEventArgs e)
+    private void ContrApptPanel_ApptRightClicked(object sender, ApptRightClickEventArgs e)
     {
         var dataRowAppointment = contrApptPanel.TableAppointments.Select().FirstOrDefault(x => SIn.Long(x["AptNum"].ToString()) == contrApptPanel.SelectedAptNum);
         menuApt.Items.RemoveByKey(MenuItemNames.Tasks);
         menuApt.Items.RemoveByKey(MenuItemNames.TasksSpacer);
         menuApt.Items.Add(new ToolStripSeparator {Name = MenuItemNames.TasksSpacer});
-        var menuTasks = new ToolStripMenuItem(Lan.g(this, "Appointment Tasks"), null, menuTasks_Click, MenuItemNames.Tasks);
+        var menuTasks = new ToolStripMenuItem("Appointment Tasks", null, menuTasks_Click, MenuItemNames.Tasks);
         menuApt.Items.Add(menuTasks);
         menuApt.Items.RemoveByKey(MenuItemNames.PhoneDiv);
         menuApt.Items.RemoveByKey(MenuItemNames.HomePhone);
@@ -654,9 +580,7 @@ public partial class ControlAppt : UserControl
         menuApt.Items.RemoveByKey(MenuItemNames.SendText);
         menuApt.Items.RemoveByKey(MenuItemNames.SendConfirmationText);
         menuApt.Items.RemoveByKey(MenuItemNames.SendComeInText);
-        menuApt.Items.RemoveByKey(MenuItemNames.EClipboardQR);
         menuApt.Items.RemoveByKey(MenuItemNames.SendMessageToPay);
-        menuApt.Items.RemoveByKey(MenuItemNames.SendEClipboardByod);
         menuApt.Items.RemoveByKey(MenuItemNames.OrthoChart);
         ToolStripItem menuItem;
         if (PrefC.GetBool(PrefName.ApptModuleShowOrthoChartItem))
@@ -677,53 +601,37 @@ public partial class ControlAppt : UserControl
 
             if (!string.IsNullOrEmpty(_patient.HmPhone))
             {
-                menuApt.Items.Add(new ToolStripMenuItem(Lan.g(this, "Call Home Phone ") + _patient.HmPhone, null, menuApt_Click, MenuItemNames.HomePhone));
+                menuApt.Items.Add(new ToolStripMenuItem("Call Home Phone " + _patient.HmPhone, null, menuApt_Click, MenuItemNames.HomePhone));
             }
 
             if (!string.IsNullOrEmpty(_patient.WkPhone))
             {
-                menuApt.Items.Add(new ToolStripMenuItem(Lan.g(this, "Call Work Phone ") + _patient.WkPhone, null, menuApt_Click, MenuItemNames.WorkPhone));
+                menuApt.Items.Add(new ToolStripMenuItem("Call Work Phone " + _patient.WkPhone, null, menuApt_Click, MenuItemNames.WorkPhone));
             }
 
             if (!string.IsNullOrEmpty(_patient.WirelessPhone))
             {
-                menuApt.Items.Add(new ToolStripMenuItem(Lan.g(this, "Call Wireless Phone ") + _patient.WirelessPhone, null, menuApt_Click, MenuItemNames.WirelessPhone));
+                menuApt.Items.Add(new ToolStripMenuItem("Call Wireless Phone " + _patient.WirelessPhone, null, menuApt_Click, MenuItemNames.WirelessPhone));
             }
         }
 
         //Texting
         menuApt.Items.Add(new ToolStripSeparator {Name = MenuItemNames.TextDiv});
-        menuItem = new ToolStripMenuItem(Lan.g(this, "Send Text"), null, menuApt_Click, MenuItemNames.SendText);
+        menuItem = new ToolStripMenuItem("Send Text", null, menuApt_Click, MenuItemNames.SendText);
         menuApt.Items.Add(menuItem);
         if (!SmsPhones.IsIntegratedTextingEnabled() && !Programs.IsEnabled(ProgramName.CallFire))
         {
             menuItem.Enabled = false;
         }
 
-        menuItem = new ToolStripMenuItem(Lan.g(this, "Send Confirmation Text"), null, menuApt_Click, MenuItemNames.SendConfirmationText);
+        menuItem = new ToolStripMenuItem("Send Confirmation Text", null, menuApt_Click, MenuItemNames.SendConfirmationText);
         menuApt.Items.Add(menuItem);
         if (!SmsPhones.IsIntegratedTextingEnabled() && !Programs.IsEnabled(ProgramName.CallFire))
         {
             menuItem.Enabled = false;
         }
 
-        var clinicNum = dataRowAppointment is null ? 0 : SIn.Long(dataRowAppointment["ClinicNum"].ToString());
-        if (OpenDentBusiness.AutoComm.Byod.IsSetup(clinicNum, out var err))
-        {
-            //Check-In Links feature is enabled.  (handles true)
-            menuItem = new ToolStripMenuItem(Lan.g(this, MenuItemNames.SendEClipboardByod), null, menuApt_Click, MenuItemNames.SendEClipboardByod);
-            menuApt.Items.Add(menuItem);
-            var confirmed = dataRowAppointment is null ? 0 : SIn.Long(dataRowAppointment["Confirmed"].ToString());
-            menuItem.Enabled = OpenDentBusiness.AutoComm.Byod.IsEnabledForConfirmed(confirmed, clinicNum, out err); //(handles true)
-        }
-
-        //If the appointment is not for today, or the office is not signed up for eclipboard, hide this item. We are using the calendars selected date instead of the appointments date to save us from making a database call.
-        if (monthCalendarOD.GetDateSelected() == DateTime.Today.Date && MobileAppDevices.IsClinicSignedUpForEClipboard(Clinics.ClinicNum))
-        {
-            menuApt.Items.Add(new ToolStripMenuItem(Lan.g(this, "Show eClipboard QR"), null, menuApt_Click, MenuItemNames.EClipboardQR));
-        }
-
-        menuItem = new ToolStripMenuItem(Lan.g(this, MenuItemNames.SendComeInText), null, menuApt_Click, MenuItemNames.SendComeInText);
+        menuItem = new ToolStripMenuItem(MenuItemNames.SendComeInText, null, menuApt_Click, MenuItemNames.SendComeInText);
         menuApt.Items.Add(menuItem);
         if (!GetArrivalsLoaded().HasComeInMsg(contrApptPanel.SelectedAptNum))
         {
@@ -741,7 +649,7 @@ public partial class ControlAppt : UserControl
             //Does not require a completed appt, only requires texting.
             menuItem.Enabled = false;
         }
-            
+
         menuApt.Show(contrApptPanel, e.Location);
     }
 
@@ -750,7 +658,7 @@ public partial class ControlAppt : UserControl
         SetWeeklyView(contrApptPanel.IsWeeklyView); //because weekly view changed internally as well.
     }
 
-    private void contrApptPanel_SelectedApptChanged(object sender, UI.ApptSelectedChangedEventArgs e)
+    private void contrApptPanel_SelectedApptChanged(object sender, ApptSelectedChangedEventArgs e)
     {
         pinBoard.SelectedIndex = -1;
         if (e.AptNumNew == -1)
@@ -795,7 +703,6 @@ public partial class ControlAppt : UserControl
         }
     }
 
-    ///<summary>Finds the MenuItem on the contextMenu and performs the action on it.</summary>
     private void SetMenuItemProperty(ContextMenuStrip contextMenu, string menuItemName, Action<ToolStripItem> actionSetMenuItem)
     {
         var toolStripItemArray = contextMenu.Items.Find(menuItemName, false);
@@ -803,15 +710,6 @@ public partial class ControlAppt : UserControl
         {
             actionSetMenuItem(toolStripItemArray[0]);
         }
-    }
-
-    #endregion Methods - Event Handlers ContrApptPanel
-
-    #region Methods - Event Handlers ToolBarMain
-
-    private void FormIVL_FormClosing(object sender, FormClosingEventArgs e)
-    {
-        //Action does not currently need to be taken when leaving the insurance verification list window.
     }
 
     private void FormIVL_FormClosed(object sender, FormClosedEventArgs e)
@@ -822,18 +720,18 @@ public partial class ControlAppt : UserControl
 
     private void ListASAP_Click()
     {
-        if (_formASAP == null || _formASAP.IsDisposed)
+        if (_formAsap == null || _formAsap.IsDisposed)
         {
-            _formASAP = new FormASAP();
+            _formAsap = new FormASAP();
         }
 
-        _formASAP.Show();
-        if (_formASAP.WindowState == FormWindowState.Minimized)
+        _formAsap.Show();
+        if (_formAsap.WindowState == FormWindowState.Minimized)
         {
-            _formASAP.WindowState = FormWindowState.Normal;
+            _formAsap.WindowState = FormWindowState.Normal;
         }
 
-        _formASAP.BringToFront();
+        _formAsap.BringToFront();
     }
 
     private void ListConfirm_Click()
@@ -865,7 +763,6 @@ public partial class ControlAppt : UserControl
         if (Security.IsAuthorized(EnumPermType.InsuranceVerification))
         {
             var formInsVerificationList = new FormInsVerificationList();
-            formInsVerificationList.FormClosing += FormIVL_FormClosing;
             formInsVerificationList.FormClosed += FormIVL_FormClosed;
             formInsVerificationList.Show();
         }
@@ -970,7 +867,7 @@ public partial class ControlAppt : UserControl
         }
     }
 
-    private void toolBarMain_ButtonClick(object sender, OpenDental.UI.ODToolBarButtonClickEventArgs e)
+    private void toolBarMain_ButtonClick(object sender, ODToolBarButtonClickEventArgs e)
     {
         if (e.Button.Tag.GetType() == typeof(string))
         {
@@ -999,16 +896,16 @@ public partial class ControlAppt : UserControl
                     DisplayOtherDlg(false);
                     break;
                 case "Make":
-                    butMakeAppt_Click(this, new EventArgs());
+                    butMakeAppt_Click(this, EventArgs.Empty);
                     break;
                 case "Recall":
-                    butMakeRecall_Click(this, new EventArgs());
+                    butMakeRecall_Click(this, EventArgs.Empty);
                     break;
                 //Family recall handled in context menu
                 case "RapidCall":
                     try
                     {
-                        OpenDental.Bridges.RapidCall.ShowPage();
+                        RapidCall.ShowPage();
                     }
                     catch (Exception ex)
                     {
@@ -1029,7 +926,7 @@ public partial class ControlAppt : UserControl
                 patient = Patients.GetPat(_patient.PatNum);
             }
 
-            WpfControls.ProgramL.Execute(((Program) e.Button.Tag).ProgramNum, patient);
+            ProgramL.Execute(((Program) e.Button.Tag).ProgramNum, patient);
         }
     }
 
@@ -1037,21 +934,21 @@ public partial class ControlAppt : UserControl
     {
         if (contrApptPanel.ListOpsVisible.Count == 0 || contrApptPanel.ListDayOfWeeks.IsNullOrEmpty())
         {
-            //no ops visible.
             MsgBox.Show(this, "There must be at least one operatory showing in order to Print Appointments.");
             return;
         }
 
         var listOperatoryNums = contrApptPanel.ListOpsVisible.Select(x => x.OperatoryNum).ToList();
-        //Have to order listApptNums sent to FormApptPrintSetup so that routing slips can be printed in chronological order.
+        
         var listAptNums = contrApptPanel.TableAppointments.Select()
             .Where(x => listOperatoryNums.Contains(SIn.Long(x["Op"].ToString())))
             .OrderBy(x => SIn.DateTime(x["AptDateTime"].ToString()))
             .Select(x => SIn.Long(x["AptNum"].ToString()))
             .ToList();
+        
         using var formApptPrintSetup = new FormApptPrintSetup(listAptNums, contrApptPanel.DateSelected, contrApptPanel.IsWeeklyView);
-        formApptPrintSetup.ShowDialog();
-        if (formApptPrintSetup.DialogResult != DialogResult.OK)
+
+        if (formApptPrintSetup.ShowDialog() != DialogResult.OK)
         {
             return;
         }
@@ -1065,7 +962,8 @@ public partial class ControlAppt : UserControl
         contrApptPanel.PagesPrinted = 0;
         contrApptPanel.PrintingPageRow = 0;
         contrApptPanel.PrintingPageColumn = 0;
-        var dateTimePrintStart = formApptPrintSetup.DateTimeApptPrintStart; //to avoid marshal by reference error in next line
+        
+        var dateTimePrintStart = formApptPrintSetup.DateTimeApptPrintStart;
 
         var printoutOrientation = PrintoutOrientation.Portrait;
         if (formApptPrintSetup.IsLandscape)
@@ -1074,12 +972,11 @@ public partial class ControlAppt : UserControl
         }
 
         PrinterL.TryPrintOrDebugClassicPreview(contrApptPanel.PrintPage,
-            Lan.g(this, "Daily appointment view for ") + dateTimePrintStart.ToShortDateString() + Lan.g(this, " printed"),
+            "Daily appointment view for " + dateTimePrintStart.ToShortDateString() + " printed",
             totalPages: 0,
             printSituation: PrintSituation.Appointments,
-            isForcedPreview: contrApptPanel.IsPrintPreview,
-            printoutOrientation: printoutOrientation
-        );
+            printoutOrientation: printoutOrientation, isForcedPreview: contrApptPanel.IsPrintPreview);
+        
         if (_patient == null)
         {
             ModuleSelected(0);
@@ -1089,29 +986,17 @@ public partial class ControlAppt : UserControl
         ModuleSelected(_patient.PatNum);
     }
 
-    #endregion Methods - Event Handlers ToolBarMain
-
-    #region Methods - Event Handlers PanelCalendar Upper
-
-    private void Calendar2_SizeChanged(object sender, EventArgs e)
-    {
-        //LayoutPanels();//didn't work too well
-    }
-
-    ///<summary>Clicked today.</summary>
-    private void butToday_Click(object sender, System.EventArgs e)
+    private void butToday_Click(object sender, EventArgs e)
     {
         ModuleSelected(DateTime.Today);
     }
 
-    ///<summary>Clicked back one day.</summary>
-    private void butBack_Click(object sender, System.EventArgs e)
+    private void butBack_Click(object sender, EventArgs e)
     {
         ModuleSelected(contrApptPanel.DateSelected.AddDays(-1));
     }
 
-    ///<summary>Clicked forward one day.</summary>
-    private void butFwd_Click(object sender, System.EventArgs e)
+    private void butFwd_Click(object sender, EventArgs e)
     {
         ModuleSelected(contrApptPanel.DateSelected.AddDays(1));
     }
@@ -1119,7 +1004,7 @@ public partial class ControlAppt : UserControl
     private void butBackWeek_Click(object sender, EventArgs e)
     {
         butBackWeek.Enabled = false;
-        Application.DoEvents(); //process any events before the user should be able to click the button again
+        Application.DoEvents();
         ModuleSelected(contrApptPanel.DateSelected.AddDays(-7));
         butBackWeek.Enabled = true;
     }
@@ -1154,13 +1039,11 @@ public partial class ControlAppt : UserControl
         ModuleSelected(contrApptPanel.DateSelected.AddMonths(6));
     }
 
-    ///<summary>Clicked a date on the calendar.</summary>
     private void Calendar2_DateSelected(object sender, EventArgs e)
     {
         ModuleSelected(monthCalendarOD.GetDateSelected());
     }
-
-
+    
     private void comboView_SelectionChangeCommitted(object sender, EventArgs e)
     {
         ComboViewChanged();
@@ -1175,9 +1058,7 @@ public partial class ControlAppt : UserControl
     {
         SetWeeklyView(true);
     }
-
-    #endregion Methods - Event Handlers PanelCalendar Upper
-
+    
     #region Methods - Event Handlers PanelCalendar Buttons
 
     //Left Buttons------------------------------------------------------------------------------------------------
@@ -1499,10 +1380,6 @@ public partial class ControlAppt : UserControl
                     hl7Msg.MsgText = messageHL7.ToString();
                     hl7Msg.PatNum = _patient.PatNum;
                     HL7Msgs.Insert(hl7Msg);
-                    if ( /* ODBuild.IsDebug() */ false)
-                    {
-                        ODMessageBox.Show(this, messageHL7.ToString());
-                    }
                 }
             }
 
@@ -1659,7 +1536,7 @@ public partial class ControlAppt : UserControl
         }
 
         SendToPinBoardAptNums(formApptsOther.ListAptNumsSelected);
-        RefreshPeriod(listPinApptNums: formApptsOther.ListAptNumsSelected);
+        RefreshPeriod(pinApptNums: formApptsOther.ListAptNumsSelected);
         if (contrApptPanel.IsWeeklyView)
         {
             return;
@@ -1675,7 +1552,7 @@ public partial class ControlAppt : UserControl
         DoSearch();
     }
 
-    private void butMakeAppt_Click(object sender, System.EventArgs e)
+    private void butMakeAppt_Click(object sender, EventArgs e)
     {
         if (_patient == null)
         {
@@ -1718,7 +1595,7 @@ public partial class ControlAppt : UserControl
         formApptsOther.IsInitialDoubleClick = false;
         formApptsOther.MakeAppointment();
         SendToPinBoardAptNums(formApptsOther.ListAptNumsSelected);
-        RefreshPeriod(listPinApptNums: formApptsOther.ListAptNumsSelected);
+        RefreshPeriod(pinApptNums: formApptsOther.ListAptNumsSelected);
     }
 
     private void butMakeRecall_Click(object sender, EventArgs e)
@@ -1768,7 +1645,7 @@ public partial class ControlAppt : UserControl
         }
 
         SendToPinBoardAptNums(formApptsOther.ListAptNumsSelected);
-        RefreshPeriod(listPinApptNums: formApptsOther.ListAptNumsSelected);
+        RefreshPeriod(pinApptNums: formApptsOther.ListAptNumsSelected);
         if (contrApptPanel.IsWeeklyView)
         {
             return;
@@ -1884,7 +1761,7 @@ public partial class ControlAppt : UserControl
         }*/
     }
 
-    private void pinBoard_ApptMovedFromPinboard(object sender, UI.ApptFromPinboardEventArgs e)
+    private void pinBoard_ApptMovedFromPinboard(object sender, ApptFromPinboardEventArgs e)
     {
         //Any return from this point forward will cause HideDraggableTempApptSingle();
         //Make sure there are operatories for the appointment to be scheduled and make sure the user dragged the appointment to a valid location.
@@ -1943,7 +1820,7 @@ public partial class ControlAppt : UserControl
             return;
         }
 
-        var timeSpanNewRounded = UI.ControlApptPanel.RoundTimeToNearestIncrement(timeSpanNew.Value, contrApptPanel.MinPerIncr);
+        var timeSpanNewRounded = ControlApptPanel.RoundTimeToNearestIncrement(timeSpanNew.Value, contrApptPanel.MinPerIncr);
         contrApptPanel.RoundToNearestDateAndOp(e.Location.X - contrApptPanel.Location.X, //passing in as coordinates of the control
             out var dateNew,
             out var opIdx, e.BitmapAppt.Width);
@@ -2007,7 +1884,7 @@ public partial class ControlAppt : UserControl
             {
                 var frmApptProvPrompt = new FrmApptProvPrompt();
                 var enumApptProvPrompt = PrefC.GetEnum<EnumApptProvPrompt>(PrefName.ApptModuleProviderPrompt);
-                var screen = System.Windows.Forms.Screen.FromControl(this);
+                var screen = Screen.FromControl(this);
                 frmApptProvPrompt.PointScreen = screen.Bounds.Location;
                 frmApptProvPrompt.EnumApptProvPrompt_ = enumApptProvPrompt;
                 if (enumApptProvPrompt == EnumApptProvPrompt.NoPromptChange || enumApptProvPrompt == EnumApptProvPrompt.NoPromptNoChange)
@@ -2379,10 +2256,6 @@ public partial class ControlAppt : UserControl
                     hl7Msg.MsgText = messageHL7.ToString();
                     hl7Msg.PatNum = _patient.PatNum;
                     HL7Msgs.Insert(hl7Msg);
-                    if ( /* ODBuild.IsDebug() */ false)
-                    {
-                        ODMessageBox.Show(this, messageHL7.ToString());
-                    }
                 }
             }
 
@@ -2466,17 +2339,17 @@ public partial class ControlAppt : UserControl
         if (Clinics.ClinicNum != 0 || !ApptViews.IsNoneView(GetApptViewCur()))
         {
             listOpNums = contrApptPanel.ListOpsVisible.Select(x => x.OperatoryNum).ToList();
-            listProvNums = contrApptPanel.ListProvsVisible.Select(x => x.ProvNum).ToList();
+            listProvNums = contrApptPanel.ListProvsVisible.Select(x => x.Id).ToList();
         }
 
-        ModuleSelected(_patient.PatNum, listOpNums: listOpNums, listProvNums: listProvNums);
+        ModuleSelected(_patient.PatNum, opNums: listOpNums, provNums: listProvNums);
         if (pinAptNum != 0)
         {
             SendToPinBoardAptNums([pinAptNum]);
         }
     }
 
-    private void pinBoard_PreparingToDragFromPinboard(object sender, UI.ApptDataRowEventArgs e)
+    private void pinBoard_PreparingToDragFromPinboard(object sender, ApptDataRowEventArgs e)
     {
         var pattern = SIn.String(e.DataRowAppt["Pattern"].ToString());
         var patternShowing = contrApptPanel.GetPatternShowing(pattern);
@@ -2719,13 +2592,13 @@ public partial class ControlAppt : UserControl
 
     private void menuApt_Opening(object sender, CancelEventArgs e)
     {
-        if (toolStripMenuItem == null)
+        if (_toolStripMenuItem == null)
         {
             return;
         }
 
-        toolStripMenuItem.DropDownItems.Clear();
-        toolStripMenuItem.Tag = contrApptPanel.SelectedAptNum; //Refresh later, just in case.
+        _toolStripMenuItem.DropDownItems.Clear();
+        _toolStripMenuItem.Tag = contrApptPanel.SelectedAptNum; //Refresh later, just in case.
         ToolStripItem item = null;
         var dontAllowUnscheduled = PrefC.GetBool(PrefName.UnscheduledListNoRecalls)
                                    && Appointments.IsRecallAppointment(Appointments.GetOneApt(contrApptPanel.SelectedAptNum));
@@ -2734,47 +2607,47 @@ public partial class ControlAppt : UserControl
         {
             if (dontAllowUnscheduled)
             {
-                item = toolStripMenuItem.DropDownItems.Add(Lan.g(this, "Missed - Delete Appointment"), null, menuBreakDelete_Click);
+                item = _toolStripMenuItem.DropDownItems.Add(Lan.g(this, "Missed - Delete Appointment"), null, menuBreakDelete_Click);
             }
             else
             {
-                item = toolStripMenuItem.DropDownItems.Add(Lan.g(this, "Missed - Send to Unscheduled List"), null, menuBreakToUnsched_Click);
+                item = _toolStripMenuItem.DropDownItems.Add(Lan.g(this, "Missed - Send to Unscheduled List"), null, menuBreakToUnsched_Click);
             }
 
             item.Tag = ProcedureCodes.GetProcCode("D9986");
-            item = toolStripMenuItem.DropDownItems.Add(Lan.g(this, "Missed - Copy To Pinboard"), null, menuBreakToPin_Click);
+            item = _toolStripMenuItem.DropDownItems.Add(Lan.g(this, "Missed - Copy To Pinboard"), null, menuBreakToPin_Click);
             item.Tag = ProcedureCodes.GetProcCode("D9986");
-            item = toolStripMenuItem.DropDownItems.Add(Lan.g(this, "Missed - Leave on Appt Book"), null, menuBreak_Click);
+            item = _toolStripMenuItem.DropDownItems.Add(Lan.g(this, "Missed - Leave on Appt Book"), null, menuBreak_Click);
             item.Tag = ProcedureCodes.GetProcCode("D9986");
         }
 
         if (brokenApptProcs.In(BrokenApptProcedure.Cancelled, BrokenApptProcedure.Both))
         {
-            if (toolStripMenuItem.DropDownItems.Count > 0)
+            if (_toolStripMenuItem.DropDownItems.Count > 0)
             {
-                toolStripMenuItem.DropDownItems.Add(new ToolStripSeparator());
+                _toolStripMenuItem.DropDownItems.Add(new ToolStripSeparator());
             }
 
             if (dontAllowUnscheduled)
             {
-                item = toolStripMenuItem.DropDownItems.Add(Lan.g(this, "Cancelled - Delete Appointment"), null, menuBreakDelete_Click);
+                item = _toolStripMenuItem.DropDownItems.Add(Lan.g(this, "Cancelled - Delete Appointment"), null, menuBreakDelete_Click);
             }
             else
             {
-                item = toolStripMenuItem.DropDownItems.Add(Lan.g(this, "Cancelled - Send to Unscheduled List"), null, menuBreakToUnsched_Click);
+                item = _toolStripMenuItem.DropDownItems.Add(Lan.g(this, "Cancelled - Send to Unscheduled List"), null, menuBreakToUnsched_Click);
             }
 
             item.Tag = ProcedureCodes.GetProcCode("D9987");
-            item = toolStripMenuItem.DropDownItems.Add(Lan.g(this, "Cancelled - Copy To Pinboard"), null, menuBreakToPin_Click);
+            item = _toolStripMenuItem.DropDownItems.Add(Lan.g(this, "Cancelled - Copy To Pinboard"), null, menuBreakToPin_Click);
             item.Tag = ProcedureCodes.GetProcCode("D9987");
-            item = toolStripMenuItem.DropDownItems.Add(Lan.g(this, "Cancelled - Leave on Appt Book"), null, menuBreak_Click);
+            item = _toolStripMenuItem.DropDownItems.Add(Lan.g(this, "Cancelled - Leave on Appt Book"), null, menuBreak_Click);
             item.Tag = ProcedureCodes.GetProcCode("D9987");
         }
 
-        toolStripMenuItem.Click -= menuApt_Click; //if there are items in DropDownItems, clicking on "Break Appointment" should not fire menuApt_Click, just expand menu
-        if (toolStripMenuItem.DropDownItems.Count == 0)
+        _toolStripMenuItem.Click -= menuApt_Click; //if there are items in DropDownItems, clicking on "Break Appointment" should not fire menuApt_Click, just expand menu
+        if (_toolStripMenuItem.DropDownItems.Count == 0)
         {
-            toolStripMenuItem.Click += menuApt_Click;
+            _toolStripMenuItem.Click += menuApt_Click;
         }
     }
 
@@ -2788,7 +2661,6 @@ public partial class ControlAppt : UserControl
         var appointment = BreakApptHelper(sender, true);
         if (appointment != null)
         {
-            DisplayFormAsapForWebSched(appointment);
             butDelete_Click(showPrompt: false);
         }
     }
@@ -2798,7 +2670,6 @@ public partial class ControlAppt : UserControl
         var appointment = BreakApptHelper(sender);
         if (appointment != null && AppointmentL.ValidateApptToPinboard(appointment))
         {
-            DisplayFormAsapForWebSched(appointment);
             AppointmentL.CopyAptToPinboardHelper(appointment);
         }
     }
@@ -2808,7 +2679,6 @@ public partial class ControlAppt : UserControl
         var appointment = BreakApptHelper(sender, true);
         if (appointment != null && AppointmentL.ValidateApptUnsched(appointment))
         {
-            DisplayFormAsapForWebSched(appointment);
             AppointmentL.SetApptUnschedHelper(appointment);
             ModuleSelected(appointment.PatNum);
         }
@@ -2818,7 +2688,7 @@ public partial class ControlAppt : UserControl
 
     #region Methods - Event Handlers Menu Apt Click
 
-    private void menuApt_Click(object sender, System.EventArgs e)
+    private void menuApt_Click(object sender, EventArgs e)
     {
         Appointment appointment;
         switch (((ToolStripMenuItem) sender).Name)
@@ -2850,9 +2720,6 @@ public partial class ControlAppt : UserControl
                 break;
             case MenuItemNames.Delete: // Menu: Delete
                 butDelete_Click(showPrompt: true);
-                break;
-            case MenuItemNames.EClipboardQR:
-                EClipboardQR_Click(sender, e);
                 break;
             case MenuItemNames.PatientAppointments: // Menu: Patient Appointments
                 DisplayOtherDlg(false);
@@ -2905,7 +2772,7 @@ public partial class ControlAppt : UserControl
             case MenuItemNames.HomePhone: //Call Home Phone
                 if (Programs.GetCur(ProgramName.DentalTekSmartOfficePhone).Enabled)
                 {
-                    Bridges.DentalTek.PlaceCall(_patient.HmPhone);
+                    DentalTek.PlaceCall(_patient.HmPhone);
                 }
                 else
                 {
@@ -2916,7 +2783,7 @@ public partial class ControlAppt : UserControl
             case MenuItemNames.WorkPhone: //Call Work Phone
                 if (Programs.GetCur(ProgramName.DentalTekSmartOfficePhone).Enabled)
                 {
-                    Bridges.DentalTek.PlaceCall(_patient.WkPhone);
+                    DentalTek.PlaceCall(_patient.WkPhone);
                 }
                 else
                 {
@@ -2927,7 +2794,7 @@ public partial class ControlAppt : UserControl
             case MenuItemNames.WirelessPhone: //Call Wireless Phone
                 if (Programs.GetCur(ProgramName.DentalTekSmartOfficePhone).Enabled)
                 {
-                    Bridges.DentalTek.PlaceCall(_patient.WirelessPhone);
+                    DentalTek.PlaceCall(_patient.WirelessPhone);
                 }
                 else
                 {
@@ -3001,15 +2868,6 @@ public partial class ControlAppt : UserControl
                 patient = Patients.GetPat(appointment.PatNum);
                 var formMessageToPayEdit = new FormMessageToPayEdit(patient);
                 formMessageToPayEdit.ShowDialog();
-                break;
-            case MenuItemNames.SendEClipboardByod:
-                appointment = Appointments.GetOneApt(contrApptPanel.SelectedAptNum);
-                if (ApptIsNull(appointment))
-                {
-                    return;
-                }
-
-                AppointmentL.SendByodLink(appointment);
                 break;
             /*case MenuItemNames.BringOverlapToFront:
                 ContrApptSheet2.OverlapOrdering.CycleOverlappingAppts(contrApptPanel.SelectedAptNum);//Change priorities
@@ -3386,27 +3244,22 @@ public partial class ControlAppt : UserControl
     private void menuTextASAPList_Click(object sender, EventArgs e)
     {
         var dateTimeClicked = contrApptPanel.DateTimeClicked;
-        if (PrefC.GetBool(PrefName.WebSchedAsapEnabled))
-        {
-            DisplayFormAsapForWebSched();
-            return;
-        }
 
         //Texting the ASAP list manually
-        if (_formASAP != null && !_formASAP.IsDisposed)
+        if (_formAsap is {IsDisposed: false})
         {
-            _formASAP.Close();
+            _formAsap.Close();
         }
 
-        _formASAP = new FormASAP();
-        _formASAP.DateTimeChosen = dateTimeClicked;
-        _formASAP.Show();
-        if (_formASAP.WindowState == FormWindowState.Minimized)
+        _formAsap = new FormASAP();
+        _formAsap.DateTimeChosen = dateTimeClicked;
+        _formAsap.Show();
+        if (_formAsap.WindowState == FormWindowState.Minimized)
         {
-            _formASAP.WindowState = FormWindowState.Normal;
+            _formAsap.WindowState = FormWindowState.Normal;
         }
 
-        _formASAP.BringToFront();
+        _formAsap.BringToFront();
     }
 
     private void FormASAP_FormClosed(object sender, FormClosedEventArgs e)
@@ -3419,7 +3272,7 @@ public partial class ControlAppt : UserControl
 
     #region Methods - Event Handlers Menu Tasks
 
-    private void menuTasks_Click(object sender, System.EventArgs e)
+    private void menuTasks_Click(object sender, EventArgs e)
     {
         using var formTasksForAppt = new FormTasksForAppt(contrApptPanel.SelectedAptNum);
         formTasksForAppt.ShowDialog();
@@ -3481,7 +3334,7 @@ public partial class ControlAppt : UserControl
         var listProvidersShort = Providers.GetDeepCopy(true);
         for (var i = 0; i < listProvidersShort.Count; i++)
         {
-            if (contrApptPanel.ListApptViewItems.Exists(x => x.ProvNum == listProvidersShort[i].ProvNum))
+            if (contrApptPanel.ListApptViewItems.Exists(x => x.ProvNum == listProvidersShort[i].Id))
             {
                 if (!listProvidersShort[i].IsSecondary)
                 {
@@ -3507,7 +3360,7 @@ public partial class ControlAppt : UserControl
         var listProvidersShort = Providers.GetDeepCopy(true);
         for (var i = 0; i < listProvidersShort.Count; i++)
         {
-            if (contrApptPanel.ListApptViewItems.Exists(x => x.ProvNum == listProvidersShort[i].ProvNum))
+            if (contrApptPanel.ListApptViewItems.Exists(x => x.ProvNum == listProvidersShort[i].Id))
             {
                 if (listProvidersShort[i].IsSecondary)
                 {
@@ -3529,7 +3382,7 @@ public partial class ControlAppt : UserControl
     private void butProvPick_Click(object sender, EventArgs e)
     {
         using var formProvidersMultiPick = new FormProvidersMultiPick();
-        formProvidersMultiPick.ListProvidersSelected = _listProvidersSearch;
+        formProvidersMultiPick.SelectedProviders = _listProvidersSearch;
         formProvidersMultiPick.ShowDialog();
         if (formProvidersMultiPick.DialogResult != DialogResult.OK)
         {
@@ -3537,12 +3390,12 @@ public partial class ControlAppt : UserControl
         }
 
         _listBoxProviders.Items.Clear();
-        for (var i = 0; i < formProvidersMultiPick.ListProvidersSelected.Count; i++)
+        for (var i = 0; i < formProvidersMultiPick.SelectedProviders.Count; i++)
         {
-            _listBoxProviders.Items.Add(formProvidersMultiPick.ListProvidersSelected[i].Abbr, formProvidersMultiPick.ListProvidersSelected[i]);
+            _listBoxProviders.Items.Add(formProvidersMultiPick.SelectedProviders[i].Abbr, formProvidersMultiPick.SelectedProviders[i]);
         }
 
-        _listProvidersSearch = formProvidersMultiPick.ListProvidersSelected;
+        _listProvidersSearch = formProvidersMultiPick.SelectedProviders;
         if (pinBoard.SelectedIndex == -1)
         {
             MsgBox.Show(this, "There is no appointment on the pinboard.");
@@ -3571,7 +3424,7 @@ public partial class ControlAppt : UserControl
         DoSearch();
     }
 
-    private void butSearch_Click(object sender, System.EventArgs e)
+    private void butSearch_Click(object sender, EventArgs e)
     {
         if (pinBoard.ListPinBoardItems.Count == 0)
         {
@@ -3602,17 +3455,17 @@ public partial class ControlAppt : UserControl
         DoSearch();
     }
 
-    private void butSearchClose_Click(object sender, System.EventArgs e)
+    private void butSearchClose_Click(object sender, EventArgs e)
     {
         groupSearch.Visible = false;
     }
 
-    private void butSearchCloseX_Click(object sender, System.EventArgs e)
+    private void butSearchCloseX_Click(object sender, EventArgs e)
     {
         groupSearch.Visible = false;
     }
 
-    private void butSearchMore_Click(object sender, System.EventArgs e)
+    private void butSearchMore_Click(object sender, EventArgs e)
     {
         if (pinBoard.SelectedIndex == -1)
         {
@@ -3629,7 +3482,7 @@ public partial class ControlAppt : UserControl
         DoSearch();
     }
 
-    private void listSearchResults_MouseDown(object sender, System.Windows.Forms.MouseEventArgs e)
+    private void listSearchResults_MouseDown(object sender, MouseEventArgs e)
     {
         var clickedI = listSearchResults.IndexFromPoint(e.X, e.Y);
         if (clickedI == -1)
@@ -3658,8 +3511,8 @@ public partial class ControlAppt : UserControl
         menuApt.Items.Add(new ToolStripMenuItem(Lan.g(this, "Copy to Pinboard"), null, menuApt_Click, MenuItemNames.CopyToPinboard));
         menuApt.Items.Add(new ToolStripSeparator());
         menuApt.Items.Add(new ToolStripMenuItem(Lan.g(this, "Send to Unscheduled List"), null, menuApt_Click, MenuItemNames.SendToUnscheduledList));
-        toolStripMenuItem = new ToolStripMenuItem(Lan.g(this, "Break Appointment"), null, menuApt_Click, MenuItemNames.BreakAppointment);
-        menuApt.Items.Add(toolStripMenuItem);
+        _toolStripMenuItem = new ToolStripMenuItem(Lan.g(this, "Break Appointment"), null, menuApt_Click, MenuItemNames.BreakAppointment);
+        menuApt.Items.Add(_toolStripMenuItem);
         menuApt.Items.Add(new ToolStripMenuItem(Lan.g(this, "Mark as ASAP"), null, menuApt_Click, MenuItemNames.MarkAsAsap));
         menuApt.Items.Add(new ToolStripMenuItem(Lan.g(this, "Set Complete"), null, menuApt_Click, MenuItemNames.SetComplete));
         menuApt.Items.Add(new ToolStripMenuItem(Lan.g(this, "Delete"), null, menuApt_Click, MenuItemNames.Delete));
@@ -3679,12 +3532,6 @@ public partial class ControlAppt : UserControl
         menuBlockout.Items.Add(new ToolStripMenuItem(Lan.g(this, MenuItemNames.DeleteWebSchedAsapBlockout), null, DeleteWebSchedAsapBlockout_Click, MenuItemNames.DeleteWebSchedAsapBlockout));
         menuBlockout.Items.Add(new ToolStripMenuItem(Lan.g(this, "Add Blockout"), null, menuBlockAdd_Click, MenuItemNames.AddBlockout));
         menuBlockout.Items.Add(new ToolStripMenuItem(Lan.g(this, "Blockout Cut-Copy-Paste"), null, menuBlockCutCopyPaste_Click, MenuItemNames.BlockoutCutCopyPaste));
-        if (!true)
-        {
-            //Clear All Blockouts for Day is too aggressive when Clinics are enabled.
-            menuBlockout.Items.Add(new ToolStripMenuItem(Lan.g(this, "Clear All Blockouts for Day"), null, menuBlockClearDay_Click, MenuItemNames.ClearAllBlockoutsForDay));
-        }
-
         menuBlockout.Items.Add(new ToolStripMenuItem(Lan.g(this, "Clear All Blockouts for Day, Op only"), null, menuBlockClearOp_Click, MenuItemNames.ClearAllBlockoutsForDayOpOnly));
         if (true)
         {
@@ -3731,7 +3578,7 @@ public partial class ControlAppt : UserControl
             toolBarMain.Buttons.Add(new ODToolBarButton(Lan.g(this, "Rapid Call"), 2, "", "RapidCall"));
         }
 
-        ProgramL.LoadToolBar(toolBarMain, EnumToolBar.ApptModule);
+        Logic.ProgramL.LoadToolBar(toolBarMain, EnumToolBar.ApptModule);
         toolBarMain.Invalidate();
         UpdateToolbarButtons();
     }
@@ -3755,94 +3602,103 @@ public partial class ControlAppt : UserControl
         {
             if (_patient == null)
             {
-                ModuleSelected(0, listOpNums: ApptViewItems.GetOpsForView(apptViewNum), listProvNums: ApptViewItems.GetProvsForView(apptViewNum));
+                ModuleSelected(0, opNums: ApptViewItems.GetOpsForView(apptViewNum), provNums: ApptViewItems.GetProvsForView(apptViewNum));
             }
             else
             {
-                ModuleSelected(_patient.PatNum, listOpNums: ApptViewItems.GetOpsForView(apptViewNum), listProvNums: ApptViewItems.GetProvsForView(apptViewNum));
+                ModuleSelected(_patient.PatNum, opNums: ApptViewItems.GetOpsForView(apptViewNum), provNums: ApptViewItems.GetProvsForView(apptViewNum));
             }
         }
         else
         {
-            RefreshPeriod(listOpNums: ApptViewItems.GetOpsForView(apptViewNum), listProvNums: ApptViewItems.GetProvsForView(apptViewNum), isRefreshSchedules: true);
+            RefreshPeriod(opNums: ApptViewItems.GetOpsForView(apptViewNum), provNums: ApptViewItems.GetProvsForView(apptViewNum), isRefreshSchedules: true);
         }
 
         contrApptPanel.EndUpdate();
     }
 
     ///<summary>Refreshes the module for the passed in patient.  A patNum of 0 is acceptable.  Any ApptNums within listPinApptNums will get forcefully added to the main DataSet for the appointment module.</summary>
-    public void ModuleSelected(long patNum, List<long> listPinApptNums = null, List<long> listOpNums = null, List<long> listProvNums = null)
+    public void ModuleSelected(long patNum, List<long> pinApptNums = null, List<long> opNums = null, List<long> provNums = null)
     {
         LayoutControls();
+        
         if (IsHqNoneView())
         {
             return;
         }
 
         contrApptPanel.BeginUpdate();
-        //Setting these properties is low overhead, and is necessary if user changed them.
         contrApptPanel.MinPerIncr = PrefC.GetInt(PrefName.AppointmentTimeIncrement);
+        
         var listDefs = Defs.GetDefsForCategory(DefCat.AppointmentColors, true);
         var colorOpen = listDefs[0].ItemColor;
         var colorClosed = listDefs[1].ItemColor;
         var colorHoliday = listDefs[3].ItemColor;
         var colorBlockText = listDefs[4].ItemColor;
         var colorTimeLine = PrefC.GetColor(PrefName.AppointmentTimeLineColor);
+        
         contrApptPanel.SetColors(colorOpen, colorClosed, colorHoliday, colorBlockText, colorTimeLine);
         contrApptPanel.SizeFont = float.Parse(PrefC.GetString(PrefName.ApptFontSize));
         contrApptPanel.WidthProvOnAppt = float.Parse(PrefC.GetString(PrefName.ApptProvbarWidth));
-        SetWeeklyView(contrApptPanel.IsWeeklyView, skipModuleSelection: true); //in case they changed the pref for start day of week
+        
+        SetWeeklyView(contrApptPanel.IsWeeklyView, skipModuleSelection: true); 
+        
         RefreshModuleDataPatient(patNum);
-        if (_patient != null && _patient.PatStatus == PatientStatus.Deleted)
+        
+        if (_patient is {PatStatus: PatientStatus.Deleted})
         {
             MsgBox.Show("Selected patient has been deleted by another workstation.");
             PatientL.RemoveFromMenu(_patient.PatNum);
             GlobalFormOpenDental.PatientSelected(new Patient(), false);
+            
             RefreshModuleDataPatient(0);
         }
 
-        if (_patient != null && _patient.PatStatus == PatientStatus.Archived && !Security.IsAuthorized(EnumPermType.ArchivedPatientSelect, suppressMessage: true))
+        if (_patient is {PatStatus: PatientStatus.Archived} && !Security.IsAuthorized(EnumPermType.ArchivedPatientSelect, suppressMessage: true))
         {
             GlobalFormOpenDental.PatientSelected(new Patient(), false);
             RefreshModuleDataPatient(0);
         }
 
-        RefreshModuleDataPeriod(listPinApptNums, listOpNums, listProvNums, forceRefreshSchedules: true);
+        RefreshModuleDataPeriod(pinApptNums, opNums, provNums, forceRefreshSchedules: true);
         RefreshModuleScreenButtonsRight();
         RefreshModuleScreenPeriod();
-        SetInitialStartTime(); //only runs once
+        
+        SetInitialStartTime();
+        
         contrApptPanel.EndUpdate();
-        //There is no "LoadData" in this Module, so at least pass _patCur.
+        
         ODEvent.Fire(ODEventType.ModuleSelected, _patient);
     }
-
-    ///<summary>Jumping here from another module and selecting an appointment. Refreshes the module for the patient associated with the appointment.</summary>
+    
     public void ModuleSelectedGoToAppt(long aptNum, DateTime dateSelected)
     {
         ModuleSelected(dateSelected);
+        
         var dataRow = contrApptPanel.TableAppointments.Select().FirstOrDefault(x => SIn.Long(x["AptNum"].ToString()) == aptNum);
-        if (dataRow != null)
+        if (dataRow is not null)
         {
             var patNum = SIn.Long(dataRow["PatNum"].ToString());
+            
             RefreshModuleDataPatient(patNum);
         }
 
         contrApptPanel.SelectedAptNum = aptNum;
     }
 
-    ///<summary>Jumping here from another module and placing appointments on the pinboard.</summary>
-    public void ModuleSelectedWithPinboard(long patNum, List<long> listPinApptNums, DateTime dateSelected, bool showSearch)
+    public void ModuleSelectedWithPinboard(long patNum, List<long> pinApptNums, DateTime dateSelected, bool showSearch)
     {
         contrApptPanel.BeginUpdate();
         contrApptPanel.DateSelected = dateSelected;
-        ModuleSelected(patNum, listPinApptNums);
-        SendToPinBoardAptNums(listPinApptNums);
+        
+        ModuleSelected(patNum, pinApptNums);
+        SendToPinBoardAptNums(pinApptNums);
+        
         if (showSearch)
         {
             dateSearch.Text = dateSelected.ToShortDateString();
             if (!groupSearch.Visible)
             {
-                //if search not already visible
                 ShowSearch();
             }
 
@@ -3851,16 +3707,12 @@ public partial class ControlAppt : UserControl
 
         contrApptPanel.EndUpdate();
     }
-
-
+    
     public void ModuleUnselected()
     {
-        //We could get rid of our main bitmaps to free up a little memory, I suppose
     }
-
-    ///<summary>>Refreshes everything except the patient info. isRefreshBubble will refresh the appointment bubble.  If another workstation made a change, then refreshes datatables.</summary>
-    public void RefreshPeriod(List<long> listOpNums = null, List<long> listProvNums = null, bool isRefreshAppointments = true,
-        bool isRefreshSchedules = false, List<long> listPinApptNums = null)
+    
+    public void RefreshPeriod(List<long> opNums = null, List<long> provNums = null, bool isRefreshAppointments = true, bool isRefreshSchedules = false, List<long> pinApptNums = null)
     {
         if (IsHqNoneView())
         {
@@ -3868,21 +3720,18 @@ public partial class ControlAppt : UserControl
         }
 
         contrApptPanel.BeginUpdate();
-        RefreshModuleDataPeriod(listPinApptNums, listOpNums: listOpNums, listProvNums: listProvNums, forceRefreshAppointments: isRefreshAppointments, forceRefreshSchedules: isRefreshSchedules);
+        
+        RefreshModuleDataPeriod(pinApptNums, opNums, provNums, isRefreshAppointments, isRefreshSchedules);
         RefreshModuleScreenPeriod();
+        
         contrApptPanel.EndUpdate();
     }
 
-    /// <summary>Wrapper for RefreshPeriod, refreshes the schedules, but not the appointments</summary>
     public void RefreshPeriodSchedules()
     {
         RefreshPeriod(isRefreshAppointments: false, isRefreshSchedules: true);
     }
-
-    #endregion Methods - Public Module Select
-
-    #region Methods - Public Get Fields From Panel
-
+    
     public DateTime GetDateSelected()
     {
         return contrApptPanel.DateSelected;
@@ -3893,17 +3742,11 @@ public partial class ControlAppt : UserControl
         return contrApptPanel.ListOpsVisible;
     }
 
-    public List<Provider> GetListProvsVisible()
+    public List<ProviderDto> GetListProvsVisible()
     {
         return contrApptPanel.ListProvsVisible;
     }
-
-    #endregion Methods - Public Get Fields From Panel
-
-    #region Methods - Public Other
-
-    ///<summary>Displays the Other Appointments for the current patient, then refreshes screen as needed.  initialClick specifies whether the user 
-    ///doubleclicked on a blank time to get to this dialog.</summary>
+    
     public void DisplayOtherDlg(bool didInitialClick, DateTime dateTime, long opNum)
     {
         if (_patient == null)
@@ -3912,33 +3755,35 @@ public partial class ControlAppt : UserControl
         }
 
         using var formApptsOther = new FormApptsOther(_patient.PatNum, pinBoard.ListPinBoardItems.Select(x => x.AptNum).ToList());
+        
         formApptsOther.IsInitialDoubleClick = didInitialClick;
         formApptsOther.DateTimeClicked = contrApptPanel.DateTimeClicked;
         formApptsOther.OpNumClicked = contrApptPanel.OpNumClicked;
         formApptsOther.DateTNew = dateTime;
         formApptsOther.OpNumNew = opNum;
         formApptsOther.ShowDialog();
+        
         ProcessOtherDlg(formApptsOther.GetOtherResult(), formApptsOther.PatNumSelected, formApptsOther.StringDateJumpTo, formApptsOther.ListAptNumsSelected.ToArray());
     }
-
-    ///<summary>Displays the Other Appointments for the current patient, then refreshes screen as needed.  initialClick specifies whether the user doubleclicked on a blank time to get to this dialog.</summary>
+    
     public void DisplayOtherDlg(bool didInitialClick)
     {
-        if (_patient == null)
+        if (_patient is null)
         {
             MsgBox.Show(this, "Please select a patient first.");
             return;
         }
 
         using var formApptsOther = new FormApptsOther(_patient.PatNum, pinBoard.ListPinBoardItems.Select(x => x.AptNum).ToList());
+        
         formApptsOther.IsInitialDoubleClick = didInitialClick;
         formApptsOther.DateTimeClicked = contrApptPanel.DateTimeClicked;
         formApptsOther.OpNumClicked = contrApptPanel.OpNumClicked;
         formApptsOther.ShowDialog();
+        
         ProcessOtherDlg(formApptsOther.GetOtherResult(), formApptsOther.PatNumSelected, formApptsOther.StringDateJumpTo, formApptsOther.ListAptNumsSelected.ToArray(), formApptsOther.ListAptViewJumpTos);
     }
-
-    ///<summary>The key press from the main form is passed down to this module.  This is guaranteed to be between the keys of F1 and F12.</summary>
+    
     public void FunctionKeyPress(Keys keys)
     {
         var keyName = Enum.GetName(typeof(Keys), keys); //keyName will be F1, F2, ... F12
@@ -3950,7 +3795,6 @@ public partial class ControlAppt : UserControl
 
         if (comboView.Items.Count - 1 < fKeyVal)
         {
-            //Check for valid F key.
             return;
         }
 
@@ -3965,15 +3809,15 @@ public partial class ControlAppt : UserControl
     }
 
     ///<summary>This is public so that FormOpenDental can pass refreshed tasks here in order to avoid an extra query.</summary>
-    public void RefreshReminders(List<Task> listTasksReminder)
+    public void RefreshReminders(List<Task> reminderTasks)
     {
-        Logger.LogToPath();
-        var listSortedReminderTasks = listTasksReminder
+        var sortedReminderTasks = reminderTasks
             .Where(x => x.DateTimeEntry.Date <= DateTime.Today)
             .OrderBy(x => x.DateTimeEntry)
             .ToList();
-        tabReminders.Text = Lan.g(this, "Reminders");
-        if (listSortedReminderTasks.Count > 0)
+        
+        tabReminders.Text = "Reminders";
+        if (sortedReminderTasks.Count > 0)
         {
             tabReminders.Text += "*";
         }
@@ -3982,45 +3826,44 @@ public partial class ControlAppt : UserControl
         if (gridReminders.Columns.Count == 0)
         {
             gridReminders.Columns.Clear();
-            var col = new GridColumn("", 17); //The status column showing new/viewed in a checkbox.
-            col.ImageList = imageListTasks;
-            gridReminders.Columns.Add(col);
-            col = new GridColumn(Lan.g("TableTasks", "Description"), 200); //any width
-            gridReminders.Columns.Add(col);
+            gridReminders.Columns.Add(new GridColumn("", 17) {ImageList = imageListTasks});
+            gridReminders.Columns.Add(new GridColumn("Description", 200));
         }
 
         gridReminders.ListGridRows.Clear();
-        for (var i = 0; i < listSortedReminderTasks.Count; i++)
+        foreach (var reminder in sortedReminderTasks)
         {
-            var row = new GridRow();
-            SetReminderGridRow(row, listSortedReminderTasks[i]);
-            gridReminders.ListGridRows.Add(row);
+            var gridRow = new GridRow();
+            
+            SetReminderGridRow(gridRow, reminder);
+            
+            gridReminders.ListGridRows.Add(gridRow);
         }
 
         gridReminders.EndUpdate();
-        Logger.LogToPath();
     }
 
-    ///<summary>This logic mimics filling a row within UserControlTasks.FillGrid().
-    ///However, the logic is simpler here because we are only dealing with reminders.</summary>
-    private void SetReminderGridRow(GridRow row, Task taskReminder)
+    private void SetReminderGridRow(GridRow gridRow, Task taskReminder)
     {
-        row.Tag = taskReminder;
-        row.Cells.Clear();
+        gridRow.Tag = taskReminder;
+        gridRow.Cells.Clear();
+        
         var dateStr = "";
         if (taskReminder.DateTask.Year > 1880)
         {
-            if (taskReminder.DateType == TaskDateType.Day)
+            switch (taskReminder.DateType)
             {
-                dateStr += taskReminder.DateTask.ToShortDateString() + " - ";
-            }
-            else if (taskReminder.DateType == TaskDateType.Week)
-            {
-                dateStr += Lan.g(this, "Week of") + " " + taskReminder.DateTask.ToShortDateString() + " - ";
-            }
-            else if (taskReminder.DateType == TaskDateType.Month)
-            {
-                dateStr += taskReminder.DateTask.ToString("MMMM") + " - ";
+                case TaskDateType.Day:
+                    dateStr += taskReminder.DateTask.ToShortDateString() + " - ";
+                    break;
+                
+                case TaskDateType.Week:
+                    dateStr += "Week of " + taskReminder.DateTask.ToShortDateString() + " - ";
+                    break;
+                
+                case TaskDateType.Month:
+                    dateStr += taskReminder.DateTask.ToString("MMMM") + " - ";
+                    break;
             }
         }
         else if (taskReminder.DateTimeEntry.Year > 1880)
@@ -4064,21 +3907,13 @@ public partial class ControlAppt : UserControl
 
         if (PrefC.GetBool(PrefName.TasksNewTrackedByUser))
         {
-            //The new way
             if (taskReminder.TaskStatus == TaskStatusEnum.Done)
             {
-                row.Cells.Add("1");
+                gridRow.Cells.Add("1");
             }
             else
             {
-                if (taskReminder.IsUnread)
-                {
-                    row.Cells.Add("4");
-                }
-                else
-                {
-                    row.Cells.Add("2");
-                }
+                gridRow.Cells.Add(taskReminder.IsUnread ? "4" : "2");
             }
         }
         else
@@ -4086,32 +3921,28 @@ public partial class ControlAppt : UserControl
             switch (taskReminder.TaskStatus)
             {
                 case TaskStatusEnum.New:
-                    row.Cells.Add("4");
+                    gridRow.Cells.Add("4");
                     break;
+                
                 case TaskStatusEnum.Viewed:
-                    row.Cells.Add("2");
+                    gridRow.Cells.Add("2");
                     break;
+                
                 case TaskStatusEnum.Done:
-                    row.Cells.Add("1");
+                    gridRow.Cells.Add("1");
                     break;
             }
         }
 
-        row.Cells.Add(dateStr + objDesc + taskReminder.Descript);
-        //No need to do any text detection for triage priorities, we'll just use the task priority colors.
-        row.ColorBackG = Defs.GetColor(DefCat.TaskPriorities, taskReminder.PriorityDefNum);
+        gridRow.Cells.Add(dateStr + objDesc + taskReminder.Descript);
+        gridRow.ColorBackG = Defs.GetColor(DefCat.TaskPriorities, taskReminder.PriorityDefNum);
     }
-
-    #endregion Methods - Public Other
-
-    #region Methods - Private Refresh Data
-
-    /// <summary>This corresponds to the old ApptViewItemL.GetForCurView.  Its job is to set the ApptViewCur and then send VisOps and VisProvs data to the drawing.</summary>
+    
     private void GetForCurView(ApptView apptView, bool isWeekly, List<Schedule> listSchedulesDaily)
     {
         //contrApptPanel.BeginUpdate();//already handled in RefreshModuleDataPeriod
         contrApptPanel.ApptViewCur = apptView;
-        List<Provider> listProvidersVis = null;
+        List<ProviderDto> listProvidersVis = null;
         List<Operatory> listOperatoriesVis = null;
         var rowsPerIncr = 0;
         List<ApptViewItem> listApptViewItemRowElements = null;
@@ -4119,7 +3950,6 @@ public partial class ControlAppt : UserControl
         ApptViewItemL.FillForApptView(isWeekly, apptView, out listProvidersVis, out listOperatoriesVis, out listApptViewItems, out listApptViewItemRowElements, out rowsPerIncr);
         ApptViewItemL.AddOpsForScheduledProvs(isWeekly, listSchedulesDaily, apptView, ref listOperatoriesVis);
         listOperatoriesVis.Sort(ApptViewItemL.CompareOps);
-        listProvidersVis.Sort(ApptViewItemL.CompareProvs);
         contrApptPanel.ListProvsVisible = listProvidersVis;
         contrApptPanel.ListOpsVisible = listOperatoriesVis;
         contrApptPanel.RowsPerIncr = rowsPerIncr;
@@ -4137,12 +3967,10 @@ public partial class ControlAppt : UserControl
             return; //If all data is already in memory and we are not forcing the refresh.
         }
 
-        var includeVerifyIns = false;
-        if (contrApptPanel.ListApptViewItems != null
-            && contrApptPanel.ListApptViewItems.Exists(x => x.ElementDesc == EnumApptViewElement.VerifyIns_V.GetDescription()))
-        {
-            includeVerifyIns = true;
-        }
+        var includeVerifyIns = 
+            contrApptPanel.ListApptViewItems != null && 
+            contrApptPanel.ListApptViewItems.Exists(
+                x => x.ElementDesc == EnumApptViewElement.VerifyIns_V.GetDescription());
 
         var table = Appointments.GetPeriodApptsTable(dateStart, dateEnd, aptNum: 0, isPlanned: false, listPinApptNums, listOpNums, listProvNums, allowRunQueryOnNoOps: false, includeVerifyIns: includeVerifyIns);
         if (table.Rows.Count > 0)
@@ -4154,7 +3982,7 @@ public partial class ControlAppt : UserControl
         contrApptPanel.TableAppointments = table;
         contrApptPanel.TableApptFields = Appointments.GetApptFields(contrApptPanel.TableAppointments);
         contrApptPanel.TablePatFields = Appointments.GetPatFields(contrApptPanel.TableAppointments.Select().Select(x => SIn.Long(x["PatNum"].ToString())).ToList());
-        var arrivals = OpenDentBusiness.AutoComm.Arrivals.LoadArrivals(
+        var arrivals = Arrivals.LoadArrivals(
             contrApptPanel.TableAppointments.Select().Select(x => SIn.Long(x["ClinicNum"].ToString())).Distinct().ToList(),
             contrApptPanel.TableAppointments.Select().Select(x => SIn.Long(x["AptNum"].ToString())).Distinct().ToList()
         );
@@ -4178,45 +4006,29 @@ public partial class ControlAppt : UserControl
 
         //We have to go to the db because we need to get the most recent patient info, mainly the AskedToArriveEarly time.
         _patient = Patients.GetPat(patNum);
-        if (_patient != null && DatabaseIntegrities.DoShowPopup(_patient.PatNum, EnumModuleType.Appointments))
-        {
-            var listAppointments = Appointments.GetAppointmentsForPat(_patient.PatNum);
-            var listClaims = Claims.GetForPat(_patient.PatNum);
-            var listClaimProcs = ClaimProcs.Refresh([_patient.PatNum]);
-            var areHashesValid = Patients.AreAllHashesValid(_patient, listAppointments, [], [], listClaims, listClaimProcs);
-            if (!areHashesValid)
-            {
-                DatabaseIntegrities.AddPatientModuleToCache(_patient.PatNum, EnumModuleType.Appointments); //Add to cached list for next time
-                //show popup
-                var databaseIntegrity = DatabaseIntegrities.GetModule();
-                var frmDatabaseIntegrity = new FrmDatabaseIntegrity();
-                frmDatabaseIntegrity.MessageToShow = databaseIntegrity.Message;
-                frmDatabaseIntegrity.ShowDialog();
-            }
-        }
     }
 
     ///<summary>Gets op nums and prov nums for current view if not passed in.  Will refresh the appointments and schedules if the respective forceRefreshes are set.</summary>
-    private void RefreshModuleDataPeriod(List<long> listPinApptNums = null, List<long> listOpNums = null, List<long> listProvNums = null, bool forceRefreshAppointments = true, bool forceRefreshSchedules = false)
+    private void RefreshModuleDataPeriod(List<long> listPinApptNums = null, List<long> opNums = null, List<long> provNums = null, bool forceRefreshAppointments = true, bool forceRefreshSchedules = false)
     {
         long apptViewNum = -1;
-        if (listOpNums == null)
+        if (opNums == null)
         {
             apptViewNum = GetApptViewNumForUser();
-            listOpNums = ApptViewItems.GetOpsForView(apptViewNum);
+            opNums = ApptViewItems.GetOpsForView(apptViewNum);
         }
 
-        if (listProvNums == null)
+        if (provNums == null)
         {
             if (apptViewNum < 0)
             {
                 apptViewNum = GetApptViewNumForUser(); //Only run this query if we have to (haven't run it yet from this method).
             }
 
-            listProvNums = ApptViewItems.GetProvsForView(apptViewNum);
+            provNums = ApptViewItems.GetProvsForView(apptViewNum);
         }
 
-        RefreshSchedulesIfNeeded(contrApptPanel.DateStart, contrApptPanel.DateEnd, listOpNums, forceRefreshSchedules);
+        RefreshSchedulesIfNeeded(contrApptPanel.DateStart, contrApptPanel.DateEnd, opNums, forceRefreshSchedules);
         //no dependencies:
         RefreshWaitingRoomTable();
         _dateTimeWaitingRmRefreshed = DateTime.Now;
@@ -4227,7 +4039,7 @@ public partial class ControlAppt : UserControl
         GetForCurView(apptView, contrApptPanel.IsWeeklyView, contrApptPanel.ListSchedules);
         //for this line, I need contrApptPanel.ListApptViewItems to be already filled, which currently happens in GetForCurView:
         //Also need listOpNums and listProvNums to be prefilled.
-        RefreshAppointmentsIfNeeded(contrApptPanel.DateStart, contrApptPanel.DateEnd, listPinApptNums, listOpNums, listProvNums, forceRefresh: forceRefreshAppointments);
+        RefreshAppointmentsIfNeeded(contrApptPanel.DateStart, contrApptPanel.DateEnd, listPinApptNums, opNums, provNums, forceRefresh: forceRefreshAppointments);
     }
 
     /// <summary>If needed, refreshes TableSchedule, TableEmpSched, and TableProvSched tables.</summary>
@@ -4258,67 +4070,65 @@ public partial class ControlAppt : UserControl
         var table = contrApptPanel.TableEmpSched;
         gridEmpSched.BeginUpdate();
         gridEmpSched.Columns.Clear();
-        var col = new GridColumn(Lan.g("TableApptEmpSched", "Employee"), 80);
-        gridEmpSched.Columns.Add(col);
-        col = new GridColumn(Lan.g("TableApptEmpSched", "Schedule"), 70);
-        gridEmpSched.Columns.Add(col);
+        gridEmpSched.Columns.Add(new GridColumn("Employee", 80));
+        gridEmpSched.Columns.Add(new GridColumn("Schedule", 70));
+        
         if (hasNotes)
         {
-            col = new GridColumn(Lan.g("TableApptEmpSched", "Notes"), 100);
-            gridEmpSched.Columns.Add(col);
+            gridEmpSched.Columns.Add(new GridColumn("Notes", 100));
         }
 
         gridEmpSched.ListGridRows.Clear();
-        GridRow row;
         for (var i = 0; i < table.Rows.Count; i++)
         {
-            row = new GridRow();
-            row.Cells.Add(table.Rows[i]["empName"].ToString());
-            row.Cells.Add(table.Rows[i]["schedule"].ToString());
+            var gridRow = new GridRow();
+            
+            gridRow.Cells.Add(table.Rows[i]["empName"].ToString());
+            gridRow.Cells.Add(table.Rows[i]["schedule"].ToString());
+            
             if (hasNotes)
             {
-                row.Cells.Add(table.Rows[i]["Note"].ToString());
+                gridRow.Cells.Add(table.Rows[i]["Note"].ToString());
             }
 
-            gridEmpSched.ListGridRows.Add(row);
+            gridEmpSched.ListGridRows.Add(gridRow);
         }
 
         gridEmpSched.EndUpdate();
     }
 
-    ///<summary>Fills the lab summary for the day.</summary>
-    private void FillLab(List<LabCase> labCaseList)
+    private void FillLab(List<LabCase> labCases)
     {
-        var countNotRec = 0;
-        for (var i = 0; i < labCaseList.Count; i++)
+        var numberNotReceived = 0;
+        
+        foreach (var labCase in labCases)
         {
-            if (labCaseList[i].DateTimeChecked.Year > 1880)
+            if (labCase.DateTimeChecked.Year > 1880)
             {
                 continue;
             }
 
-            if (labCaseList[i].DateTimeRecd.Year > 1880)
+            if (labCase.DateTimeRecd.Year > 1880)
             {
                 continue;
             }
 
-            countNotRec++;
+            numberNotReceived++;
         }
 
-        if (countNotRec == 0)
+        if (numberNotReceived == 0)
         {
             textLab.Font = new Font("Microsoft Sans Serif", 8.25f, FontStyle.Regular);
             textLab.ForeColor = Color.Black;
-            textLab.Text = Lan.g(this, "All Received");
+            textLab.Text = "All Received";
             return;
         }
 
         textLab.Font = new Font("Microsoft Sans Serif", 8.25f, FontStyle.Bold);
         textLab.ForeColor = Color.DarkRed;
-        textLab.Text = countNotRec + Lan.g(this, " NOT RECEIVED");
+        textLab.Text = numberNotReceived + " NOT RECEIVED";
     }
-
-    ///<summary>Fills the production summary for the day. ContrApptSheet2.Controls should be current with ContrApptSingle(s) for the select Op and date.</summary>
+    
     private void FillProduction(DateTime start, DateTime end)
     {
         if (!contrApptPanel.ListApptViewItemRowElements.Exists(x => x.ElementDesc.In("Production", "NetProduction")))
@@ -4326,8 +4136,7 @@ public partial class ControlAppt : UserControl
             textProduction.Text = "";
             return;
         }
-
-        //If the PrefName.ApptModuleProductionUsesOps is true, the list will be filled with OpNums for the appointment view. Otherwise, the list will be empty.
+        
         var listProvNumsForApptView = new List<long>();
         var listOpsForApptView = new List<long>();
         var apptViewNum = GetApptViewNumForUser();
@@ -4437,7 +4246,7 @@ public partial class ControlAppt : UserControl
     ///<summary>Once per second, this grid refills itself in order to show the time ticking by.  This does not require a trip to the database.</summary>
     private void FillWaitingRoom()
     {
-        if (!this.Visible)
+        if (!Visible)
         {
             return;
         }
@@ -4469,10 +4278,8 @@ public partial class ControlAppt : UserControl
 
         gridWaiting.BeginUpdate();
         gridWaiting.Columns.Clear();
-        var col = new GridColumn(Lan.g("TableApptWaiting", "Patient"), 130);
-        gridWaiting.Columns.Add(col);
-        col = new GridColumn(Lan.g("TableApptWaiting", "Waited"), 100, HorizontalAlignment.Center);
-        gridWaiting.Columns.Add(col);
+        gridWaiting.Columns.Add(new GridColumn("Patient", 130));
+        gridWaiting.Columns.Add(new GridColumn("Waited", 100, HorizontalAlignment.Center));
         gridWaiting.ListGridRows.Clear();
         DateTime timeWait;
         GridRow row;
@@ -4566,7 +4373,7 @@ public partial class ControlAppt : UserControl
         var listDefs = Defs.GetDefsForCategory(DefCat.ApptConfirmed, true);
         for (var i = 0; i < listDefs.Count; i++)
         {
-            this.listConfirmed.Items.Add(listDefs[i].ItemValue);
+            listConfirmed.Items.Add(listDefs[i].ItemValue);
         }
 
         UpdateToolbarButtons();
@@ -4581,7 +4388,7 @@ public partial class ControlAppt : UserControl
         labelDate2.Text = contrApptPanel.DateStart.ToString("-  MMM d");
         RefreshPinboardImages();
         List<long> listOperatoryNums = null;
-        if (true && Clinics.ClinicNum > 0)
+        if (Clinics.ClinicNum > 0)
         {
             listOperatoryNums = Operatories.GetOpsForClinic(Clinics.ClinicNum).Select(x => x.OperatoryNum).ToList();
         }
@@ -4647,7 +4454,7 @@ public partial class ControlAppt : UserControl
                 //Signalods.ApptSignalLastRefreshed mimics the behavior of Signalods.SignalLastRefreshed but is guaranteed to not be stale from inactive sessions.
                 var listSignals = Signalods.RefreshTimed(Signalods.DateTApptSignalLastRefreshed, [InvalidType.Appointment, InvalidType.Schedules]);
                 var listOpNumsVisible = contrApptPanel.ListOpsVisible.Select(x => x.OperatoryNum).ToList();
-                var listProvNumsVisible = contrApptPanel.ListProvsVisible.Select(x => x.ProvNum).ToList();
+                var listProvNumsVisible = contrApptPanel.ListProvsVisible.Select(x => x.Id).ToList();
                 var isApptRefresh = Signalods.IsApptRefreshNeeded(contrApptPanel.DateStart, contrApptPanel.DateEnd, listSignals, listOpNumsVisible, listProvNumsVisible);
                 var isSchedRefresh = Signalods.IsSchedRefreshNeeded(contrApptPanel.DateStart, contrApptPanel.DateEnd, listSignals, listOpNumsVisible, listProvNumsVisible);
                 //either we have signals from other machines telling us to refresh, or we aren't using signals, in which case we still want to refresh
@@ -4778,43 +4585,36 @@ public partial class ControlAppt : UserControl
         var listProvNums = new List<long>();
         for (var i = 0; i < longArrayProvNums.Length; i++)
         {
-            longArrayProvNums[i] = _listProvidersSearch[i].ProvNum;
-            listProvNums.Add(_listProvidersSearch[i].ProvNum);
+            longArrayProvNums[i] = _listProvidersSearch[i].Id;
+            listProvNums.Add(_listProvidersSearch[i].Id);
             //providersList.Add(providers[i]);
         }
 
         var listOperatoryNums = new List<long>();
         var listClinicNums = new List<long>();
-        if (true)
-        {
-            if (Clinics.ClinicNum != 0)
-            {
-                //not HQ
-                listClinicNums.Add(Clinics.ClinicNum);
-                listOperatoryNums = Operatories.GetOpsForClinic(Clinics.ClinicNum).Select(x => x.OperatoryNum).ToList(); //get ops for the currently selected clinic only
-            }
-            else
-            {
-                //HQ
-                var apptView = GetApptViewCur();
-                if (ApptViews.IsNoneView(apptView))
-                {
-                    //none view
-                    MsgBox.Show(this, "Must have a view selected to search for appointment."); //this should never get hit. Just in case.
-                    return;
-                }
 
-                //get the disctinct clinic nums for the operatories in the current appointment view
-                var listOperatoryNumsForView = ApptViewItems.GetOpsForView(apptView.ApptViewNum);
-                var listOperatories = Operatories.GetOperatories(listOperatoryNumsForView, true);
-                listClinicNums = listOperatories.Select(x => x.ClinicNum).Distinct().ToList();
-                listOperatoryNums = listOperatories.Select(x => x.OperatoryNum).ToList();
-            }
+        if (Clinics.ClinicNum != 0)
+        {
+            //not HQ
+            listClinicNums.Add(Clinics.ClinicNum);
+            listOperatoryNums = Operatories.GetOpsForClinic(Clinics.ClinicNum).Select(x => x.OperatoryNum).ToList(); //get ops for the currently selected clinic only
         }
         else
         {
-            //all non hidden ops
-            listOperatoryNums = Operatories.GetDeepCopy(true).Select(x => x.OperatoryNum).ToList();
+            //HQ
+            var apptView = GetApptViewCur();
+            if (ApptViews.IsNoneView(apptView))
+            {
+                //none view
+                MsgBox.Show(this, "Must have a view selected to search for appointment."); //this should never get hit. Just in case.
+                return;
+            }
+
+            //get the disctinct clinic nums for the operatories in the current appointment view
+            var listOperatoryNumsForView = ApptViewItems.GetOpsForView(apptView.ApptViewNum);
+            var listOperatories = Operatories.GetOperatories(listOperatoryNumsForView, true);
+            listClinicNums = listOperatories.Select(x => x.ClinicNum).Distinct().ToList();
+            listOperatoryNums = listOperatories.Select(x => x.OperatoryNum).ToList();
         }
 
         //the result might be empty
@@ -4868,7 +4668,7 @@ public partial class ControlAppt : UserControl
     {
         _listProvidersSearch = [];
         var listProvidersShort = Providers.GetDeepCopy(true);
-        LayoutManagerForms.MoveLocation(groupSearch, new Point(panelCalendar.Location.X, panelCalendar.Location.Y + panelCalendarLower.Location.Y + pinBoard.Bottom + 2));
+        groupSearch.Location = panelCalendar.Location with {Y = panelCalendar.Location.Y + panelCalendarLower.Location.Y + pinBoard.Bottom + 2};
         textBefore.Text = "";
         textAfter.Text = "";
         _listBoxProviders.Items.Clear();
@@ -4884,13 +4684,13 @@ public partial class ControlAppt : UserControl
         var aptNum = SIn.Long(dataRow["AptNum"].ToString());
         for (var i = 0; i < listProvidersShort.Count; i++)
         {
-            if (isHygiene && listProvidersShort[i].ProvNum == provHyg)
+            if (isHygiene && listProvidersShort[i].Id == provHyg)
             {
                 //If their appiontment is hygine, the list will start with just their hygine provider
                 _listBoxProviders.Items.Add(listProvidersShort[i].Abbr, listProvidersShort[i]);
                 _listProvidersSearch.Add(listProvidersShort[i]);
             }
-            else if (!isHygiene && listProvidersShort[i].ProvNum == provNum)
+            else if (!isHygiene && listProvidersShort[i].Id == provNum)
             {
                 //If their appointment is not hygine, they will start with just their primary provider
                 _listBoxProviders.Items.Add(listProvidersShort[i].Abbr, listProvidersShort[i]);
@@ -4902,18 +4702,18 @@ public partial class ControlAppt : UserControl
     }
 
     #endregion Methods - Private Search
-        
+
     private bool ApptIsNull(Appointment appointment)
     {
         if (appointment is not null)
         {
             return false;
         }
-            
+
         MsgBox.Show(this, "Selected appointment no longer exists.");
-                
+
         RefreshPeriod();
-                
+
         return true;
     }
 
@@ -4951,7 +4751,7 @@ public partial class ControlAppt : UserControl
                     + "Contact Open Dental for more information.");
         try
         {
-            System.Diagnostics.Process.Start("http://www.opendental.com/resources/redirects/redirectdentaltekinfo.html");
+            Process.Start("http://www.opendental.com/resources/redirects/redirectdentaltekinfo.html");
         }
         catch (Exception)
         {
@@ -4960,7 +4760,6 @@ public partial class ControlAppt : UserControl
         }
     }
 
-    ///<summary>Copied from FormApptsOther. Does not limit appointment creation, only warns user. This check should be run before creating a new appointment. </summary>
     private void CheckStatus()
     {
         if (_patient.PatStatus == PatientStatus.Inactive
@@ -4976,16 +4775,12 @@ public partial class ControlAppt : UserControl
         }
     }
 
-    ///<summary>Determines the selected Appt View based on the selected index in comboView.  When doSetOnNoChange=true, always sets the new ApptView
-    ///based on selection, otherwise, no change therefore do not set the view.</summary>
     private void ComboViewChanged()
     {
         var viewNumSelected = comboView.GetSelected<ApptView>()?.ApptViewNum ?? 0; //Selected view.
         SetView(viewNumSelected, true);
     }
 
-    ///<summary>Copies several fields from the supplied Appointment to a new Appointment object, inserts it into the database, and sends the new 
-    ///appointment to the Pinboard. Only used for HQ currently.</summary>
     private void CopyApptStructure(Appointment appointment)
     {
         if (ApptIsNull(appointment))
@@ -5041,126 +4836,6 @@ public partial class ControlAppt : UserControl
         SendToPinboardDataRow(dataRow);
     }
 
-    /// <summary>Opens a QR code to scan on a mobile device to checkin a patient.</summary>
-    private void EClipboardQR_Click(object sender, System.EventArgs e)
-    {
-        var menuItem = sender as ToolStripMenuItem;
-        if (menuItem == null || contrApptPanel == null || contrApptPanel.SelectedAptNum == 0)
-        {
-            MsgBox.Show("No appointment selected, please select an appointment first.");
-            return;
-        }
-
-        var apt = Appointments.GetOneApt(contrApptPanel.SelectedAptNum);
-        if (apt == null)
-        {
-            MsgBox.Show("No appointment selected, please select an appointment first.");
-            return;
-        }
-
-        var funcInsertUnlock = InsertDataForUnlockCode;
-        using var formMobileCode = new FormMobileCode(funcInsertUnlock);
-        formMobileCode.ShowDialog();
-    }
-
-    /// <summary>Inserts MobileDataByte for checkin.</summary>
-    private MobileDataByte InsertDataForUnlockCode(string unlockCode)
-    {
-        MobileDataByte mobileDataByte;
-        try
-        {
-            mobileDataByte = MobileDataBytes.InsertPatientCheckin(_patient, unlockCode);
-        }
-        catch (Exception ex)
-        {
-            MsgBox.Show(ex.Message);
-            return null;
-        }
-
-        return mobileDataByte;
-    }
-
-    ///<summary>Brings up FormASAP ready to send for an open time slot.</summary>
-    private void DisplayFormAsapForWebSched(Appointment appointment = null)
-    {
-        var dateTimeSelected = contrApptPanel.DateTimeClicked;
-        var opNum = contrApptPanel.OpNumClicked;
-        long apptNum = 0;
-        var apptLength = 0;
-        if (appointment != null)
-        {
-            dateTimeSelected = appointment.AptDateTime;
-            apptLength = appointment.Length;
-            var apptTimeIncrement = PrefC.GetInt(PrefName.AppointmentTimeIncrement); //Based on the users appt view increment.
-            //Get the current time and strip off the seconds.
-            var dateTimeMinReplacementStart = DateTimeOD.GetDateTimeHourAndMins(DateTime.Now).AddMinutes(20);
-            //If the current time is less than 20 minutes before the appts start time, adjust the length of the allowed appointment replacement.
-            //This way we only suggest an ASAP appointment that fits within the time slot of the broken appt minus the 20 mins needed to arrive at the location.
-            //If the appt length is ever zero or less, simply return. 
-            //E.g. The current time is 11:00 AM and an hour long appt that starts at 11:00 AM is broken. Only search for ASAP appts that fit within 11:20 AM - 12:00 PM
-            if (appointment.AptDateTime < dateTimeMinReplacementStart)
-            {
-                //Adjust the minimum replacement starting time so that it is on a perfect time increment.
-                var minsToAdd = 0;
-                var mod = dateTimeMinReplacementStart.Minute % apptTimeIncrement;
-                if (mod > 0)
-                {
-                    minsToAdd = apptTimeIncrement - mod;
-                }
-
-                dateTimeMinReplacementStart = dateTimeMinReplacementStart.AddMinutes(minsToAdd);
-                //Figure out how many minutes are needed to adjust the length of the allowed appointment replacement in order to fit within the new time slot.
-                var timeSpanApptLengthAdjust = dateTimeMinReplacementStart - appointment.AptDateTime;
-                //If the entire appt is either in the past or ends before the minimum replacement start time, simply return.
-                if (timeSpanApptLengthAdjust.TotalMinutes >= appointment.Length)
-                {
-                    return;
-                }
-
-                //Adjust the "selected" date time so that it doesn't look for time slots too close to the current time.
-                dateTimeSelected = dateTimeMinReplacementStart;
-                //Only search for appointments with a length that will fit within the new time slot.
-                apptLength -= (int) timeSpanApptLengthAdjust.TotalMinutes;
-            }
-
-            //An appointment is being broken/deleted, so we may need to prompt the user to make this slot available to ASAP List.
-            if (!AppointmentL.PromptTextAsapList(appointment.ClinicNum))
-            {
-                return;
-            }
-
-            opNum = appointment.Op;
-            apptNum = appointment.AptNum;
-        }
-
-        DateRange dateRange;
-        try
-        {
-            dateRange = AppointmentL.GetAsapRange(opNum, dateTimeSelected, apptNum, contrApptPanel.ListSchedules);
-        }
-        catch (ODException ex)
-        {
-            ODMessageBox.Show(this, ex.Message);
-            return;
-        }
-        catch (Exception ex)
-        {
-            FriendlyException.Show(Lan.g(this, "Unexpected error occurred."), ex);
-            return;
-        }
-
-        dateRange.Start = ODMathLib.Max(dateTimeSelected, dateRange.Start);
-        if (_formASAP == null || _formASAP.IsDisposed)
-        {
-            _formASAP = new FormASAP();
-        }
-
-        _formASAP.ShowFormForWebSched(dateTimeSelected, dateRange.Start, dateRange.End, opNum, maxApptLengthFilter: apptLength);
-        _formASAP.FormClosed += FormASAP_FormClosed;
-    }
-
-    ///<summary>Helper function for users who have BrokenApptRequiredOnMove enabled. Pref forces the user to pick whether the appt was missed or
-    ///cancelled before moving, deleting, copying to pinboard or sending to the unsched list.</summary>
     private bool DoApptBreakRequired(Appointment appointment, Patient patient = null)
     {
         if (PrefC.GetBool(PrefName.BrokenApptRequiredOnMove) && appointment.AptStatus == ApptStatus.Scheduled)
@@ -5183,10 +4858,6 @@ public partial class ControlAppt : UserControl
         return true;
     }
 
-    ///<summary>Gets the most recently selected ApptView, or runs queries to determine which ApptView is the appropriate view for the current user.
-    ///Can return null.</summary>
-    ///<param name="apptViewNumOverride">If contrApptPanel.ApptViewCur is null, and the appropriate ApptView.ApptViewNum has already been determined,
-    ///pass in apptViewNumOverride to avoid running queries.</param>
     private ApptView GetApptViewCur(long apptViewNumOverride = -1)
     {
         var apptView = contrApptPanel.ApptViewCur;
@@ -5282,7 +4953,6 @@ public partial class ControlAppt : UserControl
         return apptView;
     }
 
-    /// <summary></summary>
     private long GetApptViewNumForUser()
     {
         if (contrApptPanel.ApptViewCur != null)
@@ -5333,9 +5003,6 @@ public partial class ControlAppt : UserControl
         });
     }
 
-    ///<summary>Checks if the appointment's start time overlaps another appt in the Op which the apt resides.  Tests all appts for the day, even if not visible.
-    ///Calling RefreshPeriod() is not necessary before calling this method. It goes to the db only as much as is necessary.
-    ///Returns true if no overlap found. Returns false if given apt start time conflicts with another apt in the Op.</summary>
     private bool HasValidStartTime(Appointment apt)
     {
         if (PrefC.GetBool(PrefName.ApptsAllowOverlap))
@@ -5348,8 +5015,6 @@ public partial class ControlAppt : UserControl
         return !Appointments.TryAdjustAppointment(apt, contrApptPanel.ListOpsVisible, false, false, false, false, out notUsed);
     }
 
-    ///<summary>Checks if the appointment's start time would overlap a blockout that it cannot be scheduled over.
-    ///Returns true if no overlap is found. Returns false if given appointment's start time would conflict with a blockout in the operatory.</summary>
     private bool CanScheduleAppointmentTypeOnBlockoutType(Appointment appointment)
     {
         var listScheduleBlockoutsOverlapping = Appointments.GetBlockoutsOverlappingNoSchedule(appointment);
@@ -5468,8 +5133,7 @@ public partial class ControlAppt : UserControl
 
         return true;
     }
-
-    ///<summary>Mostly for moving a single appointment.  Similar to the logic which runs in pinBoard_MouseUp(), but pinBoard_MouseUp() has additional things that are done.  This is also used for the UpdateProvs tool to reassign all future appointments for one op to another prov.</summary>
+    
     private void MoveAppointment(Appointment appointment, Appointment appointmentOld, List<Schedule> listSchedeulesForOp = null, bool isOpUpdate = false)
     {
         var timeWasMoved = appointment.AptDateTime != appointmentOld.AptDateTime;
@@ -5560,7 +5224,7 @@ public partial class ControlAppt : UserControl
             {
                 var frmApptProvPrompt = new FrmApptProvPrompt();
                 var enumApptProvPrompt = PrefC.GetEnum<EnumApptProvPrompt>(PrefName.ApptModuleProviderPrompt);
-                var screen = System.Windows.Forms.Screen.FromControl(this);
+                var screen = Screen.FromControl(this);
                 frmApptProvPrompt.PointScreen = screen.Bounds.Location;
                 frmApptProvPrompt.EnumApptProvPrompt_ = enumApptProvPrompt;
                 if (!isOpUpdate && (enumApptProvPrompt == EnumApptProvPrompt.NoPromptChange || enumApptProvPrompt == EnumApptProvPrompt.NoPromptNoChange))
@@ -5617,10 +5281,6 @@ public partial class ControlAppt : UserControl
                             }
                         }
                     }
-                }
-
-                PluginApptProvChangeQuestionEnd:
-                {
                 }
             }
             else if (isOpUpdate)
@@ -5781,10 +5441,6 @@ public partial class ControlAppt : UserControl
             }
         }
 
-        PluginApptDoNotUnbreakApptSameDay:
-        {
-        }
-        //original location of provider code
         if (operatory.ClinicNum == 0)
         {
             appointment.ClinicNum = patient.ClinicNum;
@@ -5794,52 +5450,26 @@ public partial class ControlAppt : UserControl
             appointment.ClinicNum = operatory.ClinicNum;
         }
 
-        if (appointment.AptDateTime != appointmentOld.AptDateTime
-            && appointment.Confirmed != Defs.GetFirstForCategory(DefCat.ApptConfirmed, true).DefNum
-            && appointment.AptDateTime.Date != DateTime.Today)
+        if (appointment.AptDateTime != appointmentOld.AptDateTime && appointment.Confirmed != Defs.GetFirstForCategory(DefCat.ApptConfirmed, true).DefNum && appointment.AptDateTime.Date != DateTime.Today)
         {
             string prompt;
             if (PrefC.GetBool(PrefName.ApptConfirmAutoEnabled))
             {
-                prompt = Lan.g(this, "Do you want to resend the eConfirmation?");
+                prompt = "Do you want to resend the eConfirmation?";
             }
             else if (PrefC.GetBool(PrefName.ApptThankYouAutoEnabled))
             {
-                prompt = Lan.g(this, "Do you want to resend the eThankYou?");
+                prompt = "Do you want to resend the eThankYou?";
             }
             else
             {
-                prompt = Lan.g(this, "Reset Confirmation Status?");
+                prompt = "Reset Confirmation Status?";
             }
 
             var isResetConf = MsgBox.Show(this, MsgBoxButtons.YesNo, prompt);
             if (isResetConf)
             {
                 appointment.Confirmed = Defs.GetFirstForCategory(DefCat.ApptConfirmed, true).DefNum; //Causes the confirmation status to be reset.
-            }
-
-            if (PrefC.GetBool(PrefName.ApptConfirmAutoEnabled))
-            {
-                var listConfirmationRequests = ConfirmationRequests.GetAllForAppts([appointment.AptNum]);
-                for (var i = 0; i < listConfirmationRequests.Count(); i++)
-                {
-                    //If they selected No, this will force the econnector to not delete the row and therefore not send another eConfirmation.
-                    //If they selected Yes, we will clear the DoNotResend flag so that it will get sent.
-                    listConfirmationRequests[i].DoNotResend = !isResetConf;
-                    ConfirmationRequests.Update(listConfirmationRequests[i]);
-                }
-            }
-
-            if (PrefC.GetBool(PrefName.ApptThankYouAutoEnabled))
-            {
-                var listApptThankYouSents = ApptThankYouSents.GetForApt(appointment.AptNum);
-                for (var i = 0; i < listApptThankYouSents.Count(); i++)
-                {
-                    //If they selected No, this will force the econnector to not delete the row and therefore not send another eThankYou.
-                    //If they selected Yes, we will clear the DoNotResend flag so that it will get sent.
-                    listApptThankYouSents[i].DoNotResend = !isResetConf;
-                    ApptThankYouSents.Update(listApptThankYouSents[i]);
-                }
             }
         }
 
@@ -5873,50 +5503,36 @@ public partial class ControlAppt : UserControl
             MsgBox.Show(this, e.Message);
         }
     }
-
-    ///<summary>Returns whether or not the op and assigned providers should be treated as IsHygiene. Returns the value of isHygieneCur if the IsHygiene status of the operatory cannot be determined.</summary>
-    private bool IsOperatoryHygiene(bool isHygiene, Operatory operatory, long assignedDent, long assignedHyg)
+    
+    private static bool IsOperatoryHygiene(bool isHygiene, Operatory operatory, long assignedDent, long assignedHyg)
     {
-        if (operatory != null && operatory.IsHygiene)
+        if (operatory is {IsHygiene: true})
         {
             return true;
         }
 
-        //op not marked as hygiene op
         if (assignedDent == 0)
         {
-            //no dentist assigned
-            if (assignedHyg != 0)
-            {
-                //hyg is assigned (we don't really have to test for this)
-                return true;
-            }
-
-            return isHygiene;
+            return assignedHyg != 0 || isHygiene;
         }
-
-        //dentist is assigned
+        
         if (assignedHyg == 0)
         {
-            //hyg is not assigned
             return false;
         }
 
-        //if both dentist and hyg are assigned, it's tricky
-        //only explicitly set it if user has a dentist assigned to the op
-        if (operatory != null && operatory.ProvDentist != 0)
+        if (operatory is not null && operatory.ProvDentist != 0)
         {
             return false;
         }
 
         return isHygiene;
     }
-
-
+    
     private void PrintApptCard()
     {
         PrinterL.TryPrintOrDebugRpPreview(pd2_PrintApptCard,
-            Lan.g(this, "Appointment reminder postcard printed"),
+            "Appointment reminder postcard printed",
             printoutOrientation: PrintoutOrientation.Default,
             printSituation: PrintSituation.Postcard,
             auditPatNum: _patient.PatNum,
@@ -5962,7 +5578,6 @@ public partial class ControlAppt : UserControl
         //Body text-------------------------------------------------------------------------------
         string name;
         str = Lan.g(this, "Appointment Reminders:") + "\r\n\r\n";
-        Appointment[] appointmentArrayOnePat;
         var family = Patients.GetFamily(_patient.PatNum);
         var patient = family.GetPatient(_patient.PatNum);
         for (var i = 0; i < family.ListPats.Length; i++)
@@ -5979,7 +5594,7 @@ public partial class ControlAppt : UserControl
                 name = name.Substring(0, 15);
             }
 
-            appointmentArrayOnePat = Appointments.GetForPat(family.ListPats[i].PatNum);
+            var appointmentArrayOnePat = Appointments.GetForPat(family.ListPats[i].PatNum);
             for (var a = 0; a < appointmentArrayOnePat.Length; a++)
             {
                 if (appointmentArrayOnePat[a].AptDateTime.Date <= DateTime.Today)
@@ -6008,8 +5623,7 @@ public partial class ControlAppt : UserControl
             patientGuar = patient.Copy();
         }
 
-        str = patientGuar.FName + " " + patientGuar.LName + "\r\n"
-              + patientGuar.Address + "\r\n";
+        str = patientGuar.FName + " " + patientGuar.LName + "\r\n" + patientGuar.Address + "\r\n";
         if (patientGuar.Address2 != "")
         {
             str += patientGuar.Address2 + "\r\n";
@@ -6040,8 +5654,7 @@ public partial class ControlAppt : UserControl
         LabelSingle.PrintAppointment(contrApptPanel.SelectedAptNum);
     }
 
-    ///<summary>Processes the OtherResult from a call to FormApptsOther.</summary>
-    private void ProcessOtherDlg(OtherResult otherResult, long patNum, string strDateJumpTo, long[] aptNumArray, List<long> listApptViewNums = null)
+    private void ProcessOtherDlg(OtherResult otherResult, long patNum, string jumpToDate, long[] aptNums, List<long> apptViewNums = null)
     {
         if (otherResult == OtherResult.Cancel)
         {
@@ -6053,27 +5666,26 @@ public partial class ControlAppt : UserControl
         {
             case OtherResult.CopyToPinBoard:
             case OtherResult.NewToPinBoard:
-                listSelectedAptNums = aptNumArray.ToList();
-                //Looks scary, but currently users can only select one appointment at a time in FormApptsOther.cs.
+                listSelectedAptNums = aptNums.ToList();
                 if (!DoApptBreakRequired(Appointments.GetOneApt(listSelectedAptNums.First())))
                 {
                     return;
                 }
 
                 SendToPinBoardAptNums(listSelectedAptNums);
-                //RefreshModuleDataPatient(patNum);//Do we need this it gets called at the end of SendToPinBoardAptNums
+                
                 GlobalFormOpenDental.PatientSelected(_patient, true, false);
-                RefreshPeriod(listPinApptNums: listSelectedAptNums);
+                RefreshPeriod(pinApptNums: listSelectedAptNums);
                 break;
             case OtherResult.PinboardAndSearch:
-                listSelectedAptNums = aptNumArray.ToList();
-                SendToPinBoardAptNums(aptNumArray.ToList());
+                listSelectedAptNums = aptNums.ToList();
+                SendToPinBoardAptNums(aptNums.ToList());
                 if (contrApptPanel.IsWeeklyView)
                 {
                     break;
                 }
 
-                dateSearch.Text = strDateJumpTo;
+                dateSearch.Text = jumpToDate;
                 if (!groupSearch.Visible)
                 {
                     //if search not already visible
@@ -6081,10 +5693,10 @@ public partial class ControlAppt : UserControl
                 }
 
                 DoSearch(isForMakeRecall: true);
-                RefreshPeriod(listPinApptNums: listSelectedAptNums);
+                RefreshPeriod(pinApptNums: listSelectedAptNums);
                 break;
             case OtherResult.CreateNew:
-                contrApptPanel.SelectedAptNum = aptNumArray[0];
+                contrApptPanel.SelectedAptNum = aptNums[0];
                 RefreshModuleDataPatient(patNum);
                 GlobalFormOpenDental.PatientSelected(_patient, true, false);
                 var appointment = Appointments.GetOneApt(contrApptPanel.SelectedAptNum);
@@ -6130,8 +5742,8 @@ public partial class ControlAppt : UserControl
                 RefreshPeriod();
                 break;
             case OtherResult.GoTo:
-                contrApptPanel.SelectedAptNum = aptNumArray[0];
-                contrApptPanel.DateSelected = SIn.Date(strDateJumpTo);
+                contrApptPanel.SelectedAptNum = aptNums[0];
+                contrApptPanel.DateSelected = SIn.Date(jumpToDate);
                 if (_patient.PatNum != patNum)
                 {
                     //ModuleSelected->RefreshModuleScreenPeriod, Appt won't be selected if PatCur.PatNum!=Appt.PatNum
@@ -6140,7 +5752,7 @@ public partial class ControlAppt : UserControl
 
                 GlobalFormOpenDental.PatientSelected(_patient, true, false, true);
                 var apptViewNum = comboView.GetSelected<ApptView>()?.ApptViewNum ?? 0; //default to 'none' view
-                var apptViewNumGoTo = GetApptViewNumGoTo(listApptViewNums, apptViewNum);
+                var apptViewNumGoTo = GetApptViewNumGoTo(apptViewNums, apptViewNum);
                 if (apptViewNum != apptViewNumGoTo && apptViewNumGoTo > 0)
                 {
                     SetView(apptViewNumGoTo, saveToDb: false);
@@ -6150,12 +5762,11 @@ public partial class ControlAppt : UserControl
         }
     }
 
-    ///<summary>Helper method to select an appointment view that contains the operatory a selected appointment was assigned to when coming from FormApptsOther.but_GoTo(...)</summary>
-    private long GetApptViewNumGoTo(List<long> listApptViewNums, long curApptViewNum)
+    private static long GetApptViewNumGoTo(List<long> apptViewNums, long curApptViewNum)
     {
-        if (listApptViewNums == null)
+        if (apptViewNums == null)
         {
-            return -1; //Shouldn't happen if we're in this method but just in case, we don't want anything to break.
+            return -1;
         }
 
         if (curApptViewNum == ApptViews.ApptViewNumNone)
@@ -6163,22 +5774,23 @@ public partial class ControlAppt : UserControl
             return ApptViews.ApptViewNumNone;
         }
 
-        if (listApptViewNums.Count == 0)
+        if (apptViewNums.Count == 0)
         {
-            //No views contain the operatory associated with the appointment that was selected in FormApptsOther
-            MsgBox.Show(Lan.g(this, "There are no appointment views that contain the selected appointment's operatory. You will need to create one in the setup menu."));
+            MsgBox.Show(
+                "There are no appointment views that contain the selected appointment's operatory. " +
+                "You will need to create one in the setup menu.");
+            
             return -1;
         }
 
-        if (listApptViewNums.Contains(curApptViewNum))
+        if (apptViewNums.Contains(curApptViewNum))
         {
-            return curApptViewNum; //We already have the view we need. Do nothing.
+            return curApptViewNum;
         }
 
-        return listApptViewNums.FirstOrDefault();
+        return apptViewNums.FirstOrDefault();
     }
 
-    ///<summary>Brings up the window to send text messagse to the patients.</summary>
     private void SendTextMessages(List<long> listPatNums)
     {
         if (!Security.IsAuthorized(EnumPermType.TextMessageSend))
@@ -6210,8 +5822,7 @@ public partial class ControlAppt : UserControl
 
         if (listPatsSkipped.Count > 0)
         {
-            var msg = listPatsSkipped.Count + Lan.g(this, " of the ") + listPatNums.Distinct().Count() + " "
-                      + Lan.g(this, "patients cannot receive text messages:") + "\r\n" + string.Join("\r\n", listPatsSkipped);
+            var msg = listPatsSkipped.Count + " of the " + listPatNums.Distinct().Count() + " patients cannot receive text messages:\r\n" + string.Join("\r\n", listPatsSkipped);
             if (listPatsSkipped.Count < 8)
             {
                 ODMessageBox.Show(msg);
@@ -6229,11 +5840,11 @@ public partial class ControlAppt : UserControl
         }
 
         var formTxtMsgMany = new FormTxtMsgMany(listPatComms, "", Clinics.ClinicNum, SmsMessageSource.DirectSms);
+        
         formTxtMsgMany.DoCombineNumbers = true;
         formTxtMsgMany.Show();
     }
-
-    ///<summary>Used to send one or more appontments to the pinboard.  The other way to do it is SendToPinboardDataRow.</summary>
+    
     private void SendToPinBoardAptNums(List<long> aptNums)
     {
         if (IsHqNoneView())
@@ -6267,12 +5878,10 @@ public partial class ControlAppt : UserControl
 
             if (dataRow == null)
             {
-                var includeVerifyIns = false;
-                if (contrApptPanel.ListApptViewItems != null
-                    && contrApptPanel.ListApptViewItems.Exists(x => x.ElementDesc == EnumApptViewElement.VerifyIns_V.GetDescription()))
-                {
-                    includeVerifyIns = true;
-                }
+                bool includeVerifyIns = 
+                    contrApptPanel.ListApptViewItems != null && 
+                    contrApptPanel.ListApptViewItems.Exists(x => 
+                        x.ElementDesc == EnumApptViewElement.VerifyIns_V.GetDescription());
 
                 //but sometimes, we need to go get the row manually
                 var dataTable = Appointments.GetPeriodApptsTable(contrApptPanel.DateStart, contrApptPanel.DateEnd, aptNums[i], false, includeVerifyIns: includeVerifyIns);
@@ -6333,8 +5942,7 @@ public partial class ControlAppt : UserControl
             GlobalFormOpenDental.PatientSelected(_patient, true, false);
         }
     }
-
-    ///<summary>Used when dragging an appt to the pinboard.  Another way to do it would be SendToPinBoardAptNums.</summary>
+    
     private void SendToPinboardDataRow(DataRow dataRow)
     {
         if (IsHqNoneView())
@@ -6365,7 +5973,6 @@ public partial class ControlAppt : UserControl
         GlobalFormOpenDental.PatientSelected(_patient, true, false);
     }
 
-    /// <summary>Called from ModuleSelected.  Just runs once for the purpose of setting start time.</summary>
     public void SetInitialStartTime()
     {
         if (_hasSetInitialStartTime)
@@ -6388,7 +5995,7 @@ public partial class ControlAppt : UserControl
                 //And, it's just a one-time thing.
                 //Get the schedules that have any operatory visible
                 var listSchedulesVisible = new List<Schedule>();
-                for (var i = 0; i < contrApptPanel.ListSchedules.Count(); i++)
+                for (var i = 0; i < contrApptPanel.ListSchedules.Count; i++)
                 {
                     if (contrApptPanel.ListSchedules[i].Ops.Any(x => contrApptPanel.ListOpsVisible.Exists(y => x == y.OperatoryNum)) //The schedule is linked to a visible operatory
                         || contrApptPanel.ListOpsVisible.Exists(x => x.ProvDentist == contrApptPanel.ListSchedules[i].ProvNum && !x.IsHygiene) //The dentist is in a visible operatory
@@ -6400,7 +6007,7 @@ public partial class ControlAppt : UserControl
 
                 var schedProvUnassinged = PrefC.GetLong(PrefName.ScheduleProvUnassigned);
                 var opShowsDefaultProv = false;
-                for (var i = 0; i < contrApptPanel.ListOpsVisible.Count(); i++)
+                for (var i = 0; i < contrApptPanel.ListOpsVisible.Count; i++)
                 {
                     if (contrApptPanel.ListOpsVisible[i].ProvDentist != 0 && !contrApptPanel.ListOpsVisible[i].IsHygiene)
                     {
@@ -6487,21 +6094,19 @@ public partial class ControlAppt : UserControl
 
         _hasSetInitialStartTime = true;
     }
-
-    /// <summary>Sets the index of comboView for the specified ApptViewNum.  Then, does a ModuleSelected().  If saveToDb, then it will remember the ApptViewNum and currently selected ClinicNum for this workstation.</summary>
+    
     private void SetView(long apptViewNum, bool saveToDb)
     {
-        comboView.SetSelectedKey<ApptView>(apptViewNum, x => x.ApptViewNum, _ => Lan.g(this, "none")); //First item is None/0 view.
+        comboView.SetSelectedKey<ApptView>(apptViewNum, x => x.ApptViewNum, _ => "none"); //First item is None/0 view.
         if (comboView.SelectedIndex < 0)
         {
-            //Index will be -1 if office has 'None' ApptView disabled.
             comboView.SetSelected(0);
         }
 
         contrApptPanel.ApptViewCur = comboView.GetSelected<ApptView>();
         if (!_hasInitializedOnStartup)
         {
-            return; //prevent ModuleSelected().
+            return;
         }
 
         if (_hasInitializedOnStartup && !Visible)
@@ -6514,23 +6119,21 @@ public partial class ControlAppt : UserControl
             ComputerPrefs.LocalComputer.ApptViewNum = apptViewNum;
             ComputerPrefs.LocalComputer.ClinicNum = Clinics.ClinicNum;
             ComputerPrefs.Update(ComputerPrefs.LocalComputer);
+            
             UserodApptViews.InsertOrUpdate(Security.CurUser.UserNum, Clinics.ClinicNum, apptViewNum);
         }
 
         if (_patient == null)
         {
-            ModuleSelected(0, listOpNums: ApptViewItems.GetOpsForView(apptViewNum), listProvNums: ApptViewItems.GetProvsForView(apptViewNum));
+            ModuleSelected(0, opNums: ApptViewItems.GetOpsForView(apptViewNum), provNums: ApptViewItems.GetProvsForView(apptViewNum));
             return;
         }
 
-        ModuleSelected(_patient.PatNum, listOpNums: ApptViewItems.GetOpsForView(apptViewNum), listProvNums: ApptViewItems.GetProvsForView(apptViewNum));
+        ModuleSelected(_patient.PatNum, opNums: ApptViewItems.GetOpsForView(apptViewNum), provNums: ApptViewItems.GetProvsForView(apptViewNum));
     }
 
-    ///<summary>Switches between weekly view and daily view.   Calls either RefreshPeriod or ModuleSelected.</summary>
     private void SetWeeklyView(bool isWeeklyView, bool skipModuleSelection = false)
     {
-        //Completely independent from and does not affect contrApptPanel.DateSelected.
-        //if the weekly view doesn't change, then use SetDateSelected or RefreshPeriod
         if (isWeeklyView)
         {
             toggleDayWeek.SetWeek();
@@ -6556,26 +6159,24 @@ public partial class ControlAppt : UserControl
         {
             if (_patient == null)
             {
-                ModuleSelected(0, listOpNums: ApptViewItems.GetOpsForView(apptViewNum), listProvNums: ApptViewItems.GetProvsForView(apptViewNum));
+                ModuleSelected(0, opNums: ApptViewItems.GetOpsForView(apptViewNum), provNums: ApptViewItems.GetProvsForView(apptViewNum));
                 return;
             }
 
-            ModuleSelected(_patient.PatNum, listOpNums: ApptViewItems.GetOpsForView(apptViewNum), listProvNums: ApptViewItems.GetProvsForView(apptViewNum));
+            ModuleSelected(_patient.PatNum, opNums: ApptViewItems.GetOpsForView(apptViewNum), provNums: ApptViewItems.GetProvsForView(apptViewNum));
             return;
         }
 
-        RefreshPeriod(listOpNums: ApptViewItems.GetOpsForView(apptViewNum), listProvNums: ApptViewItems.GetProvsForView(apptViewNum), isRefreshSchedules: true);
+        RefreshPeriod(opNums: ApptViewItems.GetOpsForView(apptViewNum), provNums: ApptViewItems.GetProvsForView(apptViewNum), isRefreshSchedules: true);
     }
-
-    ///<summary>Shortens appt.Pattern if overlap is found in neighboring op within appt.Op. Pattern will be adjusted to a minimum of 1 until no overlap occurs. Calling RefreshPeriod() is not necessary before calling this method. It goes to the db only as much as is necessary. Returns true if pattern was adjusted. Returns false if pattern was not adjusted.</summary>
+    
     public static bool TryAdjustAppointmentPattern(Appointment appointment, List<Operatory> listOpsVisible)
     {
-        bool isPatternChanged;
-        Appointments.TryAdjustAppointment(appointment, listOpsVisible, false, true, true, true, out isPatternChanged);
+        Appointments.TryAdjustAppointment(appointment, listOpsVisible, false, true, true, true, out var isPatternChanged);
+        
         return isPatternChanged;
     }
 
-    ///<summary>Returns true if a message was displayed to the user telling them that the appointment could not be scheduled, otherwise false.</summary>
     private bool ShowAppointmentBlockoutMessage(Appointment appointment)
     {
         var scheduleBlockout = Appointments.GetBlockoutsOverlappingNoSchedule(appointment).FirstOrDefault();
@@ -6597,52 +6198,4 @@ public partial class ControlAppt : UserControl
 
         return false;
     }
-}
-    
-class MenuItemNames
-{
-    public const string TextAsapList = "Text Asap List";
-    public const string BringOverlapToFront = "Bring Overlapped Appt to Front";
-    public const string CopyToPinboard = "Copy to Pinboard";
-    public const string CopyAppointmentStructure = "Copy Appointment Structure";
-    public const string EClipboardQR = "Show eClipboard QR";
-    public const string SendToUnscheduledList = "Send to Unscheduled List";
-    public const string BreakAppointment = "Break Appointment";
-    public const string MarkAsAsap = "Mark as ASAP";
-    public const string SetComplete = "Set Complete";
-    public const string Delete = "Delete";
-    public const string PatientAppointments = "Patient Appointments";
-    public const string PrintLabel = "Print Label";
-    public const string PrintCard = "Print Card";
-    public const string PrintCardEntireFamily = "Print Card for Entire Family";
-    public const string RoutingSlip = "Routing Slip";
-    public const string ClearAllBlockoutsForDay = "Clear All Blockouts for Day";
-    public const string ClearAllBlockoutsForDayOpOnly = "Clear All Blockouts for Day, Op only";
-    public const string ClearAllBlockoutsForDayClinicOnly = "Clear All Blockouts for Day, Clinic only";
-    public const string EditBlockoutTypes = "Edit Blockout Types";
-    public const string BlockoutSpacer = "Blockout Spacer";
-    public const string PhoneDiv = "Phone Div";
-    public const string HomePhone = "Home Phone";
-    public const string WorkPhone = "Work Phone";
-    public const string WirelessPhone = "Wireless Phone";
-    public const string TextDiv = "Text Div";
-    public const string SendText = "Send Text";
-    public const string SendConfirmationText = "Send Confirmation Text";
-    public const string SendComeInText = "Send Come In Text";
-    public const string SendEClipboardByod = "Send eClipboard BYOD Text";
-    public const string SendMessageToPay = "Send Message-to-Pay Message";
-    public const string OrthoChart = "Ortho Chart";
-    public const string Tasks = "Tasks";
-    public const string TasksSpacer = "Tasks Spacer";
-    public const string TextApptsForDayOp = "Text Appointments for Day, Op only";
-    public const string TextApptsForDayView = "Text Appointments for Day, Current View only";
-    public const string TextApptsForDay = "Text Appointments for Day";
-    public const string DeleteWebSchedAsapBlockout = "Delete Web Schedule ASAP Blockout";
-    public const string EditBlockout = "Edit Blockout";
-    public const string CutBlockout = "Cut Blockout";
-    public const string CopyBlockout = "Copy Blockout";
-    public const string PasteBlockout = "Paste Blockout";
-    public const string DeleteBlockout = "Delete Blockout";
-    public const string AddBlockout = "Add Blockout";
-    public const string BlockoutCutCopyPaste = "Blockout Cut-Copy-Paste";
 }

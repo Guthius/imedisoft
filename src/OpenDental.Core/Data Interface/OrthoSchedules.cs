@@ -26,7 +26,7 @@ public class OrthoSchedules
 
     public static List<OrthoSchedule> GetMany(List<long> listOrthoScheduleNums)
     {
-        if (listOrthoScheduleNums.Count == 0) return new List<OrthoSchedule>();
+        if (listOrthoScheduleNums.Count == 0) return [];
 
         var command = $"SELECT * FROM orthoschedule WHERE orthoschedule.OrthoScheduleNum IN({string.Join(",", listOrthoScheduleNums)})";
         return OrthoScheduleCrud.SelectMany(command);

@@ -1,21 +1,16 @@
 using System;
 using System.Data;
 using System.Diagnostics;
-using System.Drawing;
 using System.Drawing.Printing;
-using System.Drawing.Text;
-using System.Collections;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Globalization;
 using System.IO;
 using System.Reflection;
 using System.Runtime.InteropServices;
-using System.Text;
 using System.Windows.Forms;
 using OpenDentBusiness;
 using CodeBase;
 using Imedisoft.Core.Caching;
+using Imedisoft.Core.Data;
 using Imedisoft.Core.Entities;
 using OpenDental.Logic;
 using Word=Microsoft.Office.Interop.Word;
@@ -367,7 +362,7 @@ public partial class FormLetterMerges : FormODBase {
 				try {
 					File.Delete(tempFilePath);//Clean up the temp file
 				}
-				catch(Exception ex) {
+				catch {
 				}
 			}
 			//Close the original form document since just one record.
@@ -416,10 +411,6 @@ public partial class FormLetterMerges : FormODBase {
 			MsgBox.Show(this,"Please select a template first.");
 			return;
 		}
-		if(false) {
-			MsgBox.Show(this,"This feature only works when data is stored in Local AtoZ folder.");
-			return;
-		}
 		var letterMerge=_listLetterMergesForCat[listLetters.SelectedIndex];
 		var templateFile=ODFileUtils.CombinePaths(PrefC.GetString(PrefName.LetterMergePath),letterMerge.TemplateName);
 		var tempDataFile=PrefC.GetRandomTempFile(".txt");
@@ -462,7 +453,7 @@ public partial class FormLetterMerges : FormODBase {
 			try {
 				File.Delete(tempFilePath);//Clean up the temp file
 			}
-			catch(Exception ex) {
+			catch {
 			}
 			//Finally, we will use the word_Document variable for our new file opened from AtoZ folder
 			word_Document=ChartLetterL.Word_Application.Documents.Open(fullPath);
@@ -502,9 +493,6 @@ public partial class FormLetterMerges : FormODBase {
 			return new Document();
 		}
 		var rawBase64="";
-		if(false) {
-			rawBase64=Convert.ToBase64String(File.ReadAllBytes(fileSourcePath));
-		}
 		var documentSave=new Document();
 		documentSave.DocNum=Documents.Insert(documentSave);
 		documentSave.ImgType=ImageType.Document;

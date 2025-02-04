@@ -64,7 +64,7 @@ namespace OpenDental {
 			this.butRetrieve.Size = new System.Drawing.Size(90,26);
 			this.butRetrieve.TabIndex = 5;
 			this.butRetrieve.Text = "Retrieve";
-			this.butRetrieve.Click += new System.EventHandler(this.butRetrieve_Click);
+			this.butRetrieve.Click += new System.EventHandler(this.ButtonRetrieve_Click);
 			// 
 			// FormClaimReports
 			// 

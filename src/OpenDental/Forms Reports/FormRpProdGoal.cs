@@ -4,13 +4,13 @@ using System.Data;
 using System.Drawing;
 using System.Globalization;
 using System.Linq;
-using System.Windows.Forms;
 using CodeBase;
 using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Entities;
 using Imedisoft.Core.Features.Clinics;
 using Imedisoft.Core.Features.Clinics.Dtos;
+using Imedisoft.Features.Providers.Dtos;
 using OpenDental.ReportingComplex;
 using OpenDentBusiness;
 
@@ -24,10 +24,10 @@ public partial class FormRpProdGoal : FormODBase {
 	///This is used instead of Providers.GetListReports() because we need the full list of providers when running All Providers
 	///This is also so we can show provider specific information in the report.
 	///Includes providers that share the same name as the provider currently logged if user has the ReportProdIncAllProviders permission.</summary>
-	private List<Provider> _listProviders;
+	private List<ProviderDto> _listProviders;
 	///<summary>Includes hidden providers, excludes hidden on reports providers.</summary>
 	///This list directly resembles all providers that are showing within the providers list box that is showing to the user.</summary>
-	private List<Provider> _listFilteredProviders;
+	private List<ProviderDto> _listFilteredProviders;
 
 		
 	public FormRpProdGoal(){
@@ -43,21 +43,21 @@ public partial class FormRpProdGoal : FormODBase {
 			,DateTime.DaysInMonth(DateTime.Today.Year,DateTime.Today.Month)).ToShortDateString();
 		if(!Security.IsAuthorized(EnumPermType.ReportProdIncAllProviders,true)) {
 			//They either have permission or have a provider at this point.  If they don't have permission they must have a provider.
-			_listProviders=_listProviders.FindAll(x => x.ProvNum==Security.CurUser.ProvNum);
+			_listProviders=_listProviders.FindAll(x => x.Id==Security.CurUser.ProvNum);
 			var prov=_listProviders.FirstOrDefault();
 			if(prov!=null) {
-				_listProviders.AddRange(Providers.GetWhere(x => x.FName == prov.FName && x.LName == prov.LName && x.ProvNum != prov.ProvNum));
+				_listProviders.AddRange(Providers.GetWhere(x => x.FirstName == prov.FirstName && x.LastName == prov.LastName && x.Id != prov.Id));
 			}
 			checkAllProv.Checked=false;
 			checkAllProv.Enabled=false;
 		}
 		//Fill the short list of providers, ignoring those marked "hidden on reports"
 		for(var i=0;i<_listProviders.Count;i++) {
-			if(_listProviders[i].IsHiddenReport) {
+			if(_listProviders[i].IsHiddenFromReports) {
 				continue;
 			}
-			listProv.Items.Add(_listProviders[i].GetLongDesc());
-			_listFilteredProviders.Add(_listProviders[i].Copy());
+			listProv.Items.Add(_listProviders[i].Description);
+			_listFilteredProviders.Add(_listProviders[i]);
 		}
 		//If the user is not allowed to run the report for all providers, default the selection to the first in the list box.
 		if(checkAllProv.Enabled==false && listProv.Items.Count>0) {
@@ -67,29 +67,21 @@ public partial class FormRpProdGoal : FormODBase {
 		if(!Security.IsAuthorized(EnumPermType.ReportProdIncAllProviders,true)) {
 			listProv.SetAll(true);
 		}
-		if(!true) {
-			listClin.Visible=false;
-			labelClin.Visible=false;
-			checkAllClin.Visible=false;
-			checkClinicBreakdown.Visible=false;
+		checkClinicBreakdown.Checked=PrefC.GetBool(PrefName.ReportPandIhasClinicBreakdown);
+		_listClinics=Clinics.GetForUserod(Security.CurUser);
+		if(!Security.CurUser.ClinicIsRestricted) {
+			listClin.Items.Add(Lan.g(this,"Unassigned"));
+			listClin.SetSelected(0);
 		}
-		else {
-			checkClinicBreakdown.Checked=PrefC.GetBool(PrefName.ReportPandIhasClinicBreakdown);
-			_listClinics=Clinics.GetForUserod(Security.CurUser);
-			if(!Security.CurUser.ClinicIsRestricted) {
-				listClin.Items.Add(Lan.g(this,"Unassigned"));
-				listClin.SetSelected(0);
+		for(var i=0;i<_listClinics.Count;i++) {
+			listClin.Items.Add(_listClinics[i].Abbr);
+			if(Clinics.ClinicNum==0) {
+				listClin.SetSelected(listClin.Items.Count-1);
+				checkAllClin.Checked=true;
 			}
-			for(var i=0;i<_listClinics.Count;i++) {
-				listClin.Items.Add(_listClinics[i].Abbr);
-				if(Clinics.ClinicNum==0) {
-					listClin.SetSelected(listClin.Items.Count-1);
-					checkAllClin.Checked=true;
-				}
-				if(_listClinics[i].Id==Clinics.ClinicNum) {
-					listClin.SelectedIndices.Clear();
-					listClin.SetSelected(listClin.Items.Count-1);
-				}
+			if(_listClinics[i].Id==Clinics.ClinicNum) {
+				listClin.SelectedIndices.Clear();
+				listClin.SetSelected(listClin.Items.Count-1);
 			}
 		}
 		switch(PrefC.GetInt(PrefName.ReportsPPOwriteoffDefaultToProcDate)) {
@@ -99,7 +91,6 @@ public partial class FormRpProdGoal : FormODBase {
 			default:
 				radioWriteoffClaim.Checked=true; break;
 		}
-		Text+=PrefC.ReportingServer.DisplayStr=="" ? "" : " - "+Lan.g(this,"Reporting Server:") +" "+ PrefC.ReportingServer.DisplayStr;
 	}
 
 	private PPOWriteoffDateCalc GetWriteoffType() {
@@ -197,7 +188,7 @@ public partial class FormRpProdGoal : FormODBase {
 		}
 		_dateFrom=SIn.Date(textDateFrom.Text);
 		_dateTo=SIn.Date(textDateTo.Text);
-		var listProvs=new List<Provider>();
+		var listProvs=new List<ProviderDto>();
 		if(checkAllProv.Checked){
 			listProvs=_listProviders;
 		}
@@ -218,7 +209,7 @@ public partial class FormRpProdGoal : FormODBase {
 			//Check here for multi clinic schedule overlap and give notification.
 			listSelectedClinicNums=listClinics.Select(x => x.Id).ToList();
 			var listConflicts=listProvs
-				.Select(x => new { x.Abbr,listScheds=Schedules.GetClinicOverlapsForProv(_dateFrom,_dateTo,x.ProvNum,listSelectedClinicNums) })
+				.Select(x => new { x.Abbr,listScheds=Schedules.GetClinicOverlapsForProv(_dateFrom,_dateTo,x.Id,listSelectedClinicNums) })
 				.Where(x => x.listScheds.Count>0).ToList();
 			if(listConflicts.Count>0) {
 				var errorMsg="This report is designed to show production goals by clinic and provider.  You have one or more providers during the "

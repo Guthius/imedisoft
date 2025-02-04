@@ -1,103 +1,119 @@
 using System;
-using System.Drawing;
-using System.Collections;
-using System.Collections.Generic;
-using System.ComponentModel;
 using System.Windows.Forms;
-using System.IO;
-using CodeBase;
 using DataConnectionBase;
 using Imedisoft.Core.Data;
 using Imedisoft.Core.Entities;
-using OpenDentBusiness;
 
 namespace OpenDental;
 
-public partial class FormEmployeeEdit : FormODBase {
-		
-	public bool IsNew;
-	public Employee EmployeeCur;
+public partial class FormEmployeeEdit : FormODBase
+{
+    public bool IsNew;
+    public Employee EmployeeCur;
 
-		
-	public FormEmployeeEdit(){
-		InitializeComponent();
-	}
+    public FormEmployeeEdit()
+    {
+        InitializeComponent();
+    }
 
-	private void FormEmployeeEdit_Load(object sender, System.EventArgs e) {
-		checkIsHidden.Checked=EmployeeCur.IsHidden;
-		textLName.Text=EmployeeCur.LName;
-		textFName.Text=EmployeeCur.FName;
-		textMI.Text=EmployeeCur.MiddleI;
-		textPayrollID.Text=EmployeeCur.PayrollID;
-		textPhoneExt.Text=EmployeeCur.PhoneExt.ToString();
-		textWirelessPhone.Text=EmployeeCur.WirelessPhone;
-		textEmailWork.Text=EmployeeCur.EmailWork;
-		textEmailPersonal.Text=EmployeeCur.EmailPersonal;
-		checkIsFurloughed.Checked=EmployeeCur.IsFurloughed;
-		checkIsWorkingHome.Checked=EmployeeCur.IsWorkingHome;
-		comboReportsTo.Items.AddNone<Employee>();
-		var listEmployees=Employees.GetDeepCopy(isShort:true);//excludes hidden
-		comboReportsTo.Items.AddList(listEmployees,x=>x.FName+" "+x.LName);
-		comboReportsTo.SetSelectedKey<Employee>(EmployeeCur.ReportsTo,x=>x.EmployeeNum);
-		if(false) {
-			checkIsWorkingHome.Visible=true;
-		}
-	}
+    private void FormEmployeeEdit_Load(object sender, EventArgs e)
+    {
+        checkIsHidden.Checked = EmployeeCur.IsHidden;
+        textLName.Text = EmployeeCur.LName;
+        textFName.Text = EmployeeCur.FName;
+        textMI.Text = EmployeeCur.MiddleI;
+        textPayrollID.Text = EmployeeCur.PayrollID;
+        textPhoneExt.Text = EmployeeCur.PhoneExt.ToString();
+        textWirelessPhone.Text = EmployeeCur.WirelessPhone;
+        textEmailWork.Text = EmployeeCur.EmailWork;
+        textEmailPersonal.Text = EmployeeCur.EmailPersonal;
+        checkIsFurloughed.Checked = EmployeeCur.IsFurloughed;
+        checkIsWorkingHome.Checked = EmployeeCur.IsWorkingHome;
 
-	private void butDelete_Click(object sender,EventArgs e) {
-		if(IsNew){
-			DialogResult=DialogResult.Cancel;
-			return;
-		}
-		//not new:
-		try{
-			Employees.Delete(EmployeeCur.EmployeeNum);
-		}
-		catch(ApplicationException ex){
-			ODMessageBox.Show(ex.Message);
-			return;
-		}
-		DialogResult=DialogResult.OK;
-	}
+        var employees = Employees.GetDeepCopy(shortList: true);
 
-	private void butSave_Click(object sender, System.EventArgs e) {
-		var employeeOld=EmployeeCur.Copy();
-		EmployeeCur.IsHidden=checkIsHidden.Checked;
-		EmployeeCur.LName=textLName.Text.Trim();//remove any leading/trailing whitespace
-		EmployeeCur.FName=textFName.Text.Trim();//remove any leading/trailing whitespace
-		EmployeeCur.MiddleI=textMI.Text;
-		EmployeeCur.PayrollID=textPayrollID.Text;
-		try{
-			EmployeeCur.PhoneExt=SIn.Int(textPhoneExt.Text);
-		}
-		catch{
-			EmployeeCur.PhoneExt=0;
-		}
-		EmployeeCur.WirelessPhone=textWirelessPhone.Text;
-		EmployeeCur.EmailWork=textEmailWork.Text;
-		EmployeeCur.EmailPersonal=textEmailPersonal.Text;
-		EmployeeCur.IsFurloughed=checkIsFurloughed.Checked;
-		EmployeeCur.IsWorkingHome=checkIsWorkingHome.Checked;
-		EmployeeCur.ReportsTo=comboReportsTo.GetSelectedKey<Employee>(x=>x.EmployeeNum);
-		if(IsNew) {
-			try {
-				Employees.Insert(EmployeeCur);
-			}
-			catch(ApplicationException ex) {
-				MsgBox.Show(ex.Message);
-				return;
-			}
-			DialogResult=DialogResult.OK;
-			return;
-		}
-		try {
-			Employees.UpdateChanged(EmployeeCur,employeeOld);
-		}
-		catch(Exception ex) {
-			ODMessageBox.Show(ex.Message);
-			return;
-		}
-		DialogResult=DialogResult.OK;
-	}
+        comboReportsTo.Items.AddNone<Employee>();
+        comboReportsTo.Items.AddList(employees, x => x.FName + " " + x.LName);
 
+        comboReportsTo.SetSelectedKey<Employee>(EmployeeCur.ReportsTo, x => x.EmployeeNum);
+    }
+
+    private void butDelete_Click(object sender, EventArgs e)
+    {
+        if (IsNew)
+        {
+            DialogResult = DialogResult.Cancel;
+            return;
+        }
+
+        try
+        {
+            Employees.Delete(EmployeeCur.EmployeeNum);
+        }
+        catch (ApplicationException ex)
+        {
+            ShowError(ex.Message);
+
+            return;
+        }
+
+        DialogResult = DialogResult.OK;
+    }
+
+    private void butSave_Click(object sender, EventArgs e)
+    {
+        var employeeOld = EmployeeCur.Copy();
+
+        EmployeeCur.IsHidden = checkIsHidden.Checked;
+        EmployeeCur.LName = textLName.Text.Trim();
+        EmployeeCur.FName = textFName.Text.Trim();
+        EmployeeCur.MiddleI = textMI.Text;
+        EmployeeCur.PayrollID = textPayrollID.Text;
+
+        try
+        {
+            EmployeeCur.PhoneExt = SIn.Int(textPhoneExt.Text);
+        }
+        catch
+        {
+            EmployeeCur.PhoneExt = 0;
+        }
+
+        EmployeeCur.WirelessPhone = textWirelessPhone.Text;
+        EmployeeCur.EmailWork = textEmailWork.Text;
+        EmployeeCur.EmailPersonal = textEmailPersonal.Text;
+        EmployeeCur.IsFurloughed = checkIsFurloughed.Checked;
+        EmployeeCur.IsWorkingHome = checkIsWorkingHome.Checked;
+        EmployeeCur.ReportsTo = comboReportsTo.GetSelectedKey<Employee>(x => x.EmployeeNum);
+
+        if (IsNew)
+        {
+            try
+            {
+                Employees.Insert(EmployeeCur);
+            }
+            catch (ApplicationException ex)
+            {
+                ShowError(ex.Message);
+
+                return;
+            }
+
+            DialogResult = DialogResult.OK;
+            return;
+        }
+
+        try
+        {
+            Employees.UpdateChanged(EmployeeCur, employeeOld);
+        }
+        catch (Exception ex)
+        {
+            ShowError(ex.Message);
+
+            return;
+        }
+
+        DialogResult = DialogResult.OK;
+    }
 }

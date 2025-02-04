@@ -1,22 +1,17 @@
 ﻿#region using
 using CodeBase;
 using ImagingDeviceManager;
-using OpenDental.Thinfinity;
 using OpenDental.UI;
 using OpenDentBusiness;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Data;
 using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Drawing2D;
-using System.Drawing.Text;
 using System.IO;
 using System.Linq;
-using System.Net;
 using System.Runtime.InteropServices;
-using System.Runtime.Serialization;
 using System.Threading;
 using System.Windows.Forms;
 using DataConnectionBase;
@@ -32,7 +27,7 @@ namespace OpenDental;
 ///<summary>The Imaging Module.</summary>
 public partial class ControlImages : UserControl{
 	#region Fields - Public
-	public LayoutManagerForms LayoutManager=new LayoutManagerForms();
+	
 	#endregion Fields - Public
 
 	#region Fields - Private
@@ -101,7 +96,7 @@ public partial class ControlImages : UserControl{
 		imageSelector.SelectionChangeCommitted+=imageSelector_SelectionChangeCommitted;
 		try {
 			_sigBoxTopaz=TopazWrapper.GetTopaz();
-			LayoutManagerForms.Add(_sigBoxTopaz,panelNote);
+			panelNote.Controls.Add(_sigBoxTopaz);
 			_sigBoxTopaz.Location=sigBox.Location;//new System.Drawing.Point(437,15);
 			_sigBoxTopaz.Name="sigBoxTopaz";
 			_sigBoxTopaz.Size=new System.Drawing.Size(362,79);
@@ -110,8 +105,8 @@ public partial class ControlImages : UserControl{
 			_sigBoxTopaz.DoubleClick+=new System.EventHandler(this.sigBoxTopaz_DoubleClick);
 			TopazWrapper.SetTopazState(_sigBoxTopaz,0);
 		}
-		catch (Exception ex){
-			Logger.LogToPath();
+		catch {
+			
 		}
 		unmountedBar=new WpfControls.UI.UnmountedBar();
 		elementHostUnmountedBar.Child=unmountedBar;
@@ -258,9 +253,6 @@ public partial class ControlImages : UserControl{
 		contextMenuImport.Add(new WpfControls.UI.MenuItem(Lan.g(this,"Import Automatically"),ToolBarImportAuto));
 		//toolStripMenuItem.ToolTipText="Import files as they are created in a folder.";//todo? no tooltip available for menus
 		var buttonStyle=WpfControls.UI.ToolBarButtonStyle.DropDownButton;
-		if(/* ODEnvironment.IsCloudInstance */ false) {
-			buttonStyle=WpfControls.UI.ToolBarButtonStyle.NormalButton;
-		}
 		toolBarMain.Add(Lan.g(this,"Import"),ToolBarImport_Click,WpfControls.UI.EnumIcons.Import,buttonStyle,Lan.g(this,"Import From File"),contextMenuImport);
 		var contextMenuExport = new WpfControls.UI.ContextMenu();
 		contextMenuExport.Add(new WpfControls.UI.MenuItem(Lan.g(this,"Move to Patient..."),ToolBarMoveToPatient));
@@ -269,7 +261,7 @@ public partial class ControlImages : UserControl{
 		toolBarMain.Add(Lan.g(this,"Copy"),ToolBarCopy_Click,WpfControls.UI.EnumIcons.Copy,toolTipText:Lan.g(this,"Copy displayed image to clipboard"),tag:TB.Copy.ToString());
 		toolBarMain.Add(Lan.g(this,"Paste"),ToolBarPaste_Click,WpfControls.UI.EnumIcons.Paste,toolTipText:Lan.g(this,"Paste From Clipboard"));
 		var contextMenuForms = new WpfControls.UI.ContextMenu();
-		var formDir=FileAtoZ.CombinePaths(ImageStore.GetDataFolder(),"Forms");
+		var formDir=Path.Combine(ImageStore.GetDataFolder(),"Forms");
 		if(Directory.Exists(formDir)) {
 			var dirInfo=new DirectoryInfo(formDir);
 			var fileInfos=dirInfo.GetFiles();
@@ -491,19 +483,6 @@ public partial class ControlImages : UserControl{
 		if(docNum!=0) {
 			SelectTreeNode1(new NodeTypeAndKey(EnumImageNodeType.Document,docNum));
 		}
-		if(_patient!=null && DatabaseIntegrities.DoShowPopup(_patient.PatNum,EnumModuleType.Imaging)) {
-			var listClaims=Claims.GetForPat(_patient.PatNum);
-			var listClaimProcs=ClaimProcs.Refresh([_patient.PatNum]);
-			var areHashesValid=Patients.AreAllHashesValid(_patient, [], [], [],listClaims,listClaimProcs);
-			if(!areHashesValid) {
-				DatabaseIntegrities.AddPatientModuleToCache(_patient.PatNum,EnumModuleType.Imaging); //Add to cached list for next time
-				//show popup
-				var databaseIntegrity=DatabaseIntegrities.GetModule();
-				var frmDatabaseIntegrity=new FrmDatabaseIntegrity();
-				frmDatabaseIntegrity.MessageToShow=databaseIntegrity.Message;
-				frmDatabaseIntegrity.ShowDialog();
-			}
-		}
 		float scaleZoom=1;
 		imageSelector.LayoutTransform=new System.Windows.Media.ScaleTransform(scaleZoom,scaleZoom);
 		windowingSlider.LayoutTransform=new System.Windows.Media.ScaleTransform(scaleZoom,scaleZoom);
@@ -519,9 +498,6 @@ public partial class ControlImages : UserControl{
 		//So _listFormImageFloats remains valid and still has all the floaters in it, even when we are in the Chart module. 
 		//In CloseFloaters below, we close the floaters when changing patients.
 		_patNumLastSecurityLog=0;//Clear out the last pat num so that a security log gets entered that the module was "visited" or "refreshed".
-		if(false) {
-			controlImageDock.ControlImageDisplay_?.ClearPDFBrowser();
-		}
 	}
 
 	///<summary>Called when changing patients by any means.  Closes the undocked floating image windows.</summary>
@@ -645,10 +621,6 @@ public partial class ControlImages : UserControl{
 		//Select the node always, but perform additional tasks when necessary (i.e. load an image, or mount).	
 		if(nodeTypeAndKey!=null && nodeTypeAndKey.NodeType!=EnumImageNodeType.None){	
 			imageSelector.SetSelected(nodeTypeAndKey.NodeType,nodeTypeAndKey.PriKey);//this is redundant when user is clicking, but harmless 
-		}
-		if(false) {
-			//Clear the PDF browser in the existing docked ControlImageDisplay before a new one is created
-			controlImageDock.ControlImageDisplay_?.ClearPDFBrowser();
 		}
 		ControlImageDisplay controlImageDisplay=null;
 		if(controlImageDock.ControlImageDisplay_!=null && controlImageDock.ControlImageDisplay_.GetNodeTypeAndKey().IsMatching(nodeTypeAndKey) && !isChartModuleFloater) {//Ignore Image Module Dock if launching a floater in Chart Module
@@ -1319,10 +1291,6 @@ public partial class ControlImages : UserControl{
 			return;
 		}
 		//from here down is attempting to launch document in separate external software=========================================================
-		if(false) {
-			MsgBox.Show(this,"Images stored directly in database. Export file in order to open with external program.");
-			return;//Documents must be stored in the A to Z Folder to open them outside of Open Dental.  Users can use the export button for now.
-		}
 		//We allow anything which ends with a different extention to be viewed in the windows fax viewer.
 		//Specifically, multi-page faxes can be viewed more easily by one of our customers using the fax viewer.
 		if(true)
@@ -1614,7 +1582,7 @@ public partial class ControlImages : UserControl{
 				}
 				File.Delete(e.FullPath);
 			}
-			catch(Exception ex) {
+			catch {
 			}
 			FillImageSelector(false);//Reload and keep new document selected.
 			SelectTreeNode1(new NodeTypeAndKey(EnumImageNodeType.Document,document.DocNum));
@@ -1667,7 +1635,7 @@ public partial class ControlImages : UserControl{
 		try {
 			File.Delete(e.FullPath);
 		}
-		catch(Exception ex) {
+		catch {
 		}
 		//Select next slot position, in preparation for next image.-------------------------------------------------
 		var listAvail=GetAvailSlots(1);
@@ -1920,7 +1888,7 @@ public partial class ControlImages : UserControl{
 			ThumbnailRefresh();
 			LayoutControls();
 		}
-		catch(Exception ex) {
+		catch {
 		}
 	}
 
@@ -1990,7 +1958,7 @@ public partial class ControlImages : UserControl{
 			}
 			LayoutControls();
 		}
-		catch(Exception ex) {
+		catch {
 		}
 	}
 
@@ -2380,10 +2348,6 @@ public partial class ControlImages : UserControl{
 	}
 
 	private void ToolBarMoveToPatient(object sender, EventArgs e){
-		if(false) {
-			MsgBox.Show(this,"Not yet implemented for Open Dental Cloud.");
-			return;
-		}
 		if(!IsDocumentShowing() && !IsMountShowing()){
 			MsgBox.Show(this,"Please select an item first.");
 			return;
@@ -2505,10 +2469,6 @@ public partial class ControlImages : UserControl{
 	}
 
 	private void ToolBarPrintCategory(object sender, EventArgs e){
-		if(/* ODEnvironment.IsCloudServer */ false || false) {
-			MsgBox.Show("This feature is only supported when images and documents are stored on a local or network folder.");
-			return;
-		}
 		var defNumCategory=GetCurrentCategory();
 		//Grab list of documents in the selected category that aren't mountitems or PDFs
 		var listDocuments=Documents.GetPatientData(_patient.PatNum);
@@ -2951,10 +2911,6 @@ public partial class ControlImages : UserControl{
 	}
 
 	private void ToolBarVideo_Click(object sender,EventArgs e){
-		if(false) {
-			MsgBox.Show(this,"This feature is not available in Open Dental Cloud.");
-			return;
-		}
 		//If no patient selected, then this button is disabled
 		if(!Security.IsAuthorized(EnumPermType.ImageCreate)) {
 			return;

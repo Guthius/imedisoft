@@ -11,8 +11,8 @@ using CodeBase;
 using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Entities;
+using Imedisoft.Features.Providers.Dtos;
 using OpenDental.Logic;
-using OpenDental.Thinfinity;
 using OpenDental.UI;
 using OpenDentBusiness;
 using PdfSharp.Pdf;
@@ -24,7 +24,7 @@ public partial class FormRpTreatmentFinder:FormODBase {
 	private int headingPrintH;
 	private int pagesPrinted;
 	private int patientsPrinted;
-	private List<Provider> _listProviders;
+	private List<ProviderDto> _listProviders;
 
 	///<summary>We do not hold onto the data table in memory so we use this list to keep track of the headers we'll need when exporting.</summary>
 	private List<string> _listHeaders= [];
@@ -46,7 +46,7 @@ public partial class FormRpTreatmentFinder:FormODBase {
 		//date1.SelectionStart=new DateTime(today.Year,today.Month,1).AddMonths(-1);
 		//date2.SelectionStart=new DateTime(today.Year,today.Month,1).AddDays(-1);
 		for(var i=0;i<_listProviders.Count;i++){
-			comboBoxMultiProv.Items.Add(_listProviders[i].GetLongDesc(),_listProviders[i]);
+			comboBoxMultiProv.Items.Add(_listProviders[i].Description,_listProviders[i]);
 		}
 		comboBoxMultiProv.IsAllSelected=true;
 		var listBillingTypeDefs=Defs.GetDefsForCategory(DefCat.BillingTypes,true);
@@ -70,10 +70,6 @@ public partial class FormRpTreatmentFinder:FormODBase {
 		var dateTo=datePickerEnd.GetDateTime();
 		var monthStart=comboMonthStart.SelectedIndex;
 		var aboveAmount=SIn.Double(textOverAmount.Text);
-		var sw=new Stopwatch();
-		if(/* ODBuild.IsDebug() */ false) {
-			sw=Stopwatch.StartNew();
-		}
 		gridMain.BeginUpdate();
 		gridMain.Columns.Clear();
 		//0=PatNum
@@ -125,10 +121,6 @@ public partial class FormRpTreatmentFinder:FormODBase {
 			}
 		}
 		gridMain.EndUpdate();
-		if(/* ODBuild.IsDebug() */ false) {
-			sw.Stop();
-			Console.WriteLine("Finished fetching data and filling grid: {0}, Rows: {1}",(sw.Elapsed.Seconds==0?"":(sw.Elapsed.Seconds+" sec "))+(sw.Elapsed.TotalMilliseconds-(sw.Elapsed.Seconds*1000))+" ms",gridMain.ListGridRows.Count);
-		}
 		Cursor=Cursors.Default;
 	}
 
@@ -198,12 +190,7 @@ public partial class FormRpTreatmentFinder:FormODBase {
 			}
 			filePathAndName=PrefC.GetRandomTempFile(".pdf");
 			document.Save(filePathAndName);
-			if(false) {
-				ThinfinityUtils.HandleFile(filePathAndName);
-			}
-			else {
-				Process.Start(filePathAndName);
-			}
+			Process.Start(filePathAndName);
 			DialogResult=DialogResult.OK;
 		}
 		if(MsgBox.Show(this,MsgBoxButtons.YesNo,"Would you like to save the sheets for the selected patients?")) {
@@ -354,38 +341,22 @@ public partial class FormRpTreatmentFinder:FormODBase {
 			Filter="Text files(*.txt)|*.txt|Excel Files(*.xls)|*.xls|All files(*.*)|*.*",
 			FilterIndex=0
 		};
-		if(false) {
-			//file download dialog will come up later, after file is created.
-			if(saveFileDialog.ShowDialog()!=DialogResult.OK) { 
-				return;
-			}
-			if(saveFileDialog.FileName.IsNullOrEmpty()) {
-				MsgBox.Show("Failed to save the file.");
-				return;
-			}
-			filePath=ODFileUtils.CombinePaths(Path.GetTempPath(),saveFileDialog.FileName.Split('\\').Last());
-		}
-		else if(false) {
-			//Do not show save dialog or export locally. File will be exported later.
-		}
-		else {
-			if(!Directory.Exists(PrefC.GetString(PrefName.ExportPath))) {
-				try {
-					Directory.CreateDirectory(PrefC.GetString(PrefName.ExportPath));
-					saveFileDialog.InitialDirectory=PrefC.GetString(PrefName.ExportPath);
-				}
-				catch {
-					//initialDirectory will be blank
-				}
-			}
-			else {
+		if(!Directory.Exists(PrefC.GetString(PrefName.ExportPath))) {
+			try {
+				Directory.CreateDirectory(PrefC.GetString(PrefName.ExportPath));
 				saveFileDialog.InitialDirectory=PrefC.GetString(PrefName.ExportPath);
 			}
-			if(saveFileDialog.ShowDialog()!=DialogResult.OK) {
-				return;
+			catch {
+				//initialDirectory will be blank
 			}
-			filePath=saveFileDialog.FileName;
 		}
+		else {
+			saveFileDialog.InitialDirectory=PrefC.GetString(PrefName.ExportPath);
+		}
+		if(saveFileDialog.ShowDialog()!=DialogResult.OK) {
+			return;
+		}
+		filePath=saveFileDialog.FileName;
 		try{
 			using(var sw=new StreamWriter(filePath,false))
 			{

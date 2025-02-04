@@ -1,11 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Data;
 using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Windows.Threading;
 using WpfControls.UI;
@@ -15,7 +11,7 @@ namespace OpenDental;
 ///<summary>This control is always present in the Imaging module. It's a container with a header that looks like the title bar of a window. It contains a ControlImageDisplay to show docked images/mounts. When there is no docked image, then ControlImageDisplay=null and this shows as all white with no title bar as an indicator to the user.</summary>
 public partial class ControlImageDock:UserControl {
 	#region Fields - public
-	public LayoutManagerForms LayoutManager=new LayoutManagerForms();
+	
 	///<summary>Will be null if no image showing.</summary>
 	public ControlImageDisplay ControlImageDisplay_=null;
 	///<summary>This lets us get a list of all floater windows from ControlImages at the moment when we pop up the window selector.</summary>
@@ -118,7 +114,7 @@ public partial class ControlImageDock:UserControl {
 	}
 
 	///<summary>This is what shows in the title bar.</summary>
-	public string Text{
+	public new string Text{
 		get{
 			if(ControlImageDisplay_ is null){
 				return null;
@@ -153,7 +149,7 @@ public partial class ControlImageDock:UserControl {
 		ControlImageDisplay_.Bounds=new Rectangle(0,elementHostImageDockHeader.Height,ClientSize.Width, ClientSize.Height-elementHostImageDockHeader.Height);
 		ControlImageDisplay_.Anchor=System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left
 		                                                                  | System.Windows.Forms.AnchorStyles.Right | System.Windows.Forms.AnchorStyles.Bottom;
-		LayoutManagerForms.Add(ControlImageDisplay_,this);
+		Controls.Add(ControlImageDisplay_);
 	}
 	#endregion Methods - Public
 

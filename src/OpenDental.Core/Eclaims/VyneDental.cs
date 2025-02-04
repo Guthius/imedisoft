@@ -1,28 +1,26 @@
 ﻿using System;
-using System.Diagnostics;
-using System.IO;
 using CodeBase;
 using Imedisoft.Core.Entities;
-using OpenDentBusiness;
 
-namespace OpenDentBusiness.Eclaims {
-	
-	public class VyneDental {
+namespace OpenDentBusiness.Eclaims;
 
-		public static string ErrorMessage="";
+public class VyneDental
+{
+    public static string ErrorMessage = "";
 
-		public VyneDental(){}
+    public static bool Launch(Clearinghouse clearinghouse)
+    {
+        try
+        {
+            ODFileUtils.ProcessStart(clearinghouse.ClientProgram);
+        }
+        catch (Exception ex)
+        {
+            ErrorMessage = ex.Message;
+                
+            return false;
+        }
 
-		///<summary>Returns true if the exe was launched, false otherwise.</summary>
-		public static bool Launch(Clearinghouse clearinghouse,int batchNum){//Called from Eclaims.cs. Clinic-level clearinghouse passed in.
-			try{
-				ODFileUtils.ProcessStart(clearinghouse.ClientProgram);
-			}
-			catch(Exception ex) {
-				ErrorMessage=ex.Message;
-				return false;
-			}
-			return true;
-		}
-	}
+        return true;
+    }
 }

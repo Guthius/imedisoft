@@ -5,6 +5,7 @@ using System.Windows.Forms;
 using DataConnectionBase;
 using Imedisoft.Core.Entities;
 using Imedisoft.Core.Features.Clinics;
+using Imedisoft.Features.Providers.Dtos;
 using OpenDental.UI;
 using OpenDentBusiness;
 
@@ -12,18 +13,18 @@ namespace OpenDental;
 
 public partial class FormProvAdditional : FormODBase
 {
-    public List<ProviderClinic> ListProviderClinicsOut = [];
+    private readonly ProviderDto _providerDto;
+    private readonly List<ProviderClinicDto> _providerClinicDtos;
+    private ProviderClinicDto _defaultProviderClinicDto;
 
-    private readonly Provider _provider;
-    private readonly List<ProviderClinic> _providerClinics;
-    private ProviderClinic _providerClinic;
+    public List<ProviderClinicDto> ModifiedProviderClinicDtos { get; set; } = [];
 
-    public FormProvAdditional(List<ProviderClinic> providerClinics, Provider provider)
+    public FormProvAdditional(List<ProviderClinicDto> providerClinicDtos, ProviderDto providerDto)
     {
         InitializeComponent();
 
-        _providerClinics = providerClinics.Select(x => x.Copy()).ToList();
-        _provider = provider;
+        _providerClinicDtos = providerClinicDtos;
+        _providerDto = providerDto;
     }
 
     private void FormProvAdditional_Load(object sender, EventArgs e)
@@ -34,74 +35,66 @@ public partial class FormProvAdditional : FormODBase
     private void FillGrid()
     {
         Cursor = Cursors.WaitCursor;
-        
+
         gridProvProperties.BeginUpdate();
-        
+
         gridProvProperties.Columns.Clear();
         gridProvProperties.Columns.Add(new GridColumn("Clinic", 120));
         gridProvProperties.Columns.Add(new GridColumn("DEA Num", 120, true));
         gridProvProperties.Columns.Add(new GridColumn("State License Num", 120, true));
         gridProvProperties.Columns.Add(new GridColumn("State Rx ID", 120, true));
         gridProvProperties.Columns.Add(new GridColumn("State Where Licensed", 120, true));
-        
+
         gridProvProperties.ListGridRows.Clear();
-        _providerClinic = _providerClinics.Find(x => x.ClinicNum == 0);
 
-        if (_providerClinic == null)
+        _defaultProviderClinicDto = _providerClinicDtos.FirstOrDefault(x => x.ClinicId is null);
+        if (_defaultProviderClinicDto is null)
         {
-            _providerClinic = ProviderClinics.GetOne(_provider.ProvNum, 0) ?? new ProviderClinic
-            {
-                ProvNum = _provider.ProvNum,
-                ClinicNum = 0,
-                DEANum = _provider.DEANum,
-                StateLicense = _provider.StateLicense,
-                StateRxID = _provider.StateRxID,
-                StateWhereLicensed = _provider.StateWhereLicensed
-            };
+            _defaultProviderClinicDto = new ProviderClinicDto();
 
-            _providerClinics.Add(_providerClinic);
+            _providerClinicDtos.Add(_defaultProviderClinicDto);
         }
 
         var gridRow = new GridRow();
-        
+
         gridRow.Cells.Add("Default");
-        gridRow.Cells.Add(_providerClinic.DEANum);
-        gridRow.Cells.Add(_providerClinic.StateLicense);
-        gridRow.Cells.Add(_providerClinic.StateRxID);
-        gridRow.Cells.Add(_providerClinic.StateWhereLicensed);
-        gridRow.Tag = _providerClinic;
-        
+        gridRow.Cells.Add(_defaultProviderClinicDto.DeaNumber);
+        gridRow.Cells.Add(_defaultProviderClinicDto.StateLicense);
+        gridRow.Cells.Add(_defaultProviderClinicDto.StateRxId);
+        gridRow.Cells.Add(_defaultProviderClinicDto.StateWhereLicensed);
+        gridRow.Tag = _defaultProviderClinicDto;
+
         gridProvProperties.ListGridRows.Add(gridRow);
-        
+
         var clinicDtos = Clinics.GetForUserod(Security.CurUser);
+
         foreach (var clinicDto in clinicDtos)
         {
             gridRow = new GridRow();
-            
-            var providerClinic = _providerClinics.Find(x => x.ClinicNum == clinicDto.Id);
-            if (providerClinic == null)
+
+            var providerClinicDto = _providerDto.Clinics.FirstOrDefault(x => x.ClinicId == clinicDto.Id);
+            if (providerClinicDto is null)
             {
-                providerClinic = new ProviderClinic
+                providerClinicDto = new ProviderClinicDto
                 {
-                    ProvNum = _provider.ProvNum,
-                    ClinicNum = clinicDto.Id
+                    ClinicId = clinicDto.Id
                 };
-                
-                _providerClinics.Add(providerClinic);
+
+                _providerDto.Clinics.Add(providerClinicDto);
             }
 
             gridRow.Cells.Add(clinicDto.Abbr);
-            gridRow.Cells.Add(providerClinic.DEANum);
-            gridRow.Cells.Add(providerClinic.StateLicense);
-            gridRow.Cells.Add(providerClinic.StateRxID);
-            gridRow.Cells.Add(providerClinic.StateWhereLicensed);
-            gridRow.Tag = providerClinic;
-            
+            gridRow.Cells.Add(providerClinicDto.DeaNumber);
+            gridRow.Cells.Add(providerClinicDto.StateLicense);
+            gridRow.Cells.Add(providerClinicDto.StateRxId);
+            gridRow.Cells.Add(providerClinicDto.StateWhereLicensed);
+            gridRow.Tag = providerClinicDto;
+
             gridProvProperties.ListGridRows.Add(gridRow);
         }
 
         gridProvProperties.EndUpdate();
-        
+
         Cursor = Cursors.Default;
     }
 
@@ -115,61 +108,60 @@ public partial class FormProvAdditional : FormODBase
 
         var providerClinic = (ProviderClinic) selectedGridRow.Tag;
         var value = SIn.String(selectedGridRow.Cells[e.Col].Text);
-        
+
         switch (e.Col)
         {
             case 1:
                 providerClinic.DEANum = value;
                 break;
-            
+
             case 2:
                 providerClinic.StateLicense = value;
                 break;
-            
+
             case 3:
                 providerClinic.StateRxID = value;
                 break;
-            
+
             case 4:
                 providerClinic.StateWhereLicensed = value;
                 break;
         }
     }
 
-    private static bool IsEmpty(ProviderClinic providerClinic)
+    private static bool IsEmpty(ProviderClinicDto providerClinicDto)
     {
-        return providerClinic is not null && 
-               string.IsNullOrEmpty(providerClinic.DEANum) && 
-               string.IsNullOrEmpty(providerClinic.StateLicense) && 
-               string.IsNullOrEmpty(providerClinic.StateRxID) && 
-               string.IsNullOrEmpty(providerClinic.StateWhereLicensed) && 
-               string.IsNullOrEmpty(providerClinic.CareCreditMerchantId);
+        return providerClinicDto is not null &&
+               string.IsNullOrEmpty(providerClinicDto.DeaNumber) &&
+               string.IsNullOrEmpty(providerClinicDto.StateLicense) &&
+               string.IsNullOrEmpty(providerClinicDto.StateRxId) &&
+               string.IsNullOrEmpty(providerClinicDto.StateWhereLicensed);
     }
 
-    private bool IsProviderClinicModified(ProviderClinic providerClinic)
+    private bool IsProviderClinicModified(ProviderClinicDto providerClinic)
     {
         if (providerClinic is null)
         {
             return false;
         }
-        
-        return providerClinic == _providerClinic || !IsEmpty(providerClinic);
+
+        return providerClinic == _defaultProviderClinicDto || !IsEmpty(providerClinic);
     }
 
     private void ButtonAccept_Click(object sender, EventArgs e)
     {
-        var providerClinics = gridProvProperties.ListGridRows.Select(x => (ProviderClinic) x.Tag).ToList();
-        
-        ListProviderClinicsOut = [];
-        
-        foreach (var providerClinic in providerClinics)
+        var providerClinicDtos = gridProvProperties.ListGridRows.Select(x => (ProviderClinicDto) x.Tag).ToList();
+
+        ModifiedProviderClinicDtos = [];
+
+        foreach (var providerClinicDto in providerClinicDtos)
         {
-            if (!IsProviderClinicModified(providerClinic))
+            if (!IsProviderClinicModified(providerClinicDto))
             {
                 continue;
             }
 
-            ListProviderClinicsOut.Add(providerClinic);
+            ModifiedProviderClinicDtos.Add(providerClinicDto);
         }
 
         DialogResult = DialogResult.OK;

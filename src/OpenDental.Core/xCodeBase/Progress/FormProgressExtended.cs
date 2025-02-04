@@ -48,7 +48,7 @@ namespace CodeBase
             progBar.ODProgUpdate(progHelper.LabelValue, progHelper.LabelTop, progHelper.PercentValue, (int) progHelper.BlockValue, (int) progHelper.BlockMax, progHelper.TagString, progHelper.ProgressStyle, progHelper.MarqueeSpeed, progHelper.IsValHidden, progHelper.IsTopHidden, progHelper.IsPercentHidden);
         }
 
-        public sealed override void UpdateProgress(string status, ProgressBarHelper progHelper, bool hasProgHelper)
+        protected sealed override void UpdateProgress(string status, ProgressBarHelper progHelper, bool hasProgHelper)
         {
             if (!hasProgHelper)
             {

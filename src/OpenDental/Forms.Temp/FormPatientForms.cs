@@ -1,16 +1,13 @@
 using System;
 using System.Collections.Generic;
 using System.Data;
-using System.IO;
 using System.Linq;
 using System.Windows.Forms;
-using CodeBase;
 using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Entities;
 using OpenDental.UI;
 using OpenDentBusiness;
-using OpenDentBusiness.SheetFramework;
 
 namespace OpenDental;
 
@@ -38,7 +35,6 @@ public partial class FormPatientForms:FormODBase {
 		var menuItemSetup=new MenuItemOD("Setup");
 		menuMain.Add(menuItemSetup);
 		menuItemSetup.Add("Sheets",menuItemSheets_Click);
-		menuItemSetup.Add("eForms",menuItemEForms_Click);
 		menuItemSetup.Add("Image Categories",menuItemImageCats_Click);
 		menuItemSetup.Add("Options",menuItemOptions_Click);
 		//if(/* ODBuild.IsDebug() */ false || false) {
@@ -180,16 +176,6 @@ public partial class FormPatientForms:FormODBase {
 		FillGrid(refreshFromDb:false);
 	}
 
-	private void menuItemEForms_Click(object sender,EventArgs e) {
-		if(!Security.IsAuthorized(EnumPermType.Setup)) {
-			return;
-		}
-		var frmEFormDefs=new FrmEFormDefs();
-		frmEFormDefs.ShowDialog();
-		SecurityLogs.MakeLogEntry(EnumPermType.Setup,0,"EForms");
-		FillGrid(refreshFromDb:false);
-	}
-
 	private void menuItemImageCats_Click(object sender,EventArgs e) {
 		if(!Security.IsAuthorized(EnumPermType.DefEdit)) {
 			return;
@@ -240,16 +226,8 @@ public partial class FormPatientForms:FormODBase {
 		}
 		SheetDef sheetDef;
 		Sheet sheet=null;//only useful if not Terminal
-		var isPatUsingEClipboard=MobileAppDevices.PatientIsAlreadyUsingDevice(PatNum);
 		for(var i=0;i<frmSheetPicker.ListSheetDefsSelected.Count;i++) {
 			sheetDef=frmSheetPicker.ListSheetDefsSelected[i];
-			if(frmSheetPicker.DoKioskSend && isPatUsingEClipboard && !sheetDef.HasMobileLayout) {
-				if(!MsgBox.Show(MsgBoxButtons.YesNo,$"The patient is currently using an eClipboard to fill out forms, but the " +
-				                                    $"{sheetDef.Description} sheet does not have a mobile layout and cannot be used with eClipboard. " +
-				                                    $"If you add this form to the patient's list it will not be shown in eClipboard. Do you still want to add this form?")) {
-					continue;
-				}
-			}
 			sheet=SheetUtil.CreateSheet(sheetDef,PatNum);
 			if(SheetDefs.ContainsGrids(sheetDef,"ProcsWithFee","ProcsNoFee")) {
 				using var formSheetProcSelect=new FormSheetProcSelect();
@@ -269,10 +247,6 @@ public partial class FormPatientForms:FormODBase {
 				sheet.ShowInTerminal=(byte)(Sheets.GetBiggestShowInTerminal(PatNum)+1);
 				Sheets.SaveNewSheet(sheet);//save each sheet.
 				Sheets.SaveParameters(sheet);
-				//Create mobile notification to update eClipboard device with new sheet.
-				if(isPatUsingEClipboard && sheetDef.HasMobileLayout) {
-					MobileNotifications.CI_AddSheet(sheet.PatNum,sheet.SheetNum);
-				}
 			}
 		}
 		if(frmSheetPicker.DoKioskSend) {
@@ -319,21 +293,11 @@ public partial class FormPatientForms:FormODBase {
 			MsgBox.Show(this,"Cannot open kiosk unless process signal interval is set. To set it, go to Setup > Miscellaneous.");
 			return;
 		}
-		if(/* ODEnvironment.IsCloudServer */ false) {
-			//Thinfinity messes up window ordering so sometimes FormOpenDental is visible in Kiosk mode.
-			for(var i=0;i<Application.OpenForms.Count;i++) {
-				Application.OpenForms[i].Visible=false;
-			}
-		}
+
 		using var formTerminal=new FormTerminal();
 		formTerminal.IsSimpleMode=true;
 		formTerminal.PatNum=PatNum;
 		formTerminal.ShowDialog();
-		if(/* ODEnvironment.IsCloudServer */ false) {
-			for(var i=0;i<Application.OpenForms.Count;i++) {
-				Application.OpenForms[i].Visible=true;
-			}
-		}
 		FillGrid(refreshFromDb:true);
 	}
 

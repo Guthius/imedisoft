@@ -4,7 +4,6 @@ using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Text;
-using System.Text.RegularExpressions;
 using System.Windows.Forms;
 using CodeBase;
 using DataConnectionBase;
@@ -12,7 +11,6 @@ using Imedisoft.Core.Caching;
 using Imedisoft.Core.Data;
 using Imedisoft.Core.Entities;
 using Imedisoft.Core.Features.Clinics;
-using Newtonsoft.Json;
 using OpenDental.UI;
 using OpenDentBusiness;
 
@@ -140,15 +138,11 @@ public partial class FormEmailMessageEdit : FormODBase {
 		var menuItemSend=new MenuItem();
 		menuItemSend.Text=Lan.g(this,"Send");
 		menuItemSend.Click+=new EventHandler(this.butSend_Click);
-		var menuItemSendSecure=new MenuItem();
-		menuItemSendSecure.Text=Lan.g(this,"Send Secure");
-		menuItemSendSecure.Click+=new EventHandler(this.butSendSecure_Click);
 		var menuItemSendDirect=new MenuItem();
 		menuItemSendDirect.Text=Lan.g(this,"Direct Messaging");//For EHR and very rare
 		menuItemSendDirect.Click+=new EventHandler(this.butDirectMessage_Click);
 		MenuItem getDefaultMenuItem() {
 			return emailPlatform switch {
-				EmailPlatform.Secure => menuItemSendSecure,
 				EmailPlatform.Direct => menuItemSendDirect,
 				EmailPlatform.Unsecure => menuItemSend,
 				_ => menuItemSend,//If the preference is invalid, just use Insecure as the default.
@@ -157,9 +151,6 @@ public partial class FormEmailMessageEdit : FormODBase {
 		var listMenuItems=new List<MenuItem> {
 			menuItemSend,//always an option
 		};
-		if(EmailSecures.IsSecureEmailReleased()) {
-			listMenuItems.Add(menuItemSendSecure);
-		}
 		if(IsDirectMessagingEnabled()) {
 			//Only include Direct Messaging if enabled.
 			listMenuItems.Add(menuItemSendDirect);
@@ -171,9 +162,6 @@ public partial class FormEmailMessageEdit : FormODBase {
 		}
 		//If we are replying to a secure email, the only option should be to reply with a secure email.
 		//Users should start a new email if they want to send a different type.
-		if(IsReplyingToSecureEmail()) {
-			listMenuItems= [menuItemSendSecure];
-		}
 		contextMenu.MenuItems.AddRange(listMenuItems.ToArray());
 		return contextMenu;
 	}
@@ -185,7 +173,7 @@ public partial class FormEmailMessageEdit : FormODBase {
 	}
 
 	private bool IsDirectMessagingEnabled() {			
-		return PrefC.GetBool(PrefName.ShowFeatureEhr);
+		return false;
 	}
 
 	private void FormEmailMessageEdit_Load(object sender, System.EventArgs e) {
@@ -752,7 +740,7 @@ public partial class FormEmailMessageEdit : FormODBase {
 		if(isSecureEmail && string.IsNullOrWhiteSpace(emailPreview.Subject)) {
 			error.AppendLine(Lan.g(this,"Subject line is required."));
 		}
-		var errorText=PrefC.GetFirstShortURL(emailPreview.BodyText);
+		var errorText=PrefC.GetFirstShortUrl(emailPreview.BodyText);
 		if(!string.IsNullOrWhiteSpace(errorText)) {
 			error.AppendLine(Lan.g(this,"Message cannot contain the URL")+" "+errorText+" "+Lan.g(this,"as this is only allowed for eServices."));
 		}
@@ -809,7 +797,7 @@ public partial class FormEmailMessageEdit : FormODBase {
 				emailPreview.HtmlText=MarkupEdit.TranslateToXhtml(markupText,isEmail:true);
 				hasValidHTML=true;
 			}
-			catch(Exception ex) {
+			catch {
 				if(!MsgBox.Show(this,MsgBoxButtons.YesNo,"There was a problem automatically appending the HTML autograph. Continue without an autograph?")) {
 					toolBarSend.Enabled=true;
 					return;//User wants to manually fix the HTML autograph and try again.
@@ -841,59 +829,6 @@ public partial class FormEmailMessageEdit : FormODBase {
 		Cursor=Cursors.Default;
 		MsgBox.Show(this,"Sent");
 		//MessageCur.MsgDateTime=DateTime.Now;
-		DialogResult=DialogResult.OK;
-		Close();//this form can be opened modelessly.
-	}
-
-	///<summary>Sends the email as a Secure Email via the EmailHosting API.</summary>
-	private void butSendSecure_Click(object sender, System.EventArgs e) {
-		if(Clinics.IsSecureEmailEnabled(_clinicNum)) {
-			SendSecure();
-			return;
-		}
-		if(!MsgBox.Show(MsgBoxButtons.YesNo,"Secure Email must be signed up and enabled before sending emails.  Go to setup?")) {
-			return;
-		}
-		using var formSecureEmailSetup=new FormSecureEmailSetup();
-		formSecureEmailSetup.ShowDialog();
-		//Now we need to update the default clinic num.
-		if(true && _clinicNum==0) {
-			//Clinic0 cannot be directly signed up for Secure Email, so use the 'Default Clinic'
-			_clinicNum=PrefC.GetLong(PrefName.EmailSecureDefaultClinic);
-		}
-		ConfigureSendButtons();
-	}
-
-	private void SendSecure() {
-		if(!ValidateFieldsForSend(isSecureEmail:true)) {
-			return;
-		}
-		if(!IsValidSecureEmail()) {
-			return;
-		}
-		var emailAddressSender=GetOutgoingEmailForSending();
-		if(emailAddressSender==null) {
-			return;
-		}
-		SaveMsg();//wires UI into _emailMessage and inserts/updates db.
-		var toAddress=emailPreview.ToAddress;
-		var progressOD=new ProgressWin();
-		//Send the Email
-		progressOD.ActionMain=() => {
-			_patient??=EmailMessages.GetPatient(_emailMessage);
-			EmailSecures.SendSecureEmail(_emailMessage,emailAddressSender,toAddress,_clinicNum,_emailMessageReplyingTo,_patient);
-		};
-		try {
-			progressOD.ShowDialog();
-		}
-		catch(Exception ex) {
-			FriendlyException.Show(Lan.g(this,"Failed to send secure email.")+"\r\n"+ex.Message,ex);
-			return;
-		}
-		if(progressOD.IsCancelled){
-			return;
-		}
-		MsgBox.Show(this,"Sent");
 		DialogResult=DialogResult.OK;
 		Close();//this form can be opened modelessly.
 	}

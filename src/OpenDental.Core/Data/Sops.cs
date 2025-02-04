@@ -1,11 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Data;
-using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Crud;
 using Imedisoft.Core.Entities;
-using OpenDentBusiness;
 
 namespace Imedisoft.Core.Data;
 
@@ -19,11 +17,6 @@ public static class Sops
     public static void Update(Sop sop)
     {
         SopCrud.Update(sop);
-    }
-
-    public static long GetCodeCount()
-    {
-        return SIn.Long(Db.GetCount("SELECT COUNT(*) FROM sop"));
     }
 
     public static string GetDescriptionFromCode(string sopCode)
@@ -62,19 +55,19 @@ public static class Sops
 
     private static readonly SopCache Cache = new();
 
-    public static List<Sop> GetDeepCopy(bool isShort = false)
+    public static List<Sop> GetDeepCopy(bool shortList = false)
     {
-        return Cache.GetDeepCopy(isShort);
+        return Cache.GetDeepCopy(shortList);
     }
 
-    public static Sop GetFirstOrDefault(Func<Sop, bool> match, bool isShort = false)
+    public static Sop GetFirstOrDefault(Func<Sop, bool> predicate, bool shortList = false)
     {
-        return Cache.GetFirstOrDefault(match, isShort);
+        return Cache.GetFirstOrDefault(predicate, shortList);
     }
 
-    public static DataTable GetTableFromCache(bool doRefreshCache)
+    public static DataTable GetTableFromCache(bool refreshCache)
     {
-        return Cache.GetTableFromCache(doRefreshCache);
+        return Cache.GetTableFromCache(refreshCache);
     }
 
     public static void ClearCache()

@@ -37,7 +37,7 @@ public partial class FormComputers : FormODBase
         textService.Text = serviceInfos[0];
         textVersion.Text = serviceInfos[3];
         textServComment.Text = serviceInfos[1];
-        textCurComp.Text = ODEnvironment.MachineName.ToUpper();
+        textCurComp.Text = Environment.MachineName.ToUpper();
 
         listComputer.Items.AddList(Computers.GetDeepCopy(), x => x.CompName);
     }

@@ -449,7 +449,7 @@ public class Clearinghouses
         }
         else if (clearinghouseHq.CommBridge == EclaimsCommBridge.BCBSGA)
         {
-            BCBSGA.Retrieve(clearinghouseClin, true, new TerminalConnector());
+            BCBSGA.Retrieve(clearinghouseClin, new TerminalConnector());
         }
         else
             switch (clearinghouseHq.Eformat)
@@ -461,17 +461,17 @@ public class Clearinghouses
 
                     foreach (var provider in providers)
                     {
-                        if (!provider.IsCDAnet || provider.NationalProvID == "" || provider.CanadianOfficeNum == "")
+                        if (!provider.IsCdaNet || provider.NationalProviderId == "" || provider.CanadianOfficeNumber == "")
                         {
                             continue;
                         }
 
-                        if (officeNums.Contains(provider.CanadianOfficeNum))
+                        if (officeNums.Contains(provider.CanadianOfficeNumber))
                         {
                             continue;
                         }
 
-                        officeNums.Add(provider.CanadianOfficeNum);
+                        officeNums.Add(provider.CanadianOfficeNumber);
                         try
                         {
                             CanadianOutput.GetOutstandingForDefault(provider);
@@ -524,7 +524,7 @@ public class Clearinghouses
             case EclaimsCommBridge.WebMD when !WebMD.Launch(clearinghouseClin, 0, isAutomaticMode, progressExtended):
                 return "Error retrieving.\r\n" + WebMD.ErrorMessage;
 
-            case EclaimsCommBridge.BCBSGA when !BCBSGA.Retrieve(clearinghouseClin, true, new TerminalConnector(), progressExtended):
+            case EclaimsCommBridge.BCBSGA when !BCBSGA.Retrieve(clearinghouseClin, new TerminalConnector(), progressExtended):
                 return "Error retrieving.\r\n" + BCBSGA.ErrorMessage;
 
             case EclaimsCommBridge.ClaimConnect when !Directory.Exists(clearinghouseClin.ResponsePath):

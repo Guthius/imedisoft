@@ -1,9 +1,7 @@
 using System;
 using System.Data;
 using System.Drawing;
-using System.Collections;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Globalization;
 using System.Windows.Forms;
 using OpenDental.UI;
@@ -15,6 +13,7 @@ using CodeBase;
 using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Entities;
+using OpenDental.Forms;
 
 namespace OpenDental;
 
@@ -329,14 +328,14 @@ public partial class FormCarriers : FormODBase {
 		if(formCarrierCombine.DialogResult!=DialogResult.OK){
 			return;
 		}
-		if(!VerifyCarrierCombineData(formCarrierCombine.PickedCarrierNum,pickedCarrierNums)) {
+		if(!VerifyCarrierCombineData(formCarrierCombine.SelectedCarrierNum,pickedCarrierNums)) {
 			return;
 		}
 		var listCarriers=Carriers.GetCarriers(pickedCarrierNums);
-		var carrierName=listCarriers.FirstOrDefault(x => x.CarrierNum==formCarrierCombine.PickedCarrierNum)?.CarrierName??"";
-		var carrierNames=string.Join(", ",listCarriers.Where(x => x.CarrierNum!=formCarrierCombine.PickedCarrierNum).Select(x => $"'{x.CarrierName}'"));
+		var carrierName=listCarriers.FirstOrDefault(x => x.CarrierNum==formCarrierCombine.SelectedCarrierNum)?.CarrierName??"";
+		var carrierNames=string.Join(", ",listCarriers.Where(x => x.CarrierNum!=formCarrierCombine.SelectedCarrierNum).Select(x => $"'{x.CarrierName}'"));
 		try {
-			Carriers.Combine(pickedCarrierNums,formCarrierCombine.PickedCarrierNum);
+			Carriers.Combine(pickedCarrierNums,formCarrierCombine.SelectedCarrierNum);
 		}
 		catch(ApplicationException ex) {
 			ODMessageBox.Show(ex.Message);

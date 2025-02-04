@@ -1,20 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Drawing;
-using System.Data;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
-using System.Reflection;
 using OpenDental.UI;
-using OpenDental;
 using OpenDentBusiness;
 using System.IO;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Entities;
-using Microsoft.VisualBasic.FileIO;
 
 
 namespace OpenDental.User_Controls.SetupWizard;

@@ -1,12 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Data;
-using System.Reflection;
+﻿using System.Data;
 
 namespace OpenDentBusiness {
 	public class RpDentalSealantMeasure {
 		public static DataTable GetDentalSealantMeasureTable(string year) {
-			string command=@"SET @ReportingDateStart = CONCAT("+year+@",'-','01','-','01'), @ReportingDateEnd = CONCAT("+year+@",'-','12','-','31');
+			var command=@"SET @ReportingDateStart = CONCAT("+year+@",'-','01','-','01'), @ReportingDateEnd = CONCAT("+year+@",'-','12','-','31');
 				SET @PatientDOBStart = @ReportingDateStart - INTERVAL 9 YEAR, @PatientDOBEnd = @ReportingDateEnd - INTERVAL 6 YEAR;
 				SELECT provider.LName AS 'Provider', 
 				COUNT(ColC.NumeratorPat) AS 'Numerator',

@@ -22,8 +22,8 @@ public class PayPlanCharges
         var downPaymentChargeDate = DateTime.Today; //The chargeDate for the downpayment.
         if (terms.DateFirstPayment < downPaymentChargeDate) //If Date of First Payment was backdated, we need to use that date for the Down Payment.
             downPaymentChargeDate = terms.DateFirstPayment;
-        var listDownPayments = PayPlanEdit.GetListExpectedCharges(new List<PayPlanCharge>(), terms, family, listPayPlanLinks, payplan, true
-            , true, new List<PaySplit>());
+        var listDownPayments = PayPlanEdit.GetListExpectedCharges([], terms, family, listPayPlanLinks, payplan, true
+            , true, []);
         listDownPayments.ForEach(x =>
         {
             x.Note = "Down Payment";
@@ -40,14 +40,14 @@ public class PayPlanCharges
     {
         var command =
             "SELECT * FROM payplancharge "
-            + "WHERE PayPlanNum=" + SOut.Long(payPlanNum)
+            + "WHERE PayPlanNum=" + (payPlanNum)
             + " ORDER BY ChargeDate";
         return PayPlanChargeCrud.SelectMany(command);
     }
 
     public static List<PayPlanCharge> GetForPayPlans(List<long> listPayPlanNums)
     {
-        if (listPayPlanNums == null || listPayPlanNums.Count < 1) return new List<PayPlanCharge>();
+        if (listPayPlanNums == null || listPayPlanNums.Count < 1) return [];
 
         var command =
             "SELECT * FROM payplancharge "
@@ -58,7 +58,7 @@ public class PayPlanCharges
 
     public static List<PayPlanCharge> GetForPayPlans(List<long> listPayPlans, List<long> listPatNums)
     {
-        if (listPayPlans.IsNullOrEmpty() || listPatNums.IsNullOrEmpty()) return new List<PayPlanCharge>();
+        if (listPayPlans.IsNullOrEmpty() || listPatNums.IsNullOrEmpty()) return [];
 
         var command = "SELECT payplancharge.* FROM payplan "
                       + "INNER JOIN payplancharge ON payplancharge.PayPlanNum = payplan.PayPlanNum "
@@ -70,17 +70,17 @@ public class PayPlanCharges
 
     public static List<PayPlanCharge> GetChargesForPayPlanChargeType(List<long> listPayPlanNums, PayPlanChargeType chargeType)
     {
-        if (listPayPlanNums.IsNullOrEmpty()) return new List<PayPlanCharge>();
+        if (listPayPlanNums.IsNullOrEmpty()) return [];
 
         var command = "SELECT * FROM payplancharge "
-                      + "WHERE PayPlanNum IN(" + string.Join(",", listPayPlanNums.Select(x => SOut.Long(x))) + ") "
+                      + "WHERE PayPlanNum IN(" + string.Join(",", listPayPlanNums.Select(x => (x))) + ") "
                       + "AND ChargeType=" + SOut.Int((int) chargeType);
         return PayPlanChargeCrud.SelectMany(command);
     }
 
     public static List<PayPlanCharge> GetAllProcCreditsForPayPlans(List<long> listPayPlanNums)
     {
-        if (listPayPlanNums.Count == 0) return new List<PayPlanCharge>();
+        if (listPayPlanNums.Count == 0) return [];
 
         var command = $"SELECT * FROM payplancharge WHERE payplancharge.ChargeType={SOut.Int((int) PayPlanChargeType.Credit)} " +
                       $"AND payplancharge.ProcNum!=0 AND payplancharge.PayPlanNum IN ({string.Join(",", listPayPlanNums)})";
@@ -89,16 +89,16 @@ public class PayPlanCharges
 
     public static List<PayPlanCharge> GetFromProc(long procNum)
     {
-        var command = $"SELECT * FROM payplancharge WHERE payplancharge.ProcNum={SOut.Long(procNum)} OR (payplancharge.LinkType=" +
-                      $"{SOut.Int((int) PayPlanLinkType.Procedure)} AND payplancharge.FKey={SOut.Long(procNum)})";
+        var command = $"SELECT * FROM payplancharge WHERE payplancharge.ProcNum={(procNum)} OR (payplancharge.LinkType=" +
+                      $"{SOut.Int((int) PayPlanLinkType.Procedure)} AND payplancharge.FKey={(procNum)})";
         return PayPlanChargeCrud.SelectMany(command);
     }
 
     public static List<PayPlanCharge> GetPatientPayPlanCreditsForProcs(List<long> listProcNums)
     {
-        if (listProcNums.Count == 0) return new List<PayPlanCharge>();
+        if (listProcNums.Count == 0) return [];
 
-        var command = $"SELECT * FROM payplancharge WHERE payplancharge.ProcNum IN({string.Join(",", listProcNums.Select(x => SOut.Long(x)))})" +
+        var command = $"SELECT * FROM payplancharge WHERE payplancharge.ProcNum IN({string.Join(",", listProcNums.Select(x => (x)))})" +
                       $" AND payplancharge.ChargeType={SOut.Int((int) PayPlanChargeType.Credit)}";
         return PayPlanChargeCrud.SelectMany(command);
     }
@@ -107,33 +107,33 @@ public class PayPlanCharges
     {
         var command =
             "SELECT * FROM payplancharge "
-            + "WHERE PayPlanChargeNum=" + SOut.Long(payPlanChargeNum);
+            + "WHERE PayPlanChargeNum=" + (payPlanChargeNum);
         return PayPlanChargeCrud.SelectOne(command);
     }
 
     public static List<PayPlanCharge> GetMany(List<long> listPayPlanChargeNums)
     {
-        if (listPayPlanChargeNums.IsNullOrEmpty()) return new List<PayPlanCharge>();
+        if (listPayPlanChargeNums.IsNullOrEmpty()) return [];
 
         var command =
             "SELECT * FROM payplancharge "
-            + "WHERE PayPlanChargeNum IN (" + string.Join(",", listPayPlanChargeNums.Select(x => SOut.Long(x))) + ")";
+            + "WHERE PayPlanChargeNum IN (" + string.Join(",", listPayPlanChargeNums.Select(x => (x))) + ")";
         return PayPlanChargeCrud.SelectMany(command);
     }
 
     public static List<PayPlanCharge> GetForLinkTypeAndFKeys(PayPlanLinkType linkType, params long[] arrayFKeys)
     {
-        if (arrayFKeys.IsNullOrEmpty()) return new List<PayPlanCharge>();
+        if (arrayFKeys.IsNullOrEmpty()) return [];
 
         var command = $"SELECT * FROM payplancharge " +
-                      $"WHERE payplancharge.FKey IN({string.Join(",", arrayFKeys.Select(x => SOut.Long(x)))}) " +
+                      $"WHERE payplancharge.FKey IN({string.Join(",", arrayFKeys.Select(x => (x)))}) " +
                       $"AND payplancharge.LinkType={SOut.Int((int) linkType)}";
         return PayPlanChargeCrud.SelectMany(command);
     }
 
     public static List<PayPlanCharge> GetForProcs(List<long> listProcNums)
     {
-        if (listProcNums.IsNullOrEmpty()) return new List<PayPlanCharge>();
+        if (listProcNums.IsNullOrEmpty()) return [];
 
         var command = $"SELECT * FROM payplancharge WHERE payplancharge.ProcNum IN ({string.Join(",", listProcNums)}) ";
         return PayPlanChargeCrud.SelectMany(command);
@@ -188,7 +188,7 @@ public class PayPlanCharges
         if (payplan == null || payplan.PayPlanNum == 0 || payplan.InsSubNum == 0) return;
 
         var command = $"UPDATE payplancharge SET Principal={SOut.Double(payplan.CompletedAmt)} " +
-                      $"WHERE PayPlanNum={SOut.Long(payplan.PayPlanNum)} AND ChargeType={SOut.Enum(PayPlanChargeType.Credit)}";
+                      $"WHERE PayPlanNum={(payplan.PayPlanNum)} AND ChargeType={SOut.Enum(PayPlanChargeType.Credit)}";
         Db.NonQ(command);
     }
 
@@ -212,7 +212,7 @@ public class PayPlanCharges
     {
         if (procNum == 0) return;
         var listPayPlans = PayPlans.GetAllForCharges(GetFromProc(procNum));
-        var command = "DELETE FROM payplancharge WHERE ProcNum=" + SOut.Long(procNum);
+        var command = "DELETE FROM payplancharge WHERE ProcNum=" + (procNum);
         Db.NonQ(command);
         PayPlans.UpdateTreatmentCompletedAmt(listPayPlans);
     }
@@ -245,7 +245,7 @@ public class PayPlanCharges
     public static void Delete(PayPlanCharge charge)
     {
         var command = "DELETE from payplancharge WHERE PayPlanChargeNum = '"
-                      + SOut.Long(charge.PayPlanChargeNum) + "'";
+                      + (charge.PayPlanChargeNum) + "'";
         Db.NonQ(command);
     }
 
@@ -253,7 +253,7 @@ public class PayPlanCharges
     {
         if (listCharges.IsNullOrEmpty()) return;
 
-        var command = $"DELETE from payplancharge WHERE PayPlanChargeNum IN ({string.Join(",", listCharges.Select(x => SOut.Long(x)))})";
+        var command = $"DELETE from payplancharge WHERE PayPlanChargeNum IN ({string.Join(",", listCharges.Select(x => (x)))})";
         Db.NonQ(command);
     }
 }

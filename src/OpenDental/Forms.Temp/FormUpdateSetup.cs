@@ -1,15 +1,7 @@
 using System;
-using System.Drawing;
-using System.Collections;
-using System.ComponentModel;
-using System.IO;
 using System.Text.RegularExpressions;
 using System.Windows.Forms;
 using OpenDentBusiness;
-using CodeBase;
-using Ionic.Zip;
-using System.Xml;
-using System.Text;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Entities;
 
@@ -49,9 +41,6 @@ public partial class FormUpdateSetup : FormODBase {
 		checkShowMsi.Checked=PrefC.GetBool(PrefName.UpdateShowMsiButtons);
 		_dateTimeUpdate=PrefC.GetDateT(PrefName.UpdateDateTime);
 		textUpdateTime.Text=_dateTimeUpdate.ToString();
-		if(false) {
-			labelRecopy.Text=@"Recopy all of the files from C:\Program Files\Open Dental\ into a special place in the database for future use in updating other computers.";
-		}
 	}
 
 	private void textRegKey_KeyUp(object sender,KeyEventArgs e) {

@@ -1,12 +1,7 @@
 using System;
-using System.Collections.Generic;
-using System.Data;
 using System.Windows.Forms;
 using OpenDentBusiness;
-using System.Linq;
-using CodeBase;
 using Imedisoft.Core.Entities;
-using OpenDental.UI;
 
 namespace OpenDental;
 
@@ -23,10 +18,6 @@ public partial class FormSheetFieldAdd:FormODBase {
 	}
 
 	private void butPatImage_Click(object sender,EventArgs e) {
-		if(false) {
-			MsgBox.Show(this,"Not allowed because not using AtoZ folder");
-			return;
-		}
 		if(SheetCur.PatNum==0) {
 			MsgBox.Show(this,"Not allowed to add a patient image to an anonymous patient.");
 			return;

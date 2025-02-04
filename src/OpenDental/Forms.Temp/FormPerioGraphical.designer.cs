@@ -1,4 +1,5 @@
 ﻿using Imedisoft.Core.Entities;
+using OpenDental.Chart;
 
 namespace OpenDental {
 	partial class FormPerioGraphical {
@@ -26,7 +27,7 @@ namespace OpenDental {
 		/// </summary>
 		private void InitializeComponent() {
 			System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(FormPerioGraphical));
-			this.toothChartWrapper = new SparksToothChart.ToothChartWrapper();
+			this.toothChartWrapper = new ToothChartWrapper();
 			this.butPrint = new OpenDental.UI.Button();
 			this.butSave = new OpenDental.UI.Button();
 			this.butSetup = new OpenDental.UI.Button();
@@ -38,7 +39,7 @@ namespace OpenDental {
 			this.toothChartWrapper.AutoFinish = false;
 			this.toothChartWrapper.ColorBackground = System.Drawing.Color.FromArgb(((int)(((byte)(150)))), ((int)(((byte)(145)))), ((int)(((byte)(152)))));
 			this.toothChartWrapper.Cursor = System.Windows.Forms.Cursors.Default;
-			this.toothChartWrapper.CursorTool = SparksToothChart.CursorTool.Pointer;
+			this.toothChartWrapper.CursorTool = CursorTool.Pointer;
 			this.toothChartWrapper.DeviceFormat = null;
 			this.toothChartWrapper.DrawMode = DrawingMode.Simple2D;
 			this.toothChartWrapper.Location = new System.Drawing.Point(0, 0);
@@ -113,7 +114,7 @@ namespace OpenDental {
 
 		#endregion
 
-		private SparksToothChart.ToothChartWrapper toothChartWrapper;
+		private ToothChartWrapper toothChartWrapper;
 		private OpenDental.UI.Button butSave;
 		private OpenDental.UI.Button butSetup;
 		private OpenDental.UI.Button butPrint;

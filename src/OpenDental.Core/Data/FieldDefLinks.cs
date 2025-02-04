@@ -57,19 +57,19 @@ public static class FieldDefLinks
 
     private static readonly FieldDefLinkCache Cache = new();
 
-    public static bool GetExists(Predicate<FieldDefLink> match, bool isShort = false)
+    public static bool GetExists(Predicate<FieldDefLink> predicate, bool shortList = false)
     {
-        return Cache.GetExists(match, isShort);
+        return Cache.GetExists(predicate, shortList);
     }
 
-    public static List<FieldDefLink> GetDeepCopy(bool isShort = false)
+    public static List<FieldDefLink> GetDeepCopy(bool shortList = false)
     {
-        return Cache.GetDeepCopy(isShort);
+        return Cache.GetDeepCopy(shortList);
     }
 
-    public static DataTable GetTableFromCache(bool doRefreshCache)
+    public static DataTable GetTableFromCache(bool refreshCache)
     {
-        return Cache.GetTableFromCache(doRefreshCache);
+        return Cache.GetTableFromCache(refreshCache);
     }
 
     public static void ClearCache()

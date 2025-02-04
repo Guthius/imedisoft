@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using DataConnectionBase;
 using Imedisoft.Core.Crud;
 using Imedisoft.Core.Entities;
 
@@ -31,11 +30,11 @@ public class Reconciles
     public static void Delete(Reconcile reconcile)
     {
         //check to see if any journal entries are attached to this Reconcile
-        var command = "SELECT COUNT(*) FROM journalentry WHERE ReconcileNum=" + SOut.Long(reconcile.ReconcileNum);
+        var command = "SELECT COUNT(*) FROM journalentry WHERE ReconcileNum=" + (reconcile.ReconcileNum);
         if (Db.GetCount(command) != "0")
             throw new ApplicationException(Lans.g("FormReconcileEdit",
                 "Not allowed to delete a Reconcile with existing journal entries."));
-        command = "DELETE FROM reconcile WHERE ReconcileNum = " + SOut.Long(reconcile.ReconcileNum);
+        command = "DELETE FROM reconcile WHERE ReconcileNum = " + (reconcile.ReconcileNum);
         Db.NonQ(command);
     }
 }

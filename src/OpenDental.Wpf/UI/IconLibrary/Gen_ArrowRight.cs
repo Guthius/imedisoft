@@ -1,5 +1,3 @@
-using System;
-
 namespace WpfControls.UI{
 	
 	public class Gen_ArrowRight{

@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Data;
 using Imedisoft.Core.Caching;
@@ -9,19 +8,9 @@ namespace Imedisoft.Core.Data;
 
 public static class EFormDefs
 {
-    public static long Insert(EFormDef eFormDef)
+    public static void Insert(EFormDef eFormDef)
     {
-        return EFormDefCrud.Insert(eFormDef);
-    }
-
-    public static void Update(EFormDef eFormDef)
-    {
-        EFormDefCrud.Update(eFormDef);
-    }
-
-    public static void Delete(long eFormDefNum)
-    {
-        EFormDefCrud.Delete(eFormDefNum);
+        EFormDefCrud.Insert(eFormDef);
     }
 
     private class EFormDefCache : CacheListAbs<EFormDef>
@@ -62,16 +51,6 @@ public static class EFormDefs
     public static List<EFormDef> GetDeepCopy(bool shortList = false)
     {
         return Cache.GetDeepCopy(shortList);
-    }
-
-    public static EFormDef GetFirstOrDefault(Func<EFormDef, bool> predicate, bool shortList = false)
-    {
-        return Cache.GetFirstOrDefault(predicate, shortList);
-    }
-
-    public static void RefreshCache()
-    {
-        GetTableFromCache(true);
     }
 
     public static DataTable GetTableFromCache(bool refreshCache)

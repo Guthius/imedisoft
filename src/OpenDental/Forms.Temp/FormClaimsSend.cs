@@ -1,5 +1,4 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Data;
 using System.Diagnostics;
@@ -11,6 +10,7 @@ using System.Windows.Forms;
 using CodeBase;
 using DataConnectionBase;
 using Imedisoft.Core.Caching;
+using Imedisoft.Core.Data;
 using Imedisoft.Core.Entities;
 using Imedisoft.Core.Features.Clinics;
 using Imedisoft.Core.Features.Clinics.Dtos;
@@ -47,15 +47,7 @@ public partial class FormClaimsSend:FormODBase {
 	private int clearinghouseIndex=-1;
 
 	private delegate void ToolBarClick();
-
-	protected override string GetHelpOverride() {
-		if(CultureInfo.CurrentCulture.Name.EndsWith("CA")) {
-			return "FormClaimsSendCanada";
-		}
-		return "FormClaimsSend";
-	}
-
-		
+	
 	public FormClaimsSend(){
 		InitializeComponent();
 		//tbQueue.CellDoubleClicked += new OpenDental.ContrTable.CellEventHandler(tbQueue_CellDoubleClicked);
@@ -80,14 +72,7 @@ public partial class FormClaimsSend:FormODBase {
 			contextMenuEclaims.MenuItems.Add(_listClearinghouses[i].Description,new EventHandler(menuItemClearinghouse_Click));
 		}
 		LayoutToolBars();
-		if(!true) {
-			comboClinic.Visible=false;
-			labelClinic.Visible=false;
-			butNextUnsent.Visible=false;
-		}
-		else {
-			_listClinics=Clinics.GetForUserod(Security.CurUser);
-		}
+		_listClinics=Clinics.GetForUserod(Security.CurUser);
 		comboCustomTracking.Items.Add(Lan.g(this,"all"));
 		comboCustomTracking.SelectedIndex=0;
 		_listDefsClaimCustomTracking=Defs.GetDefsForCategory(DefCat.ClaimCustomTracking,true);
@@ -700,16 +685,10 @@ public partial class FormClaimsSend:FormODBase {
 		else{
 			clearinghouseDefault=ClearinghouseL.GetClearinghouseHq(hqClearinghouseNum);
 		}
-		if(clearinghouseDefault!=null && clearinghouseDefault.ISA08=="113504607" && Process.GetProcessesByName("TesiaLink").Length==0){
-			if(/* ODBuild.IsDebug() */ false) {
-				if(!MsgBox.Show(this,MsgBoxButtons.YesNo,"TesiaLink is not started.  Create file anyway?")){
-					return;
-				}
-			}
-			else{
-				MsgBox.Show(this,"Please start TesiaLink first.");
-				return;
-			}
+		if(clearinghouseDefault!=null && clearinghouseDefault.ISA08=="113504607" && Process.GetProcessesByName("TesiaLink").Length==0)
+		{
+			MsgBox.Show(this,"Please start TesiaLink first.");
+			return;
 		}
 		if(gridMain.SelectedTags<ClaimSendQueueItem>().Count==0){//if none are selected
 			for(var i=0;i<gridMain.ListGridRows.Count;i++) {//loop through all rows
@@ -1283,14 +1262,10 @@ public partial class FormClaimsSend:FormODBase {
 			MsgBox.Show(this,"There are no items to print.");
 			return;
 		}
-		if(gridHistory.SelectedIndices.Length==0){
-			if(/* ODBuild.IsDebug() */ false) {
-				gridHistory.SetSelected(0,true);//saves you a click when testing
-			}
-			else {
-				MsgBox.Show(this,"Please select at least one item first.");
-				return;
-			}
+		if(gridHistory.SelectedIndices.Length==0)
+		{
+			MsgBox.Show(this,"Please select at least one item first.");
+			return;
 		}
 		//does not yet handle multiple selections
 		var etrans=Etranss.GetEtrans(SIn.Long(_tableHistory.Rows[gridHistory.SelectedIndices[0]]["EtransNum"].ToString()));

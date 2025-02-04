@@ -34,10 +34,6 @@ public class ODProgressExtendedNull : ODProgressDoNothing, IODProgressExtended
         return false;
     }
 
-    public void Fire(ODEventArgs e)
-    {
-    }
-
     public void UpdateProgress(string labelTop, string tagstring, string percentVal = "", int barVal = 0, int barMax = 100, bool isTopHidden = false, string labelValue = "")
     {
     }

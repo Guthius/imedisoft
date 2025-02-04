@@ -390,7 +390,7 @@ public class TreatmentPlanModules
         subfee = suballowed = totFee = priIns = secIns = subpriIns = allowed = totPriIns = subsecIns = totSecIns = subdiscount = totDiscount = subpat = totPat = totAllowed =
             taxAmt = subTaxAmt = totTaxAmt = subCatPercUCR = totCatPercUCR = 0;
         var listDisplayFields = DisplayFields.GetForCategory(DisplayFieldCategory.TreatmentPlanModule);
-        var doShowDiscountForCatPercent = listDisplayFields.Any(x => x.InternalName == DisplayFields.InternalNames.TreatmentPlanModule.CatPercUCR)
+        var doShowDiscountForCatPercent = listDisplayFields.Any(x => x.InternalName == DisplayFields.InternalNames.TreatmentPlanModule.CatPercUcr)
                                           && listDisplayFields.Any(x => x.InternalName == DisplayFields.InternalNames.TreatmentPlanModule.Fee);
         InsPlan insPlanPrimary = null;
         if (_listPatPlans.Count > 0)

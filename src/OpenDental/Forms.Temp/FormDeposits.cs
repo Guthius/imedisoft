@@ -1,11 +1,9 @@
 using System;
-using System.Drawing;
-using System.Collections;
-using System.ComponentModel;
 using System.Windows.Forms;
 using OpenDental.UI;
 using OpenDentBusiness;
 using System.Collections.Generic;
+using Imedisoft.Core.Data;
 using Imedisoft.Core.Entities;
 using Imedisoft.Core.Features.Clinics;
 
@@ -40,23 +38,14 @@ public partial class FormDeposits : FormODBase {
 	}
 
 	private void FillGrid(){
-		if(true) {
-			//GetForClinics uses an empty list to indicate "all", which is a loophole if user doesn't select an item.  So:
-			if(comboClinics.ListClinicNumsSelected.Count==0) {
-				_listDeposits=Deposits.GetForClinics([Clinics.ClinicNum],IsSelectionMode);//restrict to current clinic
-			}
-			else {
-				_listDeposits=Deposits.GetForClinics(comboClinics.ListClinicNumsSelected,IsSelectionMode);
-			} 
+		//GetForClinics uses an empty list to indicate "all", which is a loophole if user doesn't select an item.  So:
+		if(comboClinics.ListClinicNumsSelected.Count==0) {
+			_listDeposits=Deposits.GetForClinics([Clinics.ClinicNum],IsSelectionMode);//restrict to current clinic
 		}
 		else {
-			if(IsSelectionMode) {
-				_listDeposits=Deposits.GetUnattached();
-			}
-			else {
-				_listDeposits=Deposits.Refresh();
-			}
+			_listDeposits=Deposits.GetForClinics(comboClinics.ListClinicNumsSelected,IsSelectionMode);
 		}
+
 		grid.BeginUpdate();
 		grid.Columns.Clear();
 		var col=new GridColumn(Lan.g("TableDepositSlips","Date"),80);

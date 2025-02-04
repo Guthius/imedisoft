@@ -11,7 +11,6 @@ using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Entities;
 using OpenDental.Logic;
-using OpenDental.Thinfinity;
 using OpenDental.UI;
 using OpenDentBusiness;
 using PdfSharp.Pdf.IO;
@@ -409,50 +408,23 @@ public partial class FormBilling : FormODBase {
 			return emailAddress;
 		};
 		sendStatementsIO.ActionSendEmail=(clinicNumPat,emailMessage,emailAddress,useSecureEmail) => {
-			if(useSecureEmail) { 
-				EmailSecures.InsertMessageThenSend(emailMessage,emailAddress,emailMessage.ToAddress,clinicNumPat);
-			}
-			else {
-				//If IsCloudStorage==true, then we will end up downloading the file again in EmailMessages.SendEmailUnsecure.
-				EmailMessages.SendEmail(emailMessage,emailAddress);
-			}
+			EmailMessages.SendEmail(emailMessage,emailAddress);
 		};
-		sendStatementsIO.FuncGetPatientPdfPath=(tempPdfFile,filePath) => {
-			if(!false) {
-				//savedPdfPath is just the filename when using DataStorageType.InDatabase
-				return filePath;
-			}
+		sendStatementsIO.FuncGetPatientPdfPath=(tempPdfFile,filePath) =>
+		{
+			//savedPdfPath is just the filename when using DataStorageType.InDatabase
+			return filePath;
 			//Using cloud.
-			if(tempPdfFile!="") {
-				//To save time by not having to download it.
-				return tempPdfFile;
-			}
-			//We have not yet downloaded the pdf.
-			var savedPdfPath=PrefC.GetRandomTempFile("pdf");
-			FileAtoZ.Copy(filePath,savedPdfPath);
-			return savedPdfPath;
 		};
-		sendStatementsIO.FuncGetPdfDocument=(rawBase64,savedPdfPath) => {
-			if(false) {
-				var rawData=Convert.FromBase64String(rawBase64);
-				using(Stream stream=new MemoryStream(rawData)) {
-					return PdfReader.Open(stream,PdfDocumentOpenMode.Import);
-				}
-			}
-			else {
-				return PdfReader.Open(savedPdfPath,PdfDocumentOpenMode.Import);
-			}
+		sendStatementsIO.FuncGetPdfDocument=(rawBase64,savedPdfPath) =>
+		{
+			return PdfReader.Open(savedPdfPath,PdfDocumentOpenMode.Import);
 		};
 		sendStatementsIO.FuncGetEmailAttachment=(savedPdfPath,documentStatement,patient) => {
 			var attachPath=EmailAttaches.GetAttachPath();
 			var fileName=DateTime.Now.ToString("yyyyMMdd")+"_"+DateTime.Now.TimeOfDay.Ticks+ODRandom.Next(1000)+".pdf";
-			var filePathAndName=FileAtoZ.CombinePaths(attachPath,fileName);
-			if(false) {
-				ImageStore.Export(filePathAndName,documentStatement,patient);
-			}
-			else {
-				FileAtoZ.Copy(savedPdfPath,filePathAndName);
-			}
+			var filePathAndName=Path.Combine(attachPath,fileName);
+			FileAtoZ.Copy(savedPdfPath,filePathAndName);
 			var emailAttach=new EmailAttach();
 			emailAttach.DisplayedFileName="Statement.pdf";
 			emailAttach.ActualFileName=fileName;

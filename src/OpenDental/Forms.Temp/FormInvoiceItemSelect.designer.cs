@@ -56,7 +56,7 @@ namespace OpenDental{
 			this._gridMain.TabIndex = 140;
 			this._gridMain.Title = "Invoice Items";
 			this._gridMain.TranslationName = "TableInvoiceItems";
-			this._gridMain.CellDoubleClick += new OpenDental.UI.ODGridClickEventHandler(this.gridMain_CellDoubleClick);
+			this._gridMain.CellDoubleClick += new OpenDental.UI.ODGridClickEventHandler(this.GridMain_CellDoubleClick);
 			// 
 			// butOK
 			// 
@@ -66,7 +66,7 @@ namespace OpenDental{
 			this.butOK.Size = new System.Drawing.Size(75, 26);
 			this.butOK.TabIndex = 1;
 			this.butOK.Text = "&OK";
-			this.butOK.Click += new System.EventHandler(this.butOK_Click);
+			this.butOK.Click += new System.EventHandler(this.ButtonAccept_Click);
 			// 
 			// butAll
 			// 
@@ -76,7 +76,7 @@ namespace OpenDental{
 			this.butAll.Size = new System.Drawing.Size(75, 26);
 			this.butAll.TabIndex = 141;
 			this.butAll.Text = "All";
-			this.butAll.Click += new System.EventHandler(this.butAll_Click);
+			this.butAll.Click += new System.EventHandler(this.ButtonAll_Click);
 			// 
 			// butNone
 			// 
@@ -86,7 +86,7 @@ namespace OpenDental{
 			this.butNone.Size = new System.Drawing.Size(75, 26);
 			this.butNone.TabIndex = 142;
 			this.butNone.Text = "None";
-			this.butNone.Click += new System.EventHandler(this.butNone_Click);
+			this.butNone.Click += new System.EventHandler(this.ButtonNone_Click);
 			// 
 			// groupBox1
 			// 
@@ -106,7 +106,7 @@ namespace OpenDental{
 			this.checkIsFilteringZeroAmount.Size = new System.Drawing.Size(102, 35);
 			this.checkIsFilteringZeroAmount.TabIndex = 0;
 			this.checkIsFilteringZeroAmount.Text = "Exclude $0 Fee";
-			this.checkIsFilteringZeroAmount.Click += new System.EventHandler(this.checkIsFilteringZeroAmount_Click);
+			this.checkIsFilteringZeroAmount.Click += new System.EventHandler(this.CheckBoxIsFilteringZeroAmount_Click);
 			// 
 			// FormInvoiceItemSelect
 			// 

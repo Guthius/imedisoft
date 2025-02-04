@@ -1,8 +1,5 @@
 using System;
-using System.Drawing;
-using System.Collections;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Windows.Forms;
 using CodeBase;
 using DataConnectionBase;
@@ -51,10 +48,6 @@ public partial class FormClaimPayEditOld:FormODBase {
 		}
 		if(IsNew){
 			checkShowUn.Checked=true;
-		}
-		if(!true){
-			comboClinic.Visible=false;
-			labelClinic.Visible=false;
 		}
 		comboClinic.Items.Clear();
 		comboClinic.Items.Add(Lan.g(this,"None"));

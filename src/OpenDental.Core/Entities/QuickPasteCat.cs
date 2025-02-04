@@ -1,43 +1,31 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Xml.Serialization;
 using DataConnectionBase;
-using Newtonsoft.Json;
 using OpenDentBusiness;
 
 namespace Imedisoft.Core.Entities;
 
-///<summary>Quick paste categories are used by the quick paste notes feature.</summary>
-[Serializable]
-[CrudTable(IsSynchable=true)]
-public class QuickPasteCat:TableBase {
-	///<summary>Primary key.</summary>
-	[CrudColumn(IsPriKey=true)]
-	public long QuickPasteCatNum;
-	///<summary>.</summary>
-	public string Description;
-	///<summary>The order of this category within the list. 0-based.</summary>
-	public int ItemOrder;
-	///<summary>Enum:EnumQuickPasteType  Each Category can be set to be the default category for multiple types of notes. Stored as integers separated by commas.</summary>
-	[CrudColumn(SpecialType=CrudSpecialColType.IsText)]
-	public string DefaultForTypes;
+public class QuickPasteCat : TableBase
+{
+    [CrudColumn(IsPriKey = true)]
+    public long QuickPasteCatNum;
+    
+    public string Description;
+    public int ItemOrder;
 
-	///<summary>Helper property for a list of DefaultForTypes as an actual enumeration list.</summary>
-	[XmlIgnore,JsonIgnore]
-	public List<EnumQuickPasteType> ListDefaultForTypes {
-		get {
-			if(string.IsNullOrEmpty(DefaultForTypes)) {
-				return new List<EnumQuickPasteType>();
-			}
-			return DefaultForTypes.Split(',').Select(x => SIn.Enum<EnumQuickPasteType>(x)).ToList();
-		}
-	}
-		
-	public QuickPasteCat Copy() {
-		return (QuickPasteCat)MemberwiseClone();
-	}
-		
+    ///<summary>Enum:EnumQuickPasteType  Each Category can be set to be the default category for multiple types of notes. Stored as integers separated by commas.</summary>
+    public string DefaultForTypes;
 
+    public List<EnumQuickPasteType> ListDefaultForTypes
+    {
+        get
+        {
+            return string.IsNullOrEmpty(DefaultForTypes) ? [] : DefaultForTypes.Split(',').Select(x => SIn.Enum<EnumQuickPasteType>(x)).ToList();
+        }
+    }
 
+    public QuickPasteCat Copy()
+    {
+        return (QuickPasteCat) MemberwiseClone();
+    }
 }

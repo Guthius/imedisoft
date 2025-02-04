@@ -18,18 +18,19 @@ public class DiseaseDefCrud
     public static List<DiseaseDef> TableToList(DataTable table)
     {
         var retVal = new List<DiseaseDef>();
-        DiseaseDef diseaseDef;
         foreach (DataRow row in table.Rows)
         {
-            diseaseDef = new DiseaseDef();
-            diseaseDef.DiseaseDefNum = SIn.Long(row["DiseaseDefNum"].ToString());
-            diseaseDef.DiseaseName = SIn.String(row["DiseaseName"].ToString());
-            diseaseDef.ItemOrder = SIn.Int(row["ItemOrder"].ToString());
-            diseaseDef.IsHidden = SIn.Bool(row["IsHidden"].ToString());
-            diseaseDef.DateTStamp = SIn.DateTime(row["DateTStamp"].ToString());
-            diseaseDef.ICD9Code = SIn.String(row["ICD9Code"].ToString());
-            diseaseDef.SnomedCode = SIn.String(row["SnomedCode"].ToString());
-            diseaseDef.Icd10Code = SIn.String(row["Icd10Code"].ToString());
+            var diseaseDef = new DiseaseDef
+            {
+                DiseaseDefNum = SIn.Long(row["DiseaseDefNum"].ToString()),
+                DiseaseName = SIn.String(row["DiseaseName"].ToString()),
+                ItemOrder = SIn.Int(row["ItemOrder"].ToString()),
+                IsHidden = SIn.Bool(row["IsHidden"].ToString()),
+                DateTStamp = SIn.DateTime(row["DateTStamp"].ToString()),
+                ICD9Code = SIn.String(row["ICD9Code"].ToString()),
+                SnomedCode = SIn.String(row["SnomedCode"].ToString()),
+                Icd10Code = SIn.String(row["Icd10Code"].ToString())
+            };
             retVal.Add(diseaseDef);
         }
 
@@ -154,15 +155,13 @@ public class DiseaseDefCrud
         var idxNew = 0;
         var idxDB = 0;
         var rowsUpdatedCount = 0;
-        DiseaseDef fieldNew;
-        DiseaseDef fieldDB;
         //Because both lists have been sorted using the same criteria, we can now walk each list to determine which list contians the next element.  The next element is determined by Primary Key.
         //If the New list contains the next item it will be inserted.  If the DB contains the next item, it will be deleted.  If both lists contain the next item, the item will be updated.
         while (idxNew < listNew.Count || idxDB < listDB.Count)
         {
-            fieldNew = null;
+            DiseaseDef fieldNew = null;
             if (idxNew < listNew.Count) fieldNew = listNew[idxNew];
-            fieldDB = null;
+            DiseaseDef fieldDB = null;
             if (idxDB < listDB.Count) fieldDB = listDB[idxDB];
             //begin compare
             if (fieldNew != null && fieldDB == null)

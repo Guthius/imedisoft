@@ -1,11 +1,8 @@
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
 using System.Drawing;
 using System.Drawing.Printing;
 using System.Linq;
-using System.Text;
 using System.Windows.Forms;
 using CodeBase;
 using Imedisoft.Core.Caching;
@@ -124,9 +121,7 @@ public partial class FormOrthoChart:FormODBase {
 			OrthoChartLogs.Log("FormOrthoChart_Load(), tab index not changed",Environment.MachineName,_patient.PatNum,_userodCurUser.UserNum);
 		}
 		else {//Tab index hasn't changed, fill the grid.
-			Logger.LogAction(() => {
-				FillGrid();
-			});
+			FillGrid();
 			OrthoChartLogs.Log("FormOrthoChart_Load(), tab index changed, so FillGrid.",Environment.MachineName,_patient.PatNum,_userodCurUser.UserNum);
 		}
 		FillGridPat();
@@ -225,13 +220,7 @@ public partial class FormOrthoChart:FormODBase {
 		LockControls();
 		labelLocked.Text="Locked by: "+Userods.GetName(userNum);
 		_userNumLocked=userNum;
-		if(/* ODBuild.IsDebug() */ false) {
-			//Helpful to know who when you have multiple windows open for testing.
-			MsgBox.Show(this,Userods.GetName(userNum)+Lan.g(this," has taken control. If you made any changes, they were saved."));
-		}
-		else{
-			MsgBox.Show(this,Lan.g(this,"Another user just took control.  If you had made any changes, they were saved."));
-		}
+		MsgBox.Show(this,Lan.g(this,"Another user just took control.  If you had made any changes, they were saved."));
 	}
 
 	private void LogRefreshOrthoChartRowsInMemory() {
@@ -325,7 +314,7 @@ public partial class FormOrthoChart:FormODBase {
 		for(var i=0;i<_listOrthoChartTabs.Count;i++) {
 			var tabPage=new OpenDental.UI.TabPage(_listOrthoChartTabs[i].TabName);
 			tabPage.Tag=_listOrthoChartTabs[i];
-			LayoutManagerForms.Add(tabPage,tabControl);
+			tabControl.Controls.Add(tabPage);
 			if(orthoChartTabSelected!=null && _listOrthoChartTabs[i].OrthoChartTabNum==orthoChartTabSelected.OrthoChartTabNum) {
 				tabControl.SelectedIndex=i;
 			}
@@ -582,17 +571,13 @@ public partial class FormOrthoChart:FormODBase {
 		if(formDisplayFieldsOrthoChart.ShowDialog()==DialogResult.OK) {
 			FillTabs();
 			FillDisplayFields();
-			Logger.LogAction(() => {
-				FillGrid();
-			});
+			FillGrid();
 		}
 	}
 
 	private void tabControl_SelectedIndexChanged(object sender,EventArgs e) {
 		//This fires when user clicks and also when load.
-		Logger.LogAction(() => {
-			FillGrid();
-		});
+		FillGrid();
 	}
 
 	private void signatureBoxWrapper_ClearSignatureClicked(object sender,EventArgs e) {
@@ -635,9 +620,7 @@ public partial class FormOrthoChart:FormODBase {
 
 	///<summary>This is necessary in addition to CellClick for when the user tabs or uses the arrow keys to enter a cell.</summary>
 	private void gridMain_CellEnter(object sender,ODGridClickEventArgs e) {
-		Logger.LogAction(() => {
-			SaveAndSetSignatures(e.Row);
-		});
+		SaveAndSetSignatures(e.Row);
 	}
 
 	///<summary>Saves the signature to the data table if it hasn't been and displays the signature for this row.</summary>
@@ -665,33 +648,31 @@ public partial class FormOrthoChart:FormODBase {
 		var provNum=orthoChartRow.ProvNum;
 		var oldText=GetValueFromList(orthoChartRow,(string)gridMain.Columns[e.Col].Tag);
 		var newText=gridMain.ListGridRows[e.Row].Cells[e.Col].Text;
-		Logger.LogAction(() => {
-			if(CanEditRow(dateTime)) {
-				if(newText != oldText) {
-					SetValueInList(orthoChartRow,newText,(string)gridMain.Columns[e.Col].Tag);
-					//Cannot be placed in if statement below as we only want to clear the signature when the grid text has changed.
-					//We cannot use a textchanged event to call the .dll as this causes massive slowness for certain customers.
-					if(_showSigBox) {
-						Logger.LogAction(() => { signatureBoxWrapper.ClearSignature(false); });
-					}
-					_hasChanged=true;//They had permission and they made a change.
-					OrthoChartLogs.Log("gridMain_CellLeave(), old: "+oldText+", new:"+newText,Environment.MachineName,orthoChartRow);
-				}
+		if(CanEditRow(dateTime)) {
+			if(newText != oldText) {
+				SetValueInList(orthoChartRow,newText,(string)gridMain.Columns[e.Col].Tag);
+				//Cannot be placed in if statement below as we only want to clear the signature when the grid text has changed.
+				//We cannot use a textchanged event to call the .dll as this causes massive slowness for certain customers.
 				if(_showSigBox) {
-					SaveSignatureToDict(e.Row);
-					DisplaySignature(e.Row);
+					signatureBoxWrapper.ClearSignature(false);
 				}
+				_hasChanged=true;//They had permission and they made a change.
+				OrthoChartLogs.Log("gridMain_CellLeave(), old: "+oldText+", new:"+newText,Environment.MachineName,orthoChartRow);
 			}
-			else {
-				//User is not authorized to edit this cell.  Check if they changed the old value and if they did, put it back to the way it was and warn them about security.
-				if(newText!=oldText) {
-					//The user actually changed the cell's value and we need to change it back and warn them that they don't have permission.
-					gridMain.ListGridRows[e.Row].Cells[e.Col].Text=oldText;
-					gridMain.Invalidate();
-					MsgBox.Show(this,"You need either Ortho Chart Edit (full) or Ortho Chart Edit (same user, signed) to edit this ortho chart.");
-				}
+			if(_showSigBox) {
+				SaveSignatureToDict(e.Row);
+				DisplaySignature(e.Row);
 			}
-		});
+		}
+		else {
+			//User is not authorized to edit this cell.  Check if they changed the old value and if they did, put it back to the way it was and warn them about security.
+			if(newText!=oldText) {
+				//The user actually changed the cell's value and we need to change it back and warn them that they don't have permission.
+				gridMain.ListGridRows[e.Row].Cells[e.Col].Text=oldText;
+				gridMain.Invalidate();
+				MsgBox.Show(this,"You need either Ortho Chart Edit (full) or Ortho Chart Edit (same user, signed) to edit this ortho chart.");
+			}
+		}
 	}
 
 	private void LogOrthoChartsUsedForSigHash(List<OrthoChart> listOrthoCharts,bool isValidating,bool isForPatNum) {
@@ -702,7 +683,6 @@ public partial class FormOrthoChart:FormODBase {
 	///<summary>Displays the signature that is saved in the dictionary in the signature box. Colors the grid row green if the signature is valid, 
 	///red if invalid, or white if blank. Puts "Valid" or "Invalid" in the grid's signature column.</summary>
 	private void DisplaySignature(int idxRow,bool hasRefresh=true) {
-		Logger.LogAction(() => {
 			textUser.Text=_userodCurUser.UserName;
 			if(!_showSigBox || idxRow<0) {
 				return;
@@ -712,7 +692,7 @@ public partial class FormOrthoChart:FormODBase {
 			var listOrthoCharts=orthoChartRow.ListOrthoCharts;
 			var orthoSignature=new OrthoSignature(orthoChartRow.Signature);
 			if(orthoSignature.SigString=="") {
-				Logger.LogAction(() => { signatureBoxWrapper.ClearSignature(false); });
+				signatureBoxWrapper.ClearSignature(false);
 				gridMain.ListGridRows[idxRow].ColorBackG=SystemColors.Window;
 				//Empty out the signature column displaying to the user.
 				if(_sigColIdx > 0) {//User might be viewing a tab that does not have the signature column.  Greater than 0 because index 0 is a Date column.
@@ -732,17 +712,13 @@ public partial class FormOrthoChart:FormODBase {
 			var listOrthoChartsForSigHash=listOrthoCharts.FindAll(x => x.FieldValue!="" && x.FieldName!=sigColumnName);
 			LogOrthoChartsUsedForSigHash(listOrthoChartsForSigHash,isValidating:true, isForPatNum:false);
 			var keyData=OrthoCharts.GetKeyDataForSignatureHash(_patient,listOrthoChartsForSigHash,dateTime);
-			Logger.LogAction(() => {
-				signatureBoxWrapper.FillSignature(orthoSignature.IsTopaz,keyData,orthoSignature.SigString);
-			});
+			signatureBoxWrapper.FillSignature(orthoSignature.IsTopaz,keyData,orthoSignature.SigString);
 			if(!signatureBoxWrapper.IsValid) {
 				//This ortho chart may have been signed when we were using the patient name in the hash. Try hashing the signature with the patient name.
 				listOrthoChartsForSigHash=listOrthoCharts.FindAll(x => x.DateService==dateTime && x.FieldValue!="" && x.FieldName!=sigColumnName);
 				LogOrthoChartsUsedForSigHash(listOrthoChartsForSigHash,isValidating:true,isForPatNum:true);
 				keyData=OrthoCharts.GetKeyDataForSignatureHash(_patient,listOrthoChartsForSigHash,dateTime,doUsePatName:true);
-				Logger.LogAction(() => {
-					signatureBoxWrapper.FillSignature(orthoSignature.IsTopaz,keyData,orthoSignature.SigString);
-				});
+				signatureBoxWrapper.FillSignature(orthoSignature.IsTopaz,keyData,orthoSignature.SigString);
 			}
 			if(signatureBoxWrapper.IsValid) {
 				OrthoChartLogs.Log("DisplaySignature(), valid green",Environment.MachineName,orthoChartRow);
@@ -768,7 +744,6 @@ public partial class FormOrthoChart:FormODBase {
 			if(hasRefresh) {
 				gridMain.Refresh();
 			}
-		});
 	}
 
 	///<summary>Removes the Sign Topaz button and the Clear Signature button from the signature box if the user does not have OrthoChartEdit permissions for that date.</summary>
@@ -994,9 +969,7 @@ public partial class FormOrthoChart:FormODBase {
 		_dateTimeFrom=DateTime.MinValue;
 		_dateTimeTo=DateTime.MinValue;
 		FillDateRange();
-		Logger.LogAction(() => {
-			FillGrid();
-		});
+		FillGrid();
 		gridMain.ScrollToEnd();//When adding a new row, scroll to it.
 	}
 
@@ -1157,16 +1130,11 @@ public partial class FormOrthoChart:FormODBase {
 			//a new feature will need to be implemented to handle when columns widths are greater than 1050
 			printDocument.DefaultPageSettings.Landscape=true;
 		}
-		try {
+		try
+		{
 			//TODO: Implement ODprintout pattern
-			if(/* ODBuild.IsDebug() */ false) {
-				using var formRpPrintPreview = new FormRpPrintPreview(printDocument);
-				formRpPrintPreview.ShowDialog();
-			}
-			else {
-				if(PrinterL.SetPrinter(printDocument,PrintSituation.Default,0,"Ortho chart printed")) {
-					printDocument.Print();
-				}
+			if(PrinterL.SetPrinter(printDocument,PrintSituation.Default,0,"Ortho chart printed")) {
+				printDocument.Print();
 			}
 		}
 		catch {

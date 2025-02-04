@@ -1,8 +1,5 @@
 using System;
-using System.Drawing;
-using System.Collections;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Windows.Forms;
 using OpenDentBusiness;
 using OpenDental.UI;
@@ -10,8 +7,8 @@ using System.Linq;
 using CodeBase;
 using DataConnectionBase;
 using Imedisoft.Core.Caching;
+using Imedisoft.Core.Data;
 using Imedisoft.Core.Entities;
-using OpenDental.Bridges;
 using EdgeExpressProps = OpenDentBusiness.ProgramProperties.PropertyDescs.EdgeExpress;
 
 namespace OpenDental;
@@ -58,12 +55,7 @@ public partial class FormClaimPayEdit:FormODBase {
 				butSave.Enabled=false;
 			}
 		}
-		if(true) {
-			comboClinic.ClinicNumSelected=ClaimPaymentCur.ClinicNum;
-		}
-		else {
-			labelClinic.Visible=false;
-		}
+		comboClinic.ClinicNumSelected=ClaimPaymentCur.ClinicNum;
 		var listDefsInsurancePaymentTypes=Defs.GetDefsForCategory(DefCat.InsurancePaymentType,isShort:true);
 		comboPayType.Items.AddDefs(listDefsInsurancePaymentTypes);
 		comboPayType.SetSelectedDefNum(ClaimPaymentCur.PayType);
@@ -188,59 +180,47 @@ public partial class FormClaimPayEdit:FormODBase {
 		if(progPayConnect.Enabled 
 		   && !SIn.Bool(ProgramProperties.GetPropVal(progPayConnect.ProgramNum,PayConnect.ProgramProperties.PayConnectPreventSavingNewCC,clinicNum))) 
 		{
-			if(true) {//if clinics are enabled, PayConnect is enabled if the PaymentType is valid and the Username and Password are not blank
-				var programVersion=ProgramProperties.GetPropVal(progPayConnect.ProgramNum,"Program Version",clinicNum);
-				var paymentType=ProgramProperties.GetPropVal(progPayConnect.ProgramNum,"PaymentType",clinicNum);
-				//Decrypt password for later checks because an empty string password is not an empty string when encrypted.
-				if(programVersion=="1") {
-					var password=CDT.Class1.TryDecrypt(ProgramProperties.GetPropVal(progPayConnect.ProgramNum,"Password",clinicNum));
-					if(!string.IsNullOrEmpty(ProgramProperties.GetPropVal(progPayConnect.ProgramNum,"Username",clinicNum))
-					   && !string.IsNullOrEmpty(password)
-					   && listDefs.Any(x => x.DefNum.ToString()==paymentType))
-					{
-						butPayConnect.Visible=true;
-					}
-				}
-				else if(programVersion=="2") {
-					var apiSecret=PayConnect2.GetApiSecretForClinic(clinicNum);
-					if(!apiSecret.IsNullOrEmpty() && listDefs.Any(x => x.DefNum.ToString()==paymentType)) {
-						butPayConnect.Visible=true;
-					}
+			//if clinics are enabled, PayConnect is enabled if the PaymentType is valid and the Username and Password are not blank
+			var programVersion=ProgramProperties.GetPropVal(progPayConnect.ProgramNum,"Program Version",clinicNum);
+			var paymentType=ProgramProperties.GetPropVal(progPayConnect.ProgramNum,"PaymentType",clinicNum);
+			//Decrypt password for later checks because an empty string password is not an empty string when encrypted.
+			if(programVersion=="1") {
+				var password=CDT.Class1.TryDecrypt(ProgramProperties.GetPropVal(progPayConnect.ProgramNum,"Password",clinicNum));
+				if(!string.IsNullOrEmpty(ProgramProperties.GetPropVal(progPayConnect.ProgramNum,"Username",clinicNum))
+				   && !string.IsNullOrEmpty(password)
+				   && listDefs.Any(x => x.DefNum.ToString()==paymentType))
+				{
+					butPayConnect.Visible=true;
 				}
 			}
-			else {//if clinics are disabled, PayConnect button will be visible if PayConnect has been enabled in program links
-				butPayConnect.Visible=true;
+			else if(programVersion=="2") {
+				var apiSecret=PayConnect2.GetApiSecretForClinic(clinicNum);
+				if(!apiSecret.IsNullOrEmpty() && listDefs.Any(x => x.DefNum.ToString()==paymentType)) {
+					butPayConnect.Visible=true;
+				}
 			}
 		}
 		if(progXcharge.Enabled
 		   && !SIn.Bool(ProgramProperties.GetPropVal(progXcharge.ProgramNum,ProgramProperties.PropertyDescs.XCharge.XChargePreventSavingNewCC,clinicNum)))
 		{
-			if(true) {//if clinics are enabled, X-Charge is enabled if the PaymentType is valid and the Username and Password are not blank
-				var paymentType=ProgramProperties.GetPropVal(progXcharge.ProgramNum,"PaymentType",clinicNum);
-				if(!string.IsNullOrEmpty(ProgramProperties.GetPropVal(progXcharge.ProgramNum,"Username",clinicNum))
-				   && !string.IsNullOrEmpty(ProgramProperties.GetPropVal(progXcharge.ProgramNum,"Password",clinicNum))
-				   && listDefs.Any(x => x.DefNum.ToString()==paymentType))
-				{
-					panelXcharge.Visible=true;
-				}
-			}
-			else {//if clinics are disabled, X-Charge button will be visible if X-Charge has been enabled in program links
+			//if clinics are enabled, X-Charge is enabled if the PaymentType is valid and the Username and Password are not blank
+			var paymentType=ProgramProperties.GetPropVal(progXcharge.ProgramNum,"PaymentType",clinicNum);
+			if(!string.IsNullOrEmpty(ProgramProperties.GetPropVal(progXcharge.ProgramNum,"Username",clinicNum))
+			   && !string.IsNullOrEmpty(ProgramProperties.GetPropVal(progXcharge.ProgramNum,"Password",clinicNum))
+			   && listDefs.Any(x => x.DefNum.ToString()==paymentType))
+			{
 				panelXcharge.Visible=true;
 			}
 		}
 		if(progPaySimple.Enabled
 		   && !SIn.Bool(ProgramProperties.GetPropVal(progPaySimple.ProgramNum,PaySimple.PropertyDescs.PaySimplePreventSavingNewCC,clinicNum)))
 		{
-			if(true) {//if clinics are enabled, PaySimple is enabled if the PaymentType is valid and the Username and Password are not blank
-				var paymentType=ProgramProperties.GetPropValForClinicOrDefault(progPaySimple.ProgramNum,PaySimple.PropertyDescs.PaySimplePayTypeCC,clinicNum);
-				if(!string.IsNullOrEmpty(ProgramProperties.GetPropValForClinicOrDefault(progPaySimple.ProgramNum,PaySimple.PropertyDescs.PaySimpleApiUserName,clinicNum))
-				   && !string.IsNullOrEmpty(ProgramProperties.GetPropValForClinicOrDefault(progPaySimple.ProgramNum,PaySimple.PropertyDescs.PaySimpleApiKey,clinicNum))
-				   && listDefs.Any(x => x.DefNum.ToString()==paymentType))
-				{
-					butPaySimple.Visible=true;
-				}
-			}
-			else {//if clinics are disabled, PaySimple button will be visible if PaySimple has been enabled in program links
+			//if clinics are enabled, PaySimple is enabled if the PaymentType is valid and the Username and Password are not blank
+			var paymentType=ProgramProperties.GetPropValForClinicOrDefault(progPaySimple.ProgramNum,PaySimple.PropertyDescs.PaySimplePayTypeCC,clinicNum);
+			if(!string.IsNullOrEmpty(ProgramProperties.GetPropValForClinicOrDefault(progPaySimple.ProgramNum,PaySimple.PropertyDescs.PaySimpleApiUserName,clinicNum))
+			   && !string.IsNullOrEmpty(ProgramProperties.GetPropValForClinicOrDefault(progPaySimple.ProgramNum,PaySimple.PropertyDescs.PaySimpleApiKey,clinicNum))
+			   && listDefs.Any(x => x.DefNum.ToString()==paymentType))
+			{
 				butPaySimple.Visible=true;
 			}
 		}
@@ -254,9 +234,6 @@ public partial class FormClaimPayEdit:FormODBase {
 					panelEdgeExpress.Visible=true;
 				}
 			}
-			else {//if clinics are disabled, EdgeExpress button will be visible if EdgeExpress has been enabled in program links
-				panelEdgeExpress.Visible=true;
-			}
 		}
 		if(!panelXcharge.Visible && !butPayConnect.Visible && !butPaySimple.Visible && !panelEdgeExpress.Visible) {
 			//This is an office with clinics and one of the payment processing bridges is enabled but this particular clinic doesn't have one set up.
@@ -269,9 +246,6 @@ public partial class FormClaimPayEdit:FormODBase {
 	}
 
 	private long GetClinicNumSelected() {
-		if(!true) {
-			return 0;
-		}
 		return comboClinic.ClinicNumSelected;
 	}
 
@@ -505,10 +479,6 @@ public partial class FormClaimPayEdit:FormODBase {
 			areConditionsMet=false;
 			switch(listRequiredFieldConditions[i].ConditionType) {
 				case RequiredFieldName.InsPayEditClinic:
-					if(!true) {
-						areConditionsMet=true;
-						break;
-					}
 					break;
 				case RequiredFieldName.DepositDate:
 					if(groupBoxDeposit.Visible) {//don't set required if you can't see it

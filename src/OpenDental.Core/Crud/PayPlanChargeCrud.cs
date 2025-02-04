@@ -1,5 +1,3 @@
-#region
-
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
@@ -8,21 +6,10 @@ using DataConnectionBase;
 using Imedisoft.Core.Entities;
 using OpenDentBusiness;
 
-#endregion
-
 namespace Imedisoft.Core.Crud;
 
 public class PayPlanChargeCrud
 {
-    public static PayPlanCharge SelectOne(long payPlanChargeNum)
-    {
-        var command = "SELECT * FROM payplancharge "
-                      + "WHERE PayPlanChargeNum = " + SOut.Long(payPlanChargeNum);
-        var list = TableToList(DataCore.GetTable(command));
-        if (list.Count == 0) return null;
-        return list[0];
-    }
-
     public static PayPlanCharge SelectOne(string command)
     {
         var list = TableToList(DataCore.GetTable(command));
@@ -39,67 +26,36 @@ public class PayPlanChargeCrud
     public static List<PayPlanCharge> TableToList(DataTable table)
     {
         var retVal = new List<PayPlanCharge>();
-        PayPlanCharge payPlanCharge;
         foreach (DataRow row in table.Rows)
         {
-            payPlanCharge = new PayPlanCharge();
-            payPlanCharge.PayPlanChargeNum = SIn.Long(row["PayPlanChargeNum"].ToString());
-            payPlanCharge.PayPlanNum = SIn.Long(row["PayPlanNum"].ToString());
-            payPlanCharge.Guarantor = SIn.Long(row["Guarantor"].ToString());
-            payPlanCharge.PatNum = SIn.Long(row["PatNum"].ToString());
-            payPlanCharge.ChargeDate = SIn.Date(row["ChargeDate"].ToString());
-            payPlanCharge.Principal = SIn.Double(row["Principal"].ToString());
-            payPlanCharge.Interest = SIn.Double(row["Interest"].ToString());
-            payPlanCharge.Note = SIn.String(row["Note"].ToString());
-            payPlanCharge.ProvNum = SIn.Long(row["ProvNum"].ToString());
-            payPlanCharge.ClinicNum = SIn.Long(row["ClinicNum"].ToString());
-            payPlanCharge.ChargeType = (PayPlanChargeType) SIn.Int(row["ChargeType"].ToString());
-            payPlanCharge.ProcNum = SIn.Long(row["ProcNum"].ToString());
-            payPlanCharge.SecDateTEntry = SIn.DateTime(row["SecDateTEntry"].ToString());
-            payPlanCharge.SecDateTEdit = SIn.DateTime(row["SecDateTEdit"].ToString());
-            payPlanCharge.StatementNum = SIn.Long(row["StatementNum"].ToString());
-            payPlanCharge.FKey = SIn.Long(row["FKey"].ToString());
-            payPlanCharge.LinkType = (PayPlanLinkType) SIn.Int(row["LinkType"].ToString());
-            payPlanCharge.IsOffset = SIn.Bool(row["IsOffset"].ToString());
+            var payPlanCharge = new PayPlanCharge
+            {
+                PayPlanChargeNum = SIn.Long(row["PayPlanChargeNum"].ToString()),
+                PayPlanNum = SIn.Long(row["PayPlanNum"].ToString()),
+                Guarantor = SIn.Long(row["Guarantor"].ToString()),
+                PatNum = SIn.Long(row["PatNum"].ToString()),
+                ChargeDate = SIn.Date(row["ChargeDate"].ToString()),
+                Principal = SIn.Double(row["Principal"].ToString()),
+                Interest = SIn.Double(row["Interest"].ToString()),
+                Note = SIn.String(row["Note"].ToString()),
+                ProvNum = SIn.Long(row["ProvNum"].ToString()),
+                ClinicNum = SIn.Long(row["ClinicNum"].ToString()),
+                ChargeType = (PayPlanChargeType) SIn.Int(row["ChargeType"].ToString()),
+                ProcNum = SIn.Long(row["ProcNum"].ToString()),
+                SecDateTEntry = SIn.DateTime(row["SecDateTEntry"].ToString()),
+                SecDateTEdit = SIn.DateTime(row["SecDateTEdit"].ToString()),
+                StatementNum = SIn.Long(row["StatementNum"].ToString()),
+                FKey = SIn.Long(row["FKey"].ToString()),
+                LinkType = (PayPlanLinkType) SIn.Int(row["LinkType"].ToString()),
+                IsOffset = SIn.Bool(row["IsOffset"].ToString())
+            };
             retVal.Add(payPlanCharge);
         }
 
         return retVal;
     }
 
-    public static DataTable ListToTable(List<PayPlanCharge> listPayPlanCharges, string tableName = "")
-    {
-        if (string.IsNullOrEmpty(tableName)) tableName = "PayPlanCharge";
-        var table = new DataTable(tableName);
-        table.Columns.Add("PayPlanChargeNum");
-        table.Columns.Add("PayPlanNum");
-        table.Columns.Add("Guarantor");
-        table.Columns.Add("PatNum");
-        table.Columns.Add("ChargeDate");
-        table.Columns.Add("Principal");
-        table.Columns.Add("Interest");
-        table.Columns.Add("Note");
-        table.Columns.Add("ProvNum");
-        table.Columns.Add("ClinicNum");
-        table.Columns.Add("ChargeType");
-        table.Columns.Add("ProcNum");
-        table.Columns.Add("SecDateTEntry");
-        table.Columns.Add("SecDateTEdit");
-        table.Columns.Add("StatementNum");
-        table.Columns.Add("FKey");
-        table.Columns.Add("LinkType");
-        table.Columns.Add("IsOffset");
-        foreach (var payPlanCharge in listPayPlanCharges)
-            table.Rows.Add(SOut.Long(payPlanCharge.PayPlanChargeNum), SOut.Long(payPlanCharge.PayPlanNum), SOut.Long(payPlanCharge.Guarantor), SOut.Long(payPlanCharge.PatNum), SOut.DateTime(payPlanCharge.ChargeDate, false), SOut.Double(payPlanCharge.Principal), SOut.Double(payPlanCharge.Interest), payPlanCharge.Note, SOut.Long(payPlanCharge.ProvNum), SOut.Long(payPlanCharge.ClinicNum), SOut.Int((int) payPlanCharge.ChargeType), SOut.Long(payPlanCharge.ProcNum), SOut.DateTime(payPlanCharge.SecDateTEntry, false), SOut.DateTime(payPlanCharge.SecDateTEdit, false), SOut.Long(payPlanCharge.StatementNum), SOut.Long(payPlanCharge.FKey), SOut.Int((int) payPlanCharge.LinkType), SOut.Bool(payPlanCharge.IsOffset));
-        return table;
-    }
-
     public static long Insert(PayPlanCharge payPlanCharge)
-    {
-        return Insert(payPlanCharge, false);
-    }
-
-    public static long Insert(PayPlanCharge payPlanCharge, bool useExistingPK)
     {
         var command = "INSERT INTO payplancharge (";
 
@@ -131,12 +87,7 @@ public class PayPlanChargeCrud
         return payPlanCharge.PayPlanChargeNum;
     }
 
-    public static void InsertMany(List<PayPlanCharge> listPayPlanCharges)
-    {
-        InsertMany(listPayPlanCharges, false);
-    }
-
-    public static void InsertMany(List<PayPlanCharge> listPayPlanCharges, bool useExistingPK)
+    public static void InsertMany(List<PayPlanCharge> listPayPlanCharges, bool useExistingPK = false)
     {
         StringBuilder sbCommands = null;
         var index = 0;
@@ -212,45 +163,6 @@ public class PayPlanChargeCrud
                 index++;
             }
         }
-    }
-
-    public static long InsertNoCache(PayPlanCharge payPlanCharge)
-    {
-        return InsertNoCache(payPlanCharge, false);
-    }
-
-    public static long InsertNoCache(PayPlanCharge payPlanCharge, bool useExistingPK)
-    {
-        const bool isRandomKeys = false;
-        var command = "INSERT INTO payplancharge (";
-        if (isRandomKeys || useExistingPK) command += "PayPlanChargeNum,";
-        command += "PayPlanNum,Guarantor,PatNum,ChargeDate,Principal,Interest,Note,ProvNum,ClinicNum,ChargeType,ProcNum,SecDateTEntry,StatementNum,FKey,LinkType,IsOffset) VALUES(";
-        if (isRandomKeys || useExistingPK) command += SOut.Long(payPlanCharge.PayPlanChargeNum) + ",";
-        command +=
-            SOut.Long(payPlanCharge.PayPlanNum) + ","
-                                                + SOut.Long(payPlanCharge.Guarantor) + ","
-                                                + SOut.Long(payPlanCharge.PatNum) + ","
-                                                + SOut.Date(payPlanCharge.ChargeDate) + ","
-                                                + SOut.Double(payPlanCharge.Principal) + ","
-                                                + SOut.Double(payPlanCharge.Interest) + ","
-                                                + DbHelper.ParamChar + "paramNote,"
-                                                + SOut.Long(payPlanCharge.ProvNum) + ","
-                                                + SOut.Long(payPlanCharge.ClinicNum) + ","
-                                                + SOut.Int((int) payPlanCharge.ChargeType) + ","
-                                                + SOut.Long(payPlanCharge.ProcNum) + ","
-                                                + "NOW()" + ","
-                                                //SecDateTEdit can only be set by MySQL
-                                                + SOut.Long(payPlanCharge.StatementNum) + ","
-                                                + SOut.Long(payPlanCharge.FKey) + ","
-                                                + SOut.Int((int) payPlanCharge.LinkType) + ","
-                                                + SOut.Bool(payPlanCharge.IsOffset) + ")";
-        if (payPlanCharge.Note == null) payPlanCharge.Note = "";
-        var paramNote = new OdSqlParameter("paramNote", SOut.StringParam(payPlanCharge.Note));
-        if (useExistingPK || isRandomKeys)
-            Db.NonQ(command, paramNote);
-        else
-            payPlanCharge.PayPlanChargeNum = Db.NonQ(command, true, "PayPlanChargeNum", "payPlanCharge", paramNote);
-        return payPlanCharge.PayPlanChargeNum;
     }
 
     public static void Update(PayPlanCharge payPlanCharge)
@@ -383,35 +295,6 @@ public class PayPlanChargeCrud
         return true;
     }
 
-    public static bool UpdateComparison(PayPlanCharge payPlanCharge, PayPlanCharge oldPayPlanCharge)
-    {
-        if (payPlanCharge.PayPlanNum != oldPayPlanCharge.PayPlanNum) return true;
-        if (payPlanCharge.Guarantor != oldPayPlanCharge.Guarantor) return true;
-        if (payPlanCharge.PatNum != oldPayPlanCharge.PatNum) return true;
-        if (payPlanCharge.ChargeDate.Date != oldPayPlanCharge.ChargeDate.Date) return true;
-        if (payPlanCharge.Principal != oldPayPlanCharge.Principal) return true;
-        if (payPlanCharge.Interest != oldPayPlanCharge.Interest) return true;
-        if (payPlanCharge.Note != oldPayPlanCharge.Note) return true;
-        if (payPlanCharge.ProvNum != oldPayPlanCharge.ProvNum) return true;
-        if (payPlanCharge.ClinicNum != oldPayPlanCharge.ClinicNum) return true;
-        if (payPlanCharge.ChargeType != oldPayPlanCharge.ChargeType) return true;
-        if (payPlanCharge.ProcNum != oldPayPlanCharge.ProcNum) return true;
-        //SecDateTEntry not allowed to change
-        //SecDateTEdit can only be set by MySQL
-        if (payPlanCharge.StatementNum != oldPayPlanCharge.StatementNum) return true;
-        if (payPlanCharge.FKey != oldPayPlanCharge.FKey) return true;
-        if (payPlanCharge.LinkType != oldPayPlanCharge.LinkType) return true;
-        if (payPlanCharge.IsOffset != oldPayPlanCharge.IsOffset) return true;
-        return false;
-    }
-
-    public static void Delete(long payPlanChargeNum)
-    {
-        var command = "DELETE FROM payplancharge "
-                      + "WHERE PayPlanChargeNum = " + SOut.Long(payPlanChargeNum);
-        Db.NonQ(command);
-    }
-
     public static void DeleteMany(List<long> listPayPlanChargeNums)
     {
         if (listPayPlanChargeNums == null || listPayPlanChargeNums.Count == 0) return;
@@ -420,7 +303,7 @@ public class PayPlanChargeCrud
         Db.NonQ(command);
     }
 
-    public static bool Sync(List<PayPlanCharge> listNew, List<PayPlanCharge> listDB)
+    public static void Sync(List<PayPlanCharge> listNew, List<PayPlanCharge> listDB)
     {
         //Adding items to lists changes the order of operation. All inserts are completed first, then updates, then deletes.
         var listIns = new List<PayPlanCharge>();
@@ -432,15 +315,13 @@ public class PayPlanChargeCrud
         var idxNew = 0;
         var idxDB = 0;
         var rowsUpdatedCount = 0;
-        PayPlanCharge fieldNew;
-        PayPlanCharge fieldDB;
         //Because both lists have been sorted using the same criteria, we can now walk each list to determine which list contians the next element.  The next element is determined by Primary Key.
         //If the New list contains the next item it will be inserted.  If the DB contains the next item, it will be deleted.  If both lists contain the next item, the item will be updated.
         while (idxNew < listNew.Count || idxDB < listDB.Count)
         {
-            fieldNew = null;
+            PayPlanCharge fieldNew = null;
             if (idxNew < listNew.Count) fieldNew = listNew[idxNew];
-            fieldDB = null;
+            PayPlanCharge fieldDB = null;
             if (idxDB < listDB.Count) fieldDB = listDB[idxDB];
             //begin compare
             if (fieldNew != null && fieldDB == null)
@@ -489,7 +370,6 @@ public class PayPlanChargeCrud
                 rowsUpdatedCount++;
 
         DeleteMany(listDel.Select(x => x.PayPlanChargeNum).ToList());
-        if (rowsUpdatedCount > 0 || listIns.Count > 0 || listDel.Count > 0) return true;
-        return false;
+        if (rowsUpdatedCount > 0 || listIns.Count > 0 || listDel.Count > 0) return;
     }
 }

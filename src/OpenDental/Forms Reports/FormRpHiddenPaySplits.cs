@@ -4,18 +4,18 @@ using System.Data;
 using System.Drawing;
 using System.Linq;
 using System.Windows.Forms;
-using CodeBase;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Entities;
 using Imedisoft.Core.Features.Clinics;
 using Imedisoft.Core.Features.Clinics.Dtos;
+using Imedisoft.Features.Providers.Dtos;
 using OpenDental.ReportingComplex;
 using OpenDentBusiness;
 
 namespace OpenDental;
 
 public partial class FormRpHiddenPaySplits : FormODBase {
-	private List<Provider> _listProviders;
+	private List<ProviderDto> _listProviders;
 	///<summary>List of all clinics the current user has access to, can include Unassigned/0 clinic.</summary>
 	private List<ClinicDto> _listClinics;
 	private List<Def> _listUnearnedTypes;
@@ -28,20 +28,16 @@ public partial class FormRpHiddenPaySplits : FormODBase {
 	private void FormRpTpPreAllocation_Load(object sender,EventArgs e) {
 		odDateRangePicker.SetDateTimeFrom(DateTime.Today.AddMonths(-1));
 		odDateRangePicker.SetDateTimeTo(DateTime.Today);
-		if(true) {
-			labelClinic.Visible=true;
-			checkAllClinics.Visible=true;
-			checkAllClinics.Checked=true;
-			listBoxClinic.Visible=true;
-			listBoxClinic.SelectedIndices.Clear();
-			_listClinics=Clinics.GetForUserod(Security.CurUser,(!Security.CurUser.ClinicIsRestricted),"Unassigned");
-			foreach(var clinic in _listClinics) {
-				listBoxClinic.Items.Add(clinic.Abbr,clinic);
-			}
+		labelClinic.Visible=true;
+		checkAllClinics.Visible=true;
+		checkAllClinics.Checked=true;
+		listBoxClinic.Visible=true;
+		listBoxClinic.SelectedIndices.Clear();
+		_listClinics=Clinics.GetForUserod(Security.CurUser,(!Security.CurUser.ClinicIsRestricted),"Unassigned");
+		foreach(var clinic in _listClinics) {
+			listBoxClinic.Items.Add(clinic.Abbr,clinic);
 		}
-		else {
-			_listClinics= [];
-		}
+
 		_listProviders=Providers.GetListReports();
 		_listProviders.Insert(0,Providers.GetUnearnedProv());
 		checkAllProv.Checked=true;
@@ -116,7 +112,7 @@ public partial class FormRpHiddenPaySplits : FormODBase {
 		var subtitleUnearned="";
 		if(checkAllProv.Checked) {
 			subtitleProvs="All Providers";
-			listProvNums=_listProviders.Select(x => x.ProvNum).ToList();
+			listProvNums=_listProviders.Select(x => x.Id).ToList();
 		}
 		else {
 			subtitleProvs=string.Join(", ",listBoxProv.GetListSelected<Provider>().Select(x => x.Abbr));

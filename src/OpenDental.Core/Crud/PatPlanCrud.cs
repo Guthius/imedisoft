@@ -1,13 +1,8 @@
-#region
-
 using System.Collections.Generic;
 using System.Data;
-using System.Linq;
 using DataConnectionBase;
 using Imedisoft.Core.Entities;
 using OpenDentBusiness;
-
-#endregion
 
 namespace Imedisoft.Core.Crud;
 
@@ -38,53 +33,29 @@ public class PatPlanCrud
     public static List<PatPlan> TableToList(DataTable table)
     {
         var retVal = new List<PatPlan>();
-        PatPlan patPlan;
         foreach (DataRow row in table.Rows)
         {
-            patPlan = new PatPlan();
-            patPlan.PatPlanNum = SIn.Long(row["PatPlanNum"].ToString());
-            patPlan.PatNum = SIn.Long(row["PatNum"].ToString());
-            patPlan.Ordinal = SIn.Byte(row["Ordinal"].ToString());
-            patPlan.IsPending = SIn.Bool(row["IsPending"].ToString());
-            patPlan.Relationship = (Relat) SIn.Int(row["Relationship"].ToString());
-            patPlan.PatID = SIn.String(row["PatID"].ToString());
-            patPlan.InsSubNum = SIn.Long(row["InsSubNum"].ToString());
-            patPlan.OrthoAutoFeeBilledOverride = SIn.Double(row["OrthoAutoFeeBilledOverride"].ToString());
-            patPlan.OrthoAutoNextClaimDate = SIn.Date(row["OrthoAutoNextClaimDate"].ToString());
-            patPlan.SecDateTEntry = SIn.DateTime(row["SecDateTEntry"].ToString());
-            patPlan.SecDateTEdit = SIn.DateTime(row["SecDateTEdit"].ToString());
+            var patPlan = new PatPlan
+            {
+                PatPlanNum = SIn.Long(row["PatPlanNum"].ToString()),
+                PatNum = SIn.Long(row["PatNum"].ToString()),
+                Ordinal = SIn.Byte(row["Ordinal"].ToString()),
+                IsPending = SIn.Bool(row["IsPending"].ToString()),
+                Relationship = (Relat) SIn.Int(row["Relationship"].ToString()),
+                PatID = SIn.String(row["PatID"].ToString()),
+                InsSubNum = SIn.Long(row["InsSubNum"].ToString()),
+                OrthoAutoFeeBilledOverride = SIn.Double(row["OrthoAutoFeeBilledOverride"].ToString()),
+                OrthoAutoNextClaimDate = SIn.Date(row["OrthoAutoNextClaimDate"].ToString()),
+                SecDateTEntry = SIn.DateTime(row["SecDateTEntry"].ToString()),
+                SecDateTEdit = SIn.DateTime(row["SecDateTEdit"].ToString())
+            };
             retVal.Add(patPlan);
         }
 
         return retVal;
     }
 
-    public static DataTable ListToTable(List<PatPlan> listPatPlans, string tableName = "")
-    {
-        if (string.IsNullOrEmpty(tableName)) tableName = "PatPlan";
-        var table = new DataTable(tableName);
-        table.Columns.Add("PatPlanNum");
-        table.Columns.Add("PatNum");
-        table.Columns.Add("Ordinal");
-        table.Columns.Add("IsPending");
-        table.Columns.Add("Relationship");
-        table.Columns.Add("PatID");
-        table.Columns.Add("InsSubNum");
-        table.Columns.Add("OrthoAutoFeeBilledOverride");
-        table.Columns.Add("OrthoAutoNextClaimDate");
-        table.Columns.Add("SecDateTEntry");
-        table.Columns.Add("SecDateTEdit");
-        foreach (var patPlan in listPatPlans)
-            table.Rows.Add(SOut.Long(patPlan.PatPlanNum), SOut.Long(patPlan.PatNum), SOut.Byte(patPlan.Ordinal), SOut.Bool(patPlan.IsPending), SOut.Int((int) patPlan.Relationship), patPlan.PatID, SOut.Long(patPlan.InsSubNum), SOut.Double(patPlan.OrthoAutoFeeBilledOverride), SOut.DateTime(patPlan.OrthoAutoNextClaimDate, false), SOut.DateTime(patPlan.SecDateTEntry, false), SOut.DateTime(patPlan.SecDateTEdit, false));
-        return table;
-    }
-
     public static long Insert(PatPlan patPlan)
-    {
-        return Insert(patPlan, false);
-    }
-
-    public static long Insert(PatPlan patPlan, bool useExistingPK)
     {
         var command = "INSERT INTO patplan (";
 
@@ -106,36 +77,6 @@ public class PatPlanCrud
         return patPlan.PatPlanNum;
     }
 
-    public static long InsertNoCache(PatPlan patPlan)
-    {
-        return InsertNoCache(patPlan, false);
-    }
-
-    public static long InsertNoCache(PatPlan patPlan, bool useExistingPK)
-    {
-        const bool isRandomKeys = false;
-        var command = "INSERT INTO patplan (";
-        if (isRandomKeys || useExistingPK) command += "PatPlanNum,";
-        command += "PatNum,Ordinal,IsPending,Relationship,PatID,InsSubNum,OrthoAutoFeeBilledOverride,OrthoAutoNextClaimDate,SecDateTEntry) VALUES(";
-        if (isRandomKeys || useExistingPK) command += SOut.Long(patPlan.PatPlanNum) + ",";
-        command +=
-            SOut.Long(patPlan.PatNum) + ","
-                                      + SOut.Byte(patPlan.Ordinal) + ","
-                                      + SOut.Bool(patPlan.IsPending) + ","
-                                      + SOut.Int((int) patPlan.Relationship) + ","
-                                      + "'" + SOut.String(patPlan.PatID) + "',"
-                                      + SOut.Long(patPlan.InsSubNum) + ","
-                                      + SOut.Double(patPlan.OrthoAutoFeeBilledOverride) + ","
-                                      + SOut.Date(patPlan.OrthoAutoNextClaimDate) + ","
-                                      + "NOW()" + ")";
-        //SecDateTEdit can only be set by MySQL
-        if (useExistingPK || isRandomKeys)
-            Db.NonQ(command);
-        else
-            patPlan.PatPlanNum = Db.NonQ(command, true, "PatPlanNum", "patPlan");
-        return patPlan.PatPlanNum;
-    }
-
     public static void Update(PatPlan patPlan)
     {
         var command = "UPDATE patplan SET "
@@ -153,7 +94,7 @@ public class PatPlanCrud
         Db.NonQ(command);
     }
 
-    public static bool Update(PatPlan patPlan, PatPlan oldPatPlan)
+    public static void Update(PatPlan patPlan, PatPlan oldPatPlan)
     {
         var command = "";
         if (patPlan.PatNum != oldPatPlan.PatNum)
@@ -206,11 +147,10 @@ public class PatPlanCrud
 
         //SecDateTEntry not allowed to change
         //SecDateTEdit can only be set by MySQL
-        if (command == "") return false;
+        if (command == "") return;
         command = "UPDATE patplan SET " + command
                                         + " WHERE PatPlanNum = " + SOut.Long(patPlan.PatPlanNum);
         Db.NonQ(command);
-        return true;
     }
 
     public static bool UpdateComparison(PatPlan patPlan, PatPlan oldPatPlan)
@@ -226,20 +166,5 @@ public class PatPlanCrud
         //SecDateTEntry not allowed to change
         //SecDateTEdit can only be set by MySQL
         return false;
-    }
-
-    public static void Delete(long patPlanNum)
-    {
-        var command = "DELETE FROM patplan "
-                      + "WHERE PatPlanNum = " + SOut.Long(patPlanNum);
-        Db.NonQ(command);
-    }
-
-    public static void DeleteMany(List<long> listPatPlanNums)
-    {
-        if (listPatPlanNums == null || listPatPlanNums.Count == 0) return;
-        var command = "DELETE FROM patplan "
-                      + "WHERE PatPlanNum IN(" + string.Join(",", listPatPlanNums.Select(x => SOut.Long(x))) + ")";
-        Db.NonQ(command);
     }
 }

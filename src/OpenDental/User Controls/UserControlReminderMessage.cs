@@ -98,7 +98,7 @@ public partial class UserControlReminderMessage:UserControl {
 			//browserEmailBody.Document.Body.Style = "font-size:"+LayoutManager.ScaleF(12).ToString("f1")+";";
 			browserEmailBody.DocumentText=text;
 		}
-		catch(Exception ex) {
+		catch {
 		}
 	}
 
@@ -129,8 +129,8 @@ public partial class UserControlReminderMessage:UserControl {
 			}
 		}
 		if(Rule.TypeCur==ApptReminderType.Arrival) {
-			if(!textTemplateSms.Text.ToLower().Contains(OpenDentBusiness.AutoComm.ArrivalsTagReplacer.ARRIVED_TAG.ToLower())) {
-				listErrors.Add(Lan.g(this,$"Arrival texts must contain the \"{OpenDentBusiness.AutoComm.ArrivalsTagReplacer.ARRIVED_TAG}\" tag."));
+			if(!textTemplateSms.Text.ToLower().Contains(OpenDentBusiness.AutoComm.ArrivalsTagReplacer.ArrivedTag.ToLower())) {
+				listErrors.Add(Lan.g(this,$"Arrival texts must contain the \"{OpenDentBusiness.AutoComm.ArrivalsTagReplacer.ArrivedTag}\" tag."));
 			}
 		}
 		if(!(Rule.TypeCur.In(ApptReminderType.PatientPortalInvite,ApptReminderType.Birthday))) {
@@ -267,8 +267,8 @@ public partial class UserControlReminderMessage:UserControl {
 		else {
 			//Clicking a link with a period will not get recognized. 
 			Rule.TemplateSMS=textTemplateSms.Text.Replace("[ConfirmURL].","[ConfirmURL] .");
-			Rule.TemplateSMS=textTemplateSms.Text.Replace($"{MsgToPayTagReplacer.MSG_TO_PAY_TAG}.",$"{MsgToPayTagReplacer.MSG_TO_PAY_TAG} .");
-			Rule.TemplateSMS=textTemplateSms.Text.Replace($"{MsgToPayTagReplacer.STATEMENT_URL_TAG}.",$"{MsgToPayTagReplacer.STATEMENT_URL_TAG} .");
+			Rule.TemplateSMS=textTemplateSms.Text.Replace($"{MsgToPayTagReplacer.MsgToPayTag}.",$"{MsgToPayTagReplacer.MsgToPayTag} .");
+			Rule.TemplateSMS=textTemplateSms.Text.Replace($"{MsgToPayTagReplacer.StatementUrlTag}.",$"{MsgToPayTagReplacer.StatementUrlTag} .");
 		}
 		Rule.TemplateEmailSubject=textTemplateSubject.Text;
 		Rule.TemplateEmail=_templateEmail;

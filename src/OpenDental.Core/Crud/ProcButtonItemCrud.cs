@@ -1,34 +1,13 @@
-#region
-
 using System.Collections.Generic;
 using System.Data;
-using System.Linq;
 using DataConnectionBase;
 using Imedisoft.Core.Entities;
 using OpenDentBusiness;
-
-#endregion
 
 namespace Imedisoft.Core.Crud;
 
 public class ProcButtonItemCrud
 {
-    public static ProcButtonItem SelectOne(long procButtonItemNum)
-    {
-        var command = "SELECT * FROM procbuttonitem "
-                      + "WHERE ProcButtonItemNum = " + SOut.Long(procButtonItemNum);
-        var list = TableToList(DataCore.GetTable(command));
-        if (list.Count == 0) return null;
-        return list[0];
-    }
-
-    public static ProcButtonItem SelectOne(string command)
-    {
-        var list = TableToList(DataCore.GetTable(command));
-        if (list.Count == 0) return null;
-        return list[0];
-    }
-
     public static List<ProcButtonItem> SelectMany(string command)
     {
         var list = TableToList(DataCore.GetTable(command));
@@ -38,16 +17,17 @@ public class ProcButtonItemCrud
     public static List<ProcButtonItem> TableToList(DataTable table)
     {
         var retVal = new List<ProcButtonItem>();
-        ProcButtonItem procButtonItem;
         foreach (DataRow row in table.Rows)
         {
-            procButtonItem = new ProcButtonItem();
-            procButtonItem.ProcButtonItemNum = SIn.Long(row["ProcButtonItemNum"].ToString());
-            procButtonItem.ProcButtonNum = SIn.Long(row["ProcButtonNum"].ToString());
-            procButtonItem.OldCode = SIn.String(row["OldCode"].ToString());
-            procButtonItem.AutoCodeNum = SIn.Long(row["AutoCodeNum"].ToString());
-            procButtonItem.CodeNum = SIn.Long(row["CodeNum"].ToString());
-            procButtonItem.ItemOrder = SIn.Long(row["ItemOrder"].ToString());
+            var procButtonItem = new ProcButtonItem
+            {
+                ProcButtonItemNum = SIn.Long(row["ProcButtonItemNum"].ToString()),
+                ProcButtonNum = SIn.Long(row["ProcButtonNum"].ToString()),
+                OldCode = SIn.String(row["OldCode"].ToString()),
+                AutoCodeNum = SIn.Long(row["AutoCodeNum"].ToString()),
+                CodeNum = SIn.Long(row["CodeNum"].ToString()),
+                ItemOrder = SIn.Long(row["ItemOrder"].ToString())
+            };
             retVal.Add(procButtonItem);
         }
 
@@ -69,12 +49,7 @@ public class ProcButtonItemCrud
         return table;
     }
 
-    public static long Insert(ProcButtonItem procButtonItem)
-    {
-        return Insert(procButtonItem, false);
-    }
-
-    public static long Insert(ProcButtonItem procButtonItem, bool useExistingPK)
+    public static void Insert(ProcButtonItem procButtonItem)
     {
         var command = "INSERT INTO procbuttonitem (";
 
@@ -89,108 +64,5 @@ public class ProcButtonItemCrud
         {
             procButtonItem.ProcButtonItemNum = Db.NonQ(command, true, "ProcButtonItemNum", "procButtonItem");
         }
-        return procButtonItem.ProcButtonItemNum;
-    }
-
-    public static long InsertNoCache(ProcButtonItem procButtonItem)
-    {
-        return InsertNoCache(procButtonItem, false);
-    }
-
-    public static long InsertNoCache(ProcButtonItem procButtonItem, bool useExistingPK)
-    {
-        const bool isRandomKeys = false;
-        var command = "INSERT INTO procbuttonitem (";
-        if (isRandomKeys || useExistingPK) command += "ProcButtonItemNum,";
-        command += "ProcButtonNum,OldCode,AutoCodeNum,CodeNum,ItemOrder) VALUES(";
-        if (isRandomKeys || useExistingPK) command += SOut.Long(procButtonItem.ProcButtonItemNum) + ",";
-        command +=
-            SOut.Long(procButtonItem.ProcButtonNum) + ","
-                                                    + "'" + SOut.String(procButtonItem.OldCode) + "',"
-                                                    + SOut.Long(procButtonItem.AutoCodeNum) + ","
-                                                    + SOut.Long(procButtonItem.CodeNum) + ","
-                                                    + SOut.Long(procButtonItem.ItemOrder) + ")";
-        if (useExistingPK || isRandomKeys)
-            Db.NonQ(command);
-        else
-            procButtonItem.ProcButtonItemNum = Db.NonQ(command, true, "ProcButtonItemNum", "procButtonItem");
-        return procButtonItem.ProcButtonItemNum;
-    }
-
-    public static void Update(ProcButtonItem procButtonItem)
-    {
-        var command = "UPDATE procbuttonitem SET "
-                      + "ProcButtonNum    =  " + SOut.Long(procButtonItem.ProcButtonNum) + ", "
-                      + "OldCode          = '" + SOut.String(procButtonItem.OldCode) + "', "
-                      + "AutoCodeNum      =  " + SOut.Long(procButtonItem.AutoCodeNum) + ", "
-                      + "CodeNum          =  " + SOut.Long(procButtonItem.CodeNum) + ", "
-                      + "ItemOrder        =  " + SOut.Long(procButtonItem.ItemOrder) + " "
-                      + "WHERE ProcButtonItemNum = " + SOut.Long(procButtonItem.ProcButtonItemNum);
-        Db.NonQ(command);
-    }
-
-    public static bool Update(ProcButtonItem procButtonItem, ProcButtonItem oldProcButtonItem)
-    {
-        var command = "";
-        if (procButtonItem.ProcButtonNum != oldProcButtonItem.ProcButtonNum)
-        {
-            if (command != "") command += ",";
-            command += "ProcButtonNum = " + SOut.Long(procButtonItem.ProcButtonNum) + "";
-        }
-
-        if (procButtonItem.OldCode != oldProcButtonItem.OldCode)
-        {
-            if (command != "") command += ",";
-            command += "OldCode = '" + SOut.String(procButtonItem.OldCode) + "'";
-        }
-
-        if (procButtonItem.AutoCodeNum != oldProcButtonItem.AutoCodeNum)
-        {
-            if (command != "") command += ",";
-            command += "AutoCodeNum = " + SOut.Long(procButtonItem.AutoCodeNum) + "";
-        }
-
-        if (procButtonItem.CodeNum != oldProcButtonItem.CodeNum)
-        {
-            if (command != "") command += ",";
-            command += "CodeNum = " + SOut.Long(procButtonItem.CodeNum) + "";
-        }
-
-        if (procButtonItem.ItemOrder != oldProcButtonItem.ItemOrder)
-        {
-            if (command != "") command += ",";
-            command += "ItemOrder = " + SOut.Long(procButtonItem.ItemOrder) + "";
-        }
-
-        if (command == "") return false;
-        command = "UPDATE procbuttonitem SET " + command
-                                               + " WHERE ProcButtonItemNum = " + SOut.Long(procButtonItem.ProcButtonItemNum);
-        Db.NonQ(command);
-        return true;
-    }
-
-    public static bool UpdateComparison(ProcButtonItem procButtonItem, ProcButtonItem oldProcButtonItem)
-    {
-        if (procButtonItem.ProcButtonNum != oldProcButtonItem.ProcButtonNum) return true;
-        if (procButtonItem.OldCode != oldProcButtonItem.OldCode) return true;
-        if (procButtonItem.AutoCodeNum != oldProcButtonItem.AutoCodeNum) return true;
-        if (procButtonItem.CodeNum != oldProcButtonItem.CodeNum) return true;
-        if (procButtonItem.ItemOrder != oldProcButtonItem.ItemOrder) return true;
-        return false;
-    }
-
-    public static void Delete(long procButtonItemNum)
-    {
-        var command = "DELETE FROM procbuttonitem "
-                      + "WHERE ProcButtonItemNum = " + SOut.Long(procButtonItemNum);
-        Db.NonQ(command);
-    }
-
-    public static void DeleteMany(List<long> listProcButtonItemNums)
-    {
-        if (listProcButtonItemNums == null || listProcButtonItemNums.Count == 0) return;
-        var command = "DELETE FROM procbuttonitem "
-                      + "WHERE ProcButtonItemNum IN(" + string.Join(",", listProcButtonItemNums.Select(x => SOut.Long(x))) + ")";
-        Db.NonQ(command);
     }
 }

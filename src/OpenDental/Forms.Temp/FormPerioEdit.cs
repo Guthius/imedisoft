@@ -1,13 +1,11 @@
-using System;
-using System.Drawing;
-using System.Collections;
-using System.ComponentModel;
 using System.Windows.Forms;
 using OpenDentBusiness;
 using System.Collections.Generic;
 using CodeBase;
 using DataConnectionBase;
+using Imedisoft.Core.Data;
 using Imedisoft.Core.Entities;
+using Imedisoft.Features.Providers.Dtos;
 
 namespace OpenDental;
 
@@ -16,7 +14,7 @@ namespace OpenDental;
 /// </summary>
 public partial class FormPerioEdit : FormODBase {
 	public PerioExam PerioExamCur;
-	private List<Provider> _listProviders;
+	private List<ProviderDto> _listProviders;
 
 		
 	public FormPerioEdit()
@@ -34,7 +32,7 @@ public partial class FormPerioEdit : FormODBase {
 		_listProviders=Providers.GetDeepCopy(true);
 		for(var i=0;i<_listProviders.Count;i++) {
 			listProv.Items.Add(_listProviders[i].Abbr);
-			if(_listProviders[i].ProvNum==PerioExamCur.ProvNum){
+			if(_listProviders[i].Id==PerioExamCur.ProvNum){
 				listProv.SelectedIndex=i;
 			}
 		}
@@ -50,7 +48,7 @@ public partial class FormPerioEdit : FormODBase {
 		}
 		PerioExamCur.ExamDate=SIn.Date(textDate.Text);
 		PerioExamCur.Note=SIn.String(textBoxNotes.Text);
-		PerioExamCur.ProvNum=_listProviders[listProv.SelectedIndex].ProvNum;
+		PerioExamCur.ProvNum=_listProviders[listProv.SelectedIndex].Id;
 		PerioExams.Update(PerioExamCur);
 		DialogResult=DialogResult.OK;
 	}

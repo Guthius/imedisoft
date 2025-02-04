@@ -17,14 +17,13 @@ using Imedisoft.Core.Caching;
 using Imedisoft.Core.Data;
 using Imedisoft.Core.Entities;
 using Imedisoft.Core.Features.Clinics;
-using OpenDental.Bridges;
+using OpenDental.Chart;
+using OpenDental.Forms;
 using OpenDental.Logic;
 using OpenDental.UI;
 using OpenDentBusiness;
 using OpenDentBusiness.HL7;
 using SharpDX;
-using SparksToothChart;
-using VBbridges;
 using CheckBox = OpenDental.UI.CheckBox;
 using TabPage = OpenDental.UI.TabPage;
 using Word = Microsoft.Office.Interop.Word;
@@ -34,7 +33,6 @@ namespace OpenDental;
 public partial class ControlChart : UserControl
 {
     public bool IsTreatmentNoteChanged;
-    public LayoutManagerForms LayoutManager = new();
     public PatientData Pd;
     
     private List<ImageInfo> _listImageInfos;
@@ -54,7 +52,6 @@ public partial class ControlChart : UserControl
     private bool _isFillingProgNotes;
     private bool _isModuleSelected;
     private bool _isSearchPending;
-    private List<ApteryxThumbnail> _listApteryxThumbnails;
     private List<ChartView> _listChartViews;
     private List<Procedure> _listProceduresCharted;
     private List<Procedure> _listProcedures;
@@ -80,7 +77,6 @@ public partial class ControlChart : UserControl
     private string _searchTextPrevious = "";
     private long _patNumPrevious;
     private ProcStat _procStatNew;
-    private int _idxImageTabSelected = 0;
     private SheetLayoutController _sheetLayoutController;
     private DateTime _dateTimeShowEnd;
     private DateTime _dateTimeShowStart;
@@ -111,7 +107,7 @@ public partial class ControlChart : UserControl
         toothChartWrapper.Visible = false;
         toothChartWrapper.SegmentDrawn += toothChart_SegmentDrawn;
         toothChartWrapper.ToothSelectionsChanged += toothChart_ToothSelectionsChanged;
-        LayoutManagerForms.Add(toothChartWrapper, this);
+        this.Controls.Add(toothChartWrapper);
         
         if (CultureInfo.CurrentCulture.Name.EndsWith("CA"))
         {
@@ -130,8 +126,6 @@ public partial class ControlChart : UserControl
         timerSearch.Interval = 500;
         timerSearch.Tick += _timerSearch_Tick;
         timerSearch.Enabled = true;
-        
-        ODEvent.Fired += ErxBrowserClosed;
         
         _columnHeaderDefaultSize = listViewButtons.Width - 10;
         
@@ -508,32 +502,7 @@ public partial class ControlChart : UserControl
 
         ModuleSelected(Pd.PatNum);
     }
-        
-    private void ErxBrowserClosed(ODEventArgs e)
-    {
-        if (e.EventType != ODEventType.ErxBrowserClosed)
-        {
-            return;
-        }
 
-        var patient = (Patient) e.Tag;
-        if (patient == null)
-        {
-            return;
-        }
-        
-        if (IsPatientNull() || Pd.PatNum != patient.PatNum)
-        {
-            return;
-        }
-
-        Cursor = Cursors.WaitCursor;
-        
-        Application.DoEvents();
-
-        Cursor = Cursors.Default;
-    }
-        
     private void FormExamSheets_FormClosing(object sender, FormClosingEventArgs e)
     {
         var formPatNum = ((FormExamSheets) sender).PatNum;
@@ -679,18 +648,6 @@ public partial class ControlChart : UserControl
             }
 
             FillPtInfo();
-            return;
-        }
-
-        if (gridPtInfo.ListGridRows[e.Row].Tag.ToString() == "Patient Portal")
-        {
-            using var formPatientPortal = new FormPatientPortal(Pd.Patient);
-
-            if (formPatientPortal.ShowDialog() == DialogResult.OK)
-            {
-                FillPtInfo();
-            }
-
             return;
         }
 
@@ -1430,7 +1387,6 @@ public partial class ControlChart : UserControl
         checkComm.Checked = (bool) objectArray[0];
         checkAppt.Checked = (bool) objectArray[1];
         FillProgNotes();
-        HookSkipFillProgressNotes:
         if (gridProg.ListGridRows.Count == 0)
         {
             MsgBox.Show(this, "No completed procedures or notes to print");
@@ -1558,10 +1514,6 @@ public partial class ControlChart : UserControl
                     hl7Msg.MsgText = messageHL7.ToString();
                     hl7Msg.PatNum = Pd.PatNum;
                     HL7Msgs.Insert(hl7Msg);
-                    if ( /* ODBuild.IsDebug() */ false)
-                    {
-                        ODMessageBox.Show(this, messageHL7.ToString());
-                    }
                 }
             }
 
@@ -2014,27 +1966,22 @@ public partial class ControlChart : UserControl
             text = "Ward: " + Pd.Patient.Ward;
             g.DrawString(text, fontSubHeading, Brushes.Black, center - g.MeasureString(text, fontSubHeading).Width / 2, yPos);
             yPos += 20;
-            HookSkipHeadingText:
             //Patient images are not shown when the A to Z folders are disabled.
-            if (true || false)
+            var bitmapPatPic = Documents.GetPatPict(Pd.PatNum, ImageStore.GetPatientFolder(Pd.Patient, ImageStore.GetDataFolder()));
+            if (bitmapPatPic != null)
             {
-                var bitmapPatPic = Documents.GetPatPict(Pd.PatNum, ImageStore.GetPatientFolder(Pd.Patient, ImageStore.GetDataFolder()));
-                if (bitmapPatPic != null)
-                {
-                    var bitmap80 = ImageHelper.GetBitmapSquare(bitmapPatPic, 80);
-                    g.DrawImage(bitmap80, center - 40, yPos, 80, 80);
-                    bitmap80.Dispose();
-                    bitmapPatPic.Dispose();
-                    yPos += 80;
-                }
-
-                HookSkipHeadingImage:
-                yPos += 30;
-                object[] objectArray = [Pd, e, gridProg, yPos];
-                yPos = (int) objectArray[3];
-                _isHeadingPrinted = true;
-                _heightHeadingPrint = yPos;
+                var bitmap80 = ImageHelper.GetBitmapSquare(bitmapPatPic, 80);
+                g.DrawImage(bitmap80, center - 40, yPos, 80, 80);
+                bitmap80.Dispose();
+                bitmapPatPic.Dispose();
+                yPos += 80;
             }
+                
+            yPos += 30;
+            object[] objectArray = [Pd, e, gridProg, yPos];
+            yPos = (int) objectArray[3];
+            _isHeadingPrinted = true;
+            _heightHeadingPrint = yPos;
         }
 
         #endregion
@@ -2698,25 +2645,6 @@ public partial class ControlChart : UserControl
             case ProgNotesRowType.Sheet:
                 var sheet = Sheets.GetSheet(pk);
                 SheetUtilL.ShowSheet(sheet, Pd.Patient, FormSheetFillEdit_FormClosing);
-                break;
-            case ProgNotesRowType.EForm:
-                var eForm = EForms.GetEForm(pk);
-                if (eForm == null)
-                {
-                    MsgBox.Show("EForms", "Error opening eForm.");
-                    return;
-                }
-
-                var frmEFormFillEdit = new FrmEFormFillEdit();
-                frmEFormFillEdit.EFormCur = eForm;
-                frmEFormFillEdit.ShowDialog();
-                if (frmEFormFillEdit.IsDialogCancel)
-                {
-                    //User truly cancelled. If they deleted, then dialog would have been ok.
-                    return;
-                }
-
-                //It will refresh below
                 break;
             case ProgNotesRowType.Document:
                 var document = Documents.GetByNum(pk);
@@ -3915,12 +3843,6 @@ public partial class ControlChart : UserControl
         
     private void butAddText_Click(object sender, EventArgs e)
     {
-        if (false)
-        {
-            MsgBox.Show(this, "The text feature is not available in Open Dental Cloud.");
-            return;
-        }
-
         var inputBox = new InputBox("Text");
         inputBox.ShowDialog();
         if (inputBox.IsDialogCancel)
@@ -3955,12 +3877,6 @@ public partial class ControlChart : UserControl
 
     private void butDeleteText_Click(object sender, EventArgs e)
     {
-        if (false)
-        {
-            MsgBox.Show(this, "The text feature is not available in Open Dental Cloud.");
-            return;
-        }
-
         if (listBoxText.SelectedIndex == -1)
         {
             MsgBox.Show(this, "Please select an item above, first.");
@@ -4076,13 +3992,6 @@ public partial class ControlChart : UserControl
 
     private void radioMoveText_Click(object sender, EventArgs e)
     {
-        if (false)
-        {
-            MsgBox.Show(this, "The text feature is not available in Open Dental Cloud.");
-            radioPointer.Checked = true;
-            return;
-        }
-
         _toothChartRelay.CursorTool = CursorTool.MoveText;
     }
 
@@ -4155,9 +4064,6 @@ public partial class ControlChart : UserControl
                 break;
             case "HL7":
                 Tool_HL7_Click();
-                break;
-            case "MedLab":
-                Tool_MedLab_Click();
                 break;
             case "Layout":
                 Tool_Layout_Click();
@@ -4271,11 +4177,6 @@ public partial class ControlChart : UserControl
 
     private void trackToothProcDates_ValueChanged(object sender, EventArgs e)
     {
-        if (false)
-        {
-            return; //ODInternalCustomerGrid is filled instead
-        }
-
         textToothProcDate.Text = _listDateTimesProcedures[trackToothProcDates.Value].ToShortDateString();
         FillToothChart(true, _listDateTimesProcedures[trackToothProcDates.Value]);
     }
@@ -5053,13 +4954,7 @@ public partial class ControlChart : UserControl
                     {
                         Pd.ClearAndFill(EnumPdTable.UserWebHasPortalAccess);
                     }
-
-                    if (Pd.UserWebHasPortalAccess)
-                    {
-                        row.Cells.Add(Lan.g(this, "Online"));
-                        break;
-                    }
-
+                    
                     row.Cells.Add(Lan.g(this, "No access"));
                     break;
 
@@ -5506,7 +5401,7 @@ public partial class ControlChart : UserControl
         {
             if (!tabControlProc.Contains(tabOrtho))
             {
-                LayoutManagerForms.Add(tabOrtho, tabControlProc);
+                tabControlProc.Controls.Add(tabOrtho);
             }
         }
 
@@ -5565,11 +5460,6 @@ public partial class ControlChart : UserControl
             webBrowserEcw.Url = null;
         }
 
-        if (PrefC.GetBool(PrefName.ShowFeatureEhr))
-        {
-            ToolBarMain.Buttons["EHR"].Enabled = false;
-        }
-
         if (ToolBarMain.Buttons["HL7"] != null)
         {
             ToolBarMain.Buttons["HL7"].Enabled = false;
@@ -5584,59 +5474,12 @@ public partial class ControlChart : UserControl
         }
 
         _isInitializedOnStartup = true;
-        var appDir = Application.StartupPath;
-        if (File.Exists(Path.Combine(appDir, "Sparks3D\\Sparks3D.dll")))
-        {
-            if (PrefC.GetBoolSilent(PrefName.DirectX11ToothChartUseIfAvail, true))
-            {
-                ToothChartRelay.IsSparks3DPresent = true;
-            }
-
-            if (ComputerPrefs.LocalComputer.GraphicsUseDirectX11 == YN.No)
-            {
-                ToothChartRelay.IsSparks3DPresent = false;
-            }
-
-            if (ComputerPrefs.LocalComputer.GraphicsUseDirectX11 == YN.Yes)
-            {
-                ToothChartRelay.IsSparks3DPresent = true;
-            }
-        }
-
         _toothChartRelay = new(); //IsSparks3DPresent could have been set back to false here
         _toothChartRelay.SetToothChartWrapper(toothChartWrapper);
-        if (ToothChartRelay.IsSparks3DPresent)
-        {
-            toothChartWrapper.Visible = false; //already not visible
-            _controlToothChart = _toothChartRelay.GetToothChart();
-            _controlToothChart.Location = toothChartWrapper.Location;
-            _controlToothChart.Size = toothChartWrapper.Size;
-            _toothChartRelay.SegmentDrawn += toothChart_SegmentDrawn;
-            _toothChartRelay.TextMoved += _toothChart_TextMoved;
-            _toothChartRelay.ToothSelectionsChanged += toothChart_ToothSelectionsChanged;
-            LayoutManagerForms.Add(_controlToothChart, this);
-            _toothChartRelay.ResetTeeth();
-            try
-            {
-                _toothChartRelay.EndUpdate(); //Initializes various pointers so that closing OD won't cause null memory error
-            }
-            catch
-            {
-                //EndUpdate can fail.
-                ToothChartRelay.IsSparks3DPresent = false;
-                if (_controlToothChart.Visible)
-                {
-                    _controlToothChart.Visible = false; //might need to be more aggressive and actually delete it
-                }
-            }
-        }
-
-        if (!ToothChartRelay.IsSparks3DPresent)
-        {
-            toothChartWrapper.Visible = true;
-            toothChartWrapper.DeviceFormat = new(ComputerPrefs.LocalComputer.DirectXFormat);
-            toothChartWrapper.DrawMode = ComputerPrefs.LocalComputer.GraphicsSimple; //triggers ResetControls.
-        }
+        
+        toothChartWrapper.Visible = true;
+        toothChartWrapper.DeviceFormat = new(ComputerPrefs.LocalComputer.DirectXFormat);
+        toothChartWrapper.DrawMode = ComputerPrefs.LocalComputer.GraphicsSimple; //triggers ResetControls.
 
         _procStatNew = ProcStat.TP;
         if (GetIsTPChartingAvailable())
@@ -5648,7 +5491,7 @@ public partial class ControlChart : UserControl
         
         LayoutToolBar();
         //Passed-in controls will maintain their location and be shown but are not part of the dynamic layout fields.
-        _sheetLayoutController = new(LayoutManager, this, ToolBarMain, tabControlImages, panelImages);
+        _sheetLayoutController = new(this, ToolBarMain, tabControlImages, panelImages);
         LayoutControls(); //First time loading.
 
         _maxPageRowsDefaultGridProg = gridProg.MaxPageRows;
@@ -5710,13 +5553,7 @@ public partial class ControlChart : UserControl
         {
             ToolBarMain.Buttons.Add(new(hl7Def.Description, -1, "", "HL7"));
         }
-
-        var hl7DefMedLab = HL7Defs.GetOneDeepEnabled(true);
-        if (hl7DefMedLab != null)
-        {
-            ToolBarMain.Buttons.Add(new(hl7DefMedLab.Description, -1, "", "MedLab"));
-        }
-
+        
         if (_sheetLayoutController != null && _sheetLayoutController.ListSheetDefsLayout != null && _sheetLayoutController.ListSheetDefsLayout.Count > 0)
         {
             button = new("Layout", -1, "", "Layout");
@@ -5809,23 +5646,6 @@ public partial class ControlChart : UserControl
         if (patNumPrevious != patNum && gridProg.VScrollVisible)
         {
             gridProg.ScrollToEnd();
-        }
-
-        if (Pd.Patient != null && DatabaseIntegrities.DoShowPopup(Pd.PatNum, EnumModuleType.Chart))
-        {
-            var listAppointments = Appointments.GetAppointmentsForPat(Pd.PatNum);
-            var listClaims = Claims.GetForPat(Pd.PatNum);
-            var listClaimProcs = new List<ClaimProc>(Pd.ListClaimProcs); //Pd.ListClaimProcs gets refreshed whenever the chart module is refreshed.
-            var areHashesValid = Patients.AreAllHashesValid(Pd.Patient, listAppointments, [], [], listClaims, listClaimProcs);
-            if (!areHashesValid)
-            {
-                DatabaseIntegrities.AddPatientModuleToCache(Pd.PatNum, EnumModuleType.Chart); //Add to cached list for next time
-                //show popup
-                var databaseIntegrity = DatabaseIntegrities.GetModule();
-                var frmDatabaseIntegrity = new FrmDatabaseIntegrity();
-                frmDatabaseIntegrity.MessageToShow = databaseIntegrity.Message;
-                frmDatabaseIntegrity.ShowDialog();
-            }
         }
     }
         
@@ -5953,13 +5773,6 @@ public partial class ControlChart : UserControl
                 ToolBarMain.Buttons["CCD"].Enabled = true;
             }
 
-            if (PrefC.GetBool(PrefName.ShowFeatureEhr))
-            {
-                //didn't work either
-                //if(ToolBarMain.Buttons["EHR"]!=null) {
-                ToolBarMain.Buttons["EHR"].Enabled = true;
-            }
-
             if (ToolBarMain.Buttons["HL7"] != null)
             {
                 ToolBarMain.Buttons["HL7"].Enabled = true;
@@ -6060,7 +5873,7 @@ public partial class ControlChart : UserControl
         ToolBarMain.Invalidate();
         ClearButtons();
         FillMovementsAndHidden();
-        Logger.LogAction(() => FillChartViewsGrid(false));
+        FillChartViewsGrid(false);
         ChartView chartViewDisplayOld = null;
         if (_chartViewDisplay != null)
         {
@@ -6075,7 +5888,7 @@ public partial class ControlChart : UserControl
         }
         else
         {
-            Logger.LogAction(() => FillProgNotes(isRefreshData: false));
+            FillProgNotes(isRefreshData: false);
         }
 
         var selectedIndex = -1;
@@ -6085,13 +5898,13 @@ public partial class ControlChart : UserControl
         }
 
         gridChartViews.SetSelected(selectedIndex);
-        Logger.LogAction(() => FillPlanned());
-        Logger.LogAction(() => FillPtInfo(false));
-        Logger.LogAction(() => FillDxProcImage(false));
-        Logger.LogAction(() => FillImages());
+        FillPlanned();
+        FillPtInfo(false);
+        FillDxProcImage(false);
+        FillImages();
         if (checkShowOrtho.Checked)
         {
-            Logger.LogAction(() => FillGridOrtho());
+            FillGridOrtho();
         }
     }
 
@@ -6824,22 +6637,6 @@ public partial class ControlChart : UserControl
             if (Pd.ListPaySplits.Any(x => x.ProcNum == procNum))
             {
                 return EnumSkippedRow.Attached;
-            }
-
-            return EnumSkippedRow.None;
-        }
-
-        if (dataRow["RxNum"].ToString() != "0")
-        {
-            if (SIn.Enum<RxTypes>(dataRow["RxType"].ToString(), enumString: true) != RxTypes.Rx)
-            {
-                //Users cannot delete rxpat where RxType is not an pdmp access log.
-                return EnumSkippedRow.NoneButCannotDelete;
-            }
-
-            if (!Security.IsAuthorized(EnumPermType.RxEdit, isSilent))
-            {
-                return EnumSkippedRow.RxSecurity;
             }
 
             return EnumSkippedRow.None;
@@ -7599,10 +7396,10 @@ public partial class ControlChart : UserControl
                     _toothChartRelay.SetImplant(_listDataRowsProcsForGraphical[i]["ToothNum"].ToString(), colorDark);
                     break;
                 case ToothPaintingType.PostBU:
-                    _toothChartRelay.SetBU(_listDataRowsProcsForGraphical[i]["ToothNum"].ToString(), colorDark);
+                    _toothChartRelay.SetBu(_listDataRowsProcsForGraphical[i]["ToothNum"].ToString(), colorDark);
                     break;
                 case ToothPaintingType.RCT:
-                    _toothChartRelay.SetRCT(_listDataRowsProcsForGraphical[i]["ToothNum"].ToString(), colorDark);
+                    _toothChartRelay.SetRct(_listDataRowsProcsForGraphical[i]["ToothNum"].ToString(), colorDark);
                     break;
                 case ToothPaintingType.RetainedRoot:
                     _toothChartRelay.SetRetainedRoot(_listDataRowsProcsForGraphical[i]["ToothNum"].ToString(), colorDark);
@@ -7926,7 +7723,7 @@ public partial class ControlChart : UserControl
         //}
         var tabPage = new TabPage();
         tabPage.Text = Lan.g(this, "All");
-        LayoutManagerForms.Add(tabPage, tabControlImages);
+        tabControlImages.Controls.Add(tabPage);
         _listDefNumsVisImageCats = [];
         var listDefsImageCat = Defs.GetDefsForCategory(DefCat.ImageCats, true);
         for (var i = 0; i < listDefsImageCat.Count; i++)
@@ -7937,7 +7734,7 @@ public partial class ControlChart : UserControl
                 _listDefNumsVisImageCats.Add(listDefsImageCat[i].DefNum);
                 tabPage = new();
                 tabPage.Text = listDefsImageCat[i].ItemName;
-                LayoutManagerForms.Add(tabPage, tabControlImages);
+                tabControlImages.Controls.Add(tabPage);
             }
         }
 
@@ -7969,11 +7766,6 @@ public partial class ControlChart : UserControl
         }
 
         imageListThumbnails.Images.Clear();
-        if (false)
-        {
-            //Don't show any images if there is no document path.
-            return;
-        }
 
         if (IsPatientNull())
         {
@@ -8156,11 +7948,6 @@ public partial class ControlChart : UserControl
 
     private void FillToothChart(bool retainSelection)
     {
-        if (false)
-        {
-            return; //ODInternalCustomerGrid is filled instead
-        }
-
         if (IsPatientNull())
         {
             FillToothChart(retainSelection, DateTime.Today);
@@ -8173,11 +7960,6 @@ public partial class ControlChart : UserControl
     ///<summary>This is, of course, called when module refreshed.  But it's also called when user sets missing teeth or tooth movements.  In that case, the Progress notes are not refreshed, so it's a little faster.  This also fills in the movement amounts.</summary>
     private void FillToothChart(bool retainSelection, DateTime dateLimit)
     {
-        if (false)
-        {
-            return; //ODInternalCustomerGrid is filled instead
-        }
-
         //Cursor=Cursors.WaitCursor;//Jordan 12/2022 This was just causing annoying flickering.
         _toothChartRelay.BeginUpdate();
         _toothChartRelay.SetOrthoMode(checkOrthoMode.Checked);
@@ -8356,7 +8138,7 @@ public partial class ControlChart : UserControl
             {
                 patientDashboardDataEventArgs.ImageToothChart = _toothChartRelay.GetBitmap();
             }
-            catch (Exception ex)
+            catch
             {
                 //rare exception, we can consider this to be not important enough to crash the program; the next module refresh should update the view.
             }
@@ -8380,11 +8162,6 @@ public partial class ControlChart : UserControl
 
     private void FillTrackSlider()
     {
-        if (false)
-        {
-            return; //ODInternalCustomerGrid is filled instead
-        }
-
         //This method can be called from many places and it would be annoying to the user if their slider always reset to today's date, so allow retaining selection.
         trackToothProcDates.Minimum = 0;
         //FillToothChart is called after FillTrackSlider.  We don't need to fire the ValueChanged event, otherwise it calls FillToothChart unnecessarily
@@ -8972,7 +8749,7 @@ public partial class ControlChart : UserControl
                 procedureNew.DiagnosticCode = "";
             }
 
-            if (Userods.IsUserCpoe(Security.CurUser))
+            if (Userods.IsUserCpoe())
             {
                 //Only change the status of IsCpoe to true.  Never set it back to false for any reason.  Once true, always true.
                 procedureNew.IsCpoe = true;
@@ -9567,12 +9344,6 @@ public partial class ControlChart : UserControl
             HL7ProcAttaches.Insert(hl7ProcAttach);
         }
 
-        if ( /* ODBuild.IsDebug() */ false)
-        {
-            MsgBox.Show(this, messageHL7.ToString());
-            return;
-        }
-
         ODMessageBox.Show(listProcedures.Count + " " + (listProcedures.Count == 1 ? Lan.g(this, "procedure") : Lan.g(this, "procedures"))
                           + " " + Lan.g(this, "queued to be sent by the HL7 service."));
     }
@@ -9612,14 +9383,7 @@ public partial class ControlChart : UserControl
         RefreshModuleScreen(); //Update UI to reflect any changed dynamic SheetDefs.
         LayoutControls();
     }
-
-    private void Tool_MedLab_Click()
-    {
-        var formMedLabs = new FormMedLabs();
-        formMedLabs.PatientCur = Pd.Patient;
-        formMedLabs.Show();
-    }
-
+    
     private void Tool_Perio_Click()
     {
         if (IsPatientNull() || Pd.TableProgNotes == null)
@@ -9696,9 +9460,7 @@ public partial class ControlChart : UserControl
         PrinterL.TryPrintOrDebugClassicPreview(pd2_PrintPage,
             Lan.g(this, "Progress notes printed"),
             totalPages: _countPages,
-            auditPatNum: Pd.PatNum,
-            isForcedPreview: true
-        );
+            isForcedPreview: true, auditPatNum: Pd.PatNum);
     }
 
     private void Tool_ToothChart_Click(ODToolBarButton odToolBarButton)
@@ -9737,7 +9499,7 @@ public partial class ControlChart : UserControl
                     if (control.Parent != this)
                     {
                         //Depending on the mode this control can be moved into tabProc
-                        LayoutManagerForms.Add(control, this);
+                        this.Controls.Add(control);
                     }
 
                     break;
@@ -9804,11 +9566,6 @@ public partial class ControlChart : UserControl
     private SheetFieldLayoutMode LayoutSheet_GetMode()
     {
         SheetFieldLayoutMode sheetFieldLayoutMode;
-        if (false)
-        {
-            sheetFieldLayoutMode = SheetFieldLayoutMode.Ecw;
-            return sheetFieldLayoutMode;
-        }
 
         if (Clinics.IsMedicalPracticeOrClinic(Clinics.ClinicNum))
         {
@@ -9833,10 +9590,10 @@ public partial class ControlChart : UserControl
             //The panelGridProg will be visible only if it is in the SheetDef and checkTreatPlans.Checked==false and checkShowOrtho.Checked==false
             panelGridProg.Visible = false;
             tabControlOrthoCategories.Visible = true;
-            LayoutManagerForms.MoveLocation(tabControlOrthoCategories, new(panelGridProg.Left, panelGridProg.Top));
+            tabControlOrthoCategories.Location = new(panelGridProg.Left, panelGridProg.Top);
             tabControlOrthoCategories.Size=new(panelGridProg.Width, 23);
             gridOrtho.Visible = true;
-            LayoutManagerForms.MoveLocation(gridOrtho, new(panelGridProg.Left, tabControlOrthoCategories.Bottom));
+            gridOrtho.Location = new(panelGridProg.Left, tabControlOrthoCategories.Bottom);
             gridOrtho.Size=new(panelGridProg.Width, panelGridProg.Bottom - gridOrtho.Top);
             return;
         }
@@ -10369,14 +10126,6 @@ public partial class ControlChart : UserControl
                 SecurityLogs.MakeLogEntry(EnumPermType.ProcDelete, Pd.PatNum, listDataRowsSelected[i]["ProcCode"] + " (" + listDataRowsSelected[i]["procStatus"] + "), "
                                                                               + SIn.Double(listDataRowsSelected[i]["procFee"].ToString()).ToString("c"));
                 continue;
-            }
-
-            if (rxNum != 0)
-            {
-                var rxPat = RxPats.GetRx(rxNum);
-                SecurityLogs.MakeLogEntry(EnumPermType.RxEdit, Pd.PatNum, "FROM(" + rxPat.RxDate.ToShortDateString() + "," + rxPat.Drug + "," + rxPat.ProvNum + ","
-                                                                          + rxPat.Disp + "," + rxPat.Refills + ")" + "\r\nTO('deleted')", rxPat.RxNum, rxPat.DateTStamp);
-                RxPats.Delete(rxNum);
             }
         }
 
@@ -11424,11 +11173,6 @@ public partial class ControlChart : UserControl
             listBoxText.Items.Add(_listToothInitialsText[i].GetTextString(), _listToothInitialsText[i]);
         }
 
-        if (false)
-        {
-            listBoxText.Enabled = false;
-        }
-
         #endregion TextDraw
     }
         
@@ -11782,7 +11526,7 @@ public partial class ControlChart : UserControl
                     case DisplayFields.InternalNames.ChartView.Prognosis:
                         CheckForSearchMatch("prognosis", table.Rows[i], ref listSearchInputs);
                         break;
-                    case DisplayFields.InternalNames.ChartView.DateTP:
+                    case DisplayFields.InternalNames.ChartView.DateTp:
                         CheckForSearchMatch("dateTP", table.Rows[i], ref listSearchInputs);
                         break;
                     case DisplayFields.InternalNames.ChartView.EndTime:
@@ -12263,7 +12007,7 @@ public partial class ControlChart : UserControl
         
     private void FillOrthoTabs()
     {
-        var listOrthoChartTabs = OrthoChartTabs.GetDeepCopy(isShort: true);
+        var listOrthoChartTabs = OrthoChartTabs.GetDeepCopy(shortList: true);
         object objectTabSelected = null;
         if (tabControlOrthoCategories.SelectedIndex >= 0)
         {
@@ -12273,7 +12017,7 @@ public partial class ControlChart : UserControl
         tabControlOrthoCategories.TabPages.Clear();
         var tabPage = new TabPage("Hardware");
         tabPage.Tag = "Hardware";
-        LayoutManagerForms.Add(tabPage, tabControlOrthoCategories);
+        tabControlOrthoCategories.Controls.Add(tabPage);
         if (objectTabSelected != null && objectTabSelected.ToString() == "Hardware")
         {
             tabControlOrthoCategories.SelectedIndex = 0;
@@ -12283,7 +12027,7 @@ public partial class ControlChart : UserControl
         {
             tabPage = new(listOrthoChartTabs[i].TabName);
             tabPage.Tag = listOrthoChartTabs[i];
-            LayoutManagerForms.Add(tabPage, tabControlOrthoCategories);
+            tabControlOrthoCategories.Controls.Add(tabPage);
             if (objectTabSelected != null && objectTabSelected is OrthoChartTab orthoChartTab)
             {
                 if (listOrthoChartTabs[i].OrthoChartTabNum == orthoChartTab.OrthoChartTabNum)

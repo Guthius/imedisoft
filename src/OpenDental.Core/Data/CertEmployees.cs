@@ -26,9 +26,9 @@ public static class CertEmployees
         return CertEmployeeCrud.SelectOne("SELECT * FROM certemployee WHERE CertNum = " + certNum + " AND EmployeeNum = " + employeeNum);
     }
 
-    public static long Insert(CertEmployee certEmployee)
+    public static void Insert(CertEmployee certEmployee)
     {
-        return CertEmployeeCrud.Insert(certEmployee);
+        CertEmployeeCrud.Insert(certEmployee);
     }
 
     public static void Update(CertEmployee certEmployee)

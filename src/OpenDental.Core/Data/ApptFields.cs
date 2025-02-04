@@ -12,19 +12,19 @@ public static class ApptFields
     {
         ApptFieldCrud.Insert(apptField);
     }
-    
+
     public static void Upsert(ApptField apptField)
     {
         DeleteFieldForAppt(apptField.FieldName, apptField.AptNum);
 
         Insert(apptField);
     }
-    
+
     public static void DeleteFieldForAppt(string fieldName, long aptNum)
     {
         Db.NonQ($"DELETE FROM apptfield WHERE AptNum = {aptNum} AND FieldName ='{SOut.String(fieldName)}'");
     }
-    
+
     public static ApptField GetOne(long apptFieldNum)
     {
         return ApptFieldCrud.SelectOne(apptFieldNum);

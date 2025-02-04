@@ -64,25 +64,25 @@ public static class ProviderIdents
 
         protected override void FillCacheIfNeeded()
         {
-            ProviderIdents.GetTableFromCache(false);
+            GetTableFromCache(false);
         }
     }
 
     private static readonly ProviderIdentCache Cache = new();
 
-    public static List<ProviderIdent> GetWhere(Predicate<ProviderIdent> match, bool isShort = false)
+    public static List<ProviderIdent> GetWhere(Predicate<ProviderIdent> predicate, bool shortList = false)
     {
-        return Cache.GetWhere(match, isShort);
+        return Cache.GetWhere(predicate, shortList);
     }
 
     public static void RefreshCache()
     {
-        GetTableFromCache(true);
+        Cache.GetTableFromCache(true);
     }
 
-    public static DataTable GetTableFromCache(bool doRefreshCache)
+    public static DataTable GetTableFromCache(bool refreshCache)
     {
-        return Cache.GetTableFromCache(doRefreshCache);
+        return Cache.GetTableFromCache(refreshCache);
     }
 
     public static void ClearCache()

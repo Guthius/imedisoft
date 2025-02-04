@@ -17,26 +17,27 @@ public class ClaimSnapshotCrud
     public static List<ClaimSnapshot> TableToList(DataTable table)
     {
         var retVal = new List<ClaimSnapshot>();
-        ClaimSnapshot claimSnapshot;
         foreach (DataRow row in table.Rows)
         {
-            claimSnapshot = new ClaimSnapshot();
-            claimSnapshot.ClaimSnapshotNum = SIn.Long(row["ClaimSnapshotNum"].ToString());
-            claimSnapshot.ProcNum = SIn.Long(row["ProcNum"].ToString());
-            claimSnapshot.ClaimType = SIn.String(row["ClaimType"].ToString());
-            claimSnapshot.Writeoff = SIn.Double(row["Writeoff"].ToString());
-            claimSnapshot.InsPayEst = SIn.Double(row["InsPayEst"].ToString());
-            claimSnapshot.Fee = SIn.Double(row["Fee"].ToString());
-            claimSnapshot.DateTEntry = SIn.DateTime(row["DateTEntry"].ToString());
-            claimSnapshot.ClaimProcNum = SIn.Long(row["ClaimProcNum"].ToString());
-            claimSnapshot.SnapshotTrigger = (ClaimSnapshotTrigger) SIn.Int(row["SnapshotTrigger"].ToString());
+            var claimSnapshot = new ClaimSnapshot
+            {
+                ClaimSnapshotNum = SIn.Long(row["ClaimSnapshotNum"].ToString()),
+                ProcNum = SIn.Long(row["ProcNum"].ToString()),
+                ClaimType = SIn.String(row["ClaimType"].ToString()),
+                Writeoff = SIn.Double(row["Writeoff"].ToString()),
+                InsPayEst = SIn.Double(row["InsPayEst"].ToString()),
+                Fee = SIn.Double(row["Fee"].ToString()),
+                DateTEntry = SIn.DateTime(row["DateTEntry"].ToString()),
+                ClaimProcNum = SIn.Long(row["ClaimProcNum"].ToString()),
+                SnapshotTrigger = (ClaimSnapshotTrigger) SIn.Int(row["SnapshotTrigger"].ToString())
+            };
             retVal.Add(claimSnapshot);
         }
 
         return retVal;
     }
 
-    public static long Insert(ClaimSnapshot claimSnapshot)
+    public static void Insert(ClaimSnapshot claimSnapshot)
     {
         var command = "INSERT INTO claimsnapshot (";
 
@@ -54,7 +55,6 @@ public class ClaimSnapshotCrud
         {
             claimSnapshot.ClaimSnapshotNum = Db.NonQ(command, true, "ClaimSnapshotNum", "claimSnapshot");
         }
-        return claimSnapshot.ClaimSnapshotNum;
     }
 
     public static void Update(ClaimSnapshot claimSnapshot)

@@ -1,10 +1,5 @@
 using System;
 using System.Drawing;
-using System.Collections;
-using System.ComponentModel;
-using System.Globalization;
-using System.Windows.Forms;
-using System.Data;
 using OpenDentBusiness;
 using OpenDental.ReportingComplex;
 using System.Collections.Generic;
@@ -15,6 +10,7 @@ using Imedisoft.Core.Data;
 using Imedisoft.Core.Entities;
 using Imedisoft.Core.Features.Clinics;
 using Imedisoft.Core.Features.Clinics.Dtos;
+using Imedisoft.Features.Providers.Dtos;
 
 namespace OpenDental;
 
@@ -29,7 +25,7 @@ public partial class FormRpNetProdDetail : FormODBase {
 	public DateTime DateEnd;
 	private List<ClinicDto> _listClinics;
 	private int _selectedPayPeriodIdx=-1;
-	private List<Provider> _listProviders;
+	private List<ProviderDto> _listProviders;
 	private List<PayPeriod> _listPayPeriods;
 
 		
@@ -45,30 +41,24 @@ public partial class FormRpNetProdDetail : FormODBase {
 		checkAllProv.Checked=false;
 		_listProviders=Providers.GetListReports();
 		textToday.Text=DateTime.Today.ToShortDateString();
-		listProv.Items.AddList(_listProviders,x => x.GetLongDesc());
-		if(true){
-			_listClinics=Clinics.GetForUserod(Security.CurUser);
-			if(!Security.CurUser.ClinicIsRestricted) {
-				listClin.Items.Add(Lan.g(this,"Unassigned"));
-				listClin.SetSelected(0);
+		listProv.Items.AddList(_listProviders,x => x.Description);
+		_listClinics=Clinics.GetForUserod(Security.CurUser);
+		if(!Security.CurUser.ClinicIsRestricted) {
+			listClin.Items.Add(Lan.g(this,"Unassigned"));
+			listClin.SetSelected(0);
+		}
+		for(var i=0;i<_listClinics.Count;i++) {
+			listClin.Items.Add(_listClinics[i].Abbr);
+			if(Clinics.ClinicNum==0) {
+				listClin.SetSelected(listClin.Items.Count-1);
+				checkAllClin.Checked=true;
 			}
-			for(var i=0;i<_listClinics.Count;i++) {
-				listClin.Items.Add(_listClinics[i].Abbr);
-				if(Clinics.ClinicNum==0) {
-					listClin.SetSelected(listClin.Items.Count-1);
-					checkAllClin.Checked=true;
-				}
-				if(_listClinics[i].Id==Clinics.ClinicNum) {
-					listClin.SelectedIndices.Clear();
-					listClin.SetSelected(listClin.Items.Count-1);
-				}
+			if(_listClinics[i].Id==Clinics.ClinicNum) {
+				listClin.SelectedIndices.Clear();
+				listClin.SetSelected(listClin.Items.Count-1);
 			}
 		}
-		else {
-			listClin.Visible=false;
-			labelClin.Visible=false;
-			checkAllClin.Visible=false;
-		}
+
 		_listPayPeriods=PayPeriods.GetDeepCopy();
 		SetDateRange();
 		butThis.Text=Lan.g(this,"This Period");
@@ -183,7 +173,7 @@ public partial class FormRpNetProdDetail : FormODBase {
 			dateFrom=DateTime.Today;
 			dateTo=DateTime.Today;
 		}
-		var listProvs=new List<Provider>();
+		var listProvs=new List<ProviderDto>();
 		for(var i=0;i<listProv.SelectedIndices.Count;i++) {
 			listProvs.Add(_listProviders[listProv.SelectedIndices[i]]);
 		}

@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Speech.Recognition;
 using System.Speech.Synthesis;
-using System.Threading;
 
 namespace OpenDental.UI.Voice;
 

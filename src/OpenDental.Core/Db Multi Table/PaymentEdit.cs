@@ -16,7 +16,7 @@ public class PaymentEdit
 {
     public static LoadData GetLoadData(Patient patCur, Payment paymentCur, bool isNew, bool isIncomeTxfr)
     {
-        LoadData data = new LoadData();
+        var data = new LoadData();
         data.PatCur = patCur;
         data.Fam = Patients.GetFamily(patCur.PatNum);
         data.SuperFam = new Family(Patients.GetBySuperFamily(patCur.SuperFamily));
@@ -33,7 +33,7 @@ public class PaymentEdit
         }
 
         data.ListValidPayPlans = PayPlans.GetValidPlansNoIns(patCur.PatNum);
-        List<long> listFamilyPatNums = data.Fam.GetPatNums();
+        var listFamilyPatNums = data.Fam.GetPatNums();
         if (patCur.SuperFamily > 0)
         {
             //Add all of the super family members to listFamilyPatNums if there are any splits for super family members outside of the direct family.
@@ -58,18 +58,18 @@ public class PaymentEdit
 
     public static InitData Init(LoadData loadData, List<AccountEntry> listPayFirstAcctEntries = null, Dictionary<long, Patient> dictPatients = null, bool isIncomeTxfr = false, bool isPatPrefer = false, bool doAutoSplit = true, bool doIncludeExplicitCreditsOnly = false)
     {
-        InitData initData = new InitData();
+        var initData = new InitData();
         //get patients who have this patient's guarantor as their payplan's guarantor
-        List<Patient> listPatients = loadData.ListAssociatedPatients;
+        var listPatients = loadData.ListAssociatedPatients;
         listPatients.AddRange(loadData.Fam.ListPats);
         if (loadData.SuperFam.ListPats != null)
         {
             listPatients.AddRange(loadData.SuperFam.ListPats);
         }
 
-        List<long> listPatNums = listPatients.Select(x => x.PatNum).ToList();
+        var listPatNums = listPatients.Select(x => x.PatNum).ToList();
         //Add patients with paysplits on this payment
-        List<long> listUnknownPatNums = loadData.ListSplits.Select(x => x.PatNum)
+        var listUnknownPatNums = loadData.ListSplits.Select(x => x.PatNum)
             .Where(x => !listPatNums.Contains(x))
             .Distinct()
             .ToList();
@@ -88,7 +88,7 @@ public class PaymentEdit
             //Preserve any patients already present in the dictionary.
             initData.DictPats = dictPatients;
             //But overwrite or add to the dictionary for any patients that it might not already know about.
-            foreach (Patient patient in listPatients)
+            foreach (var patient in listPatients)
             {
                 initData.DictPats[patient.PatNum] = patient;
             }
@@ -120,7 +120,7 @@ public class PaymentEdit
     {
         if (listPatNums == null)
         {
-            Family family = Patients.GetFamily(patNum);
+            var family = Patients.GetFamily(patNum);
             listPatNums = family.GetPatNums();
         }
 
@@ -130,10 +130,10 @@ public class PaymentEdit
 
     public static ConstructChargesData GetConstructChargesData(List<long> listPatNums, long patNum, List<PaySplit> listPaySplitsForPayment, long payNum, bool isIncomeTransfer, bool doIncludeTreatmentPlanned = false)
     {
-        ConstructChargesData data = new ConstructChargesData();
+        var data = new ConstructChargesData();
         data.ListPaySplits = PaySplits.GetForPats(listPatNums); //Might contain payplan payments.
         data.ListProcs = Procedures.GetCompleteForPats(listPatNums); //will also contain TP procs if pref is set to ON
-        if ((PrefC.GetYN(PrefName.PrePayAllowedForTpProcs) && !isIncomeTransfer) || doIncludeTreatmentPlanned)
+        if ((PrefC.GetYn(PrefName.PrePayAllowedForTpProcs) && !isIncomeTransfer) || doIncludeTreatmentPlanned)
         {
             data.ListProcs.AddRange(Procedures.GetTpForPats(listPatNums));
         }
@@ -151,16 +151,16 @@ public class PaymentEdit
         }
 
         data.ListPayPlans = PayPlans.GetForPats(listPatNums, patNum); //Used to figure out how much we need to pay off procs with, also contains ins payplans
-        List<long> listSplitNums = data.ListPaySplits.Select(x => x.SplitNum).ToList();
+        var listSplitNums = data.ListPaySplits.Select(x => x.SplitNum).ToList();
         if (data.ListPayPlans.Count > 0)
         {
-            List<long> listPayPlanNums = data.ListPayPlans.Select(x => x.PayPlanNum).ToList();
+            var listPayPlanNums = data.ListPayPlans.Select(x => x.PayPlanNum).ToList();
             //get list where payplan guar is not in the fam)
             data.ListPayPlanSplits = PaySplits.GetForPayPlans(listPayPlanNums);
             data.ListPayPlanCharges = PayPlanCharges.GetForPayPlans(listPayPlanNums, listPatNums);
             data.ListPayPlanLinks = PayPlanLinks.GetForPayPlans(listPayPlanNums);
-            List<long> listPayPlanSplitNums = data.ListPayPlanSplits.Select(x => x.SplitNum).ToList();
-            List<long> listMissingSplitNums = listPayPlanSplitNums.Except(listSplitNums).ToList();
+            var listPayPlanSplitNums = data.ListPayPlanSplits.Select(x => x.SplitNum).ToList();
+            var listMissingSplitNums = listPayPlanSplitNums.Except(listSplitNums).ToList();
             data.ListPaySplits.AddRange(data.ListPayPlanSplits.FindAll(x => listMissingSplitNums.Contains(x.SplitNum)));
             listSplitNums.AddRange(listMissingSplitNums);
         }
@@ -171,9 +171,9 @@ public class PaymentEdit
             //If we have a split that's not found in the passed-in list of splits for the payment
             //and the split we got from the DB is on this payment, remove it because the user must have deleted the split from the payment window.
             //The payment window won't update the DB with the change until it's closed.
-            List<long> listSplitNumsForPaymentShowing = listPaySplitsForPayment.FindAll(x => x.PayNum == payNum && x.SplitNum > 0).Select(x => x.SplitNum).ToList();
-            List<long> listSplitNumsForPaymentDatabase = data.ListPaySplits.FindAll(x => x.PayNum == payNum && x.SplitNum > 0).Select(x => x.SplitNum).ToList();
-            List<long> listSplitNumsDeleted = listSplitNumsForPaymentDatabase.Except(listSplitNumsForPaymentShowing).ToList();
+            var listSplitNumsForPaymentShowing = listPaySplitsForPayment.FindAll(x => x.PayNum == payNum && x.SplitNum > 0).Select(x => x.SplitNum).ToList();
+            var listSplitNumsForPaymentDatabase = data.ListPaySplits.FindAll(x => x.PayNum == payNum && x.SplitNum > 0).Select(x => x.SplitNum).ToList();
+            var listSplitNumsDeleted = listSplitNumsForPaymentDatabase.Except(listSplitNumsForPaymentShowing).ToList();
             data.ListPaySplits.RemoveAll(x => listSplitNumsDeleted.Contains(x.SplitNum));
         }
 
@@ -269,7 +269,7 @@ public class PaymentEdit
             constructChargesData = GetConstructChargesData(listPatNums, patNum, listPaySplitsForPayment, payNum, isIncomeTxfr, doIncludeTreatmentPlanned);
         }
 
-        ConstructResults constructResults = GetConstructResults(constructChargesData, patNum, listPatNums, payNum, isIncomeTxfr, clinicNum, payAmt, payDate, dateAsOf);
+        var constructResults = GetConstructResults(constructChargesData, patNum, listPatNums, payNum, isIncomeTxfr, clinicNum, payAmt, payDate, dateAsOf);
         ExplicitAndImplicitLinkingForConstructResults(ref constructResults, isIncomeTxfr, listPaySplitsForPayment, constructChargesData, doIncludeExplicitCreditsOnly, isAllocateUnearned,
             listAccountEntriesPayFirst, patNum, isPreferCurPat, payNum, hasInsOverpay, hasOffsettingAdjustmets);
         return constructResults;
@@ -277,7 +277,7 @@ public class PaymentEdit
 
     public static ConstructResults GetConstructResults(ConstructChargesData constructChargesData, long patNum, List<long> listPatNums, long payNum, bool isIncomeTxfr, long clinicNum, double payAmt, DateTime payDate, DateTime dateAsOf)
     {
-        ConstructResults constructResults = new ConstructResults(patNum, clinicNum, payAmt, payNum, payDate, listClaimProcs: constructChargesData.ListClaimProcs);
+        var constructResults = new ConstructResults(patNum, clinicNum, payAmt, payNum, payDate, listClaimProcs: constructChargesData.ListClaimProcs);
         constructResults.ListAccountEntries = ConstructListCharges(listPatNums,
             constructChargesData.ListProcs,
             constructChargesData.ListAdjustments,
@@ -306,11 +306,11 @@ public class PaymentEdit
         #region Procedures
 
         listCharges.AddRange(listProcs.Select(x => new AccountEntry(x)));
-        bool includeEstimates = !PrefC.GetBool(PrefName.BalancesDontSubtractIns);
+        var includeEstimates = !PrefC.GetBool(PrefName.BalancesDontSubtractIns);
         //Set AmountEnd
-        foreach (AccountEntry accountEntryProc in listCharges)
+        foreach (var accountEntryProc in listCharges)
         {
-            Procedure proc = (Procedure) accountEntryProc.Tag;
+            var proc = (Procedure) accountEntryProc.Tag;
             accountEntryProc.AmountEnd = GetPatPortion(accountEntryProc, listClaimProcs, includeEstimates);
             if (proc.ProcStatus == ProcStat.TP)
             {
@@ -340,22 +340,22 @@ public class PaymentEdit
             //This is necessary because the entire value of said production does not need to be associated to the payment plan (partial credits).
             //However, the production AccountEntry object itself should NOT include any amount remaining after payment plans have been considered.
             //Procedures=================================================================================================================================
-            List<AccountEntry> listAccountEntryProcsOutsideFam = listCharges.FindAll(x => x.ProcNum > 0
-                                                                                          && !listPatNums.Contains(x.PatNum)
-                                                                                          && x.GetType() == typeof(Procedure));
+            var listAccountEntryProcsOutsideFam = listCharges.FindAll(x => x.ProcNum > 0
+                                                                           && !listPatNums.Contains(x.PatNum)
+                                                                           && x.GetType() == typeof(Procedure));
             //Only manipulate procedures from outside of the family that are associated to a patient or dynamic payment plan.
-            List<long> listPatientPayPlanProcNums = listPayPlanCharges.FindAll(x => x.ChargeType == PayPlanChargeType.Credit && x.ProcNum > 0).Select(x => x.ProcNum).ToList();
-            List<long> listDynamicPayPlanProcNums = listPayPlanLinks.FindAll(x => x.LinkType == PayPlanLinkType.Procedure).Select(x => x.FKey).ToList();
-            List<AccountEntry> listAccountEntryPayPlanProcsOutsideFam = listAccountEntryProcsOutsideFam
+            var listPatientPayPlanProcNums = listPayPlanCharges.FindAll(x => x.ChargeType == PayPlanChargeType.Credit && x.ProcNum > 0).Select(x => x.ProcNum).ToList();
+            var listDynamicPayPlanProcNums = listPayPlanLinks.FindAll(x => x.LinkType == PayPlanLinkType.Procedure).Select(x => x.FKey).ToList();
+            var listAccountEntryPayPlanProcsOutsideFam = listAccountEntryProcsOutsideFam
                 .FindAll(x => listPatientPayPlanProcNums.Contains(x.ProcNum) || listDynamicPayPlanProcNums.Contains(x.ProcNum));
             //Set the AmountEnd for every single entry based on how much value is associated to payment plans.
-            for (int i = 0; i < listAccountEntryPayPlanProcsOutsideFam.Count; i++)
+            for (var i = 0; i < listAccountEntryPayPlanProcsOutsideFam.Count; i++)
             {
                 //Get the sum of patient payment plans credits for the procedure.
                 decimal totalCredit = 0;
                 //Figure out if the procedure is attached to a dynamic pay plan or not.
                 //Procedures are not allowed to be attached to more than one payment plan type at the same time.
-                PayPlanLink payPlanLinkForProc = listPayPlanLinks.FirstOrDefault(x => x.LinkType == PayPlanLinkType.Procedure && x.FKey == listAccountEntryPayPlanProcsOutsideFam[i].ProcNum);
+                var payPlanLinkForProc = listPayPlanLinks.FirstOrDefault(x => x.LinkType == PayPlanLinkType.Procedure && x.FKey == listAccountEntryPayPlanProcsOutsideFam[i].ProcNum);
                 if (payPlanLinkForProc == null)
                 {
                     //Patient Payment Plan
@@ -385,17 +385,17 @@ public class PaymentEdit
 
             //Adjustments================================================================================================================================
             //There is no such thing as making an adjustment credit for patient payment plans so only execute the following code for DPPs.
-            List<PayPlanLink> listAdjPayPlanLinks = listPayPlanLinks.FindAll(x => x.LinkType == PayPlanLinkType.Adjustment);
+            var listAdjPayPlanLinks = listPayPlanLinks.FindAll(x => x.LinkType == PayPlanLinkType.Adjustment);
             //Get all of the adjustments that are attached to a DPP but are associated to a patient outside of the current family.
-            List<AccountEntry> listAccountEntryAdjsOutsideFam = listCharges.FindAll(x => x.AdjNum > 0
-                                                                                         && !listPatNums.Contains(x.PatNum)
-                                                                                         && x.GetType() == typeof(Adjustment)
-                                                                                         && listAdjPayPlanLinks.Select(y => y.FKey).Contains(x.AdjNum));
+            var listAccountEntryAdjsOutsideFam = listCharges.FindAll(x => x.AdjNum > 0
+                                                                          && !listPatNums.Contains(x.PatNum)
+                                                                          && x.GetType() == typeof(Adjustment)
+                                                                          && listAdjPayPlanLinks.Select(y => y.FKey).Contains(x.AdjNum));
             //Set the AmountEnd for every single entry based on how much value is associated to payment plans.
-            for (int i = 0; i < listAccountEntryAdjsOutsideFam.Count; i++)
+            for (var i = 0; i < listAccountEntryAdjsOutsideFam.Count; i++)
             {
                 decimal totalCredit = 0;
-                PayPlanLink payPlanLinkAdj = listAdjPayPlanLinks.First(x => x.FKey == listAccountEntryAdjsOutsideFam[i].AdjNum);
+                var payPlanLinkAdj = listAdjPayPlanLinks.First(x => x.FKey == listAccountEntryAdjsOutsideFam[i].AdjNum);
                 //Check to see if there are any DPPs that do NOT have an override value set (consumes entire adjustment value).
                 if (payPlanLinkAdj.AmountOverride == 0)
                 {
@@ -422,7 +422,7 @@ public class PaymentEdit
 
             if (listPayPlans == null)
             {
-                long[] payPlanNumArray = listPayPlanCharges.Select(x => x.PayPlanNum).ToArray();
+                var payPlanNumArray = listPayPlanCharges.Select(x => x.PayPlanNum).ToArray();
                 listPayPlans = PayPlans.GetMany(payPlanNumArray).FindAll(x => x.PlanNum == 0);
             }
 
@@ -437,14 +437,14 @@ public class PaymentEdit
         {
             //Ignore all insurance payment plans that do not have any claimprocs associated (no received payments thus no known ins estimates).
             //It is in our online manual to create the insurance payment plan first prior to receiving the insurance payment.
-            List<PayPlan> listFilteredInsPayPlans = listInsPayPlans.FindAll(x => !x.IsClosed
-                                                                                 && listClaimProcs.Any(y => y.PayPlanNum == x.PayPlanNum));
+            var listFilteredInsPayPlans = listInsPayPlans.FindAll(x => !x.IsClosed
+                                                                       && listClaimProcs.Any(y => y.PayPlanNum == x.PayPlanNum));
             //Get all of the payment plan charge debits for the insurance payment plans. Credits are completely ignored.
-            Dictionary<long, List<PayPlanCharge>> dictPayPlanNumDebits = PayPlanCharges.GetChargesForPayPlanChargeType(
+            var dictPayPlanNumDebits = PayPlanCharges.GetChargesForPayPlanChargeType(
                     listFilteredInsPayPlans.Select(x => x.PayPlanNum).ToList(), PayPlanChargeType.Debit)
                 .GroupBy(x => x.PayPlanNum)
                 .ToDictionary(x => x.Key, x => x.ToList());
-            foreach (PayPlan payPlan in listFilteredInsPayPlans)
+            foreach (var payPlan in listFilteredInsPayPlans)
             {
                 //Skip any plans that do not have any debits in the database which is the only way we know how much the plan is worth.
                 if (!dictPayPlanNumDebits.ContainsKey(payPlan.PayPlanNum))
@@ -458,37 +458,37 @@ public class PaymentEdit
                 //Then to top it off, they are lightly slapped on the wrist with a warning message suggesting that the total amt and tx amt should match.
                 //When the popup is inevitably ignored, the payment plan will display in the Account module as if the plan is worth the total of debits.
                 //Therefore, this section of code will also tally up all debits attached to the plan in order to know the total value of the plan.
-                double amtToDistribute = dictPayPlanNumDebits[payPlan.PayPlanNum].Sum(x => x.Principal);
+                var amtToDistribute = dictPayPlanNumDebits[payPlan.PayPlanNum].Sum(x => x.Principal);
                 //Move onto the next plan if there is no value to distribute.
                 if (amtToDistribute <= 0)
                 {
                     continue;
                 }
 
-                List<ClaimProc> listClaimProcsForPlan = listClaimProcs.FindAll(x => x.PayPlanNum == payPlan.PayPlanNum && x.InsPayEst >= 0);
+                var listClaimProcsForPlan = listClaimProcs.FindAll(x => x.PayPlanNum == payPlan.PayPlanNum && x.InsPayEst >= 0);
                 //There is some value on the plan that should be applied to procedures that are vicariously associated to this plan FIFO style.
-                List<AccountEntry> listProcEntries = listCharges.FindAll(x => x.GetType() == typeof(Procedure)
-                                                                              && x.AmountEnd > 0
-                                                                              && listClaimProcsForPlan.Any(y => y.ProcNum == x.ProcNum));
-                foreach (AccountEntry procEntry in listProcEntries)
+                var listProcEntries = listCharges.FindAll(x => x.GetType() == typeof(Procedure)
+                                                               && x.AmountEnd > 0
+                                                               && listClaimProcsForPlan.Any(y => y.ProcNum == x.ProcNum));
+                foreach (var procEntry in listProcEntries)
                 {
                     if (amtToDistribute <= 0)
                     {
                         break;
                     }
 
-                    List<ClaimProc> listProcClaimProcs = listClaimProcsForPlan.FindAll(x => x.ProcNum == procEntry.ProcNum);
+                    var listProcClaimProcs = listClaimProcsForPlan.FindAll(x => x.ProcNum == procEntry.ProcNum);
                     //There should be at least one received claimproc associated to the procedure based on the official steps that we provide in the manual.
                     //This claimproc is where we will get the official insurance estimate for the procedure from.
                     //Only distribute up to the insurance estimate and do not apply so much value as to make the account entry exceed the original amount.
-                    ClaimProc claimProcEst = listProcClaimProcs.FirstOrDefault(x => x.Status == ClaimProcStatus.Received);
+                    var claimProcEst = listProcClaimProcs.FirstOrDefault(x => x.Status == ClaimProcStatus.Received);
                     if (claimProcEst == null)
                     {
                         continue; //We don't know what the official estimate for this procedure is. Move to the next procedure if available.
                     }
 
                     //Start with the insurance estimate as the amount of value that can be distributed to this procedure.
-                    double amtProcCanTake = claimProcEst.InsPayEst;
+                    var amtProcCanTake = claimProcEst.InsPayEst;
                     //Subtract all insurance payments attached to this insurance payment plan that have already been paid.
                     amtProcCanTake -= listProcClaimProcs.Sum(x => x.InsPayAmt);
                     //Never distribute more value to a procedure than what it needs.
@@ -498,7 +498,7 @@ public class PaymentEdit
                         continue; //The insurance payment plan has already paid the estimated value for this procedure. Move to the next procedure.
                     }
 
-                    double amtToRemove = Math.Min(amtProcCanTake, amtToDistribute);
+                    var amtToRemove = Math.Min(amtProcCanTake, amtToDistribute);
                     procEntry.AmountEnd -= (decimal) amtToRemove;
                     amtToDistribute -= amtToRemove;
                 }
@@ -511,8 +511,8 @@ public class PaymentEdit
 
         if (isIncomeTxfr)
         {
-            List<long> listHiddenUnearnedTypes = PaySplits.GetHiddenUnearnedDefNums();
-            for (int i = listPaySplits.Count - 1; i >= 0; i--)
+            var listHiddenUnearnedTypes = PaySplits.GetHiddenUnearnedDefNums();
+            for (var i = listPaySplits.Count - 1; i >= 0; i--)
             {
                 //Hidden unearned splits that are attached to procedures or payment plans are not transferrable.
                 if (listHiddenUnearnedTypes.Contains(listPaySplits[i].UnearnedType) && (listPaySplits[i].ProcNum > 0 || listPaySplits[i].PayPlanNum > 0))
@@ -524,7 +524,7 @@ public class PaymentEdit
                 listCharges.Add(new AccountEntry(listPaySplits[i]));
             }
 
-            foreach (PayAsTotal totalPmt in listInsPayAsTotal)
+            foreach (var totalPmt in listInsPayAsTotal)
             {
                 //Ins pay totals need to be added to the sum total for income transfers
                 listCharges.Add(new AccountEntry(totalPmt));
@@ -550,9 +550,9 @@ public class PaymentEdit
         }
 
         //Make deep copies of the current splits that are attached to the payment because the SplitAmt field will be manipulated below.
-        List<PaySplit> listSplitsCurrent = listPaySplitsForPayment.Where(x => x.SplitNum == 0).Select(y => y.Copy()).ToList();
-        List<PaySplit> listSplitsHistoric = constructChargesData.ListPaySplits.Select(x => x.Copy()).ToList();
-        List<PaySplit> listSplitsCurrentAndHistoric = listSplitsCurrent;
+        var listSplitsCurrent = listPaySplitsForPayment.Where(x => x.SplitNum == 0).Select(y => y.Copy()).ToList();
+        var listSplitsHistoric = constructChargesData.ListPaySplits.Select(x => x.Copy()).ToList();
+        var listSplitsCurrentAndHistoric = listSplitsCurrent;
         listSplitsCurrentAndHistoric.AddRange(listSplitsHistoric);
         //This ordering is necessary so parents come before their children when explicitly linking credits.
         listSplitsCurrentAndHistoric = listSplitsCurrentAndHistoric.OrderBy(x => x.SplitNum > 0)
@@ -575,27 +575,27 @@ public class PaymentEdit
                 //Find all account entries that are related to the selected entries.
                 List<AccountEntry> listAccountEntriesRelated = [];
                 //Related PayPlanCharges==========================================================================================================
-                List<long> listPayPlanNums = listAccountEntriesPayFirst.Where(x => x.PayPlanNum > 0).Select(x => x.PayPlanNum).ToList();
+                var listPayPlanNums = listAccountEntriesPayFirst.Where(x => x.PayPlanNum > 0).Select(x => x.PayPlanNum).ToList();
                 listAccountEntriesRelated.AddRange(constructResults.ListAccountEntries.Where(x => x.GetType() == typeof(FauxAccountEntry)
                                                                                                   && CompareDecimal.IsGreaterThanZero(x.AmountEnd)
                                                                                                   && listPayPlanNums.Contains(x.PayPlanNum))
                     .Cast<FauxAccountEntry>()
                     .OrderBy(x => CompareDecimal.IsGreaterThanZero(x.Interest))); //Pay interest first.
                 //Related Procedures==============================================================================================================
-                List<long> listProcNums = listAccountEntriesPayFirst.Where(x => x.GetType() == typeof(Procedure)).Select(x => x.ProcNum).ToList();
+                var listProcNums = listAccountEntriesPayFirst.Where(x => x.GetType() == typeof(Procedure)).Select(x => x.ProcNum).ToList();
                 listAccountEntriesRelated.AddRange(constructResults.ListAccountEntries.FindAll(x => x.GetType() == typeof(Procedure)
                                                                                                     && CompareDecimal.IsGreaterThanZero(x.AmountEnd)
                                                                                                     && listProcNums.Contains(x.ProcNum)));
                 //Related Adjustments=============================================================================================================
-                List<long> listAdjNums = listAccountEntriesPayFirst.Where(x => x.GetType() == typeof(Adjustment)).Select(x => x.AdjNum).ToList();
+                var listAdjNums = listAccountEntriesPayFirst.Where(x => x.GetType() == typeof(Adjustment)).Select(x => x.AdjNum).ToList();
                 listAccountEntriesRelated.AddRange(constructResults.ListAccountEntries.FindAll(x => x.GetType() == typeof(Adjustment)
                                                                                                     && CompareDecimal.IsGreaterThanZero(x.AmountEnd)
                                                                                                     && listAdjNums.Contains(x.AdjNum)));
                 listAccountEntriesRelated.Sort(AccountEntrySort);
                 //Create a variable to keep track of the money that can be allocated for this payment.
-                double amtToAllocate = constructResults.PayAmt;
+                var amtToAllocate = constructResults.PayAmt;
                 //Create as many splits as possible for account entries with positive AmountEnd values.
-                for (int i = 0; i < listAccountEntriesRelated.Count; i++)
+                for (var i = 0; i < listAccountEntriesRelated.Count; i++)
                 {
                     if (CompareDouble.IsLessThanOrEqualToZero(amtToAllocate))
                     {
@@ -607,9 +607,9 @@ public class PaymentEdit
                         continue;
                     }
 
-                    double splitAmt = Math.Min(amtToAllocate, (double) listAccountEntriesRelated[i].AmountEnd);
+                    var splitAmt = Math.Min(amtToAllocate, (double) listAccountEntriesRelated[i].AmountEnd);
                     //Make a new split that will apply as much value as possible from the account entry.
-                    PaySplit split = CreatePaySplitHelper(listAccountEntriesRelated[i], splitAmt, constructResults.PayDate, payNum: constructResults.PayNum, isNew: true);
+                    var split = CreatePaySplitHelper(listAccountEntriesRelated[i], splitAmt, constructResults.PayDate, payNum: constructResults.PayNum, isNew: true);
                     //Remove the value from the account entry
                     listAccountEntriesRelated[i].AmountEnd -= (decimal) splitAmt;
                     amtToAllocate -= splitAmt;
@@ -622,7 +622,7 @@ public class PaymentEdit
 
             #region Implicit Linking
 
-            PayResults implicitResult = ImplicitlyLinkCredits(ref listSplitsHistoric,
+            var implicitResult = ImplicitlyLinkCredits(ref listSplitsHistoric,
                 constructChargesData.ListInsPayAsTotal,
                 constructResults.ListAccountEntries,
                 listPaySplitsForPayment,
@@ -638,9 +638,9 @@ public class PaymentEdit
         #region Set AmountAvailable
 
         //Set the AmountAvailable field on each account entry to the sum of all PaySplits that are associated to other payments.
-        foreach (AccountEntry accountEntry in constructResults.ListAccountEntries.Where(x => x.PayPlanChargeNum == 0))
+        foreach (var accountEntry in constructResults.ListAccountEntries.Where(x => x.PayPlanChargeNum == 0))
         {
-            double amtUsed = accountEntry.SplitCollection.Where(x => x.SplitNum > 0 && x.PayNum != payNum && x != accountEntry.Tag)
+            var amtUsed = accountEntry.SplitCollection.Where(x => x.SplitNum > 0 && x.PayNum != payNum && x != accountEntry.Tag)
                 .Sum(x => x.SplitAmt);
             accountEntry.AmountAvailable = (accountEntry.AmountOriginal + accountEntry.AdjustedAmt) - (decimal) amtUsed;
             if (accountEntry.Tag != null && accountEntry.Tag.GetType() == typeof(Procedure) && ((Procedure) accountEntry.Tag).ProcStatus == ProcStat.TP)
@@ -651,16 +651,16 @@ public class PaymentEdit
         }
 
         //Payment plan account entries are handled differently because they can have multiple account entries that represent one payment plan charge.
-        Dictionary<long, List<AccountEntry>> dictPayPlanChargeEntries = constructResults.ListAccountEntries.Where(x => x.PayPlanChargeNum > 0)
+        var dictPayPlanChargeEntries = constructResults.ListAccountEntries.Where(x => x.PayPlanChargeNum > 0)
             .GroupBy(x => x.PayPlanChargeNum)
             .ToDictionary(x => x.Key, x => x.ToList());
-        foreach (long payPlanChargeNum in dictPayPlanChargeEntries.Keys)
+        foreach (var payPlanChargeNum in dictPayPlanChargeEntries.Keys)
         {
             List<PaySplit> listPaySplits = [];
             //Get all unique PaySplits that are associated to this charge.
-            foreach (AccountEntry accountEntry in dictPayPlanChargeEntries[payPlanChargeNum])
+            foreach (var accountEntry in dictPayPlanChargeEntries[payPlanChargeNum])
             {
-                foreach (PaySplit paySplit in accountEntry.SplitCollection.Where(x => x.SplitNum > 0 && x.PayNum != payNum && x != accountEntry.Tag))
+                foreach (var paySplit in accountEntry.SplitCollection.Where(x => x.SplitNum > 0 && x.PayNum != payNum && x != accountEntry.Tag))
                 {
                     if (!listPaySplits.Any(x => x.SplitNum == paySplit.SplitNum))
                     {
@@ -669,11 +669,11 @@ public class PaymentEdit
                 }
             }
 
-            double amtToAllocate = listPaySplits.Sum(x => x.SplitAmt);
+            var amtToAllocate = listPaySplits.Sum(x => x.SplitAmt);
             //Only apply as much as possible to each charge (might be a tiny amount of interest followed by a large principal amount).
-            foreach (AccountEntry accountEntry in dictPayPlanChargeEntries[payPlanChargeNum])
+            foreach (var accountEntry in dictPayPlanChargeEntries[payPlanChargeNum])
             {
-                double amtUsed = Math.Min(amtToAllocate, (double) accountEntry.AmountOriginal);
+                var amtUsed = Math.Min(amtToAllocate, (double) accountEntry.AmountOriginal);
                 accountEntry.AmountAvailable = accountEntry.AmountOriginal - (decimal) amtUsed;
                 amtToAllocate -= amtUsed;
             }
@@ -698,21 +698,21 @@ public class PaymentEdit
         if (constructResults.ListAccountEntries.Any(x => x.PayPlanNum == 0 && (x.IsUnallocated || x.IsUnearned)))
         {
             //Identify the unallocated and unearned entries that have value to transfer.
-            List<AccountEntry> listUnallocatedUnearnedEntries = constructResults.ListAccountEntries.FindAll(x => (x.IsUnallocated || x.IsUnearned)
-                                                                                                                 && x.PayPlanNum == 0
-                                                                                                                 && !CompareDecimal.IsZero(x.AmountEnd));
+            var listUnallocatedUnearnedEntries = constructResults.ListAccountEntries.FindAll(x => (x.IsUnallocated || x.IsUnearned)
+                                                                                                  && x.PayPlanNum == 0
+                                                                                                  && !CompareDecimal.IsZero(x.AmountEnd));
             //Remove these entries from the return value. They will be grouped up and put back in later.
             constructResults.ListAccountEntries.RemoveAll(x => (x.IsUnallocated || x.IsUnearned)
                                                                && x.PayPlanNum == 0
                                                                && !CompareDecimal.IsZero(x.AmountEnd));
             //Separate the unallocated and unearned entries.
-            List<AccountEntry> listUnallocatedEntries = listUnallocatedUnearnedEntries.FindAll(x => x.IsUnallocated);
-            List<AccountEntry> listUnearnedEntries = listUnallocatedUnearnedEntries.FindAll(x => x.IsUnearned);
+            var listUnallocatedEntries = listUnallocatedUnearnedEntries.FindAll(x => x.IsUnallocated);
+            var listUnearnedEntries = listUnallocatedUnearnedEntries.FindAll(x => x.IsUnearned);
             Func<List<AccountEntry>, AccountEntry> funcGetCombinedEntry = (listAccountEntries) =>
             {
                 //The list of account entries passed in will all be unallocated or unearned entries for the sam pat/prov/clinic.
                 //These entries are safe to combine and treat as one large PaySplit.
-                AccountEntry accountEntryFirst = listAccountEntries.First();
+                var accountEntryFirst = listAccountEntries.First();
                 return new AccountEntry()
                 {
                     AmountAvailable = listAccountEntries.Sum(x => x.AmountAvailable),
@@ -747,8 +747,8 @@ public class PaymentEdit
             return 0;
         }
 
-        Procedure proc = (Procedure) accountEntryProc.Tag;
-        List<ClaimProc> listProcClaimProcs = listClaimProcs.FindAll(x => x.ProcNum == proc.ProcNum);
+        var proc = (Procedure) accountEntryProc.Tag;
+        var listProcClaimProcs = listClaimProcs.FindAll(x => x.ProcNum == proc.ProcNum);
         //There is an extremely rare scenario where a completed procedure can be flagged as "Do Not Bill to Ins" but will still have ins estimates.
         //Act like there are no ClaimProcs for the procedure in question when all ClaimProcs are flagged as NoBillIns.
         if (listProcClaimProcs.All(x => x.NoBillIns))
@@ -769,20 +769,20 @@ public class PaymentEdit
         }
 
         List<FauxAccountEntry> listFauxAccountEntries = [];
-        List<PayPlanCharge> listPayPlanChargeCredits = listPayPlanCharges.FindAll(x => x.ChargeType == PayPlanChargeType.Credit);
-        List<PayPlanCharge> listPayPlanChargeDebits = listPayPlanCharges.FindAll(x => x.ChargeType == PayPlanChargeType.Debit);
-        List<PayPlanProductionEntry> listPayPlanProductionEntries = PayPlanProductionEntry.GetProductionForLinks(listPayPlanLinks);
+        var listPayPlanChargeCredits = listPayPlanCharges.FindAll(x => x.ChargeType == PayPlanChargeType.Credit);
+        var listPayPlanChargeDebits = listPayPlanCharges.FindAll(x => x.ChargeType == PayPlanChargeType.Debit);
+        var listPayPlanProductionEntries = PayPlanProductionEntry.GetProductionForLinks(listPayPlanLinks);
 
         #region Patient Payment Plan Credits
 
         //Create faux account entries for all credits associated to a payment plan.
-        for (int i = 0; i < listPayPlanChargeCredits.Count; i++)
+        for (var i = 0; i < listPayPlanChargeCredits.Count; i++)
         {
-            FauxAccountEntry fauxAccountEntry = new FauxAccountEntry(listPayPlanChargeCredits[i], true);
+            var fauxAccountEntry = new FauxAccountEntry(listPayPlanChargeCredits[i], true);
             //Prefer the patient, provider, and clinic combo from the procedure if present.
             if (listPayPlanChargeCredits[i].ProcNum > 0)
             {
-                AccountEntry accountEntryProc = listAccountEntries.FirstOrDefault(x => x.ProcNum > 0 && x.ProcNum == listPayPlanChargeCredits[i].ProcNum);
+                var accountEntryProc = listAccountEntries.FirstOrDefault(x => x.ProcNum > 0 && x.ProcNum == listPayPlanChargeCredits[i].ProcNum);
                 if (accountEntryProc != null)
                 {
                     //Payment plans need to know exactly how much this procedure is worth. This includes any explicitly linked adjustments and insurance.
@@ -803,13 +803,13 @@ public class PaymentEdit
         #region Dynamic Payment Plan Credits
 
         //Create faux account entries for PayPlanProductionEntry procedures and adjustments (dynamic payment plan credits).
-        List<PayPlanProductionEntry> listPayPlanProductionEntriesCredits = listPayPlanProductionEntries.FindAll(x => x.LinkType.In(PayPlanLinkType.Procedure, PayPlanLinkType.Adjustment));
-        for (int i = 0; i < listPayPlanProductionEntriesCredits.Count; i++)
+        var listPayPlanProductionEntriesCredits = listPayPlanProductionEntries.FindAll(x => x.LinkType.In(PayPlanLinkType.Procedure, PayPlanLinkType.Adjustment));
+        for (var i = 0; i < listPayPlanProductionEntriesCredits.Count; i++)
         {
-            FauxAccountEntry fauxAccountEntryCredit = new FauxAccountEntry(listPayPlanProductionEntriesCredits[i]);
+            var fauxAccountEntryCredit = new FauxAccountEntry(listPayPlanProductionEntriesCredits[i]);
             if (fauxAccountEntryCredit.IsAdjustment)
             {
-                AccountEntry accountEntryAdj = listAccountEntries.FirstOrDefault(x => x.GetType() == typeof(Adjustment) && x.AdjNum > 0 && x.AdjNum == fauxAccountEntryCredit.AdjNum);
+                var accountEntryAdj = listAccountEntries.FirstOrDefault(x => x.GetType() == typeof(Adjustment) && x.AdjNum > 0 && x.AdjNum == fauxAccountEntryCredit.AdjNum);
                 if (accountEntryAdj == null)
                 {
                     continue;
@@ -821,13 +821,13 @@ public class PaymentEdit
                 //So take value away from the adjustment if AmountEnd is positive because a payplan might only cover part of an adjustment.
                 if (CompareDecimal.IsGreaterThanZero(fauxAccountEntryCredit.AmountEnd))
                 {
-                    decimal amountToAllocate = Math.Min(accountEntryAdj.AmountEnd, fauxAccountEntryCredit.AmountEnd);
+                    var amountToAllocate = Math.Min(accountEntryAdj.AmountEnd, fauxAccountEntryCredit.AmountEnd);
                     accountEntryAdj.AmountEnd -= amountToAllocate;
                     accountEntryAdj.ListPayPlanPrincipalApplieds.Add(new PayPlanPrincipalApplied(accountEntryAdj.PayPlanNum, amountToAllocate));
                 }
                 else if (CompareDecimal.IsLessThanZero(fauxAccountEntryCredit.AmountEnd))
                 {
-                    decimal amountToAllocate = Math.Max(accountEntryAdj.AmountEnd, fauxAccountEntryCredit.AmountEnd);
+                    var amountToAllocate = Math.Max(accountEntryAdj.AmountEnd, fauxAccountEntryCredit.AmountEnd);
                     accountEntryAdj.AmountEnd -= amountToAllocate;
                     accountEntryAdj.ListPayPlanPrincipalApplieds.Add(new PayPlanPrincipalApplied(accountEntryAdj.PayPlanNum, amountToAllocate));
                 }
@@ -835,7 +835,7 @@ public class PaymentEdit
             else
             {
                 //Procedure
-                AccountEntry accountEntryProc = listAccountEntries.FirstOrDefault(x => x.ProcNum > 0 && x.ProcNum == fauxAccountEntryCredit.ProcNum);
+                var accountEntryProc = listAccountEntries.FirstOrDefault(x => x.ProcNum > 0 && x.ProcNum == fauxAccountEntryCredit.ProcNum);
                 if (accountEntryProc == null)
                 {
                     continue; //Do NOT add this FauxAccountEntry to the list of payment plan account entries because the associated proc was not found.
@@ -847,7 +847,7 @@ public class PaymentEdit
                 //Only do this for positive credits because negative procedure credits should not give value back to the procedure.
                 if (CompareDecimal.IsGreaterThanZero(fauxAccountEntryCredit.AmountEnd))
                 {
-                    decimal amountToAllocate = Math.Min(accountEntryProc.AmountEnd, fauxAccountEntryCredit.AmountEnd);
+                    var amountToAllocate = Math.Min(accountEntryProc.AmountEnd, fauxAccountEntryCredit.AmountEnd);
                     accountEntryProc.AmountEnd -= amountToAllocate;
                     accountEntryProc.ListPayPlanPrincipalApplieds.Add(new PayPlanPrincipalApplied(accountEntryProc.PayPlanNum, amountToAllocate));
                 }
@@ -860,7 +860,7 @@ public class PaymentEdit
 
         #region All Payment Plan Debits
 
-        for (int i = 0; i < listPayPlanChargeDebits.Count; i++)
+        for (var i = 0; i < listPayPlanChargeDebits.Count; i++)
         {
             if (!CompareDouble.IsZero(listPayPlanChargeDebits[i].Principal))
             {
@@ -881,16 +881,16 @@ public class PaymentEdit
         //There is a 'fix' that users can apply from within the dynamic payment plan overcharge report which will create offsetting negative debits.
         //These offsetting charges need to remove value from corresponding debits that are linked to the same production entry (proc, adj, etc).
         //The following code is explicitly written to work for all payment plan types just in case we need to introduce this paradigm to others.
-        List<FauxAccountEntry> listFauxAccountEntriesOffsetDebits = listFauxAccountEntries.FindAll(x => x.IsOffset);
-        for (int i = 0; i < listFauxAccountEntriesOffsetDebits.Count; i++)
+        var listFauxAccountEntriesOffsetDebits = listFauxAccountEntries.FindAll(x => x.IsOffset);
+        for (var i = 0; i < listFauxAccountEntriesOffsetDebits.Count; i++)
         {
-            List<FauxAccountEntry> listFauxAccountEntriesRelatedDebits = listFauxAccountEntries.FindAll(x => !x.IsOffset
-                                                                                                             && x.IsAdjustment == listFauxAccountEntriesOffsetDebits[i].IsAdjustment
-                                                                                                             && x.ChargeType == listFauxAccountEntriesOffsetDebits[i].ChargeType
-                                                                                                             && x.ProcNum == listFauxAccountEntriesOffsetDebits[i].ProcNum
-                                                                                                             && x.AdjNum == listFauxAccountEntriesOffsetDebits[i].AdjNum
-                                                                                                             && x.PayPlanNum == listFauxAccountEntriesOffsetDebits[i].PayPlanNum);
-            for (int j = 0; j < listFauxAccountEntriesRelatedDebits.Count; j++)
+            var listFauxAccountEntriesRelatedDebits = listFauxAccountEntries.FindAll(x => !x.IsOffset
+                                                                                          && x.IsAdjustment == listFauxAccountEntriesOffsetDebits[i].IsAdjustment
+                                                                                          && x.ChargeType == listFauxAccountEntriesOffsetDebits[i].ChargeType
+                                                                                          && x.ProcNum == listFauxAccountEntriesOffsetDebits[i].ProcNum
+                                                                                          && x.AdjNum == listFauxAccountEntriesOffsetDebits[i].AdjNum
+                                                                                          && x.PayPlanNum == listFauxAccountEntriesOffsetDebits[i].PayPlanNum);
+            for (var j = 0; j < listFauxAccountEntriesRelatedDebits.Count; j++)
             {
                 if (listFauxAccountEntriesOffsetDebits[i].AmountEnd >= 0)
                 {
@@ -903,7 +903,7 @@ public class PaymentEdit
                 }
 
                 //The offsetting debit still has a negative value that needs to be removed from related debits.
-                decimal amountRemove = Math.Min(Math.Abs(listFauxAccountEntriesOffsetDebits[i].AmountEnd), Math.Abs(listFauxAccountEntriesRelatedDebits[j].AmountEnd));
+                var amountRemove = Math.Min(Math.Abs(listFauxAccountEntriesOffsetDebits[i].AmountEnd), Math.Abs(listFauxAccountEntriesRelatedDebits[j].AmountEnd));
                 listFauxAccountEntriesOffsetDebits[i].AmountEnd += amountRemove;
                 listFauxAccountEntriesRelatedDebits[j].AmountEnd -= amountRemove;
             }
@@ -922,16 +922,16 @@ public class PaymentEdit
 
         #region Payment Plan Debit Allocation
 
-        List<PayPlanNumFauxAccountEntriesGroup> listPayPlanNumFauxAccountEntriesGroups = listFauxAccountEntries
+        var listPayPlanNumFauxAccountEntriesGroups = listFauxAccountEntries
             .GroupBy(x => x.PayPlanNum)
             .ToDictionary(x => x.Key, x => x.ToList())
             .Select(x => new PayPlanNumFauxAccountEntriesGroup() {PayPlanNum = x.Key, ListFauxAccountEntries = x.Value})
             .ToList();
-        for (int i = 0; i < listPayPlanNumFauxAccountEntriesGroups.Count; i++)
+        for (var i = 0; i < listPayPlanNumFauxAccountEntriesGroups.Count; i++)
         {
-            PayPlan payPlan = listPayPlans.First(x => x.PayPlanNum == listPayPlanNumFauxAccountEntriesGroups[i].PayPlanNum);
-            List<FauxAccountEntry> listFauxAccountEntriesCredits = listPayPlanNumFauxAccountEntriesGroups[i].ListFauxAccountEntries.FindAll(x => x.ChargeType == PayPlanChargeType.Credit);
-            List<FauxAccountEntry> listFauxAccountEntriesDebits = listPayPlanNumFauxAccountEntriesGroups[i].ListFauxAccountEntries.FindAll(x => x.ChargeType == PayPlanChargeType.Debit);
+            var payPlan = listPayPlans.First(x => x.PayPlanNum == listPayPlanNumFauxAccountEntriesGroups[i].PayPlanNum);
+            var listFauxAccountEntriesCredits = listPayPlanNumFauxAccountEntriesGroups[i].ListFauxAccountEntries.FindAll(x => x.ChargeType == PayPlanChargeType.Credit);
+            var listFauxAccountEntriesDebits = listPayPlanNumFauxAccountEntriesGroups[i].ListFauxAccountEntries.FindAll(x => x.ChargeType == PayPlanChargeType.Debit);
             if (payPlan.IsDynamic)
             {
                 listFauxAccountEntriesAllocateds.AddRange(AllocateDynamicPayPlanDebitsToCredits(listFauxAccountEntriesCredits, listFauxAccountEntriesDebits, payPlan.DynamicPayPlanTPOption));
@@ -945,8 +945,8 @@ public class PaymentEdit
         #endregion
 
         //Remove all value from debits due in the future so that calling entities don't think these charges are due right now.
-        List<FauxAccountEntry> listFauxAccountEntriesFutureAllocateds = listFauxAccountEntriesAllocateds.FindAll(x => x.Date > DateTime.Today);
-        for (int i = 0; i < listFauxAccountEntriesFutureAllocateds.Count; i++)
+        var listFauxAccountEntriesFutureAllocateds = listFauxAccountEntriesAllocateds.FindAll(x => x.Date > DateTime.Today);
+        for (var i = 0; i < listFauxAccountEntriesFutureAllocateds.Count; i++)
         {
             listFauxAccountEntriesFutureAllocateds[i].AmountEnd = 0;
         }
@@ -962,13 +962,13 @@ public class PaymentEdit
         }
 
         //Blindly move all positive adjustment value into explicitly linked procedures.
-        List<AccountEntry> listAccountEntriesExplicitAdjustments = listAccountEntries.FindAll(x => x.GetType() == typeof(Adjustment)
-                                                                                                   && CompareDecimal.IsGreaterThanZero(x.AmountEnd)
-                                                                                                   && x.ProcNum == accountEntryProcedure.ProcNum
-                                                                                                   && x.PatNum == accountEntryProcedure.PatNum
-                                                                                                   && x.ProvNum == accountEntryProcedure.ProvNum
-                                                                                                   && x.ClinicNum == accountEntryProcedure.ClinicNum);
-        for (int i = 0; i < listAccountEntriesExplicitAdjustments.Count; i++)
+        var listAccountEntriesExplicitAdjustments = listAccountEntries.FindAll(x => x.GetType() == typeof(Adjustment)
+                                                                                    && CompareDecimal.IsGreaterThanZero(x.AmountEnd)
+                                                                                    && x.ProcNum == accountEntryProcedure.ProcNum
+                                                                                    && x.PatNum == accountEntryProcedure.PatNum
+                                                                                    && x.ProvNum == accountEntryProcedure.ProvNum
+                                                                                    && x.ClinicNum == accountEntryProcedure.ClinicNum);
+        for (var i = 0; i < listAccountEntriesExplicitAdjustments.Count; i++)
         {
             accountEntryProcedure.AmountEnd += listAccountEntriesExplicitAdjustments[i].AmountEnd;
             accountEntryProcedure.AdjustmentAmtPos += listAccountEntriesExplicitAdjustments[i].AmountEnd;
@@ -992,13 +992,13 @@ public class PaymentEdit
         #region Adjustments
 
         //Loop through each faux credit adjustment and apply as many adjustment debits as possible.
-        List<FauxAccountEntry> listFauxAccountEntriesAdjCredits = listFauxAccountEntriesCredits.FindAll(x => x.IsAdjustment);
+        var listFauxAccountEntriesAdjCredits = listFauxAccountEntriesCredits.FindAll(x => x.IsAdjustment);
         //It is safe to use AmountEnd because Principal was the only thing used to populate it when this faux entry was created (no interest).
-        List<FauxAccountEntry> listFauxAccountEntriesPosAdjDebits = listFauxAccountEntriesDebits.FindAll(x => x.IsAdjustment && CompareDecimal.IsGreaterThanZero(x.AmountEnd));
-        for (int i = 0; i < listFauxAccountEntriesAdjCredits.Count; i++)
+        var listFauxAccountEntriesPosAdjDebits = listFauxAccountEntriesDebits.FindAll(x => x.IsAdjustment && CompareDecimal.IsGreaterThanZero(x.AmountEnd));
+        for (var i = 0; i < listFauxAccountEntriesAdjCredits.Count; i++)
         {
-            List<FauxAccountEntry> listFauxAccountEntriesAdjDebits = listFauxAccountEntriesPosAdjDebits.FindAll(x => x.AdjNum == listFauxAccountEntriesAdjCredits[i].AdjNum);
-            for (int j = 0; j < listFauxAccountEntriesAdjDebits.Count; j++)
+            var listFauxAccountEntriesAdjDebits = listFauxAccountEntriesPosAdjDebits.FindAll(x => x.AdjNum == listFauxAccountEntriesAdjCredits[i].AdjNum);
+            for (var j = 0; j < listFauxAccountEntriesAdjDebits.Count; j++)
             {
                 if (CompareDecimal.IsLessThanOrEqualToZero(listFauxAccountEntriesAdjCredits[i].AmountEnd))
                 {
@@ -1010,11 +1010,11 @@ public class PaymentEdit
                     continue;
                 }
 
-                decimal amountToAllocate = Math.Min(listFauxAccountEntriesAdjCredits[i].AmountEnd, listFauxAccountEntriesAdjDebits[j].AmountEnd);
+                var amountToAllocate = Math.Min(listFauxAccountEntriesAdjCredits[i].AmountEnd, listFauxAccountEntriesAdjDebits[j].AmountEnd);
                 listFauxAccountEntriesAdjDebits[j].AmountEnd -= amountToAllocate;
                 listFauxAccountEntriesAdjCredits[i].AmountEnd -= amountToAllocate;
                 listFauxAccountEntriesAdjCredits[i].PrincipalAdjusted -= amountToAllocate;
-                FauxAccountEntry fauxAccountEntryAllocatedDebit = GetAllocatedDebit(amountToAllocate, listFauxAccountEntriesAdjCredits[i], listFauxAccountEntriesAdjDebits[j]);
+                var fauxAccountEntryAllocatedDebit = GetAllocatedDebit(amountToAllocate, listFauxAccountEntriesAdjCredits[i], listFauxAccountEntriesAdjDebits[j]);
                 listFauxAccountEntriesAllocatedDebits.Add(fauxAccountEntryAllocatedDebit);
             }
         }
@@ -1024,12 +1024,12 @@ public class PaymentEdit
         #region Procedures
 
         //Loop through each procedure credit and apply as many debits as possible.
-        List<FauxAccountEntry> listFauxAccountEntriesProcCredits = listFauxAccountEntriesCredits.FindAll(x => !x.IsAdjustment);
-        List<FauxAccountEntry> listFauxAccountEntriesPosProcDebits = listFauxAccountEntriesDebits.FindAll(x => !x.IsAdjustment && CompareDecimal.IsGreaterThanZero(x.AmountEnd));
-        for (int i = 0; i < listFauxAccountEntriesProcCredits.Count; i++)
+        var listFauxAccountEntriesProcCredits = listFauxAccountEntriesCredits.FindAll(x => !x.IsAdjustment);
+        var listFauxAccountEntriesPosProcDebits = listFauxAccountEntriesDebits.FindAll(x => !x.IsAdjustment && CompareDecimal.IsGreaterThanZero(x.AmountEnd));
+        for (var i = 0; i < listFauxAccountEntriesProcCredits.Count; i++)
         {
-            List<FauxAccountEntry> listFauxAccountEntriesProcDebits = listFauxAccountEntriesPosProcDebits.FindAll(x => x.ProcNum == listFauxAccountEntriesProcCredits[i].ProcNum);
-            for (int j = 0; j < listFauxAccountEntriesProcDebits.Count; j++)
+            var listFauxAccountEntriesProcDebits = listFauxAccountEntriesPosProcDebits.FindAll(x => x.ProcNum == listFauxAccountEntriesProcCredits[i].ProcNum);
+            for (var j = 0; j < listFauxAccountEntriesProcDebits.Count; j++)
             {
                 if (CompareDecimal.IsLessThanOrEqualToZero(listFauxAccountEntriesProcCredits[i].PrincipalAdjusted))
                 {
@@ -1042,11 +1042,11 @@ public class PaymentEdit
                 }
 
                 //Use PrincipalAdjusted instead of AmountEnd (which could include interest) instead or Principal (has not been adjusted).
-                decimal amountToAllocate = Math.Min(listFauxAccountEntriesProcCredits[i].PrincipalAdjusted, listFauxAccountEntriesProcDebits[j].AmountEnd);
+                var amountToAllocate = Math.Min(listFauxAccountEntriesProcCredits[i].PrincipalAdjusted, listFauxAccountEntriesProcDebits[j].AmountEnd);
                 listFauxAccountEntriesProcDebits[j].AmountEnd -= amountToAllocate;
                 listFauxAccountEntriesProcCredits[i].AmountEnd -= amountToAllocate;
                 listFauxAccountEntriesProcCredits[i].PrincipalAdjusted -= amountToAllocate;
-                FauxAccountEntry fauxAccountEntryAllocatedDebit = GetAllocatedDebit(amountToAllocate, listFauxAccountEntriesProcCredits[i], listFauxAccountEntriesProcDebits[j]);
+                var fauxAccountEntryAllocatedDebit = GetAllocatedDebit(amountToAllocate, listFauxAccountEntriesProcCredits[i], listFauxAccountEntriesProcDebits[j]);
                 listFauxAccountEntriesAllocatedDebits.Add(fauxAccountEntryAllocatedDebit);
             }
         }
@@ -1055,8 +1055,8 @@ public class PaymentEdit
 
         #region Remaining Debits
 
-        List<FauxAccountEntry> listFauxAccountEntriesRemainingDebits = listFauxAccountEntriesDebits.FindAll(x => x.IsOffset || CompareDecimal.IsGreaterThanZero(x.AmountEnd));
-        for (int i = 0; i < listFauxAccountEntriesRemainingDebits.Count; i++)
+        var listFauxAccountEntriesRemainingDebits = listFauxAccountEntriesDebits.FindAll(x => x.IsOffset || CompareDecimal.IsGreaterThanZero(x.AmountEnd));
+        for (var i = 0; i < listFauxAccountEntriesRemainingDebits.Count; i++)
         {
             if (CompareDecimal.IsGreaterThanZero(listFauxAccountEntriesRemainingDebits[i].Interest))
             {
@@ -1073,11 +1073,11 @@ public class PaymentEdit
             }
 
             //We need to make sure and add at least one 'allocated' FauxAccountEntry object for every single debit.
-            bool hasAddedDebit = false;
+            var hasAddedDebit = false;
             //Smash any remaining non-interest debits into any credits that can take value (preserves old behavior).
             //Use PrincipalAdjusted instead of AmountEnd (which could include interest) instead or Principal (has not been adjusted).
-            List<FauxAccountEntry> listFauxAccountEntriesRemainingCredits = listFauxAccountEntriesCredits.FindAll(x => x.AmountEnd != x.PrincipalAdjusted);
-            for (int j = 0; j < listFauxAccountEntriesRemainingCredits.Count; j++)
+            var listFauxAccountEntriesRemainingCredits = listFauxAccountEntriesCredits.FindAll(x => x.AmountEnd != x.PrincipalAdjusted);
+            for (var j = 0; j < listFauxAccountEntriesRemainingCredits.Count; j++)
             {
                 if (CompareDecimal.IsLessThanOrEqualToZero(listFauxAccountEntriesRemainingCredits[j].PrincipalAdjusted))
                 {
@@ -1089,11 +1089,11 @@ public class PaymentEdit
                     continue;
                 }
 
-                decimal amountToAllocate = Math.Min(listFauxAccountEntriesRemainingCredits[j].PrincipalAdjusted, listFauxAccountEntriesRemainingDebits[i].AmountEnd);
+                var amountToAllocate = Math.Min(listFauxAccountEntriesRemainingCredits[j].PrincipalAdjusted, listFauxAccountEntriesRemainingDebits[i].AmountEnd);
                 listFauxAccountEntriesRemainingDebits[i].AmountEnd -= amountToAllocate;
                 listFauxAccountEntriesRemainingCredits[j].AmountEnd -= amountToAllocate;
                 listFauxAccountEntriesRemainingCredits[j].PrincipalAdjusted -= amountToAllocate;
-                FauxAccountEntry fauxAccountEntryAllocatedDebit = GetAllocatedDebit(amountToAllocate, listFauxAccountEntriesRemainingCredits[j], listFauxAccountEntriesRemainingDebits[i]);
+                var fauxAccountEntryAllocatedDebit = GetAllocatedDebit(amountToAllocate, listFauxAccountEntriesRemainingCredits[j], listFauxAccountEntriesRemainingDebits[i]);
                 listFauxAccountEntriesAllocatedDebits.Add(fauxAccountEntryAllocatedDebit);
                 hasAddedDebit = true;
             }
@@ -1121,13 +1121,13 @@ public class PaymentEdit
 
         //Reduce the AmountEnd on procedure AccountEntry objects based on the value associated with procedure credits.
         //This is so that procedures do not look like they have 'outstanding' value when associated with a payment plan.
-        List<FauxAccountEntry> listFauxAccountEntryProcCredits = listFauxAccountEntriesCredits.FindAll(x => x.AccountEntryProc != null && !x.IsAdjustment && CompareDecimal.IsGreaterThanZero(x.AmountEnd));
-        for (int i = 0; i < listFauxAccountEntryProcCredits.Count; i++)
+        var listFauxAccountEntryProcCredits = listFauxAccountEntriesCredits.FindAll(x => x.AccountEntryProc != null && !x.IsAdjustment && CompareDecimal.IsGreaterThanZero(x.AmountEnd));
+        for (var i = 0; i < listFauxAccountEntryProcCredits.Count; i++)
         {
             //Figure out how much value can be removed from the associated procedure.
             //Ignore anything that insurance is going to pay in order to allow payment plans to 'overpay' the procedure before insurance does.
-            decimal amountForProcedure = listFauxAccountEntryProcCredits[i].AccountEntryProc.AmountEnd + listFauxAccountEntryProcCredits[i].AccountEntryProc.InsPayAmt;
-            decimal amountToRemove = Math.Min(amountForProcedure, listFauxAccountEntryProcCredits[i].AmountEnd);
+            var amountForProcedure = listFauxAccountEntryProcCredits[i].AccountEntryProc.AmountEnd + listFauxAccountEntryProcCredits[i].AccountEntryProc.InsPayAmt;
+            var amountToRemove = Math.Min(amountForProcedure, listFauxAccountEntryProcCredits[i].AmountEnd);
             listFauxAccountEntryProcCredits[i].AmountEnd -= amountToRemove;
             listFauxAccountEntryProcCredits[i].AccountEntryProc.AmountEnd -= amountToRemove;
             listFauxAccountEntryProcCredits[i].AccountEntryProc.ListPayPlanPrincipalApplieds.Add(
@@ -1140,12 +1140,12 @@ public class PaymentEdit
         #region Adjustment Credits (associated with procedures)
 
         //Adjustment credits that are associated with procedures will immediately give the amount of value back to the procedure.
-        List<FauxAccountEntry> listFauxAccountEntryProcAdjCredits = listFauxAccountEntriesCredits.FindAll(x => x.AccountEntryProc != null && x.IsAdjustment);
-        for (int i = 0; i < listFauxAccountEntryProcAdjCredits.Count; i++)
+        var listFauxAccountEntryProcAdjCredits = listFauxAccountEntriesCredits.FindAll(x => x.AccountEntryProc != null && x.IsAdjustment);
+        for (var i = 0; i < listFauxAccountEntryProcAdjCredits.Count; i++)
         {
             //Blindly adjust PrincipalAdjusted and AmountEnd for this procedure credit by any adjustment credits associated with the same procedure even if it doesn't make sense.
-            List<FauxAccountEntry> listFauxAccountEntriesCreditsForProc = listFauxAccountEntryProcCredits.FindAll(x => x.AccountEntryProc == listFauxAccountEntryProcAdjCredits[i].AccountEntryProc);
-            for (int j = 0; j < listFauxAccountEntriesCreditsForProc.Count; j++)
+            var listFauxAccountEntriesCreditsForProc = listFauxAccountEntryProcCredits.FindAll(x => x.AccountEntryProc == listFauxAccountEntryProcAdjCredits[i].AccountEntryProc);
+            for (var j = 0; j < listFauxAccountEntriesCreditsForProc.Count; j++)
             {
                 if (CompareDecimal.IsGreaterThanOrEqualToZero(listFauxAccountEntryProcAdjCredits[i].AmountEnd))
                 {
@@ -1157,7 +1157,7 @@ public class PaymentEdit
                     continue;
                 }
 
-                decimal amountToAllocate = Math.Min(listFauxAccountEntriesCreditsForProc[j].PrincipalAdjusted, Math.Abs(listFauxAccountEntryProcAdjCredits[i].AmountEnd));
+                var amountToAllocate = Math.Min(listFauxAccountEntriesCreditsForProc[j].PrincipalAdjusted, Math.Abs(listFauxAccountEntryProcAdjCredits[i].AmountEnd));
                 listFauxAccountEntryProcAdjCredits[i].AmountEnd += amountToAllocate;
                 listFauxAccountEntriesCreditsForProc[j].PrincipalAdjusted -= amountToAllocate;
                 listFauxAccountEntriesCreditsForProc[j].AccountEntryProc.AmountEnd += amountToAllocate;
@@ -1172,12 +1172,12 @@ public class PaymentEdit
         #region Adjustment Credits (remaining)
 
         //Smash any remaining adjustment credits into any debits that still have value (preserves old behavior).
-        List<FauxAccountEntry> listFauxAccountEntryAdjCredits = listFauxAccountEntriesCredits.FindAll(x => x.IsAdjustment && CompareDecimal.IsLessThanZero(x.AmountEnd));
-        for (int i = 0; i < listFauxAccountEntryAdjCredits.Count; i++)
+        var listFauxAccountEntryAdjCredits = listFauxAccountEntriesCredits.FindAll(x => x.IsAdjustment && CompareDecimal.IsLessThanZero(x.AmountEnd));
+        for (var i = 0; i < listFauxAccountEntryAdjCredits.Count; i++)
         {
             //Prefer to remove from credits that are not associated with procedures first.
-            List<FauxAccountEntry> listFauxAccountEntryNonProcCredits = listFauxAccountEntriesCredits.FindAll(x => !x.IsAdjustment && x.AccountEntryProc == null && CompareDecimal.IsGreaterThanZero(x.PrincipalAdjusted));
-            for (int j = 0; j < listFauxAccountEntryNonProcCredits.Count; j++)
+            var listFauxAccountEntryNonProcCredits = listFauxAccountEntriesCredits.FindAll(x => !x.IsAdjustment && x.AccountEntryProc == null && CompareDecimal.IsGreaterThanZero(x.PrincipalAdjusted));
+            for (var j = 0; j < listFauxAccountEntryNonProcCredits.Count; j++)
             {
                 if (CompareDecimal.IsGreaterThanOrEqualToZero(listFauxAccountEntryAdjCredits[i].AmountEnd))
                 {
@@ -1189,7 +1189,7 @@ public class PaymentEdit
                     continue;
                 }
 
-                decimal amountToAllocate = Math.Min(listFauxAccountEntryNonProcCredits[j].PrincipalAdjusted, Math.Abs(listFauxAccountEntryAdjCredits[i].AmountEnd));
+                var amountToAllocate = Math.Min(listFauxAccountEntryNonProcCredits[j].PrincipalAdjusted, Math.Abs(listFauxAccountEntryAdjCredits[i].AmountEnd));
                 listFauxAccountEntryNonProcCredits[j].PrincipalAdjusted -= amountToAllocate;
                 listFauxAccountEntryAdjCredits[i].AmountEnd += amountToAllocate;
             }
@@ -1201,8 +1201,8 @@ public class PaymentEdit
             }
 
             //Distribute any remaining value to procedure credits since it has to go somewhere.
-            List<FauxAccountEntry> listFauxAccountEntryRemainingProcCredits = listFauxAccountEntriesCredits.FindAll(x => !x.IsAdjustment && x.AccountEntryProc != null && CompareDecimal.IsGreaterThanZero(x.PrincipalAdjusted));
-            for (int j = 0; j < listFauxAccountEntryRemainingProcCredits.Count; j++)
+            var listFauxAccountEntryRemainingProcCredits = listFauxAccountEntriesCredits.FindAll(x => !x.IsAdjustment && x.AccountEntryProc != null && CompareDecimal.IsGreaterThanZero(x.PrincipalAdjusted));
+            for (var j = 0; j < listFauxAccountEntryRemainingProcCredits.Count; j++)
             {
                 if (CompareDecimal.IsGreaterThanOrEqualToZero(listFauxAccountEntryAdjCredits[i].AmountEnd))
                 {
@@ -1214,7 +1214,7 @@ public class PaymentEdit
                     continue;
                 }
 
-                decimal amountToAllocate = Math.Min(listFauxAccountEntryRemainingProcCredits[j].PrincipalAdjusted, Math.Abs(listFauxAccountEntryAdjCredits[i].AmountEnd));
+                var amountToAllocate = Math.Min(listFauxAccountEntryRemainingProcCredits[j].PrincipalAdjusted, Math.Abs(listFauxAccountEntryAdjCredits[i].AmountEnd));
                 listFauxAccountEntryAdjCredits[i].AmountEnd += amountToAllocate;
                 //Give this amount back to the procedure I guess; The user did some strange nonsense if they got here.
                 listFauxAccountEntryRemainingProcCredits[j].PrincipalAdjusted -= amountToAllocate;
@@ -1232,7 +1232,7 @@ public class PaymentEdit
         //We don't know how much of this credit is due right now until we consider outstanding debits.
         //Therefore, we need to clear out the AmountEnd variable which holds the value for what the patient owes right now.
         //Also, all adjustment credits should have been considered by now so if there are any with an AmountEnd then their value will get blasted away here because what else are we going to do?
-        for (int i = 0; i < listFauxAccountEntriesCredits.Count; i++)
+        for (var i = 0; i < listFauxAccountEntriesCredits.Count; i++)
         {
             listFauxAccountEntriesCredits[i].AmountEnd = 0;
         }
@@ -1244,10 +1244,10 @@ public class PaymentEdit
         //Patient payment plan debits are never directly associated with production.
         //Therefore, blindly sum up all of the debits (including negative adjustment debits).
         //The sum of all the debits will be the amount that needs to be used in order to 'fill up' the credits up to their PrincipalAdjusted value.
-        decimal amountTotalDebits = listFauxAccountEntriesDebits.Sum(x => x.AmountEnd); //Purposefully include negative debits (adjustments).
+        var amountTotalDebits = listFauxAccountEntriesDebits.Sum(x => x.AmountEnd); //Purposefully include negative debits (adjustments).
         //Debits are the AccountEntries that the user interacts with. We are nice to the user and create FauxAccountEntry objects for production (even though they aren't technically associated).
         //Therefore, we need to make at least one FauxAccountEntry object for each debit in the database.
-        for (int i = 0; i < listFauxAccountEntriesDebits.Count; i++)
+        for (var i = 0; i < listFauxAccountEntriesDebits.Count; i++)
         {
             if (listFauxAccountEntriesDebits[i].IsAdjustment)
             {
@@ -1265,34 +1265,34 @@ public class PaymentEdit
             }
 
             //We need to make sure and add at least one 'allocated' FauxAccountEntry object for every single debit.
-            bool hasAddedDebit = false;
-            decimal amountAvilableForDebit = Math.Min(amountTotalDebits, listFauxAccountEntriesDebits[i].AmountEnd);
+            var hasAddedDebit = false;
+            var amountAvilableForDebit = Math.Min(amountTotalDebits, listFauxAccountEntriesDebits[i].AmountEnd);
             if (CompareDecimal.IsLessThanZero(amountAvilableForDebit))
             {
                 amountAvilableForDebit = 0;
             }
 
             //Attempt to associate the debit with a credit that has yet to be filled (PrincipalAdjusted is still greater than AmountEnd).
-            List<FauxAccountEntry> listFauxAccountEntriesAvailableCredits = listFauxAccountEntriesCredits.FindAll(x => !x.IsAdjustment && CompareDecimal.IsGreaterThan(x.PrincipalAdjusted, x.AmountEnd));
-            for (int j = 0; j < listFauxAccountEntriesAvailableCredits.Count; j++)
+            var listFauxAccountEntriesAvailableCredits = listFauxAccountEntriesCredits.FindAll(x => !x.IsAdjustment && CompareDecimal.IsGreaterThan(x.PrincipalAdjusted, x.AmountEnd));
+            for (var j = 0; j < listFauxAccountEntriesAvailableCredits.Count; j++)
             {
                 if (CompareDecimal.IsLessThanOrEqualToZero(amountAvilableForDebit))
                 {
                     break;
                 }
 
-                decimal amountCreditCanTake = Math.Min(listFauxAccountEntriesAvailableCredits[j].PrincipalAdjusted - listFauxAccountEntriesAvailableCredits[j].AmountEnd, amountAvilableForDebit);
+                var amountCreditCanTake = Math.Min(listFauxAccountEntriesAvailableCredits[j].PrincipalAdjusted - listFauxAccountEntriesAvailableCredits[j].AmountEnd, amountAvilableForDebit);
                 if (CompareDecimal.IsLessThanOrEqualToZero(amountCreditCanTake))
                 {
                     continue;
                 }
 
-                decimal amountToAllocate = Math.Min(amountCreditCanTake, amountTotalDebits);
+                var amountToAllocate = Math.Min(amountCreditCanTake, amountTotalDebits);
                 listFauxAccountEntriesAvailableCredits[j].AmountEnd += amountToAllocate;
                 amountTotalDebits -= amountToAllocate;
                 amountAvilableForDebit -= amountToAllocate;
                 listFauxAccountEntriesDebits[i].AmountEnd -= amountToAllocate;
-                FauxAccountEntry fauxAccountEntryAllocatedDebit = GetAllocatedDebit(amountToAllocate, listFauxAccountEntriesAvailableCredits[j], listFauxAccountEntriesDebits[i]);
+                var fauxAccountEntryAllocatedDebit = GetAllocatedDebit(amountToAllocate, listFauxAccountEntriesAvailableCredits[j], listFauxAccountEntriesDebits[i]);
                 //Do not suggest paying TP procedures at this time (or procedures that were originally set but not found).
                 if ((listFauxAccountEntriesAvailableCredits[j].AccountEntryProc == null && listFauxAccountEntriesAvailableCredits[j].ProcNum > 0)
                     || (listFauxAccountEntriesAvailableCredits[j].AccountEntryProc != null && ((Procedure) listFauxAccountEntriesAvailableCredits[j].AccountEntryProc.Tag).ProcStatus == ProcStat.TP))
@@ -1327,7 +1327,7 @@ public class PaymentEdit
                 amountTotalDebits -= amountAvilableForDebit;
                 listFauxAccountEntriesDebits[i].AmountEnd -= amountAvilableForDebit;
                 listFauxAccountEntriesCredits.First().AmountEnd += amountAvilableForDebit;
-                FauxAccountEntry fauxAccountEntryAllocatedDebit = GetAllocatedDebit(amountAvilableForDebit, listFauxAccountEntriesCredits.First(), listFauxAccountEntriesDebits[i]);
+                var fauxAccountEntryAllocatedDebit = GetAllocatedDebit(amountAvilableForDebit, listFauxAccountEntriesCredits.First(), listFauxAccountEntriesDebits[i]);
                 listFauxAccountEntriesAllocatedDebits.Add(fauxAccountEntryAllocatedDebit);
             }
         }
@@ -1340,7 +1340,7 @@ public class PaymentEdit
     private static FauxAccountEntry GetAllocatedDebit(decimal amtToAllocate, FauxAccountEntry fauxCredit, FauxAccountEntry fauxDebit)
     {
         //Create a new faux account entry from the debit but only for the amount that to allocate.
-        FauxAccountEntry allocatedDebit = fauxDebit.Copy();
+        var allocatedDebit = fauxDebit.Copy();
         allocatedDebit.AccountEntryProc = fauxCredit.AccountEntryProc;
         allocatedDebit.AmountEnd = amtToAllocate;
         allocatedDebit.PrincipalAdjusted = amtToAllocate;
@@ -1357,14 +1357,14 @@ public class PaymentEdit
 
     private static List<AccountEntry> ExplicitlyLinkCredits(List<AccountEntry> listAccountEntries, List<PaySplit> listSplitsCurrentAndHistoric, bool hasInsOverpay = false, bool hasOffsettingAdjustmets = true)
     {
-        List<AccountEntry> listExplicitAccountCharges = listAccountEntries
+        var listExplicitAccountCharges = listAccountEntries
             .FindAll(x => x.GetType().In(typeof(Procedure), typeof(FauxAccountEntry), typeof(Adjustment)));
         //Create a dictionary that can easily find a corresponding AccountEntry for a specific PaySplit.
         //Old logic did not consider the fact that the same PaySplit could be in multiple AccountEntries so maybe that scenario isn't possible.
-        Dictionary<string, AccountEntry> dictPaySplitAccountEntries = new Dictionary<string, AccountEntry>();
-        foreach (AccountEntry splitEntry in listAccountEntries.FindAll(x => x.GetType() == typeof(PaySplit)))
+        var dictPaySplitAccountEntries = new Dictionary<string, AccountEntry>();
+        foreach (var splitEntry in listAccountEntries.FindAll(x => x.GetType() == typeof(PaySplit)))
         {
-            foreach (PaySplit paySplit in splitEntry.SplitCollection)
+            foreach (var paySplit in splitEntry.SplitCollection)
             {
                 dictPaySplitAccountEntries[(string) paySplit.TagOD] = splitEntry;
             }
@@ -1372,14 +1372,14 @@ public class PaymentEdit
 
         #region Adjustments
 
-        foreach (AccountEntry accountEntryProc in listExplicitAccountCharges.Where(x => x.GetType() == typeof(Procedure)))
+        foreach (var accountEntryProc in listExplicitAccountCharges.Where(x => x.GetType() == typeof(Procedure)))
         {
             //Find every adjustment entry that is explicitly linked to the current procedure and directly manipulate the AmountEnd for both.
-            List<AccountEntry> listAdjEntries = listExplicitAccountCharges.FindAll(x => x.GetType() == typeof(Adjustment)
-                                                                                        && x.ProcNum == accountEntryProc.ProcNum
-                                                                                        && x.PatNum == accountEntryProc.PatNum
-                                                                                        && x.ProvNum == accountEntryProc.ProvNum
-                                                                                        && x.ClinicNum == accountEntryProc.ClinicNum);
+            var listAdjEntries = listExplicitAccountCharges.FindAll(x => x.GetType() == typeof(Adjustment)
+                                                                         && x.ProcNum == accountEntryProc.ProcNum
+                                                                         && x.PatNum == accountEntryProc.PatNum
+                                                                         && x.ProvNum == accountEntryProc.ProvNum
+                                                                         && x.ClinicNum == accountEntryProc.ClinicNum);
             if (listAdjEntries.IsNullOrEmpty())
             {
                 continue;
@@ -1389,22 +1389,22 @@ public class PaymentEdit
             accountEntryProc.AdjustmentAmtNeg += listAdjEntries.FindAll(x => x.AmountEnd < 0).Sum(x => x.AmountEnd);
             //Remove the entire amount of the negative adjustment (even if the procedure is sent into the negative).
             //This is so that we do not accidentally implicitly pay off anything associated to the same pat/prov/clinic later (if implicit linking).
-            decimal sumAdjs = listAdjEntries.Sum(x => x.AmountEnd);
+            var sumAdjs = listAdjEntries.Sum(x => x.AmountEnd);
             accountEntryProc.AdjustedAmt = sumAdjs;
             accountEntryProc.AmountEnd += sumAdjs;
             listAdjEntries.ForEach(x => x.AmountEnd = 0);
         }
 
         //Allow positive and negative adjustments that are incorrectly linked to the same procedure to offset each other if they have the same pat/prov/clinic.
-        List<AccountEntry> listAdjProcNegEntries = listExplicitAccountCharges.FindAll(x => x.GetType() == typeof(Adjustment)
-                                                                                           && x.ProcNum > 0
-                                                                                           && x.PayPlanNum == 0
-                                                                                           && CompareDecimal.IsLessThanZero(x.AmountEnd));
-        List<AccountEntry> listAdjProcPosEntries = listExplicitAccountCharges.FindAll(x => x.GetType() == typeof(Adjustment)
-                                                                                           && x.ProcNum > 0
-                                                                                           && x.PayPlanNum == 0
-                                                                                           && CompareDecimal.IsGreaterThanZero(x.AmountEnd));
-        for (int i = 0; i < listAdjProcNegEntries.Count; i++)
+        var listAdjProcNegEntries = listExplicitAccountCharges.FindAll(x => x.GetType() == typeof(Adjustment)
+                                                                            && x.ProcNum > 0
+                                                                            && x.PayPlanNum == 0
+                                                                            && CompareDecimal.IsLessThanZero(x.AmountEnd));
+        var listAdjProcPosEntries = listExplicitAccountCharges.FindAll(x => x.GetType() == typeof(Adjustment)
+                                                                            && x.ProcNum > 0
+                                                                            && x.PayPlanNum == 0
+                                                                            && CompareDecimal.IsGreaterThanZero(x.AmountEnd));
+        for (var i = 0; i < listAdjProcNegEntries.Count; i++)
         {
             //Create a new list of account entries that will hold all of the negative and positive adjustments that match pat/prov/clinic along with the procedure.
             List<AccountEntry> listAdjProcPosNegEntries = [listAdjProcNegEntries[i]];
@@ -1424,28 +1424,28 @@ public class PaymentEdit
             .ToDictionary(x => x.Key, x => x.ToList());
         foreach (var kvpPatProvClinicSplits in dictPatProvClinicSplits)
         {
-            List<PaySplit> listPatProvClinicSplits = kvpPatProvClinicSplits.Value;
+            var listPatProvClinicSplits = kvpPatProvClinicSplits.Value;
             //Get a subset of account entries that can be explicitly linked to these splits.
-            List<AccountEntry> listPatProvClinicAccountCharges = listExplicitAccountCharges.FindAll(x => x.PatNum == kvpPatProvClinicSplits.Key.PatNum
-                                                                                                         && x.ProvNum == kvpPatProvClinicSplits.Key.ProvNum
-                                                                                                         && x.ClinicNum == kvpPatProvClinicSplits.Key.ClinicNum);
+            var listPatProvClinicAccountCharges = listExplicitAccountCharges.FindAll(x => x.PatNum == kvpPatProvClinicSplits.Key.PatNum
+                                                                                          && x.ProvNum == kvpPatProvClinicSplits.Key.ProvNum
+                                                                                          && x.ClinicNum == kvpPatProvClinicSplits.Key.ClinicNum);
             //Prefer explicit links to procedures, faux account entries, and then adjustments.
             //This is because splits can be vicariously attached to adjustments via the procedure but the split should prefer the procedure first.
-            List<AccountEntry> listProcEntries = listPatProvClinicAccountCharges.FindAll(x => x.GetType() == typeof(Procedure));
-            List<AccountEntry> listAdjEntries = listPatProvClinicAccountCharges.FindAll(x => x.GetType() == typeof(Adjustment));
+            var listProcEntries = listPatProvClinicAccountCharges.FindAll(x => x.GetType() == typeof(Procedure));
+            var listAdjEntries = listPatProvClinicAccountCharges.FindAll(x => x.GetType() == typeof(Adjustment));
             //NOTE: Any explicitly linked paysplit needs to be used on what it's attached to in its entirety (even if it's overpaid).
 
             #region Procedures
 
-            foreach (AccountEntry procEntry in listProcEntries)
+            foreach (var procEntry in listProcEntries)
             {
-                foreach (PaySplit procSplit in listPatProvClinicSplits.FindAll(x => x.ProcNum == procEntry.ProcNum && x.PayPlanNum == 0))
+                foreach (var procSplit in listPatProvClinicSplits.FindAll(x => x.ProcNum == procEntry.ProcNum && x.PayPlanNum == 0))
                 {
-                    decimal splitAmt = (decimal) procSplit.SplitAmt; //Overpayment on procedures is handled later
+                    var splitAmt = (decimal) procSplit.SplitAmt; //Overpayment on procedures is handled later
                     procEntry.AmountEnd -= splitAmt;
                     procEntry.SplitCollection.Add(procSplit.Copy()); //take copy so we can get amtPaid without overwriting.
                     procSplit.SplitAmt -= (double) splitAmt;
-                    if (dictPaySplitAccountEntries.TryGetValue((string) procSplit.TagOD, out AccountEntry splitEntry))
+                    if (dictPaySplitAccountEntries.TryGetValue((string) procSplit.TagOD, out var splitEntry))
                     {
                         splitEntry.AmountEnd += splitAmt;
                     }
@@ -1459,8 +1459,8 @@ public class PaymentEdit
             //Get a subset of account entries that can be explicitly linked to these splits based off of guarantor if the payment plan version calls for it.
             //The guarantor on the payment plan is almost always in charge of paying for the payment plan.
             //Therefore, payment splits should be considered explicitly linked to the payment plan charge even when the PatNum does not match, but the guarantor does.
-            bool useGuar = (PrefC.GetEnum<PayPlanVersions>(PrefName.PayPlansVersion) != PayPlanVersions.NoCharges);
-            List<FauxAccountEntry> listPayPlanEntries = listExplicitAccountCharges
+            var useGuar = (PrefC.GetEnum<PayPlanVersions>(PrefName.PayPlansVersion) != PayPlanVersions.NoCharges);
+            var listPayPlanEntries = listExplicitAccountCharges
                 .FindAll(x => x.ProvNum == kvpPatProvClinicSplits.Key.ProvNum
                               && x.ClinicNum == kvpPatProvClinicSplits.Key.ClinicNum
                               && x.GetType() == typeof(FauxAccountEntry))
@@ -1469,8 +1469,8 @@ public class PaymentEdit
                 .ToList();
             //Negative payment splits are created for payment plan charges when money is transferred away from them. There should be offsetting splits when this scenario has happened.
             //Apply any negative splits to positive splits that are explicitly linked to exact same production entry.
-            List<PaySplit> listPayPlanChargeSplitsNegative = listPatProvClinicSplits.FindAll(x => CompareDouble.IsLessThanZero(x.SplitAmt) && x.UnearnedType == 0 && x.PayPlanNum > 0);
-            for (int i = 0; i < listPayPlanChargeSplitsNegative.Count; i++)
+            var listPayPlanChargeSplitsNegative = listPatProvClinicSplits.FindAll(x => CompareDouble.IsLessThanZero(x.SplitAmt) && x.UnearnedType == 0 && x.PayPlanNum > 0);
+            for (var i = 0; i < listPayPlanChargeSplitsNegative.Count; i++)
             {
                 if (CompareDecimal.IsGreaterThanOrEqualToZero(listPayPlanChargeSplitsNegative[i].SplitAmt))
                 {
@@ -1478,11 +1478,11 @@ public class PaymentEdit
                 }
 
                 //Find any offsetting positive payment splits (linked to exactly the same production entry).
-                List<PaySplit> listPayPlanChargeSplitsPositive = listPatProvClinicSplits.FindAll(x => CompareDecimal.IsGreaterThanZero(x.SplitAmt)
-                                                                                                      && x.UnearnedType == listPayPlanChargeSplitsNegative[i].UnearnedType
-                                                                                                      && x.PayPlanNum == listPayPlanChargeSplitsNegative[i].PayPlanNum
-                                                                                                      && x.AdjNum == listPayPlanChargeSplitsNegative[i].AdjNum
-                                                                                                      && x.ProcNum == listPayPlanChargeSplitsNegative[i].ProcNum)
+                var listPayPlanChargeSplitsPositive = listPatProvClinicSplits.FindAll(x => CompareDecimal.IsGreaterThanZero(x.SplitAmt)
+                                                                                           && x.UnearnedType == listPayPlanChargeSplitsNegative[i].UnearnedType
+                                                                                           && x.PayPlanNum == listPayPlanChargeSplitsNegative[i].PayPlanNum
+                                                                                           && x.AdjNum == listPayPlanChargeSplitsNegative[i].AdjNum
+                                                                                           && x.ProcNum == listPayPlanChargeSplitsNegative[i].ProcNum)
                     .OrderByDescending(x => x.PayPlanChargeNum == listPayPlanChargeSplitsNegative[i].PayPlanChargeNum)
                     .ThenByDescending(x => x.PayPlanDebitType == listPayPlanChargeSplitsNegative[i].PayPlanDebitType)
                     .ThenByDescending(x => x.PayPlanDebitType == PayPlanDebitTypes.Principal)
@@ -1490,7 +1490,7 @@ public class PaymentEdit
                     .ThenByDescending(x => Math.Abs(x.SplitAmt) == Math.Abs(listPayPlanChargeSplitsNegative[i].SplitAmt))
                     .ToList();
                 //Offset the payment splits as much as possible.
-                for (int j = 0; j < listPayPlanChargeSplitsPositive.Count; j++)
+                for (var j = 0; j < listPayPlanChargeSplitsPositive.Count; j++)
                 {
                     if (CompareDouble.IsLessThanOrEqualToZero(listPayPlanChargeSplitsPositive[j].SplitAmt))
                     {
@@ -1502,15 +1502,15 @@ public class PaymentEdit
                         continue;
                     }
 
-                    double splitAmountBeingApplied = Math.Min(Math.Abs(listPayPlanChargeSplitsNegative[i].SplitAmt), listPayPlanChargeSplitsPositive[j].SplitAmt);
+                    var splitAmountBeingApplied = Math.Min(Math.Abs(listPayPlanChargeSplitsNegative[i].SplitAmt), listPayPlanChargeSplitsPositive[j].SplitAmt);
                     listPayPlanChargeSplitsNegative[i].SplitAmt += splitAmountBeingApplied;
-                    if (dictPaySplitAccountEntries.TryGetValue((string) listPayPlanChargeSplitsNegative[i].TagOD, out AccountEntry accountEntrySplitNegative))
+                    if (dictPaySplitAccountEntries.TryGetValue((string) listPayPlanChargeSplitsNegative[i].TagOD, out var accountEntrySplitNegative))
                     {
                         accountEntrySplitNegative.AmountEnd -= (decimal) splitAmountBeingApplied;
                     }
 
                     listPayPlanChargeSplitsPositive[j].SplitAmt -= splitAmountBeingApplied;
-                    if (dictPaySplitAccountEntries.TryGetValue((string) listPayPlanChargeSplitsPositive[j].TagOD, out AccountEntry accountEntrySplitPositive))
+                    if (dictPaySplitAccountEntries.TryGetValue((string) listPayPlanChargeSplitsPositive[j].TagOD, out var accountEntrySplitPositive))
                     {
                         accountEntrySplitPositive.AmountEnd += (decimal) splitAmountBeingApplied;
                     }
@@ -1520,13 +1520,13 @@ public class PaymentEdit
             //Apply all positive splits that are explicitly linked to the PayPlanCharge. Generic payment plan splits will be applied to PayPlanCharges if there is anything left over.
             foreach (AccountEntry payPlanChargeEntry in listPayPlanEntries)
             {
-                List<PaySplit> listPayPlanChargeSplits = listPatProvClinicSplits.FindAll(x => CompareDecimal.IsGreaterThanZero(x.SplitAmt)
-                                                                                              && x.UnearnedType == 0
-                                                                                              && x.PayPlanNum == payPlanChargeEntry.PayPlanNum
-                                                                                              && x.PayPlanChargeNum == payPlanChargeEntry.PayPlanChargeNum)
+                var listPayPlanChargeSplits = listPatProvClinicSplits.FindAll(x => CompareDecimal.IsGreaterThanZero(x.SplitAmt)
+                                                                                   && x.UnearnedType == 0
+                                                                                   && x.PayPlanNum == payPlanChargeEntry.PayPlanNum
+                                                                                   && x.PayPlanChargeNum == payPlanChargeEntry.PayPlanChargeNum)
                     .OrderByDescending(x => x.ProcNum == payPlanChargeEntry.ProcNum && x.AdjNum == payPlanChargeEntry.AdjNum)
                     .ToList();
-                foreach (PaySplit payPlanChargeSplit in listPayPlanChargeSplits)
+                foreach (var payPlanChargeSplit in listPayPlanChargeSplits)
                 {
                     //Production that is associated to the split must match the production on the charge to be considered explicitly linked.
                     if (((payPlanChargeSplit.ProcNum > 0 || payPlanChargeSplit.AdjNum > 0)
@@ -1537,11 +1537,11 @@ public class PaymentEdit
                         continue;
                     }
 
-                    decimal splitAmt = Math.Min((decimal) payPlanChargeSplit.SplitAmt, payPlanChargeEntry.AmountEnd);
+                    var splitAmt = Math.Min((decimal) payPlanChargeSplit.SplitAmt, payPlanChargeEntry.AmountEnd);
                     payPlanChargeEntry.AmountEnd -= splitAmt;
                     payPlanChargeEntry.SplitCollection.Add(payPlanChargeSplit.Copy()); //take copy so we can get amtPaid without overwriting.
                     payPlanChargeSplit.SplitAmt -= (double) splitAmt;
-                    if (dictPaySplitAccountEntries.TryGetValue((string) payPlanChargeSplit.TagOD, out AccountEntry splitEntry))
+                    if (dictPaySplitAccountEntries.TryGetValue((string) payPlanChargeSplit.TagOD, out var splitEntry))
                     {
                         splitEntry.AmountEnd += splitAmt;
                     }
@@ -1551,12 +1551,12 @@ public class PaymentEdit
             //Do the same thing over but this time do it on a payment plan level (old splits won't always be explicitly linked to a PayPlanCharge).
             foreach (AccountEntry payPlanChargeEntry in listPayPlanEntries.Where(x => CompareDecimal.IsGreaterThanZero(x.AmountEnd)))
             {
-                List<PaySplit> listPayPlanSplits = listPatProvClinicSplits.FindAll(x => CompareDecimal.IsGreaterThanZero(x.SplitAmt)
-                                                                                        && x.UnearnedType == 0
-                                                                                        && x.PayPlanNum == payPlanChargeEntry.PayPlanNum);
-                foreach (PaySplit payPlanSplit in listPayPlanSplits)
+                var listPayPlanSplits = listPatProvClinicSplits.FindAll(x => CompareDecimal.IsGreaterThanZero(x.SplitAmt)
+                                                                             && x.UnearnedType == 0
+                                                                             && x.PayPlanNum == payPlanChargeEntry.PayPlanNum);
+                foreach (var payPlanSplit in listPayPlanSplits)
                 {
-                    decimal splitAmt = Math.Min((decimal) payPlanSplit.SplitAmt, payPlanChargeEntry.AmountEnd);
+                    var splitAmt = Math.Min((decimal) payPlanSplit.SplitAmt, payPlanChargeEntry.AmountEnd);
                     if (CompareDecimal.IsZero(splitAmt))
                     {
                         break;
@@ -1572,7 +1572,7 @@ public class PaymentEdit
                     payPlanChargeEntry.AmountEnd -= splitAmt;
                     payPlanChargeEntry.SplitCollection.Add(payPlanSplit.Copy()); //take copy so we can get amtPaid without overwriting.
                     payPlanSplit.SplitAmt -= (double) splitAmt;
-                    if (dictPaySplitAccountEntries.TryGetValue((string) payPlanSplit.TagOD, out AccountEntry splitEntry))
+                    if (dictPaySplitAccountEntries.TryGetValue((string) payPlanSplit.TagOD, out var splitEntry))
                     {
                         splitEntry.AmountEnd += splitAmt;
                     }
@@ -1583,39 +1583,39 @@ public class PaymentEdit
 
             #region Adjustment
 
-            List<PaySplit> listPaySplits = listPatProvClinicSplits.FindAll(x => x.PayPlanNum == 0 && !CompareDouble.IsZero(x.SplitAmt));
-            List<AdjustmentSplitGroup> listAdjustmentSplitGroups = listPaySplits.FindAll(x => x.AdjNum > 0)
+            var listPaySplits = listPatProvClinicSplits.FindAll(x => x.PayPlanNum == 0 && !CompareDouble.IsZero(x.SplitAmt));
+            var listAdjustmentSplitGroups = listPaySplits.FindAll(x => x.AdjNum > 0)
                 .GroupBy(x => x.AdjNum)
                 .ToDictionary(x => x.Key, x => x.ToList())
                 .Select(x => new AdjustmentSplitGroup() {AdjNum = x.Key, ListPaySplits = x.Value})
                 .ToList();
-            List<ProcedureSplitGroup> listProcedureSplitGroups = listPaySplits.FindAll(x => x.ProcNum > 0)
+            var listProcedureSplitGroups = listPaySplits.FindAll(x => x.ProcNum > 0)
                 .GroupBy(x => x.ProcNum)
                 .ToDictionary(x => x.Key, x => x.ToList())
                 .Select(x => new ProcedureSplitGroup() {ProcNum = x.Key, ListPaySplits = x.Value})
                 .ToList();
-            foreach (AccountEntry adjEntry in listAdjEntries)
+            foreach (var adjEntry in listAdjEntries)
             {
                 List<PaySplit> listAdjSplits = [];
-                AdjustmentSplitGroup adjustmentSplitGroup = listAdjustmentSplitGroups.FirstOrDefault(x => x.AdjNum == adjEntry.AdjNum);
+                var adjustmentSplitGroup = listAdjustmentSplitGroups.FirstOrDefault(x => x.AdjNum == adjEntry.AdjNum);
                 if (adjustmentSplitGroup != null)
                 {
                     listAdjSplits.AddRange(adjustmentSplitGroup.ListPaySplits);
                 }
 
-                ProcedureSplitGroup procedureSplitGroup = listProcedureSplitGroups.FirstOrDefault(x => x.ProcNum == adjEntry.ProcNum);
+                var procedureSplitGroup = listProcedureSplitGroups.FirstOrDefault(x => x.ProcNum == adjEntry.ProcNum);
                 if (procedureSplitGroup != null)
                 {
                     listAdjSplits.AddRange(procedureSplitGroup.ListPaySplits);
                 }
 
-                foreach (PaySplit adjSplit in listAdjSplits.Distinct())
+                foreach (var adjSplit in listAdjSplits.Distinct())
                 {
-                    decimal splitAmt = (decimal) adjSplit.SplitAmt; //Overpayment on procedures is handled later
+                    var splitAmt = (decimal) adjSplit.SplitAmt; //Overpayment on procedures is handled later
                     adjEntry.AmountEnd -= splitAmt;
                     adjEntry.SplitCollection.Add(adjSplit.Copy()); //take copy so we can get amtPaid without overwriting.
                     adjSplit.SplitAmt -= (double) splitAmt;
-                    if (dictPaySplitAccountEntries.TryGetValue((string) adjSplit.TagOD, out AccountEntry splitEntry))
+                    if (dictPaySplitAccountEntries.TryGetValue((string) adjSplit.TagOD, out var splitEntry))
                     {
                         splitEntry.AmountEnd += splitAmt;
                     }
@@ -1628,9 +1628,9 @@ public class PaymentEdit
         #region Insurance Overpayments
 
         //Insurance overpayments should not be transferred around. The user needs to be warned to manually handle this scenario themselves.
-        List<AccountEntry> listInsProcEntries = listExplicitAccountCharges.FindAll(x => x.GetType() == typeof(Procedure) && x.InsPayAmt > 0);
+        var listInsProcEntries = listExplicitAccountCharges.FindAll(x => x.GetType() == typeof(Procedure) && x.InsPayAmt > 0);
         //However, allow ZZZFIX procedures to have insurance payments transferred around since they are conversion related.
-        ProcedureCode codeZZZFIX = ProcedureCodes.GetFirstOrDefault(x => x.ProcCode == "ZZZFIX");
+        var codeZZZFIX = ProcedureCodes.GetFirstOrDefault(x => x.ProcCode == "ZZZFIX");
         if (codeZZZFIX != null)
         {
             listInsProcEntries.RemoveAll(x => ((Procedure) x.Tag).CodeNum == codeZZZFIX.CodeNum);
@@ -1643,10 +1643,10 @@ public class PaymentEdit
         }
 
         //Find adjustments linked to a procedure that are not associated with a payment plan and have a non-zero amount.
-        List<AccountEntry> listAccountEntriesImplicitAdj = listExplicitAccountCharges.FindAll(x => x.GetType() == typeof(Adjustment) && x.ProcNum != 0 && x.PayPlanNum == 0 && x.AmountEnd != 0);
-        foreach (AccountEntry accountEntryInsProc in listInsProcEntries)
+        var listAccountEntriesImplicitAdj = listExplicitAccountCharges.FindAll(x => x.GetType() == typeof(Adjustment) && x.ProcNum != 0 && x.PayPlanNum == 0 && x.AmountEnd != 0);
+        foreach (var accountEntryInsProc in listInsProcEntries)
         {
-            decimal amountAfterIns = AccountEntry.GetExplicitlyLinkedProcAmt(accountEntryInsProc);
+            var amountAfterIns = AccountEntry.GetExplicitlyLinkedProcAmt(accountEntryInsProc);
             if (amountAfterIns >= 0)
             {
                 //Insurance has not overpaid the procedure fee itself so no need to check explicitly linked amounts.
@@ -1672,18 +1672,18 @@ public class PaymentEdit
 
             accountEntryInsProc.WarningMsg.AppendLine($"  ^PayPlan Credits: {sumPrincipalApplied:C}");
             accountEntryInsProc.WarningMsg.AppendLine($"  ^InsPayAmt: {accountEntryInsProc.InsPayAmt:C}");
-            decimal sumSplitAmt = accountEntryInsProc.SplitCollection.Sum(x => (decimal) x.SplitAmt);
+            var sumSplitAmt = accountEntryInsProc.SplitCollection.Sum(x => (decimal) x.SplitAmt);
             accountEntryInsProc.WarningMsg.AppendLine($"  ^PatPayAmt: {sumSplitAmt:C}");
             //Only allow up to the patient payment amount to be transferred around.
-            decimal amountOverpaid = Math.Abs(accountEntryInsProc.AmountEnd);
-            decimal amountTransferable = Math.Min(sumSplitAmt, amountOverpaid);
+            var amountOverpaid = Math.Abs(accountEntryInsProc.AmountEnd);
+            var amountTransferable = Math.Min(sumSplitAmt, amountOverpaid);
             accountEntryInsProc.WarningMsg.AppendLine($"  ^Overpayment: {amountOverpaid:C}");
             accountEntryInsProc.WarningMsg.AppendLine($"  ^Transferable PatPayAmt: {amountTransferable:C}");
             //Spell out the real problem; the following amount of income will be ignored.
-            decimal sumIgnoredInsuranceOverpayment = (amountOverpaid - amountTransferable);
+            var sumIgnoredInsuranceOverpayment = (amountOverpaid - amountTransferable);
             accountEntryInsProc.WarningMsg.AppendLine($"  ^Ignored insurance overpayment: {sumIgnoredInsuranceOverpayment:C}");
             //Sum up any mismatched adjustments that don't offset the procedure fee.
-            decimal sumImplicitAdjustmentEntries = listAccountEntriesImplicitAdj
+            var sumImplicitAdjustmentEntries = listAccountEntriesImplicitAdj
                 .FindAll(x => x.ProcNum == accountEntryInsProc.ProcNum)
                 .Sum(x => x.AmountEnd);
             if (sumImplicitAdjustmentEntries != 0)
@@ -1704,12 +1704,12 @@ public class PaymentEdit
         //Positive and negative unattached adjustments should offset each other if the 'AdjustmentsOffsetEachOther' preference says so.
         if (hasOffsettingAdjustmets && PrefC.GetBool(PrefName.AdjustmentsOffsetEachOther))
         {
-            List<AccountEntry> listUnattachedAdjustmentEntries = listExplicitAccountCharges.FindAll(x => x.AdjNum > 0
-                                                                                                         && x.PayPlanNum == 0
-                                                                                                         && x.ProcNum == 0
-                                                                                                         && x.GetType() == typeof(Adjustment));
-            List<AccountEntry> listPositiveUnattachedAdjustmentEntries = listUnattachedAdjustmentEntries.FindAll(x => CompareDecimal.IsGreaterThanZero(x.AmountEnd));
-            List<AccountEntry> listNegativeUnattachedAdjustmentEntries = listUnattachedAdjustmentEntries.FindAll(x => CompareDecimal.IsLessThanZero(x.AmountEnd));
+            var listUnattachedAdjustmentEntries = listExplicitAccountCharges.FindAll(x => x.AdjNum > 0
+                                                                                          && x.PayPlanNum == 0
+                                                                                          && x.ProcNum == 0
+                                                                                          && x.GetType() == typeof(Adjustment));
+            var listPositiveUnattachedAdjustmentEntries = listUnattachedAdjustmentEntries.FindAll(x => CompareDecimal.IsGreaterThanZero(x.AmountEnd));
+            var listNegativeUnattachedAdjustmentEntries = listUnattachedAdjustmentEntries.FindAll(x => CompareDecimal.IsLessThanZero(x.AmountEnd));
             ExplicitlyLinkPositiveNegativeEntries(ref listPositiveUnattachedAdjustmentEntries, ref listNegativeUnattachedAdjustmentEntries);
         }
 
@@ -1720,28 +1720,28 @@ public class PaymentEdit
 
     private static List<AccountEntry> ExplicitlyLinkUnearnedTogether(List<AccountEntry> listAccountCharges)
     {
-        List<AccountEntry> listUnearned = listAccountCharges.FindAll(x => x.IsUnearned);
+        var listUnearned = listAccountCharges.FindAll(x => x.IsUnearned);
         //Prefer to link unearned that is attached to the same payment plan together first.
-        Dictionary<long, List<AccountEntry>> dictPayPlanEntries = listUnearned.GroupBy(x => x.PayPlanNum).ToDictionary(x => x.Key, x => x.ToList());
-        foreach (long payPlanNum in dictPayPlanEntries.Keys)
+        var dictPayPlanEntries = listUnearned.GroupBy(x => x.PayPlanNum).ToDictionary(x => x.Key, x => x.ToList());
+        foreach (var payPlanNum in dictPayPlanEntries.Keys)
         {
-            List<AccountEntry> listPositiveUnearnedPP = dictPayPlanEntries[payPlanNum].FindAll(x => CompareDecimal.IsGreaterThanZero(x.AmountEnd));
-            List<AccountEntry> listNegativeUnearnedPP = dictPayPlanEntries[payPlanNum].FindAll(x => CompareDecimal.IsLessThanZero(x.AmountEnd));
+            var listPositiveUnearnedPP = dictPayPlanEntries[payPlanNum].FindAll(x => CompareDecimal.IsGreaterThanZero(x.AmountEnd));
+            var listNegativeUnearnedPP = dictPayPlanEntries[payPlanNum].FindAll(x => CompareDecimal.IsLessThanZero(x.AmountEnd));
             ExplicitlyLinkPositiveNegativeEntries(ref listPositiveUnearnedPP, ref listNegativeUnearnedPP);
         }
 
         //After both regular and payment plan unearned splits have been considered separately, lump them all together.
-        List<AccountEntry> listPositiveUnearned = listUnearned.FindAll(x => CompareDecimal.IsGreaterThanZero(x.AmountEnd));
-        List<AccountEntry> listNegativeUnearned = listUnearned.FindAll(x => CompareDecimal.IsLessThanZero(x.AmountEnd));
+        var listPositiveUnearned = listUnearned.FindAll(x => CompareDecimal.IsGreaterThanZero(x.AmountEnd));
+        var listNegativeUnearned = listUnearned.FindAll(x => CompareDecimal.IsLessThanZero(x.AmountEnd));
         ExplicitlyLinkPositiveNegativeEntries(ref listPositiveUnearned, ref listNegativeUnearned);
         return listAccountCharges;
     }
 
     private static void ExplicitlyLinkPositiveNegativeEntries(ref List<AccountEntry> listPositiveEntries, ref List<AccountEntry> listNegativeEntries)
     {
-        foreach (AccountEntry positiveEntry in listPositiveEntries)
+        foreach (var positiveEntry in listPositiveEntries)
         {
-            foreach (AccountEntry negativeEntry in listNegativeEntries)
+            foreach (var negativeEntry in listNegativeEntries)
             {
                 if (CompareDecimal.IsLessThanOrEqualToZero(positiveEntry.AmountEnd))
                 {
@@ -1756,7 +1756,7 @@ public class PaymentEdit
                     continue;
                 }
 
-                decimal amount = Math.Min(Math.Abs(positiveEntry.AmountEnd), Math.Abs(negativeEntry.AmountEnd));
+                var amount = Math.Min(Math.Abs(positiveEntry.AmountEnd), Math.Abs(negativeEntry.AmountEnd));
                 positiveEntry.AmountEnd -= amount;
                 negativeEntry.AmountEnd += amount;
             }
@@ -1772,9 +1772,9 @@ public class PaymentEdit
         }
 
         //Make a deep copy of all splits because the SplitAmt will get directly manipulated within implicit linking processing.
-        List<PaySplit> listSplitsCopied = listPaySplits.Select(x => x.Copy()).ToList();
+        var listSplitsCopied = listPaySplits.Select(x => x.Copy()).ToList();
         //Create a list of account entries that ignore TP procs as they should never be implicitly paid.
-        List<AccountEntry> listImplicitCharges = new List<AccountEntry>(listAccountCharges);
+        var listImplicitCharges = new List<AccountEntry>(listAccountCharges);
         //Never auto split to treatment planned entries
         listImplicitCharges.RemoveAll(x => x.GetType() == typeof(Procedure) && ((Procedure) x.Tag).ProcStatus == ProcStat.TP);
         //Remove every unearned and unallocated split and entry when executing implicit linking for the AllocateUnearned system.
@@ -1810,8 +1810,8 @@ public class PaymentEdit
                 continue;
             }
 
-            List<ImplicitLinkBucket> listBuckets = CreateImplicitLinkBucketsForLayer(layer, listInsPayAsTotal, listSplitsCopied, listImplicitCharges);
-            foreach (ImplicitLinkBucket bucket in listBuckets)
+            var listBuckets = CreateImplicitLinkBucketsForLayer(layer, listInsPayAsTotal, listSplitsCopied, listImplicitCharges);
+            foreach (var bucket in listBuckets)
             {
                 ProcessImplicitLinkBucket(bucket);
             }
@@ -1830,7 +1830,7 @@ public class PaymentEdit
             listAccountCharges = listAccountCharges.OrderBy(x => x.PatNum != patNum).ThenBy(x => x.Date).ToList();
         }
 
-        PayResults implicitCredits = new PayResults();
+        var implicitCredits = new PayResults();
         implicitCredits.ListAccountCharges = listAccountCharges;
         implicitCredits.ListSplitsCur = listSplitsCur;
         return implicitCredits;
@@ -1838,33 +1838,33 @@ public class PaymentEdit
 
     private static void BalancePaymentPlanSplits(ref List<PaySplit> listPaySplits)
     {
-        bool hasChanges = false;
-        List<PayPlanSplitGroup> listPayPlanSplitGroups = listPaySplits.Where(x => x.PayPlanNum > 0)
+        var hasChanges = false;
+        var listPayPlanSplitGroups = listPaySplits.Where(x => x.PayPlanNum > 0)
             .GroupBy(x => x.PayPlanNum)
             .Select(x => new PayPlanSplitGroup() {PayPlanNum = x.Key, ListPaySplits = x.ToList()})
             .ToList();
-        for (int i = 0; i < listPayPlanSplitGroups.Count; i++)
+        for (var i = 0; i < listPayPlanSplitGroups.Count; i++)
         {
-            List<PaySplit> listPaySplitsPositive = listPayPlanSplitGroups[i].ListPaySplits.FindAll(x => CompareDecimal.IsGreaterThanZero(x.SplitAmt))
+            var listPaySplitsPositive = listPayPlanSplitGroups[i].ListPaySplits.FindAll(x => CompareDecimal.IsGreaterThanZero(x.SplitAmt))
                 //The below OrderBys are designed to ensure that credits of a given type are applied to debits of the same type.
                 .OrderBy(x => x.PayPlanDebitType == PayPlanDebitTypes.Interest) //We should always apply Interest first
                 .OrderBy(x => x.PayPlanDebitType == PayPlanDebitTypes.Principal) //Principal should be handled before Unknown
                 .OrderBy(x => x.PayPlanDebitType == PayPlanDebitTypes.Unknown)
                 .ToList();
-            List<PaySplit> listPaySplitsNegative = listPayPlanSplitGroups[i].ListPaySplits.FindAll(x => CompareDouble.IsLessThanZero(x.SplitAmt))
+            var listPaySplitsNegative = listPayPlanSplitGroups[i].ListPaySplits.FindAll(x => CompareDouble.IsLessThanZero(x.SplitAmt))
                 //The below OrderBys are designed to ensure that credits of a given type are applied to debits of the same type.
                 .OrderBy(x => x.PayPlanDebitType == PayPlanDebitTypes.Interest) //We should always apply Interest first
                 .OrderBy(x => x.PayPlanDebitType == PayPlanDebitTypes.Principal) //Principal should be handled before Unknown
                 .OrderBy(x => x.PayPlanDebitType == PayPlanDebitTypes.Unknown)
                 .ToList();
-            for (int j = 0; j < listPaySplitsPositive.Count; j++)
+            for (var j = 0; j < listPaySplitsPositive.Count; j++)
             {
                 if (CompareDouble.IsLessThanOrEqualToZero(listPaySplitsPositive[j].SplitAmt))
                 {
                     continue;
                 }
 
-                for (int k = 0; k < listPaySplitsNegative.Count; k++)
+                for (var k = 0; k < listPaySplitsNegative.Count; k++)
                 {
                     if (CompareDouble.IsLessThanOrEqualToZero(listPaySplitsPositive[j].SplitAmt))
                     {
@@ -1877,7 +1877,7 @@ public class PaymentEdit
                     }
 
                     hasChanges = true;
-                    double amountTxfr = Math.Min(Math.Abs(listPaySplitsPositive[j].SplitAmt), Math.Abs(listPaySplitsNegative[k].SplitAmt));
+                    var amountTxfr = Math.Min(Math.Abs(listPaySplitsPositive[j].SplitAmt), Math.Abs(listPaySplitsNegative[k].SplitAmt));
                     listPaySplitsPositive[j].SplitAmt -= amountTxfr;
                     listPaySplitsNegative[k].SplitAmt += amountTxfr;
                 }
@@ -1890,96 +1890,96 @@ public class PaymentEdit
         switch (layer)
         {
             case AccountBalancingLayers.ProvPatClinic:
-                List<ImplicitLinkBucket> listProvPatClinicBuckets = listAccountEntries.GroupBy(x => new {x.ProvNum, x.PatNum, x.ClinicNum})
+                var listProvPatClinicBuckets = listAccountEntries.GroupBy(x => new {x.ProvNum, x.PatNum, x.ClinicNum})
                     .ToDictionary(x => x.Key, x => x.ToList())
                     .Select(x => new ImplicitLinkBucket(x.Value))
                     .ToList();
-                foreach (ImplicitLinkBucket bucketProvPatClinic in listProvPatClinicBuckets)
+                foreach (var bucketProvPatClinic in listProvPatClinicBuckets)
                 {
-                    long patNum = bucketProvPatClinic.ListAccountEntries.First().PatNum;
-                    long provNum = bucketProvPatClinic.ListAccountEntries.First().ProvNum;
-                    long clinicNum = bucketProvPatClinic.ListAccountEntries.First().ClinicNum;
+                    var patNum = bucketProvPatClinic.ListAccountEntries.First().PatNum;
+                    var provNum = bucketProvPatClinic.ListAccountEntries.First().ProvNum;
+                    var clinicNum = bucketProvPatClinic.ListAccountEntries.First().ClinicNum;
                     bucketProvPatClinic.ListInsPayAsTotal = listInsPayAsTotal.FindAll(x => x.PatNum == patNum && x.ProvNum == provNum && x.ClinicNum == clinicNum);
                     bucketProvPatClinic.ListPaySplits = listPaySplits.FindAll(x => x.PatNum == patNum && x.ProvNum == provNum && x.ClinicNum == clinicNum);
                 }
 
                 return listProvPatClinicBuckets;
             case AccountBalancingLayers.ProvPat:
-                List<ImplicitLinkBucket> listProvPatBuckets = listAccountEntries.GroupBy(x => new {x.ProvNum, x.PatNum})
+                var listProvPatBuckets = listAccountEntries.GroupBy(x => new {x.ProvNum, x.PatNum})
                     .ToDictionary(x => x.Key, x => x.ToList())
                     .Select(x => new ImplicitLinkBucket(x.Value))
                     .ToList();
-                foreach (ImplicitLinkBucket bucketProvPat in listProvPatBuckets)
+                foreach (var bucketProvPat in listProvPatBuckets)
                 {
-                    long patNum = bucketProvPat.ListAccountEntries.First().PatNum;
-                    long provNum = bucketProvPat.ListAccountEntries.First().ProvNum;
+                    var patNum = bucketProvPat.ListAccountEntries.First().PatNum;
+                    var provNum = bucketProvPat.ListAccountEntries.First().ProvNum;
                     bucketProvPat.ListInsPayAsTotal = listInsPayAsTotal.FindAll(x => x.PatNum == patNum && x.ProvNum == provNum);
                     bucketProvPat.ListPaySplits = listPaySplits.FindAll(x => x.PatNum == patNum && x.ProvNum == provNum);
                 }
 
                 return listProvPatBuckets;
             case AccountBalancingLayers.ProvClinic:
-                List<ImplicitLinkBucket> listProvClinicBuckets = listAccountEntries.GroupBy(x => new {x.ProvNum, x.ClinicNum})
+                var listProvClinicBuckets = listAccountEntries.GroupBy(x => new {x.ProvNum, x.ClinicNum})
                     .ToDictionary(x => x.Key, x => x.ToList())
                     .Select(x => new ImplicitLinkBucket(x.Value))
                     .ToList();
-                foreach (ImplicitLinkBucket bucketProvClinic in listProvClinicBuckets)
+                foreach (var bucketProvClinic in listProvClinicBuckets)
                 {
-                    long provNum = bucketProvClinic.ListAccountEntries.First().ProvNum;
-                    long clinicNum = bucketProvClinic.ListAccountEntries.First().ClinicNum;
+                    var provNum = bucketProvClinic.ListAccountEntries.First().ProvNum;
+                    var clinicNum = bucketProvClinic.ListAccountEntries.First().ClinicNum;
                     bucketProvClinic.ListInsPayAsTotal = listInsPayAsTotal.FindAll(x => x.ProvNum == provNum && x.ClinicNum == clinicNum);
                     bucketProvClinic.ListPaySplits = listPaySplits.FindAll(x => x.ProvNum == provNum && x.ClinicNum == clinicNum);
                 }
 
                 return listProvClinicBuckets;
             case AccountBalancingLayers.PatClinic:
-                List<ImplicitLinkBucket> listPatClinicBuckets = listAccountEntries.GroupBy(x => new {x.PatNum, x.ClinicNum})
+                var listPatClinicBuckets = listAccountEntries.GroupBy(x => new {x.PatNum, x.ClinicNum})
                     .ToDictionary(x => x.Key, x => x.ToList())
                     .Select(x => new ImplicitLinkBucket(x.Value))
                     .ToList();
-                foreach (ImplicitLinkBucket bucketPatClinic in listPatClinicBuckets)
+                foreach (var bucketPatClinic in listPatClinicBuckets)
                 {
-                    long patNum = bucketPatClinic.ListAccountEntries.First().PatNum;
-                    long clinicNum = bucketPatClinic.ListAccountEntries.First().ClinicNum;
+                    var patNum = bucketPatClinic.ListAccountEntries.First().PatNum;
+                    var clinicNum = bucketPatClinic.ListAccountEntries.First().ClinicNum;
                     bucketPatClinic.ListInsPayAsTotal = listInsPayAsTotal.FindAll(x => x.PatNum == patNum && x.ClinicNum == clinicNum);
                     bucketPatClinic.ListPaySplits = listPaySplits.FindAll(x => x.PatNum == patNum && x.ClinicNum == clinicNum);
                 }
 
                 return listPatClinicBuckets;
             case AccountBalancingLayers.Prov:
-                List<ImplicitLinkBucket> listProvBuckets = listAccountEntries.GroupBy(x => new {x.ProvNum})
+                var listProvBuckets = listAccountEntries.GroupBy(x => new {x.ProvNum})
                     .ToDictionary(x => x.Key, x => x.ToList())
                     .Select(x => new ImplicitLinkBucket(x.Value))
                     .ToList();
-                foreach (ImplicitLinkBucket bucketProv in listProvBuckets)
+                foreach (var bucketProv in listProvBuckets)
                 {
-                    long provNum = bucketProv.ListAccountEntries.First().ProvNum;
+                    var provNum = bucketProv.ListAccountEntries.First().ProvNum;
                     bucketProv.ListInsPayAsTotal = listInsPayAsTotal.FindAll(x => x.ProvNum == provNum);
                     bucketProv.ListPaySplits = listPaySplits.FindAll(x => x.ProvNum == provNum);
                 }
 
                 return listProvBuckets;
             case AccountBalancingLayers.Pat:
-                List<ImplicitLinkBucket> listPatBuckets = listAccountEntries.GroupBy(x => new {x.PatNum})
+                var listPatBuckets = listAccountEntries.GroupBy(x => new {x.PatNum})
                     .ToDictionary(x => x.Key, x => x.ToList())
                     .Select(x => new ImplicitLinkBucket(x.Value))
                     .ToList();
-                foreach (ImplicitLinkBucket bucketPat in listPatBuckets)
+                foreach (var bucketPat in listPatBuckets)
                 {
-                    long patNum = bucketPat.ListAccountEntries.First().PatNum;
+                    var patNum = bucketPat.ListAccountEntries.First().PatNum;
                     bucketPat.ListInsPayAsTotal = listInsPayAsTotal.FindAll(x => x.PatNum == patNum);
                     bucketPat.ListPaySplits = listPaySplits.FindAll(x => x.PatNum == patNum);
                 }
 
                 return listPatBuckets;
             case AccountBalancingLayers.Clinic:
-                List<ImplicitLinkBucket> listClinicBuckets = listAccountEntries.GroupBy(x => new {x.ClinicNum})
+                var listClinicBuckets = listAccountEntries.GroupBy(x => new {x.ClinicNum})
                     .ToDictionary(x => x.Key, x => x.ToList())
                     .Select(x => new ImplicitLinkBucket(x.Value))
                     .ToList();
-                foreach (ImplicitLinkBucket bucketClinic in listClinicBuckets)
+                foreach (var bucketClinic in listClinicBuckets)
                 {
-                    long clinicNum = bucketClinic.ListAccountEntries.First().ClinicNum;
+                    var clinicNum = bucketClinic.ListAccountEntries.First().ClinicNum;
                     bucketClinic.ListInsPayAsTotal = listInsPayAsTotal.FindAll(x => x.ClinicNum == clinicNum);
                     bucketClinic.ListPaySplits = listPaySplits.FindAll(x => x.ClinicNum == clinicNum);
                 }
@@ -1987,7 +1987,7 @@ public class PaymentEdit
                 return listClinicBuckets;
             case AccountBalancingLayers.Nothing:
                 //Create a single bucket to hold all entities:
-                ImplicitLinkBucket bucket = new ImplicitLinkBucket(listAccountEntries);
+                var bucket = new ImplicitLinkBucket(listAccountEntries);
                 bucket.ListInsPayAsTotal = listInsPayAsTotal;
                 bucket.ListPaySplits = listPaySplits;
                 return [bucket];
@@ -2001,7 +2001,7 @@ public class PaymentEdit
     {
         #region PayAsTotal
 
-        foreach (PayAsTotal payAsTotal in bucket.ListInsPayAsTotal)
+        foreach (var payAsTotal in bucket.ListInsPayAsTotal)
         {
             //Use claim payments by total to pay off procedures for that specific patient.
             if (payAsTotal.SummedInsPayAmt == 0)
@@ -2009,7 +2009,7 @@ public class PaymentEdit
                 continue;
             }
 
-            foreach (AccountEntry accountEntry in bucket.ListAccountEntries)
+            foreach (var accountEntry in bucket.ListAccountEntries)
             {
                 if (payAsTotal.SummedInsPayAmt == 0)
                 {
@@ -2026,7 +2026,7 @@ public class PaymentEdit
                     continue;
                 }
 
-                double amt = Math.Min((double) accountEntry.AmountEnd, payAsTotal.SummedInsPayAmt);
+                var amt = Math.Min((double) accountEntry.AmountEnd, payAsTotal.SummedInsPayAmt);
                 accountEntry.AmountEnd -= (decimal) amt;
                 payAsTotal.SummedInsPayAmt -= amt;
             }
@@ -2036,18 +2036,18 @@ public class PaymentEdit
 
         #region PaySplits
 
-        List<long> listHiddenUnearnedDefNums = Defs.GetDefsForCategory(DefCat.PaySplitUnearnedType)
+        var listHiddenUnearnedDefNums = Defs.GetDefsForCategory(DefCat.PaySplitUnearnedType)
             .FindAll(x => !string.IsNullOrEmpty(x.ItemValue)) //If ItemValue is not blank, it means "do not show on account"
             .Select(x => x.DefNum).ToList();
-        List<PaySplit> listLinkableSplits = bucket.ListPaySplits.FindAll(x => !listHiddenUnearnedDefNums.Contains(x.UnearnedType));
-        List<PaySplit> listLinkablePosSplits = listLinkableSplits.FindAll(x => CompareDecimal.IsGreaterThanZero(x.SplitAmt));
-        List<PaySplit> listLinkableNegSplits = listLinkableSplits.FindAll(x => CompareDouble.IsLessThanZero(x.SplitAmt));
+        var listLinkableSplits = bucket.ListPaySplits.FindAll(x => !listHiddenUnearnedDefNums.Contains(x.UnearnedType));
+        var listLinkablePosSplits = listLinkableSplits.FindAll(x => CompareDecimal.IsGreaterThanZero(x.SplitAmt));
+        var listLinkableNegSplits = listLinkableSplits.FindAll(x => CompareDouble.IsLessThanZero(x.SplitAmt));
 
         #region Payment Plans
 
-        foreach (PaySplit split in listLinkablePosSplits.FindAll(x => x.PayPlanNum > 0))
+        foreach (var split in listLinkablePosSplits.FindAll(x => x.PayPlanNum > 0))
         {
-            foreach (AccountEntry accountEntry in bucket.ListAccountEntries.FindAll(x => x.PayPlanNum == split.PayPlanNum))
+            foreach (var accountEntry in bucket.ListAccountEntries.FindAll(x => x.PayPlanNum == split.PayPlanNum))
             {
                 if (CompareDouble.IsZero(split.SplitAmt))
                 {
@@ -2064,7 +2064,7 @@ public class PaymentEdit
                     continue; //we do not implicitly link to TP procedures
                 }
 
-                double amt = Math.Min((double) accountEntry.AmountEnd, split.SplitAmt);
+                var amt = Math.Min((double) accountEntry.AmountEnd, split.SplitAmt);
                 //Manipulate the amounts but do not officially link this split to the accountEntry (via SplitCollection) since it is not explicitly linked.
                 accountEntry.AmountEnd -= (decimal) amt;
                 split.SplitAmt -= amt;
@@ -2076,14 +2076,14 @@ public class PaymentEdit
         #region Non-Payment Plans
 
         //Loop through any negative pay splits and offset their value with any other positive pay split within this bucket.
-        foreach (PaySplit positiveSplit in listLinkablePosSplits.FindAll(x => x.PayPlanNum == 0))
+        foreach (var positiveSplit in listLinkablePosSplits.FindAll(x => x.PayPlanNum == 0))
         {
             if (CompareDouble.IsLessThanOrEqualToZero(positiveSplit.SplitAmt))
             {
                 continue;
             }
 
-            foreach (PaySplit negativeSplit in listLinkableNegSplits.FindAll(x => x.PayPlanNum == 0))
+            foreach (var negativeSplit in listLinkableNegSplits.FindAll(x => x.PayPlanNum == 0))
             {
                 if (CompareDouble.IsLessThanOrEqualToZero(positiveSplit.SplitAmt))
                 {
@@ -2095,21 +2095,21 @@ public class PaymentEdit
                     continue;
                 }
 
-                double amountTxfr = Math.Min(Math.Abs(positiveSplit.SplitAmt), Math.Abs(negativeSplit.SplitAmt));
+                var amountTxfr = Math.Min(Math.Abs(positiveSplit.SplitAmt), Math.Abs(negativeSplit.SplitAmt));
                 positiveSplit.SplitAmt -= amountTxfr;
                 negativeSplit.SplitAmt += amountTxfr;
             }
         }
 
         //Distribute any splits that still have a positive SplitAmt remaining (after negating the negative splits above).
-        foreach (PaySplit split in listLinkablePosSplits)
+        foreach (var split in listLinkablePosSplits)
         {
             if (CompareDouble.IsLessThanOrEqualToZero(split.SplitAmt))
             {
                 continue;
             }
 
-            foreach (AccountEntry accountEntry in bucket.ListAccountEntries)
+            foreach (var accountEntry in bucket.ListAccountEntries)
             {
                 if (CompareDouble.IsLessThanOrEqualToZero(split.SplitAmt))
                 {
@@ -2126,7 +2126,7 @@ public class PaymentEdit
                     continue; //we do not implicitly link to TP procedures
                 }
 
-                double amt = Math.Min((double) accountEntry.AmountEnd, split.SplitAmt);
+                var amt = Math.Min((double) accountEntry.AmountEnd, split.SplitAmt);
                 //Manipulate the amounts but do not officially link this split to the accountEntry (via SplitCollection) since it is not explicitly linked.
                 accountEntry.AmountEnd -= (decimal) amt;
                 split.SplitAmt -= amt;
@@ -2137,18 +2137,18 @@ public class PaymentEdit
         //Negative non-procedure adjustments are basically bookkeeping errors, courtesy discounts, or some sort of donation to the patient.
         //Negative paysplits are money going from the doctor/office back to the patient for similar reasons (usually done to correct errors).
         //It is completely acceptable to have these donations/corrections offset each other.
-        List<AccountEntry> listNegNonPayPlanAdjEntries = bucket.ListAccountEntries.FindAll(x => x.GetType() == typeof(Adjustment)
-                                                                                                && x.ProcNum == 0
-                                                                                                && x.PayPlanNum == 0
-                                                                                                && CompareDecimal.IsLessThanZero(x.AmountEnd));
-        foreach (PaySplit splitNeg in listLinkableNegSplits.FindAll(x => x.PayPlanNum == 0))
+        var listNegNonPayPlanAdjEntries = bucket.ListAccountEntries.FindAll(x => x.GetType() == typeof(Adjustment)
+                                                                                 && x.ProcNum == 0
+                                                                                 && x.PayPlanNum == 0
+                                                                                 && CompareDecimal.IsLessThanZero(x.AmountEnd));
+        foreach (var splitNeg in listLinkableNegSplits.FindAll(x => x.PayPlanNum == 0))
         {
             if (CompareDecimal.IsGreaterThanOrEqualToZero(splitNeg.SplitAmt))
             {
                 continue;
             }
 
-            foreach (AccountEntry accountEntryNeg in listNegNonPayPlanAdjEntries)
+            foreach (var accountEntryNeg in listNegNonPayPlanAdjEntries)
             {
                 if (CompareDecimal.IsGreaterThanOrEqualToZero(splitNeg.SplitAmt))
                 {
@@ -2160,7 +2160,7 @@ public class PaymentEdit
                     continue;
                 }
 
-                double amt = Math.Max((double) accountEntryNeg.AmountEnd, splitNeg.SplitAmt);
+                var amt = Math.Max((double) accountEntryNeg.AmountEnd, splitNeg.SplitAmt);
                 //Manipulate the amounts but do not officially link this split to the accountEntry (via SplitCollection) since it is not explicitly linked.
                 accountEntryNeg.AmountEnd -= (decimal) amt;
                 splitNeg.SplitAmt -= amt;
@@ -2174,11 +2174,11 @@ public class PaymentEdit
         #region Adjustments
 
         //Negative non-procedure adjustments need to remove value from positive procedures as accurately as possible.
-        List<AccountEntry> listNegAdjEntries = bucket.ListAccountEntries.FindAll(x => x.GetType() == typeof(Adjustment)
-                                                                                      && x.ProcNum == 0
-                                                                                      && CompareDecimal.IsLessThanZero(x.AmountEnd));
-        List<AccountEntry> listPosProcEntries = bucket.ListAccountEntries.FindAll(x => x.GetType() == typeof(Procedure)
-                                                                                       && CompareDecimal.IsGreaterThanZero(x.AmountEnd));
+        var listNegAdjEntries = bucket.ListAccountEntries.FindAll(x => x.GetType() == typeof(Adjustment)
+                                                                       && x.ProcNum == 0
+                                                                       && CompareDecimal.IsLessThanZero(x.AmountEnd));
+        var listPosProcEntries = bucket.ListAccountEntries.FindAll(x => x.GetType() == typeof(Procedure)
+                                                                        && CompareDecimal.IsGreaterThanZero(x.AmountEnd));
         List<AccountEntry> listAdjProcEntries = [];
         listAdjProcEntries.AddRange(listNegAdjEntries);
         listAdjProcEntries.AddRange(listPosProcEntries);
@@ -2188,19 +2188,19 @@ public class PaymentEdit
 
         //Negative non-procedure faux account entries (pay plan adjustments) need to remove value from positive faux account entries FIFO style.
         //Only consider ones that are not associated to an unearned type.  Those faux entries are designed for the transfer system, not linking system.
-        Dictionary<long, List<AccountEntry>> dictPayPlanNumNegAdjEntries = bucket.ListAccountEntries.FindAll(x => x.GetType() == typeof(FauxAccountEntry)
-                                                                                                                  && ((FauxAccountEntry) x.Tag).IsAdjustment
-                                                                                                                  && CompareDecimal.IsLessThanZero(x.AmountEnd)
-                                                                                                                  && !x.IsUnearned)
+        var dictPayPlanNumNegAdjEntries = bucket.ListAccountEntries.FindAll(x => x.GetType() == typeof(FauxAccountEntry)
+                                                                                 && ((FauxAccountEntry) x.Tag).IsAdjustment
+                                                                                 && CompareDecimal.IsLessThanZero(x.AmountEnd)
+                                                                                 && !x.IsUnearned)
             .GroupBy(x => x.PayPlanNum)
             .ToDictionary(x => x.Key, x => x.ToList());
-        foreach (long payPlanNum in dictPayPlanNumNegAdjEntries.Keys)
+        foreach (var payPlanNum in dictPayPlanNumNegAdjEntries.Keys)
         {
-            List<AccountEntry> listNegAdjFauxEntries = dictPayPlanNumNegAdjEntries[payPlanNum];
-            List<AccountEntry> listPosFauxEntries = bucket.ListAccountEntries.FindAll(x => x.GetType() == typeof(FauxAccountEntry)
-                                                                                           && CompareDecimal.IsGreaterThanZero(x.AmountEnd)
-                                                                                           && x.PayPlanNum == payPlanNum
-                                                                                           && !x.IsUnearned);
+            var listNegAdjFauxEntries = dictPayPlanNumNegAdjEntries[payPlanNum];
+            var listPosFauxEntries = bucket.ListAccountEntries.FindAll(x => x.GetType() == typeof(FauxAccountEntry)
+                                                                            && CompareDecimal.IsGreaterThanZero(x.AmountEnd)
+                                                                            && x.PayPlanNum == payPlanNum
+                                                                            && !x.IsUnearned);
             List<AccountEntry> listNegAdjPosFauxEntries = [];
             listNegAdjPosFauxEntries.AddRange(listNegAdjFauxEntries);
             listNegAdjPosFauxEntries.AddRange(listPosFauxEntries);
@@ -2225,14 +2225,14 @@ public class PaymentEdit
         }
 
         List<PaySplit> listPaySplits = [];
-        double amountRemaining = amountUnearned;
+        var amountRemaining = amountUnearned;
         //Perform explicit and implicit linking on the entire account and get the actual account entries that make up the current unearned bucket.
-        ConstructResults constructResults = ConstructAndLinkChargeCredits(fam.GetPatNums(), fam.Guarantor.PatNum, [], new Payment(),
+        var constructResults = ConstructAndLinkChargeCredits(fam.GetPatNums(), fam.Guarantor.PatNum, [], new Payment(),
             listAccountEntries, isIncomeTxfr: true, isAllocateUnearned: true);
         //The account entries passed in may not have had explicit linking executed on them so find the same entries from our results.
         //Allow allocating to account entries that are related by proxy (e.g. payment plan debits that are linked to procedures via credits).
         List<AccountEntry> listAllocateEntries = [];
-        for (int i = 0; i < listAccountEntries.Count; i++)
+        for (var i = 0; i < listAccountEntries.Count; i++)
         {
             if (listAccountEntries[i].ProcNum > 0)
             {
@@ -2264,7 +2264,7 @@ public class PaymentEdit
             listUnearnedEntries = constructResults.ListAccountEntries.FindAll(x => x.IsUnearned && CompareDecimal.IsLessThanOrEqualToZero(x.AmountEnd));
         }
 
-        foreach (AccountEntry accountEntry in listAllocateEntries.FindAll(x => CompareDecimal.IsGreaterThanZero(x.AmountEnd)))
+        foreach (var accountEntry in listAllocateEntries.FindAll(x => CompareDecimal.IsGreaterThanZero(x.AmountEnd)))
         {
             if (CompareDouble.IsLessThanOrEqualToZero(amountRemaining))
             {
@@ -2272,7 +2272,7 @@ public class PaymentEdit
             }
 
             //Prefer to pay account entries off via unearned from the corresponding provider prior to taking FIFO style.
-            foreach (AccountEntry unearnedEntry in listUnearnedEntries.OrderByDescending(x => x.ProvNum == accountEntry.ProvNum))
+            foreach (var unearnedEntry in listUnearnedEntries.OrderByDescending(x => x.ProvNum == accountEntry.ProvNum))
             {
                 if (CompareDouble.IsLessThanOrEqualToZero(amountRemaining) || CompareDecimal.IsLessThanOrEqualToZero(accountEntry.AmountEnd))
                 {
@@ -2284,7 +2284,7 @@ public class PaymentEdit
                     continue;
                 }
 
-                double amountToAllocate = Math.Min((double) Math.Abs(unearnedEntry.AmountEnd), (double) accountEntry.AmountEnd);
+                var amountToAllocate = Math.Min((double) Math.Abs(unearnedEntry.AmountEnd), (double) accountEntry.AmountEnd);
                 amountToAllocate = Math.Min(amountToAllocate, amountRemaining);
                 //Make a split that will offset a legitimate unearned account entry.
                 listPaySplits.Add(CreatePaySplitHelper(unearnedEntry, 0 - amountToAllocate, DateTime.Today, payNum: payNum, unearnedType: unearnedEntry.UnearnedType));
@@ -2297,9 +2297,9 @@ public class PaymentEdit
         }
 
         //Get the default unearned types and make as many splits as necessary in order to move amountRemaining from the 0 provider.
-        long unearnedTypePrepayment = PrefC.GetLong(PrefName.PrepaymentUnearnedType);
-        long unearnedTypeTP = PrefC.GetLong(PrefName.TpUnearnedType);
-        foreach (AccountEntry accountEntry in listAllocateEntries)
+        var unearnedTypePrepayment = PrefC.GetLong(PrefName.PrepaymentUnearnedType);
+        var unearnedTypeTP = PrefC.GetLong(PrefName.TpUnearnedType);
+        foreach (var accountEntry in listAllocateEntries)
         {
             if (CompareDouble.IsLessThanOrEqualToZero(amountRemaining))
             {
@@ -2311,13 +2311,13 @@ public class PaymentEdit
                 continue;
             }
 
-            long unearnedType = unearnedTypePrepayment;
+            var unearnedType = unearnedTypePrepayment;
             if (accountEntry.GetType() == typeof(Procedure) && ((Procedure) accountEntry.Tag).ProcStatus == ProcStat.TP)
             {
                 unearnedType = unearnedTypeTP;
             }
 
-            double amountToAllocate = Math.Min(amountRemaining, (double) accountEntry.AmountEnd);
+            var amountToAllocate = Math.Min(amountRemaining, (double) accountEntry.AmountEnd);
             //Always take from the default unearned payment type and the 0 / 'None' provider. The income transfer system will correct this later.
             //They simply want to see a singlular negative entry (or as few as possible) and an offsetting positive to wherever they chose.
             listPaySplits.Add(new PaySplit()
@@ -2346,17 +2346,17 @@ public class PaymentEdit
     {
         PayResults splitData = null;
         List<PaySplit> listPaySplits = [];
-        bool isPayAmtZeroUponEntering = CompareDouble.IsZero(payCur.PayAmt);
-        foreach (List<AccountEntry> listCharges in listSelectedCharges)
+        var isPayAmtZeroUponEntering = CompareDouble.IsZero(payCur.PayAmt);
+        foreach (var listCharges in listSelectedCharges)
         {
             if (!isPayAmtZeroUponEntering && CompareDouble.IsZero(payCur.PayAmt))
             {
                 break;
             }
 
-            foreach (AccountEntry charge in listCharges.FindAll(x => !CompareDecimal.IsZero(x.AmountEnd)))
+            foreach (var charge in listCharges.FindAll(x => !CompareDecimal.IsZero(x.AmountEnd)))
             {
-                decimal splitAmt = (isPayAmtZeroUponEntering ? charge.AmountEnd : (decimal) payCur.PayAmt);
+                var splitAmt = (isPayAmtZeroUponEntering ? charge.AmountEnd : (decimal) payCur.PayAmt);
                 if (!isPayAmtZeroUponEntering && CompareDecimal.IsLessThanOrEqualToZero(splitAmt))
                 {
                     break;
@@ -2382,7 +2382,7 @@ public class PaymentEdit
 
     public static PayResults CreatePaySplit(AccountEntry charge, decimal payAmt, Payment payCur, decimal textAmount, List<AccountEntry> listCharges, bool isManual = false)
     {
-        PayResults createdSplit = new PayResults();
+        var createdSplit = new PayResults();
         createdSplit.ListSplitsCur = [];
         createdSplit.ListAccountCharges = listCharges;
         createdSplit.Payment = payCur;
@@ -2400,13 +2400,13 @@ public class PaymentEdit
             charge.AmountEnd -= payAmt;
         }
 
-        long unearnedType = charge.UnearnedType;
+        var unearnedType = charge.UnearnedType;
         if (charge.GetType() == typeof(Procedure) && ((Procedure) charge.Tag).ProcStatus == ProcStat.TP)
         {
             unearnedType = PrefC.GetLong(PrefName.TpUnearnedType);
         }
 
-        PaySplit split = CreatePaySplitHelper(charge, amount, DateTime.Today, payNum: payCur.PayNum, unearnedType: unearnedType);
+        var split = CreatePaySplitHelper(charge, amount, DateTime.Today, payNum: payCur.PayNum, unearnedType: unearnedType);
         //PaySplits for TP procedures should always set the UnearnedType to the TpUnearnedType preference.
         payCur.PayAmt -= split.SplitAmt;
         charge.SplitCollection.Add(split);
@@ -2417,7 +2417,7 @@ public class PaymentEdit
 
     public static PaySplit CreatePaySplitHelper(AccountEntry entry, double splitAmt, DateTime datePay, long payNum = 0, long unearnedType = 0, bool isNew = false)
     {
-        PaySplit split = new PaySplit();
+        var split = new PaySplit();
         //set baseline values first
         split.IsNew = isNew;
         //Payment splits should not be associated to an adjustment and a procedure at the same time.
@@ -2477,16 +2477,16 @@ public class PaymentEdit
 
     public static AutoSplit AutoSplitForPayment(long patCurNum, List<long> listPatNums, List<PaySplit> listPaySplitsForPayment, Payment payment, List<AccountEntry> listAccountEntriesPayFirst, bool isIncomeTxfr, bool isPatPrefer, ConstructChargesData constructChargesData = null, bool doAutoSplit = true, bool doIncludeExplicitCreditsOnly = false, long payPlanNum = 0)
     {
-        ConstructResults constructResults = ConstructAndLinkChargeCredits(patCurNum, listPatNums, listPaySplitsForPayment, payment?.PayNum ?? 0, listAccountEntriesPayFirst, isIncomeTxfr: isIncomeTxfr,
+        var constructResults = ConstructAndLinkChargeCredits(patCurNum, listPatNums, listPaySplitsForPayment, payment?.PayNum ?? 0, listAccountEntriesPayFirst, isIncomeTxfr: isIncomeTxfr,
             isPreferCurPat: isPatPrefer, constructChargesData: constructChargesData, doIncludeExplicitCreditsOnly: doIncludeExplicitCreditsOnly, false, DateTime.MinValue, false,
             payment?.ClinicNum ?? 0, payment?.PayAmt ?? 0, payment?.PayDate ?? DateTime.MinValue, false, true);
-        AutoSplit autoSplit = AutoSplitForPayment(constructResults, doAutoSplit, payPlanNum: payPlanNum, listAccountEntriesPayFirst: listAccountEntriesPayFirst);
+        var autoSplit = AutoSplitForPayment(constructResults, doAutoSplit, payPlanNum: payPlanNum, listAccountEntriesPayFirst: listAccountEntriesPayFirst);
         return autoSplit;
     }
 
     public static AutoSplit AutoSplitForPayment(ConstructResults constructResults, bool doAutoSplit = true, long payPlanNum = 0, List<AccountEntry> listAccountEntriesPayFirst = null, int rigorousAccounting = -1)
     {
-        AutoSplit autoSplitData = new AutoSplit(constructResults);
+        var autoSplitData = new AutoSplit(constructResults);
         if (rigorousAccounting == -1)
         {
             rigorousAccounting = PrefC.GetInt(PrefName.RigorousAccounting);
@@ -2498,7 +2498,7 @@ public class PaymentEdit
         }
 
         //Get a subset of the account charges that can have value auto split to them.
-        List<AccountEntry> listAutoSplitAccountEntries = autoSplitData.ListAccountEntries.FindAll(x => CompareDecimal.IsGreaterThanZero(x.AmountEnd));
+        var listAutoSplitAccountEntries = autoSplitData.ListAccountEntries.FindAll(x => CompareDecimal.IsGreaterThanZero(x.AmountEnd));
         //Never auto split to treatment planned entries
         listAutoSplitAccountEntries.RemoveAll(x => x.GetType() == typeof(Procedure) && ((Procedure) x.Tag).ProcStatus == ProcStat.TP);
         //Patient payment plans can have credits attached to treatment planned procedures, ignore those as well.
@@ -2521,9 +2521,9 @@ public class PaymentEdit
         }
 
         //Create a variable to keep track of the money that can be allocated for this payment.
-        double amtToAllocate = (autoSplitData.PayAmt - autoSplitData.ListPaySplitsSuggested.Sum(x => x.SplitAmt));
+        var amtToAllocate = (autoSplitData.PayAmt - autoSplitData.ListPaySplitsSuggested.Sum(x => x.SplitAmt));
         //Create as many auto splits as possible for account entries with positive AmountEnd values.
-        foreach (AccountEntry charge in listAutoSplitAccountEntries)
+        foreach (var charge in listAutoSplitAccountEntries)
         {
             if (CompareDouble.IsZero(amtToAllocate))
             {
@@ -2540,9 +2540,9 @@ public class PaymentEdit
                 continue;
             }
 
-            double splitAmt = Math.Min(amtToAllocate, (double) charge.AmountEnd);
+            var splitAmt = Math.Min(amtToAllocate, (double) charge.AmountEnd);
             //Make a new split that will apply as much value as possible from the account entry.
-            PaySplit split = CreatePaySplitHelper(charge, splitAmt, autoSplitData.PayDate, payNum: autoSplitData.PayNum, isNew: true);
+            var split = CreatePaySplitHelper(charge, splitAmt, autoSplitData.PayDate, payNum: autoSplitData.PayNum, isNew: true);
             //Remove the value from the account entry
             charge.AmountEnd -= (decimal) splitAmt;
             amtToAllocate -= splitAmt;
@@ -2554,7 +2554,7 @@ public class PaymentEdit
         //this is a special case, creating a paysplit without an account entry object tied to it. This is why it is not using CreatePaySplitHelper(). 
         if (!CompareDouble.IsZero(amtToAllocate))
         {
-            PaySplit split = new PaySplit();
+            var split = new PaySplit();
             split.SplitAmt = amtToAllocate;
             amtToAllocate = 0;
             split.DatePay = autoSplitData.PayDate;
@@ -2582,8 +2582,8 @@ public class PaymentEdit
         //Keep track of a list of PaySplitNums to delete.
         List<long> listSplitNumsToDelete = [];
         //Get all of the account data from the database so that we can invoke auto split logic with all of the required information.
-        Family family = Patients.GetFamily(patNum);
-        ConstructChargesData constructChargesData = GetConstructChargesData(patNum, listPatNums: family.GetPatNums());
+        var family = Patients.GetFamily(patNum);
+        var constructChargesData = GetConstructChargesData(patNum, listPatNums: family.GetPatNums());
         //Ignore any payment splits that fall after dateAsOf.
         if (dateAsOf.Year > 1880)
         {
@@ -2591,15 +2591,15 @@ public class PaymentEdit
         }
 
         //Keep track of all of the payment splits for the family that are currently in the database.
-        List<PaySplit> listPaySplitsForFamily = new List<PaySplit>(constructChargesData.ListPaySplits);
+        var listPaySplitsForFamily = new List<PaySplit>(constructChargesData.ListPaySplits);
         //Get the actual payment objects from the database.
-        List<Payment> listPayments = Payments.GetPayments(listPaySplitsForFamily.Select(x => x.PayNum).Distinct().ToList());
+        var listPayments = Payments.GetPayments(listPaySplitsForFamily.Select(x => x.PayNum).Distinct().ToList());
         //Clear out the list of splits from the constructChargesData object to act like there are no payment splits in the database at this time (we will be creating new ones).
         constructChargesData.ListPaySplits.Clear();
         //Clear out the list of payment plan splits just to be safe. This list is only used within GetConstructChargesData() but it's better to play it safe.
         constructChargesData.ListPayPlanSplits.Clear();
         //Group up the payment splits by PayNum.
-        List<PayNumPaySplitsGroup> listPayNumPaySplitsGroups = listPaySplitsForFamily.GroupBy(x => x.PayNum)
+        var listPayNumPaySplitsGroups = listPaySplitsForFamily.GroupBy(x => x.PayNum)
             .ToDictionary(x => x.Key, x => x.ToList())
             .Select(x => new PayNumPaySplitsGroup(payNum: x.Key, payment: listPayments.FirstOrDefault(y => y.PayNum == x.Key), listPaySplits: x.Value))
             .ToList();
@@ -2608,16 +2608,16 @@ public class PaymentEdit
             throw new ODException("Payment splits associated to an invalid payment detected. Run Database Maintenance before recreating payment splits for the family.");
         }
 
-        List<Def> listDefsForPaymentTypes = Defs.GetDefsForCategory(DefCat.PaymentTypes);
+        var listDefsForPaymentTypes = Defs.GetDefsForCategory(DefCat.PaymentTypes);
 
         #region Negative Payments
 
-        List<PayNumPaySplitsGroup> listPayNumPaySplitsGroupsNegative = listPayNumPaySplitsGroups.FindAll(x => CompareDouble.IsLessThanZero(x.PayAmount));
-        for (int i = 0; i < listPayNumPaySplitsGroupsNegative.Count; i++)
+        var listPayNumPaySplitsGroupsNegative = listPayNumPaySplitsGroups.FindAll(x => CompareDouble.IsLessThanZero(x.PayAmount));
+        for (var i = 0; i < listPayNumPaySplitsGroupsNegative.Count; i++)
         {
             //Look for offsetting entities that most likely offset this negative payment (PayAmounts must exactly match and must be dated on or before the negative payment).
             //Consider negative adjustments first.
-            Adjustment adjustment = constructChargesData.ListAdjustments.FirstOrDefault(x => CompareDouble.IsEqual(x.AdjAmt, listPayNumPaySplitsGroupsNegative[i].PayAmount));
+            var adjustment = constructChargesData.ListAdjustments.FirstOrDefault(x => CompareDouble.IsEqual(x.AdjAmt, listPayNumPaySplitsGroupsNegative[i].PayAmount));
             if (adjustment != null)
             {
                 //Suggest a split from the payment directly to the adjustment.
@@ -2634,7 +2634,7 @@ public class PaymentEdit
             }
 
             //Consider positive payments second. 
-            PayNumPaySplitsGroup payNumPaySplitsGroupOffset = listPayNumPaySplitsGroups
+            var payNumPaySplitsGroupOffset = listPayNumPaySplitsGroups
                 .Where(x => x.PayNum != listPayNumPaySplitsGroupsNegative[i].PayNum && x.PayAmount == Math.Abs(listPayNumPaySplitsGroupsNegative[i].PayAmount))
                 .OrderByDescending(x => x.Payment.PayDate <= listPayNumPaySplitsGroupsNegative[i].Payment.PayDate)
                 .ThenByDescending(x => x.Payment.PatNum == listPayNumPaySplitsGroupsNegative[i].Payment.PatNum)
@@ -2691,7 +2691,7 @@ public class PaymentEdit
         #region ReAuto-Split
 
         //Loop through each payment and execute auto split logic as if no payment splits exist in the database (other than the ones we have previously suggested).
-        for (int i = 0; i < listPayNumPaySplitsGroups.Count; i++)
+        for (var i = 0; i < listPayNumPaySplitsGroups.Count; i++)
         {
             if (listPayNumPaySplitsGroups[i].ListPaySplits.Any(x => !family.GetPatNums().Contains(x.PatNum)))
             {
@@ -2708,20 +2708,20 @@ public class PaymentEdit
             //Manipulate a ConstructData object that was instantiated prior to this loop and simply override the list of payment splits as desired.
             constructChargesData.ListPaySplits = listPaySplitsSuggested;
             //Create a ConstructResults with the newly updated list of payment splits.
-            ConstructResults constructResults = GetConstructResults(constructChargesData, patNum, family.GetPatNums(), listPayNumPaySplitsGroups[i].Payment.PayNum, false,
+            var constructResults = GetConstructResults(constructChargesData, patNum, family.GetPatNums(), listPayNumPaySplitsGroups[i].Payment.PayNum, false,
                 listPayNumPaySplitsGroups[i].Payment.ClinicNum, listPayNumPaySplitsGroups[i].PayAmount, listPayNumPaySplitsGroups[i].Payment.PayDate, dateAsOf);
             //Execute explicit and implicit linking logic so that the Account Entries have correct AmountEnd values.
             ExplicitAndImplicitLinkingForConstructResults(ref constructResults, false, [], constructChargesData, false, false, [], patNum, false,
                 listPayNumPaySplitsGroups[i].PayNum, false, true);
             //Execute auto-split logic for the amount of the current payment and act like the office has EnforceFully mode enabled so that everything is perfectly linked.
-            AutoSplit autoSplit = AutoSplitForPayment(constructResults, rigorousAccounting: (int) RigorousAccounting.EnforceFully);
+            var autoSplit = AutoSplitForPayment(constructResults, rigorousAccounting: (int) RigorousAccounting.EnforceFully);
             if (autoSplit.ListPaySplitsSuggested.IsNullOrEmpty())
             {
                 throw new ODException($"AutoSplitForPayment did not suggest any payment splits. See PayNum {listPayNumPaySplitsGroups[i].Payment.PayNum}");
             }
 
             //Make sure that the splits suggested equate to the payment amount otherwise fail out.
-            double paymentAmountSuggested = autoSplit.ListPaySplitsSuggested.Sum(x => x.SplitAmt);
+            var paymentAmountSuggested = autoSplit.ListPaySplitsSuggested.Sum(x => x.SplitAmt);
             if (!CompareDouble.IsEqual(listPayNumPaySplitsGroups[i].PayAmount, paymentAmountSuggested))
             {
                 //Any payments that cannot be recreated with 100% accuracy should cause the entire process to fail since this is such a dangerous method.
@@ -2751,7 +2751,7 @@ public class PaymentEdit
         }
 
         //Make sure that the family account doesn't have negative unearned. Fail the family if there is negative unearned (even if it is legitimate).
-        double amountUnearned = listPaySplitsSuggested.Where(x => x.UnearnedType > 0).Sum(x => x.SplitAmt);
+        var amountUnearned = listPaySplitsSuggested.Where(x => x.UnearnedType > 0).Sum(x => x.SplitAmt);
         if (CompareDouble.IsLessThanZero(amountUnearned))
         {
             throw new ODException($"Suggested payment splits would cause unearned to be negative.");
@@ -2825,7 +2825,7 @@ public class PaymentEdit
     public static List<AccountEntry> CreateAccountEntries(List<Procedure> listProcs)
     {
         List<AccountEntry> listAccountEntries = [];
-        foreach (Procedure proc in listProcs)
+        foreach (var proc in listProcs)
         {
             listAccountEntries.Add(new AccountEntry(proc));
         }
@@ -2836,7 +2836,7 @@ public class PaymentEdit
     public static void DeleteTransfersForFamily(List<long> listPatNums, bool isPayTypeIgnored = false)
     {
         //Get all income transfer payments for the family.
-        List<long> listPayNumsToDelete = Payments.GetPayNumsForTransfers(isPayTypeIgnored, listPatNums.ToArray());
+        var listPayNumsToDelete = Payments.GetPayNumsForTransfers(isPayTypeIgnored, listPatNums.ToArray());
         if (listPayNumsToDelete.IsNullOrEmpty())
         {
             return; //No transfers to even consider deleting.
@@ -2844,7 +2844,7 @@ public class PaymentEdit
 
         string command;
         List<long> listPreservePayNums = [];
-        List<long> listHiddenUnearnedPayTypes = PaySplits.GetHiddenUnearnedDefNums();
+        var listHiddenUnearnedPayTypes = PaySplits.GetHiddenUnearnedDefNums();
         if (listHiddenUnearnedPayTypes.Count > 0)
         {
             //Some income transfers may have splits that are associated to a hidden type. These transfers must not be deleted (via TaskNum 2806662).
@@ -2862,7 +2862,7 @@ public class PaymentEdit
         //Remove any income transfers that need to be preserved from our list of payments to delete.
         listPayNumsToDelete.RemoveAll(x => listPreservePayNums.Contains(x));
         //Delete all income transfers that are left in the list of transfers that are 'safe' to delete.
-        for (int i = 0; i < listPayNumsToDelete.Count; i++)
+        for (var i = 0; i < listPayNumsToDelete.Count; i++)
         {
             //Some income transfers will not be able to be deleted. Do not let one failure spoil the entire batch.
             //Users will be able to manually try and delete these income transfers and will get a warning message as to why it can't be deleted.
@@ -2872,13 +2872,13 @@ public class PaymentEdit
 
     public static ClaimTransferResult TransferClaimsPayAsTotal(long patNum, List<long> listFamPatNums, string logText)
     {
-        bool didFix = ClaimProcs.FixClaimsNoProcedures(listFamPatNums);
+        var didFix = ClaimProcs.FixClaimsNoProcedures(listFamPatNums);
         if (didFix && !ProcedureCodes.GetContainsKey("ZZZFIX"))
         {
             Cache.Refresh(InvalidType.ProcCodes); //Refresh local cache only because middle tier has already inserted the signal.
         }
 
-        ClaimTransferResult claimTransferResult = ClaimProcs.TransferClaimsAsTotalToProcedures(listFamPatNums);
+        var claimTransferResult = ClaimProcs.TransferClaimsAsTotalToProcedures(listFamPatNums);
         if (claimTransferResult != null && claimTransferResult.ListClaimProcsInserted.Count > 0)
         {
             //valid and items were created
@@ -2898,12 +2898,12 @@ public class PaymentEdit
 
         if (listPayPlans == null)
         {
-            Family famCur = Patients.GetFamily(listAllAccountEntries.First().PatNum);
+            var famCur = Patients.GetFamily(listAllAccountEntries.First().PatNum);
             listPayPlans = PayPlans.GetForPats(famCur.GetPatNums(), famCur.Guarantor.Guarantor);
         }
 
-        List<PayPlan> listPayPlansPatient = listPayPlans.FindAll(x => !x.IsDynamic && x.PlanNum == 0);
-        List<PayPlan> listPayPlansDynamic = listPayPlans.FindAll(x => x.IsDynamic && x.PlanNum == 0);
+        var listPayPlansPatient = listPayPlans.FindAll(x => !x.IsDynamic && x.PlanNum == 0);
+        var listPayPlansDynamic = listPayPlans.FindAll(x => x.IsDynamic && x.PlanNum == 0);
         if (!listPayPlansPatient.IsNullOrEmpty())
         {
             //PayPlanCharge Credits are not made when the PaymentPlanVersion is set to NoCharges.
@@ -2919,14 +2919,14 @@ public class PaymentEdit
             //E.g. A "Total Tx Amt" not equal to the "Total Amount" means the user is using a patient payment plan and didn't attach Tx Credits.
             //This is a requirement for the transfer system because it needs to know what to take value from and what to give it to (pat/prov/clinic).
             List<long> listInvalidTotalPayPlanNums = [];
-            Dictionary<long, List<PayPlanCharge>> dictPayPlanCharges = PayPlanCharges.GetForPayPlans(listPayPlansPatient.Select(x => x.PayPlanNum).ToList())
+            var dictPayPlanCharges = PayPlanCharges.GetForPayPlans(listPayPlansPatient.Select(x => x.PayPlanNum).ToList())
                 .GroupBy(x => x.PayPlanNum)
                 .ToDictionary(x => x.Key, x => x.ToList());
-            foreach (long payPlanNum in dictPayPlanCharges.Keys)
+            foreach (var payPlanNum in dictPayPlanCharges.Keys)
             {
                 //The total principal of all credits must equate to the total Principal of all debits.
-                double txTotalAmt = PayPlans.GetTxTotalAmt(dictPayPlanCharges[payPlanNum]); //credits
-                double totalCost = PayPlans.GetTotalPrinc(payPlanNum, dictPayPlanCharges[payPlanNum]); //debits
+                var txTotalAmt = PayPlans.GetTxTotalAmt(dictPayPlanCharges[payPlanNum]); //credits
+                var totalCost = PayPlans.GetTotalPrinc(payPlanNum, dictPayPlanCharges[payPlanNum]); //debits
                 if (!CompareDouble.IsEqual(txTotalAmt, totalCost))
                 {
                     listInvalidTotalPayPlanNums.Add(payPlanNum);
@@ -2936,8 +2936,8 @@ public class PaymentEdit
             if (listInvalidTotalPayPlanNums.Count > 0)
             {
                 incomeTransferData.StringBuilderErrors.AppendLine(Lans.g("PaymentEdit", "Transfers cannot be made for this family at this time."));
-                string errorMsgStart = Lans.g("PaymentEdit", "The following payment plans have a 'Total Tx Amt' that does not match the 'Total Amount':");
-                List<PayPlan> listInvalidPayPlans = listPayPlansPatient.FindAll(x => listInvalidTotalPayPlanNums.Contains(x.PayPlanNum));
+                var errorMsgStart = Lans.g("PaymentEdit", "The following payment plans have a 'Total Tx Amt' that does not match the 'Total Amount':");
+                var listInvalidPayPlans = listPayPlansPatient.FindAll(x => listInvalidTotalPayPlanNums.Contains(x.PayPlanNum));
                 incomeTransferData.StringBuilderErrors.AppendLine(GetInvalidPayPlanDescription(errorMsgStart, listInvalidPayPlans, dictPayPlanCharges));
                 return false;
             }
@@ -2946,11 +2946,11 @@ public class PaymentEdit
         if (!listPayPlansDynamic.IsNullOrEmpty())
         {
             //Do not allow income transfers when there is negative production associated to a dynamic payment plan.
-            List<PayPlanLink> listPayPlanLinks = PayPlanLinks.GetForPayPlans(listPayPlansDynamic.Select(x => x.PayPlanNum).ToList());
-            for (int i = 0; i < listPayPlansDynamic.Count; i++)
+            var listPayPlanLinks = PayPlanLinks.GetForPayPlans(listPayPlansDynamic.Select(x => x.PayPlanNum).ToList());
+            for (var i = 0; i < listPayPlansDynamic.Count; i++)
             {
-                List<PayPlanLink> listPayPlanLinksForPlan = listPayPlanLinks.FindAll(x => x.PayPlanNum == listPayPlansDynamic[i].PayPlanNum);
-                List<PayPlanProductionEntry> listPayPlanProductionEntries = PayPlanProductionEntry.GetProductionForLinks(listPayPlanLinksForPlan);
+                var listPayPlanLinksForPlan = listPayPlanLinks.FindAll(x => x.PayPlanNum == listPayPlansDynamic[i].PayPlanNum);
+                var listPayPlanProductionEntries = PayPlanProductionEntry.GetProductionForLinks(listPayPlanLinksForPlan);
                 if (listPayPlanLinksForPlan.IsNullOrEmpty() || listPayPlanProductionEntries.IsNullOrEmpty())
                 {
                     incomeTransferData.StringBuilderErrors.AppendLine(
@@ -2965,12 +2965,12 @@ public class PaymentEdit
                     return false;
                 }
 
-                List<PayPlanCharge> listPayPlanCharges = PayPlanCharges.GetForPayPlan(listPayPlansDynamic[i].PayPlanNum);
+                var listPayPlanCharges = PayPlanCharges.GetForPayPlan(listPayPlansDynamic[i].PayPlanNum);
                 var dictProductionPayPlanCharges = listPayPlanCharges.GroupBy(x => new {x.FKey, x.LinkType})
                     .ToDictionary(x => x.Key, x => x.ToList());
                 foreach (var kvp in dictProductionPayPlanCharges)
                 {
-                    PayPlanProductionEntry payPlanProductionEntry = listPayPlanProductionEntries.FirstOrDefault(x => x.LinkType == kvp.Key.LinkType && x.PriKey == kvp.Key.FKey);
+                    var payPlanProductionEntry = listPayPlanProductionEntries.FirstOrDefault(x => x.LinkType == kvp.Key.LinkType && x.PriKey == kvp.Key.FKey);
                     if (payPlanProductionEntry == null)
                     {
                         incomeTransferData.StringBuilderErrors.AppendLine(
@@ -2998,7 +2998,7 @@ public class PaymentEdit
         //even when the original provider has no unearned to take from (see unit tests associated to this commit).
         //These providers that were wrongly taken from need to be credited back so that the income transfer system can correctly balance the account.
         //Without this preprocessing, accounts could end up with a negative unearned bucket (rare, but easy to duplicate).
-        List<AccountEntry> listUnearnedUnallocated = listAllAccountEntries.FindAll(x => x.IsUnearned || x.IsUnallocated);
+        var listUnearnedUnallocated = listAllAccountEntries.FindAll(x => x.IsUnearned || x.IsUnallocated);
         //Go through each bucket for all unearned and unallocated account entries to balance them out prior to looking at production.
         foreach (AccountBalancingLayers layer in Enum.GetValues(typeof(AccountBalancingLayers)))
         {
@@ -3016,14 +3016,14 @@ public class PaymentEdit
 
         //Find entries with PayPlanNums and perform income transfers for each individual payment plan.
         //Payment plan entries should prefer to transfer within themselves and any excess money (overpaid plan) should move to unearned.
-        Dictionary<long, List<AccountEntry>> dictPayPlanEntries = listAllAccountEntries
+        var dictPayPlanEntries = listAllAccountEntries
             .Where(x => x != null && x.Tag != null && x.PayPlanNum > 0)
             .GroupBy(x => x.PayPlanNum)
             .ToDictionary(x => x.Key, x => x.ToList());
         List<AccountEntry> listUnearnedEntries;
-        foreach (long payPlanNum in dictPayPlanEntries.Keys)
+        foreach (var payPlanNum in dictPayPlanEntries.Keys)
         {
-            List<AccountEntry> listPayPlanEntries = dictPayPlanEntries[payPlanNum];
+            var listPayPlanEntries = dictPayPlanEntries[payPlanNum];
             //There is a posibility that this payment plan was overpaid.  The overpayment will have been transferred to unearned.
             //This money is now available to go towards other payment plans (if present).
             listUnearnedEntries = listAllAccountEntries.FindAll(x => x.GetType() == typeof(PaySplit)
@@ -3044,9 +3044,9 @@ public class PaymentEdit
             }
         }
 
-        foreach (long payPlanNum in dictPayPlanEntries.Keys)
+        foreach (var payPlanNum in dictPayPlanEntries.Keys)
         {
-            List<AccountEntry> listPayPlanEntries = dictPayPlanEntries[payPlanNum];
+            var listPayPlanEntries = dictPayPlanEntries[payPlanNum];
             //Go through the list of payment plans again now that all overpayments have been detected. 
             //This allows overpayments from payment plans to flow into other payment plans.
             listUnearnedEntries = listAllAccountEntries.FindAll(x => x.GetType() == typeof(PaySplit)
@@ -3082,8 +3082,8 @@ public class PaymentEdit
             //Get all non-payment plan account entries along with any leftover unearned payment plan PaySplits that still have value (can be transferred).
             //There is a posibility that account entries were overpaid.  The overpayments will have been transferred to unearned.
             //This money is now available to go towards payment plans (if present).
-            List<AccountEntry> listAccountEntriesNoPP = listAllAccountEntries.FindAll(x => x.PayPlanNum == 0
-                                                                                           || (x.GetType() == typeof(PaySplit) && CompareDecimal.IsLessThanZero(x.AmountEnd)));
+            var listAccountEntriesNoPP = listAllAccountEntries.FindAll(x => x.PayPlanNum == 0
+                                                                            || (x.GetType() == typeof(PaySplit) && CompareDecimal.IsLessThanZero(x.AmountEnd)));
             incomeTransferData.MergeIncomeTransferData(TransferForLayer(layer, datePay, ref listAccountEntriesNoPP, ref listAllAccountEntries));
         }
 
@@ -3093,9 +3093,9 @@ public class PaymentEdit
 
         //There is a chance that a payment plan needs money transferred to it and a non-payment plan account entry was overpaid.
         //Perform payment plan income transfer logic one more time to allow the non-payment plan overpayments to flow into payment plan entries.
-        foreach (long payPlanNum in dictPayPlanEntries.Keys)
+        foreach (var payPlanNum in dictPayPlanEntries.Keys)
         {
-            List<AccountEntry> listPayPlanEntries = dictPayPlanEntries[payPlanNum];
+            var listPayPlanEntries = dictPayPlanEntries[payPlanNum];
             //Always consider transferring unearned that is outside of the payment plan into the payment plan.
             //Some account entries could have been overpaid. These overpayments need to be available to transfer into payment plan entries.
             listUnearnedEntries = listAllAccountEntries.FindAll(x => x.GetType() == typeof(PaySplit)
@@ -3123,9 +3123,9 @@ public class PaymentEdit
         //Transfer all remaining excess production to unearned keeping the same pat/prov/clinic.
         //Only consider procedures and adjustments because payment plan entries should not be allowed to go into the negative.
         //The scenarios where that would be possible should have been blocked or transferred to unearned above.
-        List<AccountEntry> listNegativeProduction = listAllAccountEntries.FindAll(x => x.GetType().In(typeof(Procedure), typeof(Adjustment))
-                                                                                       && CompareDecimal.IsLessThanZero(x.AmountEnd));
-        foreach (AccountEntry negativeProduction in listNegativeProduction)
+        var listNegativeProduction = listAllAccountEntries.FindAll(x => x.GetType().In(typeof(Procedure), typeof(Adjustment))
+                                                                        && CompareDecimal.IsLessThanZero(x.AmountEnd));
+        foreach (var negativeProduction in listNegativeProduction)
         {
             if (negativeProduction.GetType() == typeof(Procedure) && CompareDouble.IsLessThanZero(((Procedure) negativeProduction.Tag).ProcFee))
             {
@@ -3138,24 +3138,24 @@ public class PaymentEdit
         }
 
         //Transfer all remaining income to unearned keeping the same pat/prov/clinic.
-        List<AccountEntry> listRemainingIncome = listAllAccountEntries.FindAll(x => x.GetType() == typeof(PaySplit)
-                                                                                    && !x.IsUnearned
-                                                                                    && !CompareDecimal.IsZero(x.AmountEnd));
+        var listRemainingIncome = listAllAccountEntries.FindAll(x => x.GetType() == typeof(PaySplit)
+                                                                     && !x.IsUnearned
+                                                                     && !CompareDecimal.IsZero(x.AmountEnd));
 
         #region Remaining Adjustments
 
-        List<AccountEntry> listRemainingAdjIncome = listRemainingIncome.FindAll(x => ((PaySplit) x.Tag).AdjNum > 0);
-        foreach (Bucket buckets in CreateTransferBucketsForLayer(AccountBalancingLayers.ProvPatClinic, listRemainingAdjIncome))
+        var listRemainingAdjIncome = listRemainingIncome.FindAll(x => ((PaySplit) x.Tag).AdjNum > 0);
+        foreach (var buckets in CreateTransferBucketsForLayer(AccountBalancingLayers.ProvPatClinic, listRemainingAdjIncome))
         {
             foreach (var adjGroup in buckets.ListAccountEntries.GroupBy(x => x.AdjNum).ToDictionary(x => x.Key, x => x.ToList()))
             {
-                decimal amountEndSum = adjGroup.Value.Sum(x => x.AmountEnd);
+                var amountEndSum = adjGroup.Value.Sum(x => x.AmountEnd);
                 if (CompareDecimal.IsZero(amountEndSum))
                 {
                     continue;
                 }
 
-                AccountEntry entryFirst = adjGroup.Value.First();
+                var entryFirst = adjGroup.Value.First();
                 incomeTransferData.AppendLine($"  Moving excess income for AdjNum #{entryFirst.AdjNum} to unearned.");
                 CreateUnearnedTransfer(amountEndSum, entryFirst.PatNum, entryFirst.ProvNum, entryFirst.ClinicNum, ref incomeTransferData,
                     adjNum: entryFirst.AdjNum, payPlanNum: entryFirst.PayPlanNum, datePay: datePay);
@@ -3167,18 +3167,18 @@ public class PaymentEdit
 
         #region Remaining Procedures
 
-        List<AccountEntry> listRemainingProcIncome = listRemainingIncome.FindAll(x => ((PaySplit) x.Tag).ProcNum > 0);
-        foreach (Bucket buckets in CreateTransferBucketsForLayer(AccountBalancingLayers.ProvPatClinic, listRemainingProcIncome))
+        var listRemainingProcIncome = listRemainingIncome.FindAll(x => ((PaySplit) x.Tag).ProcNum > 0);
+        foreach (var buckets in CreateTransferBucketsForLayer(AccountBalancingLayers.ProvPatClinic, listRemainingProcIncome))
         {
             foreach (var procGroup in buckets.ListAccountEntries.GroupBy(x => x.ProcNum).ToDictionary(x => x.Key, x => x.ToList()))
             {
-                decimal amountEndSum = procGroup.Value.Sum(x => x.AmountEnd);
+                var amountEndSum = procGroup.Value.Sum(x => x.AmountEnd);
                 if (CompareDecimal.IsZero(amountEndSum))
                 {
                     continue;
                 }
 
-                AccountEntry entryFirst = procGroup.Value.First();
+                var entryFirst = procGroup.Value.First();
                 incomeTransferData.AppendLine($"  Moving excess income for ProcNum #{entryFirst.ProcNum} to unearned.");
                 CreateUnearnedTransfer(amountEndSum, entryFirst.PatNum, entryFirst.ProvNum, entryFirst.ClinicNum, ref incomeTransferData,
                     procNum: entryFirst.ProcNum, payPlanNum: entryFirst.PayPlanNum, datePay: datePay);
@@ -3190,16 +3190,16 @@ public class PaymentEdit
 
         #region Remaining Unallocated
 
-        List<AccountEntry> listRemainingUnallocatedIncome = listAllAccountEntries.FindAll(x => x.IsUnallocated);
-        foreach (Bucket buckets in CreateTransferBucketsForLayer(AccountBalancingLayers.ProvPatClinic, listRemainingUnallocatedIncome))
+        var listRemainingUnallocatedIncome = listAllAccountEntries.FindAll(x => x.IsUnallocated);
+        foreach (var buckets in CreateTransferBucketsForLayer(AccountBalancingLayers.ProvPatClinic, listRemainingUnallocatedIncome))
         {
-            decimal amountEndSum = buckets.ListAccountEntries.Sum(x => x.AmountEnd);
+            var amountEndSum = buckets.ListAccountEntries.Sum(x => x.AmountEnd);
             if (CompareDecimal.IsZero(amountEndSum))
             {
                 continue;
             }
 
-            AccountEntry entryFirst = buckets.ListAccountEntries.First();
+            var entryFirst = buckets.ListAccountEntries.First();
             incomeTransferData.AppendLine($"  Moving excess unallocated income for PatNum #{entryFirst.PatNum}" +
                                           $", ProvNum #{entryFirst.ProvNum}, ClinicNum #{entryFirst.ClinicNum} to unearned.");
             CreateUnearnedTransfer(amountEndSum, entryFirst.PatNum, entryFirst.ProvNum, entryFirst.ClinicNum, ref incomeTransferData,
@@ -3219,13 +3219,13 @@ public class PaymentEdit
         }
 
         //Look for any error messages that need to be displayed to the user after the income transfer 
-        foreach (AccountEntry accountEntryError in listAllAccountEntries.FindAll(x => x.ErrorMsg.Length > 0))
+        foreach (var accountEntryError in listAllAccountEntries.FindAll(x => x.ErrorMsg.Length > 0))
         {
             incomeTransferData.StringBuilderErrors.AppendLine(accountEntryError.ErrorMsg.ToString().Trim());
         }
 
         //Look for any warning messages that need to be displayed to the user after the income transfer 
-        foreach (AccountEntry accountEntryWarning in listAllAccountEntries.FindAll(x => x.WarningMsg.Length > 0))
+        foreach (var accountEntryWarning in listAllAccountEntries.FindAll(x => x.WarningMsg.Length > 0))
         {
             incomeTransferData.StringBuilderWarnings.AppendLine(accountEntryWarning.WarningMsg.ToString().Trim());
         }
@@ -3240,12 +3240,12 @@ public class PaymentEdit
 
     private static string GetInvalidPayPlanDescription(string errorMsgStart, List<PayPlan> listInvalidPayPlans, Dictionary<long, List<PayPlanCharge>> dictPayPlanCharges)
     {
-        List<long> listInvalidPatNums = listInvalidPayPlans.Select(x => x.PatNum).ToList();
+        var listInvalidPatNums = listInvalidPayPlans.Select(x => x.PatNum).ToList();
         listInvalidPatNums.AddRange(listInvalidPayPlans.Select(x => x.Guarantor));
-        Dictionary<long, Patient> dictPatients = Patients.GetLimForPats(listInvalidPatNums.Distinct().ToList()).ToDictionary(x => x.PatNum);
-        StringBuilder stringBuilder = new StringBuilder();
+        var dictPatients = Patients.GetLimForPats(listInvalidPatNums.Distinct().ToList()).ToDictionary(x => x.PatNum);
+        var stringBuilder = new StringBuilder();
         stringBuilder.AppendLine(errorMsgStart);
-        foreach (PayPlan payPlan in listInvalidPayPlans)
+        foreach (var payPlan in listInvalidPayPlans)
         {
             string ppType;
             if (payPlan.IsDynamic)
@@ -3261,13 +3261,13 @@ public class PaymentEdit
                 ppType = "Ins";
             }
 
-            string planCategory = Lans.g("ContrAccount", "None");
+            var planCategory = Lans.g("ContrAccount", "None");
             if (payPlan.PlanCategory > 0)
             {
                 planCategory = Defs.GetDef(DefCat.PayPlanCategories, payPlan.PlanCategory).ItemName;
             }
 
-            double principal = PayPlans.GetTotalPrinc(payPlan.PayPlanNum, dictPayPlanCharges[payPlan.PayPlanNum]);
+            var principal = PayPlans.GetTotalPrinc(payPlan.PayPlanNum, dictPayPlanCharges[payPlan.PayPlanNum]);
             stringBuilder.AppendLine($"Date: {payPlan.PayPlanDate.ToShortDateString()}");
             stringBuilder.AppendLine($"  Guarantor: {dictPatients[payPlan.Guarantor].GetNameLF()}");
             stringBuilder.AppendLine($"  Patient: {dictPatients[payPlan.PatNum].GetNameLF()}");
@@ -3281,8 +3281,8 @@ public class PaymentEdit
 
     private static IncomeTransferData TransferForLayer(AccountBalancingLayers layer, DateTime datePay, ref List<AccountEntry> listProcessAccountEntries, ref List<AccountEntry> listAllAccountEntries)
     {
-        IncomeTransferData incomeTransferData = new IncomeTransferData();
-        List<Bucket> listBuckets = CreateTransferBucketsForLayer(layer, listProcessAccountEntries);
+        var incomeTransferData = new IncomeTransferData();
+        var listBuckets = CreateTransferBucketsForLayer(layer, listProcessAccountEntries);
         //Preprocess the production explicitly linked to procedures within each bucket on layer ProvPatClinic.
         if (layer == AccountBalancingLayers.ProvPatClinic)
         {
@@ -3292,7 +3292,7 @@ public class PaymentEdit
         incomeTransferData.AppendLine($"Processing buckets for layer: {layer.ToString()}...");
         //Process each bucket and make any necessary income transfers for this layer.
         //Create 'account entries' for any transfers that were created so that subsequent layers know about the transfers from previous layers.
-        foreach (Bucket bucket in listBuckets)
+        foreach (var bucket in listBuckets)
         {
             incomeTransferData.MergeIncomeTransferData(TransferLoopHelper(bucket, datePay));
         }
@@ -3353,21 +3353,21 @@ public class PaymentEdit
 
         //There is no such thing as unearned money in payment plan land. Any money associated to a payment plan is 'earned' due to the debits.
         //Transfer all unearned payment splits that are also attached to a payment plan out into the generic unearned bucket.
-        List<AccountEntry> listUnearnedPayPlanSplits = listAccountEntries.FindAll(x => x.PayPlanNum > 0 && x.IsUnearned);
+        var listUnearnedPayPlanSplits = listAccountEntries.FindAll(x => x.PayPlanNum > 0 && x.IsUnearned);
         var dictUnearnedPayPlanSplits = listUnearnedPayPlanSplits
             .GroupBy(x => new {x.PayPlanNum, x.PatNum, x.ProvNum, x.ClinicNum, x.ProcNum, x.AdjNum, x.UnearnedType})
             .ToDictionary(x => x.Key, x => x.ToList());
         foreach (var kvp in dictUnearnedPayPlanSplits)
         {
-            List<AccountEntry> listPayPlanEntries = kvp.Value;
-            decimal offsetAmt = listPayPlanEntries.Sum(x => x.AmountEnd);
+            var listPayPlanEntries = kvp.Value;
+            var offsetAmt = listPayPlanEntries.Sum(x => x.AmountEnd);
             if (CompareDecimal.IsGreaterThanOrEqualToZero(offsetAmt))
             {
                 continue;
             }
 
             //These unearned splits are incorrectly associated to the payment plan. Move them to the non-payment plan unearned bucket.
-            List<PaySplit> listPaySplits = CreateUnearnedTransfer(offsetAmt,
+            var listPaySplits = CreateUnearnedTransfer(offsetAmt,
                 listPayPlanEntries.First().PatNum,
                 listPayPlanEntries.First().ProvNum,
                 listPayPlanEntries.First().ClinicNum,
@@ -3377,8 +3377,8 @@ public class PaymentEdit
                 unearnedType: listPayPlanEntries.First().UnearnedType,
                 payPlanNum: listPayPlanEntries.First().PayPlanNum,
                 datePay: datePay);
-            AccountEntry accountEntryOffset = new AccountEntry(listPaySplits[0]);
-            AccountEntry accountEntryUnearned = new AccountEntry(listPaySplits[1]);
+            var accountEntryOffset = new AccountEntry(listPaySplits[0]);
+            var accountEntryUnearned = new AccountEntry(listPaySplits[1]);
             //Zero out the AmountEnd field for every negative account entry so that they are not transferred again.
             listPayPlanEntries.ForEach(x => x.AmountEnd = 0);
             //Also, the offsetting PaySplit needs to have no value (untransferrable, a.k.a. AmountEnd set to zero).
@@ -3396,21 +3396,21 @@ public class PaymentEdit
 
         //Explicit linking should have taken care of payment splits that are correctly linked to credits / production by this point.
         //Therefore, blindly make transfers away from payment plans when account entries are incorrectly linked to production.
-        List<AccountEntry> listLinkedPayPlanSplits = listAccountEntries.FindAll(x => x.PayPlanNum > 0 && x.GetType() == typeof(PaySplit));
+        var listLinkedPayPlanSplits = listAccountEntries.FindAll(x => x.PayPlanNum > 0 && x.GetType() == typeof(PaySplit));
         var dictLinkedPayPlanSplits = listLinkedPayPlanSplits
             .GroupBy(x => new {x.PayPlanNum, x.PatNum, x.ProvNum, x.ClinicNum, x.ProcNum, x.AdjNum, x.UnearnedType, x.PayPlanDebitType})
             .ToDictionary(x => x.Key, x => x.ToList());
         foreach (var kvp in dictLinkedPayPlanSplits)
         {
-            List<AccountEntry> listPayPlanEntries = kvp.Value;
-            decimal offsetAmt = listPayPlanEntries.Sum(x => x.AmountEnd);
+            var listPayPlanEntries = kvp.Value;
+            var offsetAmt = listPayPlanEntries.Sum(x => x.AmountEnd);
             if (CompareDecimal.IsZero(offsetAmt))
             {
                 continue;
             }
 
             //These splits are incorrectly allocated to production that are not part of this payment plan. Move them to unearned.
-            List<PaySplit> listPaySplits = CreateUnearnedTransfer(offsetAmt,
+            var listPaySplits = CreateUnearnedTransfer(offsetAmt,
                 listPayPlanEntries.First().PatNum,
                 listPayPlanEntries.First().ProvNum,
                 listPayPlanEntries.First().ClinicNum,
@@ -3421,8 +3421,8 @@ public class PaymentEdit
                 payPlanNum: listPayPlanEntries.First().PayPlanNum,
                 datePay: datePay,
                 payPlanDebitType: listPayPlanEntries.First().PayPlanDebitType);
-            AccountEntry accountEntryOffset = new AccountEntry(listPaySplits[0]);
-            AccountEntry accountEntryUnearned = new AccountEntry(listPaySplits[1]);
+            var accountEntryOffset = new AccountEntry(listPaySplits[0]);
+            var accountEntryUnearned = new AccountEntry(listPaySplits[1]);
             //Zero out the AmountEnd field for every account entry so that they are not transferred again.
             listPayPlanEntries.ForEach(x => x.AmountEnd = 0);
             //Also, the offsetting PaySplit needs to have no value (untransferrable, a.k.a. AmountEnd set to zero).
@@ -3440,15 +3440,15 @@ public class PaymentEdit
     private static void PreprocessProvPatClinicBuckets(ref List<Bucket> listBuckets, ref List<AccountEntry> listProcessAccountEntries, ref IncomeTransferData incomeTransferData, DateTime datePay, ref List<AccountEntry> listAllAccountEntries)
     {
         incomeTransferData.AppendLine($"Preprocessing buckets for ProvPatClinic...");
-        foreach (Bucket bucket in listBuckets)
+        foreach (var bucket in listBuckets)
         {
             List<AccountEntry> listUnallocatedEntries = [];
             List<AccountEntry> listUnearnedEntries = [];
-            List<AccountEntry> listNonPayPlanEntries = bucket.ListAccountEntries.FindAll(x => x.PayPlanNum == 0 && x.GetType() != typeof(FauxAccountEntry));
-            List<AccountEntry> listPayPlanEntries = bucket.ListAccountEntries.FindAll(x => x.PayPlanNum > 0);
+            var listNonPayPlanEntries = bucket.ListAccountEntries.FindAll(x => x.PayPlanNum == 0 && x.GetType() != typeof(FauxAccountEntry));
+            var listPayPlanEntries = bucket.ListAccountEntries.FindAll(x => x.PayPlanNum > 0);
             foreach (var procGroup in listNonPayPlanEntries.GroupBy(x => x.ProcNum).ToDictionary(x => x.Key, x => x.ToList()))
             {
-                List<AccountEntry> listBucketEntries = procGroup.Value;
+                var listBucketEntries = procGroup.Value;
                 if (procGroup.Key == 0)
                 {
                     //Account entries are not associated to any procedures.
@@ -3457,7 +3457,7 @@ public class PaymentEdit
                     continue;
                 }
 
-                decimal total = listBucketEntries.Sum(x => x.AmountEnd);
+                var total = listBucketEntries.Sum(x => x.AmountEnd);
                 if (CompareDecimal.IsZero(total))
                 {
                     listBucketEntries.ForEach(x => x.AmountEnd = 0);
@@ -3468,13 +3468,13 @@ public class PaymentEdit
                     continue;
                 }
 
-                long clinicNum = listBucketEntries.First().ClinicNum;
-                long patNum = listBucketEntries.First().PatNum;
-                long procNum = procGroup.Key;
-                long provNum = listBucketEntries.First().ProvNum;
+                var clinicNum = listBucketEntries.First().ClinicNum;
+                var patNum = listBucketEntries.First().PatNum;
+                var procNum = procGroup.Key;
+                var provNum = listBucketEntries.First().ProvNum;
                 //This procedure specific bucket does not balance out.
                 //Try to balance the procedure specific bucket FIFO style (strictly consider negative and positive amounts).
-                string results = BalanceAccountEntries(ref listBucketEntries);
+                var results = BalanceAccountEntries(ref listBucketEntries);
                 if (!string.IsNullOrWhiteSpace(results))
                 {
                     incomeTransferData.AppendLine($"  Procedure #{procNum} PatNum #{patNum}" +
@@ -3486,17 +3486,17 @@ public class PaymentEdit
 
                 //Any negative AmountEnd values need to be transferred to unearned so that other buckets can utilize the overpayments.
                 //PaySplits will be created to offset any production or income that left this bucket in the negative.
-                decimal offsetAmt = listBucketEntries.Sum(x => x.AmountEnd);
+                var offsetAmt = listBucketEntries.Sum(x => x.AmountEnd);
                 if (!PrefC.GetBool(PrefName.IncomeTransfersTreatNegativeProductionAsIncome))
                 {
                     offsetAmt = GetTransferableIncomeAmount(offsetAmt, ref listBucketEntries, ref incomeTransferData);
                 }
 
                 //Create AccountEntries out of the PaySplits that were just created and add them to listAccountEntries for allocation.
-                List<PaySplit> listPaySplits = CreateUnearnedTransfer(offsetAmt, patNum, provNum, clinicNum, ref incomeTransferData, procNum: procNum,
+                var listPaySplits = CreateUnearnedTransfer(offsetAmt, patNum, provNum, clinicNum, ref incomeTransferData, procNum: procNum,
                     datePay: datePay);
-                AccountEntry accountEntryOffset = new AccountEntry(listPaySplits[0]);
-                AccountEntry accountEntryUnearned = new AccountEntry(listPaySplits[1]);
+                var accountEntryOffset = new AccountEntry(listPaySplits[0]);
+                var accountEntryUnearned = new AccountEntry(listPaySplits[1]);
                 //The PaySplits that were just created will technically offset any production or income that left this bucket in the negative.
                 //Zero out the AmountEnd field for every negative account entry so that they are not transferred.
                 listBucketEntries.FindAll(x => CompareDecimal.IsLessThanZero(x.AmountEnd)).ForEach(x => x.AmountEnd = 0);
@@ -3522,8 +3522,8 @@ public class PaymentEdit
                     continue; //Unearned and unallocated have already been considered within the procedure grouping loop.
                 }
 
-                List<AccountEntry> listBucketEntries = adjGroup.Value;
-                decimal total = listBucketEntries.Sum(x => x.AmountEnd);
+                var listBucketEntries = adjGroup.Value;
+                var total = listBucketEntries.Sum(x => x.AmountEnd);
                 if (CompareDecimal.IsZero(total))
                 {
                     listBucketEntries.ForEach(x => x.AmountEnd = 0);
@@ -3534,13 +3534,13 @@ public class PaymentEdit
                     continue;
                 }
 
-                long adjNum = adjGroup.Key;
-                long clinicNum = listBucketEntries.First().ClinicNum;
-                long patNum = listBucketEntries.First().PatNum;
-                long provNum = listBucketEntries.First().ProvNum;
+                var adjNum = adjGroup.Key;
+                var clinicNum = listBucketEntries.First().ClinicNum;
+                var patNum = listBucketEntries.First().PatNum;
+                var provNum = listBucketEntries.First().ProvNum;
                 //This adjustment specific bucket does not balance out.
                 //Try to balance the adjustment specific bucket FIFO style (strictly consider negative and positive amounts).
-                string results = BalanceAccountEntries(ref listBucketEntries);
+                var results = BalanceAccountEntries(ref listBucketEntries);
                 if (!string.IsNullOrWhiteSpace(results))
                 {
                     incomeTransferData.AppendLine($"  Adjustment #{adjNum} PatNum #{patNum}" +
@@ -3552,7 +3552,7 @@ public class PaymentEdit
 
                 //Any negative AmountEnd values need to be transferred to unearned so that other buckets can utilize the overpayments.
                 //PaySplits will be created to offset any production or income that left this bucket in the negative.
-                decimal offsetAmt = listBucketEntries.Sum(x => x.AmountEnd);
+                var offsetAmt = listBucketEntries.Sum(x => x.AmountEnd);
                 if (!PrefC.GetBool(PrefName.IncomeTransfersTreatNegativeProductionAsIncome))
                 {
                     offsetAmt = GetTransferableIncomeAmount(offsetAmt, ref listBucketEntries, ref incomeTransferData);
@@ -3560,10 +3560,10 @@ public class PaymentEdit
 
                 //Any negative balance left over shall get transferred to unearned so that it can be balanced later.
                 //Create an AccountEntry out of the unearned PaySplit that was just created and add it to listPendingAccountEntries for allocation.
-                List<PaySplit> listPaySplits = CreateUnearnedTransfer(offsetAmt, patNum, provNum, clinicNum, ref incomeTransferData, adjNum: adjNum,
+                var listPaySplits = CreateUnearnedTransfer(offsetAmt, patNum, provNum, clinicNum, ref incomeTransferData, adjNum: adjNum,
                     datePay: datePay);
-                AccountEntry accountEntryOffset = new AccountEntry(listPaySplits[0]);
-                AccountEntry accountEntryUnearned = new AccountEntry(listPaySplits[1]);
+                var accountEntryOffset = new AccountEntry(listPaySplits[0]);
+                var accountEntryUnearned = new AccountEntry(listPaySplits[1]);
                 //The PaySplits that were just created will technically offset any production or income that left this bucket in the negative.
                 //Zero out the AmountEnd field for every negative account entry so that they are not transferred.
                 listBucketEntries.FindAll(x => CompareDecimal.IsLessThanZero(x.AmountEnd)).ForEach(x => x.AmountEnd = 0);
@@ -3590,10 +3590,10 @@ public class PaymentEdit
                     continue;
                 }
 
-                List<AccountEntry> listBucketEntries = payPlanGroup.Value;
+                var listBucketEntries = payPlanGroup.Value;
                 //Skip adjustments because they directly manipulate the value of production and should not be transferred to unearned at this point.
                 listBucketEntries.RemoveAll(x => x.GetType() == typeof(FauxAccountEntry) && ((FauxAccountEntry) x).IsAdjustment);
-                decimal total = listBucketEntries.Sum(x => x.AmountEnd);
+                var total = listBucketEntries.Sum(x => x.AmountEnd);
                 if (CompareDecimal.IsZero(total))
                 {
                     listBucketEntries.ForEach(x => x.AmountEnd = 0);
@@ -3604,13 +3604,13 @@ public class PaymentEdit
                     continue;
                 }
 
-                long clinicNum = listBucketEntries.First().ClinicNum;
-                long patNum = listBucketEntries.First().PatNum;
-                long payPlanNum = payPlanGroup.Key;
-                long provNum = listBucketEntries.First().ProvNum;
+                var clinicNum = listBucketEntries.First().ClinicNum;
+                var patNum = listBucketEntries.First().PatNum;
+                var payPlanNum = payPlanGroup.Key;
+                var provNum = listBucketEntries.First().ProvNum;
                 //This payment plan specific bucket does not balance out.
                 //Try to balance the payment plan specific bucket FIFO style (strictly consider negative and positive amounts).
-                string results = BalanceAccountEntries(ref listBucketEntries);
+                var results = BalanceAccountEntries(ref listBucketEntries);
                 if (!string.IsNullOrWhiteSpace(results))
                 {
                     incomeTransferData.AppendLine($"  Payment Plan #{payPlanNum} PatNum #{patNum}" +
@@ -3629,12 +3629,12 @@ public class PaymentEdit
                 foreach (var keyValuePairUnearnedTypeDebitTypeEntries in dictionaryUnearnedTypeDebitTypeGroupEntries)
                 {
                     //The Value of the dictionary is a list of payment plan account entries that all share the same UnearnedType and PayPlanDebitType.
-                    List<AccountEntry> listUnearnedTypeDebitTypeEntries = keyValuePairUnearnedTypeDebitTypeEntries.Value;
+                    var listUnearnedTypeDebitTypeEntries = keyValuePairUnearnedTypeDebitTypeEntries.Value;
                     //Create helper variables for the UnearnedType and PayPlanDebitType values since they are the same for all account entries in this group.
-                    long unearnedType = listUnearnedTypeDebitTypeEntries.First().UnearnedType;
-                    PayPlanDebitTypes payPlanDebitType = listUnearnedTypeDebitTypeEntries.First().PayPlanDebitType;
+                    var unearnedType = listUnearnedTypeDebitTypeEntries.First().UnearnedType;
+                    var payPlanDebitType = listUnearnedTypeDebitTypeEntries.First().PayPlanDebitType;
                     //Sum up AmountEnd for all of the account entries to see if this group has a net negative value that should be transferred.
-                    decimal offsetAmt = listUnearnedTypeDebitTypeEntries.Sum(x => x.AmountEnd);
+                    var offsetAmt = listUnearnedTypeDebitTypeEntries.Sum(x => x.AmountEnd);
                     if (CompareDecimal.IsGreaterThanOrEqualToZero(offsetAmt))
                     {
                         //There should never be a scenario where a positive offsetAmt exists (due to BalanceAccountEntries above).
@@ -3643,10 +3643,10 @@ public class PaymentEdit
                         continue;
                     }
 
-                    List<PaySplit> listPaySplits = CreateUnearnedTransfer(offsetAmt, patNum, provNum, clinicNum, ref incomeTransferData, unearnedType: unearnedType,
+                    var listPaySplits = CreateUnearnedTransfer(offsetAmt, patNum, provNum, clinicNum, ref incomeTransferData, unearnedType: unearnedType,
                         payPlanNum: payPlanNum, datePay: datePay, payPlanDebitType: payPlanDebitType);
-                    AccountEntry accountEntryOffset = new AccountEntry(listPaySplits[0]);
-                    AccountEntry accountEntryUnearned = new AccountEntry(listPaySplits[1]);
+                    var accountEntryOffset = new AccountEntry(listPaySplits[0]);
+                    var accountEntryUnearned = new AccountEntry(listPaySplits[1]);
                     //The PaySplits that were just created will technically offset any production or income that left this bucket in the negative.
                     //Zero out the AmountEnd field for every negative account entry so that they are not transferred.
                     listUnearnedTypeDebitTypeEntries.FindAll(x => CompareDecimal.IsLessThanZero(x.AmountEnd)).ForEach(x => x.AmountEnd = 0);
@@ -3669,7 +3669,7 @@ public class PaymentEdit
             //Balance both unallocated and unearned lists (manipulate their AmountEnd to balance themselves out FIFO style).
             if (listUnallocatedEntries.Count > 1)
             {
-                string results = BalanceAccountEntries(ref listUnallocatedEntries);
+                var results = BalanceAccountEntries(ref listUnallocatedEntries);
                 if (!string.IsNullOrWhiteSpace(results))
                 {
                     incomeTransferData.AppendLine($"  Balancing {listUnallocatedEntries.Count} unallocated PaySplits not associated to any procedures...");
@@ -3696,10 +3696,10 @@ public class PaymentEdit
     private static decimal GetTransferableIncomeAmount(decimal offsetAmt, ref List<AccountEntry> listAccountEntries, ref IncomeTransferData incomeTransferData)
     {
         //Any negative AmountEnd values need to be transferred to unearned so that other buckets can utilize the overpayments.
-        List<AccountEntry> listNegEntries = listAccountEntries.FindAll(x => CompareDecimal.IsLessThanZero(x.AmountEnd));
+        var listNegEntries = listAccountEntries.FindAll(x => CompareDecimal.IsLessThanZero(x.AmountEnd));
         //Figure out how much transferable income is available because the office does not allow treating negative production as income.
         decimal transferableIncomeTotal = 0;
-        foreach (AccountEntry accountEntryNeg in listNegEntries.FindAll(x => CompareDecimal.IsGreaterThanZero(x.IncomeAmt)))
+        foreach (var accountEntryNeg in listNegEntries.FindAll(x => CompareDecimal.IsGreaterThanZero(x.IncomeAmt)))
         {
             if (CompareDecimal.IsEqual(offsetAmt, transferableIncomeTotal))
             {
@@ -3709,7 +3709,7 @@ public class PaymentEdit
             //This account entry has been overpaid somehow (hence the AmountEnd is in the negative).
             //Therefore, it is always safe to transfer income away from this account entry.
             //Don't take too much value away from the account entry which would give the entry a positive value and only transfer as much income allots.
-            decimal transferableIncome = Math.Min(Math.Abs(accountEntryNeg.AmountEnd), Math.Abs(accountEntryNeg.IncomeAmt));
+            var transferableIncome = Math.Min(Math.Abs(accountEntryNeg.AmountEnd), Math.Abs(accountEntryNeg.IncomeAmt));
             //Subtract the transferable income from the account entry so that we do not do this again in another bucket.
             accountEntryNeg.IncomeAmt -= transferableIncome;
             //Subtract the transferable income from the total of income to be transferred (simply because offsetAmt is stored as a negative).
@@ -3724,18 +3724,18 @@ public class PaymentEdit
         if (!CompareDecimal.IsEqual(offsetAmt, transferableIncomeTotal))
         {
             incomeTransferData.HasInvalidNegProd = true;
-            Family family = Patients.GetFamily(listAccountEntries.First().PatNum);
+            var family = Patients.GetFamily(listAccountEntries.First().PatNum);
             //Notify the user about all of the account entries that have negative AmountEnd values since they should be negative production.
-            foreach (AccountEntry accountEntryNeg in listAccountEntries.FindAll(x => CompareDecimal.IsLessThanZero(x.AmountEnd)))
+            foreach (var accountEntryNeg in listAccountEntries.FindAll(x => CompareDecimal.IsLessThanZero(x.AmountEnd)))
             {
-                string desc = $"{accountEntryNeg.Date.ToShortDateString()}  {accountEntryNeg.GetType().Name}";
+                var desc = $"{accountEntryNeg.Date.ToShortDateString()}  {accountEntryNeg.GetType().Name}";
                 if (accountEntryNeg.GetType() == typeof(Adjustment))
                 {
                     desc += $": '{Defs.GetName(DefCat.AdjTypes, ((Adjustment) accountEntryNeg.Tag).AdjType)}'";
                 }
                 else if (accountEntryNeg.GetType() == typeof(Procedure))
                 {
-                    Procedure proc = (Procedure) accountEntryNeg.Tag;
+                    var proc = (Procedure) accountEntryNeg.Tag;
                     desc += $": '{Procedures.ConvertProcToString(proc.CodeNum, proc.Surf, proc.ToothNum, true)}'";
                 }
 
@@ -3760,16 +3760,16 @@ public class PaymentEdit
 
     private static IncomeTransferData TransferLoopHelper(Bucket bucket, DateTime datePay)
     {
-        IncomeTransferData transferData = new IncomeTransferData();
-        foreach (AccountEntry posCharge in bucket.ListPositiveEntries)
+        var transferData = new IncomeTransferData();
+        foreach (var posCharge in bucket.ListPositiveEntries)
         {
             if (CompareDecimal.IsLessThanOrEqualToZero(posCharge.AmountEnd))
             {
                 continue;
             }
 
-            bool hasTransfer = false;
-            foreach (AccountEntry negCharge in bucket.ListNegativeEntries)
+            var hasTransfer = false;
+            foreach (var negCharge in bucket.ListNegativeEntries)
             {
                 if (CompareDecimal.IsLessThanOrEqualToZero(posCharge.AmountEnd))
                 {
@@ -3809,21 +3809,21 @@ public class PaymentEdit
 
     private static IncomeTransferData CreateTransferHelper(AccountEntry posCharge, AccountEntry negCharge, DateTime datePay)
     {
-        IncomeTransferData transferSplits = new IncomeTransferData();
+        var transferSplits = new IncomeTransferData();
         if (negCharge.GetType() == typeof(Procedure) && CompareDouble.IsLessThanZero(((Procedure) negCharge.Tag).ProcFee))
         {
             transferSplits.AppendLine($"  Negative procedure cannot be used as source of income:\r\n      {negCharge.Description}");
             return transferSplits; //do not use negative procedures as sources of income. 
         }
 
-        decimal amt = Math.Min(Math.Abs(posCharge.AmountEnd), Math.Abs(negCharge.AmountEnd));
+        var amt = Math.Min(Math.Abs(posCharge.AmountEnd), Math.Abs(negCharge.AmountEnd));
         if (CompareDecimal.IsEqual(amt, 0))
         {
             return transferSplits; //there is no income to transfer
         }
 
-        PaySplit posSplit = CreatePaySplitHelper(posCharge, (double) amt, datePay, unearnedType: posCharge.UnearnedType);
-        PaySplit negSplit = CreatePaySplitHelper(negCharge, 0 - (double) amt, datePay, unearnedType: negCharge.UnearnedType);
+        var posSplit = CreatePaySplitHelper(posCharge, (double) amt, datePay, unearnedType: posCharge.UnearnedType);
+        var negSplit = CreatePaySplitHelper(negCharge, 0 - (double) amt, datePay, unearnedType: negCharge.UnearnedType);
         //Never allow unearned to be transferred towards a provider (posSplit) when AllowPrepayProvider is off.
         //However, it is acceptable for unearned to be transferred away from a provider (negSplit).
         if (!PrefC.GetBool(PrefName.AllowPrepayProvider) && posSplit.UnearnedType != 0 && posSplit.ProvNum != 0)
@@ -3864,12 +3864,12 @@ public class PaymentEdit
             datePay = DateTime.Today;
         }
 
-        PaySplit offsetSplit = CreatePaySplitHelper(accountEntry,
+        var offsetSplit = CreatePaySplitHelper(accountEntry,
             (double) accountEntry.AmountEnd,
             datePay,
             unearnedType: offsetUnearnedType,
             isNew: true);
-        PaySplit unearnedSplit = new PaySplit()
+        var unearnedSplit = new PaySplit()
         {
             AdjNum = 0,
             ClinicNum = offsetSplit.ClinicNum,
@@ -3918,7 +3918,7 @@ public class PaymentEdit
             datePay = DateTime.Today;
         }
 
-        PaySplit offsetSplit = new PaySplit()
+        var offsetSplit = new PaySplit()
         {
             AdjNum = adjNum,
             ClinicNum = clinicNum,
@@ -3933,7 +3933,7 @@ public class PaymentEdit
             SplitAmt = (double) splitAmount,
             UnearnedType = offsetUnearnedType,
         };
-        PaySplit unearnedSplit = new PaySplit()
+        var unearnedSplit = new PaySplit()
         {
             AdjNum = 0,
             ClinicNum = clinicNum,
@@ -3955,17 +3955,17 @@ public class PaymentEdit
 
     private static string BalanceAccountEntries(ref List<AccountEntry> listAccountEntries)
     {
-        StringBuilder strBuilderSummary = new StringBuilder();
-        List<AccountEntry> listAccountEntriesPositive = listAccountEntries.FindAll(x => CompareDecimal.IsGreaterThanZero(x.AmountEnd));
-        List<AccountEntry> listAccountEntriesNegative = listAccountEntries.FindAll(x => CompareDecimal.IsLessThanZero(x.AmountEnd));
-        foreach (AccountEntry positiveEntry in listAccountEntriesPositive)
+        var strBuilderSummary = new StringBuilder();
+        var listAccountEntriesPositive = listAccountEntries.FindAll(x => CompareDecimal.IsGreaterThanZero(x.AmountEnd));
+        var listAccountEntriesNegative = listAccountEntries.FindAll(x => CompareDecimal.IsLessThanZero(x.AmountEnd));
+        foreach (var positiveEntry in listAccountEntriesPositive)
         {
             if (CompareDecimal.IsLessThanOrEqualToZero(positiveEntry.AmountEnd))
             {
                 continue;
             }
 
-            foreach (AccountEntry negativeEntry in listAccountEntriesNegative)
+            foreach (var negativeEntry in listAccountEntriesNegative)
             {
                 if (CompareDecimal.IsLessThanOrEqualToZero(positiveEntry.AmountEnd))
                 {
@@ -3977,7 +3977,7 @@ public class PaymentEdit
                     continue;
                 }
 
-                decimal amountTxfr = Math.Min(Math.Abs(positiveEntry.AmountEnd), Math.Abs(negativeEntry.AmountEnd));
+                var amountTxfr = Math.Min(Math.Abs(positiveEntry.AmountEnd), Math.Abs(negativeEntry.AmountEnd));
                 positiveEntry.AmountEnd -= amountTxfr;
                 negativeEntry.AmountEnd += amountTxfr;
                 strBuilderSummary.AppendLine($"    Removed {amountTxfr.ToString("c")} from {positiveEntry.Description}");
@@ -3990,7 +3990,7 @@ public class PaymentEdit
 
     private static string GetPaySplitTypeDesc(PaySplit paySplit)
     {
-        string offsetTypeName = "Unallocated";
+        var offsetTypeName = "Unallocated";
         if (paySplit.UnearnedType > 0)
         {
             offsetTypeName = "Unearned";
@@ -4037,14 +4037,14 @@ public class PaymentEdit
             return;
         }
 
-        Patient patient = Patients.GetLim(patNum);
+        var patient = Patients.GetLim(patNum);
         //Get up to date data
-        ConstructResults constructResults = ConstructAndLinkChargeCredits(patient.PatNum, isIncomeTxfr: true);
+        var constructResults = ConstructAndLinkChargeCredits(patient.PatNum, isIncomeTxfr: true);
         //Get List of AccountEntries associated with the current claim
-        List<AccountEntry> listAccountEntryProcs = constructResults.ListAccountEntries.FindAll(x => x.GetType() == typeof(Procedure) && listProcNums.Contains(x.ProcNum));
+        var listAccountEntryProcs = constructResults.ListAccountEntries.FindAll(x => x.GetType() == typeof(Procedure) && listProcNums.Contains(x.ProcNum));
         //Create income transfer
-        DateTime datePay = DateTime.Today;
-        TryCreateIncomeTransfer(listAccountEntryProcs, datePay, out IncomeTransferData incomeTransferData);
+        var datePay = DateTime.Today;
+        TryCreateIncomeTransfer(listAccountEntryProcs, datePay, out var incomeTransferData);
         //Get the payment splits suggested by income transfer
         if (incomeTransferData.ListSplitsCur.IsNullOrEmpty())
         {
@@ -4052,7 +4052,7 @@ public class PaymentEdit
         }
 
         //Create a new payment associated to the suggested payment splits.
-        Payment payment = new Payment();
+        var payment = new Payment();
         payment.PayDate = datePay;
         payment.PatNum = patient.PatNum;
         //Explicitly set ClinicNum=0, since a pat's ClinicNum will remain set if the user enabled clinics, assigned patients to clinics, and then
@@ -4086,9 +4086,9 @@ public class PaymentEdit
     {
         List<PaySplit> listPaySplits = [];
         //Get the family account as it stands.
-        Family fam = Patients.GetFamily(patNum);
-        ConstructChargesData constructChargesData = GetConstructChargesData(patNum, listPatNums: fam.GetPatNums(), isIncomeTransfer: true);
-        List<AccountEntry> listAccountEntries = ConstructListCharges(fam.GetPatNums(),
+        var fam = Patients.GetFamily(patNum);
+        var constructChargesData = GetConstructChargesData(patNum, listPatNums: fam.GetPatNums(), isIncomeTransfer: true);
+        var listAccountEntries = ConstructListCharges(fam.GetPatNums(),
             constructChargesData.ListProcs,
             constructChargesData.ListAdjustments,
             constructChargesData.ListPaySplits,
@@ -4109,11 +4109,11 @@ public class PaymentEdit
         //Run explicit linking logic so that account entries have a starting point for their AmountEnd values.
         listAccountEntries = ExplicitlyLinkCredits(listAccountEntries, constructChargesData.ListPaySplits);
         //Blindly apply the value for adjustments that have a ProcNum set to the corresponding procedure's value.
-        List<AccountEntry> listAccountEntriesAdjsWithProcNum = listAccountEntries.FindAll(x => !CompareDecimal.IsZero(x.AmountEnd)
-                                                                                               && x.ProcNum > 0 && x.GetType() == typeof(Adjustment));
-        for (int i = 0; i < listAccountEntriesAdjsWithProcNum.Count; i++)
+        var listAccountEntriesAdjsWithProcNum = listAccountEntries.FindAll(x => !CompareDecimal.IsZero(x.AmountEnd)
+                                                                                && x.ProcNum > 0 && x.GetType() == typeof(Adjustment));
+        for (var i = 0; i < listAccountEntriesAdjsWithProcNum.Count; i++)
         {
-            AccountEntry accountEntryProc = listAccountEntries.FirstOrDefault(x => x.ProcNum == listAccountEntriesAdjsWithProcNum[i].ProcNum && x.GetType() == typeof(Procedure));
+            var accountEntryProc = listAccountEntries.FirstOrDefault(x => x.ProcNum == listAccountEntriesAdjsWithProcNum[i].ProcNum && x.GetType() == typeof(Procedure));
             if (accountEntryProc == null)
             {
                 continue;
@@ -4126,17 +4126,17 @@ public class PaymentEdit
         //Allow implicitly linked payment splits to manipulate AmountEnd values of adjustments and procedures based on the corresponding FK columns.
         listAccountEntries = ApplyAssociatedSplits(listAccountEntries);
         //Transfer overpayments to unearned or zero out the value if negative production is not allowed to be treated as income.
-        List<AccountEntry> listAccountEntriesOverpaid = listAccountEntries.FindAll(x => CompareDecimal.IsLessThanZero(x.AmountEnd)
-                                                                                        && ((x.ProcNum > 0 && x.GetType() == typeof(Procedure)) || (x.AdjNum > 0 && x.GetType() == typeof(Adjustment))));
-        IncomeTransferData incomeTransferData = new IncomeTransferData();
-        for (int i = 0; i < listAccountEntriesOverpaid.Count; i++)
+        var listAccountEntriesOverpaid = listAccountEntries.FindAll(x => CompareDecimal.IsLessThanZero(x.AmountEnd)
+                                                                         && ((x.ProcNum > 0 && x.GetType() == typeof(Procedure)) || (x.AdjNum > 0 && x.GetType() == typeof(Adjustment))));
+        var incomeTransferData = new IncomeTransferData();
+        for (var i = 0; i < listAccountEntriesOverpaid.Count; i++)
         {
             //Only move overpayments when negative production is allowed to be treated as income.
             if (PrefC.GetBool(PrefName.IncomeTransfersTreatNegativeProductionAsIncome))
             {
-                List<PaySplit> listPaySplitsOverpaid = CreateUnearnedTransfer(listAccountEntriesOverpaid[i], ref incomeTransferData, datePay);
-                AccountEntry accountEntryOffset = new AccountEntry(listPaySplitsOverpaid[0]);
-                AccountEntry accountEntryUnearned = new AccountEntry(listPaySplitsOverpaid[1]);
+                var listPaySplitsOverpaid = CreateUnearnedTransfer(listAccountEntriesOverpaid[i], ref incomeTransferData, datePay);
+                var accountEntryOffset = new AccountEntry(listPaySplitsOverpaid[0]);
+                var accountEntryUnearned = new AccountEntry(listPaySplitsOverpaid[1]);
                 //The offsetting PaySplit needs to have no value (untransferrable, a.k.a. AmountEnd set to zero).
                 accountEntryOffset.AmountEnd = 0;
                 listAccountEntries.AddRange(new List<AccountEntry>()
@@ -4152,9 +4152,9 @@ public class PaymentEdit
         }
 
         //Separate the account entries into production and outstanding unearned/unallocated income.
-        List<AccountEntry> listAccountEntriesOutstandingProduction = listAccountEntries.FindAll(x => CompareDecimal.IsGreaterThanZero(x.AmountEnd) && x.GetType() != typeof(PaySplit));
-        List<AccountEntry> listAccountEntriesUnallocated = listAccountEntries.FindAll(x => x.IsUnallocated);
-        List<AccountEntry> listAccountEntriesUnearned = listAccountEntries.FindAll(x => x.IsUnearned);
+        var listAccountEntriesOutstandingProduction = listAccountEntries.FindAll(x => CompareDecimal.IsGreaterThanZero(x.AmountEnd) && x.GetType() != typeof(PaySplit));
+        var listAccountEntriesUnallocated = listAccountEntries.FindAll(x => x.IsUnallocated);
+        var listAccountEntriesUnearned = listAccountEntries.FindAll(x => x.IsUnearned);
         //Apply all negative and positive unearned/unallocated together in order to get an accurate account of what unearned/unallocated is right now.
         //Balance both unallocated and unearned lists (manipulate their AmountEnd to balance themselves out FIFO style).
         if (listAccountEntriesUnallocated.Count > 1)
@@ -4168,13 +4168,13 @@ public class PaymentEdit
             BalanceAccountEntries(ref listAccountEntriesUnearned);
         }
 
-        List<AccountEntry> listAccountEntriesUnallocatedUnearned = new List<AccountEntry>(listAccountEntriesUnallocated);
+        var listAccountEntriesUnallocatedUnearned = new List<AccountEntry>(listAccountEntriesUnallocated);
         listAccountEntriesUnallocatedUnearned.AddRange(listAccountEntriesUnearned);
         //Loop through the entire list of production account entries for the family FIFO style.
-        for (int i = 0; i < listAccountEntriesOutstandingProduction.Count; i++)
+        for (var i = 0; i < listAccountEntriesOutstandingProduction.Count; i++)
         {
             //Take from the entire list of unearned account entries FIFO style when a production entry needs money allocated to it.
-            for (int j = 0; j < listAccountEntriesUnallocatedUnearned.Count; j++)
+            for (var j = 0; j < listAccountEntriesUnallocatedUnearned.Count; j++)
             {
                 if (CompareDecimal.IsLessThanOrEqualToZero(listAccountEntriesOutstandingProduction[i].AmountEnd))
                 {
@@ -4191,18 +4191,18 @@ public class PaymentEdit
             }
         }
 
-        IncomeTransferData retVal = new IncomeTransferData();
+        var retVal = new IncomeTransferData();
         retVal.ListSplitsCur = listPaySplits;
         //Look for any error messages that need to be displayed to the user after the income transfer.
-        List<AccountEntry> listAccountEntryErrors = listAccountEntries.FindAll(x => x.ErrorMsg.Length > 0);
-        for (int i = 0; i < listAccountEntryErrors.Count; i++)
+        var listAccountEntryErrors = listAccountEntries.FindAll(x => x.ErrorMsg.Length > 0);
+        for (var i = 0; i < listAccountEntryErrors.Count; i++)
         {
             retVal.StringBuilderErrors.AppendLine(listAccountEntryErrors[i].ErrorMsg.ToString().Trim());
         }
 
         //Look for any warning messages that need to be displayed to the user after the income transfer.
-        List<AccountEntry> listAccountEntryWarnings = listAccountEntries.FindAll(x => x.WarningMsg.Length > 0);
-        for (int i = 0; i < listAccountEntryWarnings.Count; i++)
+        var listAccountEntryWarnings = listAccountEntries.FindAll(x => x.WarningMsg.Length > 0);
+        for (var i = 0; i < listAccountEntryWarnings.Count; i++)
         {
             retVal.StringBuilderWarnings.AppendLine(listAccountEntryWarnings[i].WarningMsg.ToString().Trim());
         }
@@ -4213,10 +4213,10 @@ public class PaymentEdit
     private static List<AccountEntry> ApplyAssociatedSplits(List<AccountEntry> listAccountEntries)
     {
         //Separate the account entries into production and income (sans payment plans).
-        List<AccountEntry> listAccountEntriesProduction = listAccountEntries.FindAll(x => (x.ProcNum > 0 && x.GetType() == typeof(Procedure)) || (x.AdjNum > 0 && x.GetType() == typeof(Adjustment)));
-        List<AccountEntry> listAccountEntriesIncome = listAccountEntries.FindAll(x => x.IsPaySplitAttachedToProd);
+        var listAccountEntriesProduction = listAccountEntries.FindAll(x => (x.ProcNum > 0 && x.GetType() == typeof(Procedure)) || (x.AdjNum > 0 && x.GetType() == typeof(Adjustment)));
+        var listAccountEntriesIncome = listAccountEntries.FindAll(x => x.IsPaySplitAttachedToProd);
         //Loop through the production and blindly apply all of the associated income.
-        for (int i = 0; i < listAccountEntriesProduction.Count; i++)
+        for (var i = 0; i < listAccountEntriesProduction.Count; i++)
         {
             List<AccountEntry> listAccountEntriesIncomeForProd;
             if (listAccountEntriesProduction[i].GetType() == typeof(Procedure))
@@ -4229,7 +4229,7 @@ public class PaymentEdit
                 listAccountEntriesIncomeForProd = listAccountEntriesIncome.FindAll(x => x.AdjNum == listAccountEntriesProduction[i].AdjNum);
             }
 
-            for (int j = 0; j < listAccountEntriesIncomeForProd.Count; j++)
+            for (var j = 0; j < listAccountEntriesIncomeForProd.Count; j++)
             {
                 listAccountEntriesProduction[i].AmountEnd += listAccountEntriesIncomeForProd[j].AmountEnd;
                 listAccountEntriesIncomeForProd[j].AmountEnd = 0;
@@ -4238,29 +4238,29 @@ public class PaymentEdit
 
         //Payment plan charges are technically production but they need to be handled separately.
         //Older versions of Open Dental wouldn't always link splits to the charges themselves but instead to the payment plan as a whole.
-        List<AccountEntry> listAccountEntriesPayPlanProd = listAccountEntries.FindAll(x => x.GetType() == typeof(FauxAccountEntry));
-        List<AccountEntry> listAccountEntriesPayPlanIncome = listAccountEntries.FindAll(x => x.GetType() == typeof(PaySplit) && (x.PayPlanNum > 0 || x.PayPlanChargeNum > 0));
+        var listAccountEntriesPayPlanProd = listAccountEntries.FindAll(x => x.GetType() == typeof(FauxAccountEntry));
+        var listAccountEntriesPayPlanIncome = listAccountEntries.FindAll(x => x.GetType() == typeof(PaySplit) && (x.PayPlanNum > 0 || x.PayPlanChargeNum > 0));
         //Loop through the payment plan production and apply all of the associated income.
-        for (int i = 0; i < listAccountEntriesPayPlanProd.Count; i++)
+        for (var i = 0; i < listAccountEntriesPayPlanProd.Count; i++)
         {
             //Blindly apply all income that specifies a specific PayPlanChargeNum.
-            List<AccountEntry> listAccountEntriesChargeIncome = listAccountEntriesPayPlanIncome.FindAll(x => x.PayPlanChargeNum == listAccountEntriesPayPlanProd[i].PayPlanChargeNum);
-            for (int j = 0; j < listAccountEntriesChargeIncome.Count; j++)
+            var listAccountEntriesChargeIncome = listAccountEntriesPayPlanIncome.FindAll(x => x.PayPlanChargeNum == listAccountEntriesPayPlanProd[i].PayPlanChargeNum);
+            for (var j = 0; j < listAccountEntriesChargeIncome.Count; j++)
             {
                 listAccountEntriesPayPlanProd[i].AmountEnd += listAccountEntriesChargeIncome[j].AmountEnd;
                 listAccountEntriesChargeIncome[j].AmountEnd = 0;
             }
 
             //Apply leftover income to any charge that still needs income when the PayPlanNum matches up to the amount of oustanding production.
-            List<AccountEntry> listAccountEntriesPlanIncome = listAccountEntriesPayPlanIncome.FindAll(x => x.PayPlanNum == listAccountEntriesPayPlanProd[i].PayPlanNum);
-            for (int j = 0; j < listAccountEntriesPlanIncome.Count; j++)
+            var listAccountEntriesPlanIncome = listAccountEntriesPayPlanIncome.FindAll(x => x.PayPlanNum == listAccountEntriesPayPlanProd[i].PayPlanNum);
+            for (var j = 0; j < listAccountEntriesPlanIncome.Count; j++)
             {
                 if (CompareDecimal.IsLessThanOrEqualToZero(listAccountEntriesPayPlanProd[i].AmountEnd))
                 {
                     break;
                 }
 
-                decimal amtToAllocate = Math.Min(Math.Abs(listAccountEntriesPayPlanProd[i].AmountEnd), Math.Abs(listAccountEntriesPlanIncome[j].AmountEnd));
+                var amtToAllocate = Math.Min(Math.Abs(listAccountEntriesPayPlanProd[i].AmountEnd), Math.Abs(listAccountEntriesPlanIncome[j].AmountEnd));
                 listAccountEntriesPayPlanProd[i].AmountEnd += amtToAllocate;
                 listAccountEntriesPlanIncome[j].AmountEnd -= amtToAllocate;
             }
@@ -4272,18 +4272,18 @@ public class PaymentEdit
         
     public static InsOverpayResult TransferInsuranceOverpaymentsForFamily(Family family, DateTime payDate = default, long defNumPayType = 0)
     {
-        long guarantor = family.Guarantor.PatNum;
-        long defNumUnearnedType = PrefC.GetLong(PrefName.PrepaymentUnearnedType);
+        var guarantor = family.Guarantor.PatNum;
+        var defNumUnearnedType = PrefC.GetLong(PrefName.PrepaymentUnearnedType);
         //This method is designed to mimic the Insurance Overpaid Report in the sense that it only looks at the values of claimprocs and procedures and nothing else.
         //The ultimate goal is to act like an insurance version of the re-auto split all payments tool.
         //Meaning that we will treat every single claim on the family as if insurance has paid nothing and then redistribute what insurance actually paid FIFO style to claimprocs.
         //Insurance estimates will be filled up first, followed by associated procedure fees, and finally any left over value will be transferred to unearned.
         //Negative supplemental claimprocs will be created and will be associated to the same procedure that the original claimproc is having value removed.
-        InsOverpayResult insOverpayResult = new InsOverpayResult();
+        var insOverpayResult = new InsOverpayResult();
         //Get all of the account information for the family passed in.
-        ConstructChargesData constructChargesData = GetConstructChargesData(guarantor, listPatNums: family.GetPatNums(), isIncomeTransfer: false);
+        var constructChargesData = GetConstructChargesData(guarantor, listPatNums: family.GetPatNums(), isIncomeTransfer: false);
         //Create a grouping of claims and their respective information.
-        List<ClaimGroup> listClaimGroups = constructChargesData.ListClaimProcs
+        var listClaimGroups = constructChargesData.ListClaimProcs
             .Where(x => x.ClaimNum > 0 && ClaimProcs.GetInsPaidStatuses().Contains(x.Status))
             .GroupBy(x => x.ClaimNum)
             .Select(x => new ClaimGroup(x.Key, x.ToList(), constructChargesData.ListProcs))
@@ -4295,7 +4295,7 @@ public class PaymentEdit
 
         //Make sure that there is at least one group of claimprocs that are associated to a procedure.
         //We cannot do anything for claims that don't have at least one procedure since we won't know if it's overpaid or not.
-        List<long> listClaimNumsInvalid = listClaimGroups.Where(x => x.ListClaimProcGroups.All(y => y.ProcNum == 0))
+        var listClaimNumsInvalid = listClaimGroups.Where(x => x.ListClaimProcGroups.All(y => y.ProcNum == 0))
             .Select(x => x.ClaimNum)
             .ToList();
         if (!listClaimNumsInvalid.IsNullOrEmpty())
@@ -4307,18 +4307,18 @@ public class PaymentEdit
         }
 
         //Loop through each ClaimGroup and move insurance payment around as needed. Convert completely overpaid claims into patient payments.
-        for (int i = 0; i < listClaimGroups.Count; i++)
+        for (var i = 0; i < listClaimGroups.Count; i++)
         {
             //Get the total amount of insurance payments and write offs to process.
-            double totalInsPay = listClaimGroups[i].ListClaimProcGroups.Sum(x => x.InsPayAmt);
-            double totalWriteOff = listClaimGroups[i].ListClaimProcGroups.Sum(x => x.WriteOff);
+            var totalInsPay = listClaimGroups[i].ListClaimProcGroups.Sum(x => x.InsPayAmt);
+            var totalWriteOff = listClaimGroups[i].ListClaimProcGroups.Sum(x => x.WriteOff);
 
             #region Create Fake ClaimProcs
 
             //Create fake claimprocs for every ClaimProcGroup because we're about to recreate them all with "perfect FIFO style logic".
             //Meaning, we're going to act like each procedure has exactly one claimproc and that it was paid exactly as it was intended all at once.
             //These fake claimprocs will then be used to compare against the groupings and any differences will be used to suggest new supplemental claimprocs.
-            for (int k = 0; k < listClaimGroups[i].ListClaimProcGroups.Count; k++)
+            for (var k = 0; k < listClaimGroups[i].ListClaimProcGroups.Count; k++)
             {
                 listClaimGroups[i].ListClaimProcsFake.Add(new ClaimProc()
                 {
@@ -4334,14 +4334,14 @@ public class PaymentEdit
             #region Fill InsPayEst Amount
 
             //Fill InsPayAmt up to the InsPayEst amount.
-            for (int k = 0; k < listClaimGroups[i].ListClaimProcsFake.Count; k++)
+            for (var k = 0; k < listClaimGroups[i].ListClaimProcsFake.Count; k++)
             {
                 if (CompareDouble.IsLessThanOrEqualToZero(totalInsPay))
                 {
                     break;
                 }
 
-                double amountPaid = Math.Min(totalInsPay, listClaimGroups[i].ListClaimProcsFake[k].InsPayEst);
+                var amountPaid = Math.Min(totalInsPay, listClaimGroups[i].ListClaimProcsFake[k].InsPayEst);
                 if (CompareDouble.IsLessThanOrEqualToZero(amountPaid))
                 {
                     continue;
@@ -4356,14 +4356,14 @@ public class PaymentEdit
             #region Fill WriteOff Amount
 
             //Fill WriteOff up to the WriteOffEst / WriteOffEstOverride amount.
-            for (int k = 0; k < listClaimGroups[i].ListClaimProcsFake.Count; k++)
+            for (var k = 0; k < listClaimGroups[i].ListClaimProcsFake.Count; k++)
             {
                 if (CompareDouble.IsLessThanOrEqualToZero(totalWriteOff))
                 {
                     break;
                 }
 
-                double amountWriteOff = Math.Min(totalWriteOff, ClaimProcs.GetWriteOffEstimate(listClaimGroups[i].ListClaimProcsFake[k]));
+                var amountWriteOff = Math.Min(totalWriteOff, ClaimProcs.GetWriteOffEstimate(listClaimGroups[i].ListClaimProcsFake[k]));
                 if (CompareDouble.IsLessThanOrEqualToZero(amountWriteOff))
                 {
                     continue;
@@ -4378,57 +4378,57 @@ public class PaymentEdit
             #region Fill ProcFee Amount
 
             //Fill InsPayAmt up to the associated procedure value.
-            for (int k = 0; k < listClaimGroups[i].ListClaimProcsFake.Count; k++)
+            for (var k = 0; k < listClaimGroups[i].ListClaimProcsFake.Count; k++)
             {
                 if (CompareDouble.IsLessThanOrEqualToZero(totalInsPay))
                 {
                     break;
                 }
 
-                ClaimProcGroup claimProcGroup = listClaimGroups[i].ListClaimProcGroups.FirstOrDefault(x => x.ProcNum == listClaimGroups[i].ListClaimProcsFake[k].ProcNum);
-                Procedure procedure = claimProcGroup.Procedure;
+                var claimProcGroup = listClaimGroups[i].ListClaimProcGroups.FirstOrDefault(x => x.ProcNum == listClaimGroups[i].ListClaimProcsFake[k].ProcNum);
+                var procedure = claimProcGroup.Procedure;
                 if (procedure == null || CompareDouble.IsLessThanOrEqualToZero(procedure.ProcFeeTotal))
                 {
                     continue;
                 }
 
                 //Figure out how much of the totalInsPay amount can be applied to this claim procedure.
-                double amountAlreadyPaid = listClaimGroups[i].ListClaimProcsFake[k].InsPayAmt + listClaimGroups[i].ListClaimProcsFake[k].WriteOff;
-                double amountAvailable = procedure.ProcFeeTotal - amountAlreadyPaid;
+                var amountAlreadyPaid = listClaimGroups[i].ListClaimProcsFake[k].InsPayAmt + listClaimGroups[i].ListClaimProcsFake[k].WriteOff;
+                var amountAvailable = procedure.ProcFeeTotal - amountAlreadyPaid;
                 if (CompareDouble.IsLessThanOrEqualToZero(amountAvailable))
                 {
                     continue;
                 }
 
-                double amountToAdd = Math.Min(totalInsPay, amountAvailable);
+                var amountToAdd = Math.Min(totalInsPay, amountAvailable);
                 listClaimGroups[i].ListClaimProcsFake[k].InsPayAmt += amountToAdd;
                 totalInsPay -= amountToAdd;
             }
 
             //Fill WriteOff up to the associated procedure value.
-            for (int k = 0; k < listClaimGroups[i].ListClaimProcsFake.Count; k++)
+            for (var k = 0; k < listClaimGroups[i].ListClaimProcsFake.Count; k++)
             {
                 if (CompareDouble.IsLessThanOrEqualToZero(totalWriteOff))
                 {
                     break;
                 }
 
-                ClaimProcGroup claimProcGroup = listClaimGroups[i].ListClaimProcGroups.FirstOrDefault(x => x.ProcNum == listClaimGroups[i].ListClaimProcsFake[k].ProcNum);
-                Procedure procedure = claimProcGroup.Procedure;
+                var claimProcGroup = listClaimGroups[i].ListClaimProcGroups.FirstOrDefault(x => x.ProcNum == listClaimGroups[i].ListClaimProcsFake[k].ProcNum);
+                var procedure = claimProcGroup.Procedure;
                 if (procedure == null || CompareDouble.IsLessThanOrEqualToZero(procedure.ProcFeeTotal))
                 {
                     continue;
                 }
 
                 //Figure out how much of the totalWriteOff amount can be applied to this claim procedure.
-                double amountAlreadyPaid = listClaimGroups[i].ListClaimProcsFake[k].InsPayAmt + listClaimGroups[i].ListClaimProcsFake[k].WriteOff;
-                double amountAvailable = procedure.ProcFeeTotal - amountAlreadyPaid;
+                var amountAlreadyPaid = listClaimGroups[i].ListClaimProcsFake[k].InsPayAmt + listClaimGroups[i].ListClaimProcsFake[k].WriteOff;
+                var amountAvailable = procedure.ProcFeeTotal - amountAlreadyPaid;
                 if (CompareDouble.IsLessThanOrEqualToZero(amountAvailable))
                 {
                     continue;
                 }
 
-                double amountToAdd = Math.Min(totalWriteOff, amountAvailable);
+                var amountToAdd = Math.Min(totalWriteOff, amountAvailable);
                 listClaimGroups[i].ListClaimProcsFake[k].WriteOff += amountToAdd;
                 totalWriteOff -= amountToAdd;
             }
@@ -4438,14 +4438,14 @@ public class PaymentEdit
             #region Create Supplemental ClaimProcs
 
             List<ClaimProc> listClaimProcSupplementals = [];
-            for (int k = 0; k < listClaimGroups[i].ListClaimProcsFake.Count; k++)
+            for (var k = 0; k < listClaimGroups[i].ListClaimProcsFake.Count; k++)
             {
-                ClaimProcGroup claimProcGroup = listClaimGroups[i].ListClaimProcGroups.First(x => x.ProcNum == listClaimGroups[i].ListClaimProcsFake[k].ProcNum);
+                var claimProcGroup = listClaimGroups[i].ListClaimProcGroups.First(x => x.ProcNum == listClaimGroups[i].ListClaimProcsFake[k].ProcNum);
                 if (listClaimGroups[i].ListClaimProcsFake[k].InsPayAmt != claimProcGroup.InsPayAmt || listClaimGroups[i].ListClaimProcsFake[k].WriteOff != claimProcGroup.WriteOff)
                 {
                     //Create a supplemental claimproc that negates the difference between the new and old claimprocs.
                     //Simply use the first claimproc within the grouping since they are all associated to the same procedure and claim.
-                    ClaimProc claimProcSupplemental = ClaimProcs.CreateSuppClaimProcForTransfer(claimProcGroup.ListClaimProcs.First());
+                    var claimProcSupplemental = ClaimProcs.CreateSuppClaimProcForTransfer(claimProcGroup.ListClaimProcs.First());
                     //Purposefully toggle off IsTransfer since these are technically not transfer claimprocs (no new claimproc is going to be made to offset it).
                     claimProcSupplemental.IsTransfer = false;
                     //This new claimproc will show up in the Account module since IsTransfer is turned off so we need to set a date that makes sense.
@@ -4478,8 +4478,8 @@ public class PaymentEdit
             }
 
             //Assert that the value of the supplementals suggested offsets the value of insurance overpayment.
-            double totalSupplementals = listClaimProcSupplementals.Sum(x => x.InsPayAmt + x.WriteOff);
-            double totalSupplementalsNegated = totalSupplementals * -1;
+            var totalSupplementals = listClaimProcSupplementals.Sum(x => x.InsPayAmt + x.WriteOff);
+            var totalSupplementalsNegated = totalSupplementals * -1;
             if (!CompareDouble.IsEqual(totalSupplementalsNegated, totalInsPay))
             {
                 insOverpayResult.StringBuilderErrors.AppendLine($"Error processing ClaimNum {listClaimGroups[i].ClaimNum}; Unexpected total for suggested supplementals.");
@@ -4499,7 +4499,7 @@ public class PaymentEdit
                     payDate = DateTime.Now;
                 }
 
-                Payment payment = new Payment()
+                var payment = new Payment()
                 {
                     PatNum = guarantor,
                     PayAmt = totalInsPay,
@@ -4551,15 +4551,15 @@ public class PaymentEdit
         //This means that the list that is returned will have the PKs set correctly.
         insOverpayResult.ListClaimProcSupplementals = ClaimProcs.InsertMany(insOverpayResult.ListClaimProcSupplementals);
         //Group up the claimprocs by ClaimNum in order to make an insurance check per claim.
-        List<ClaimGroup> listClaimGroups = insOverpayResult.ListClaimProcSupplementals
+        var listClaimGroups = insOverpayResult.ListClaimProcSupplementals
             .GroupBy(x => x.ClaimNum)
             .ToDictionary(x => x.Key, x => x.ToList())
             .Select(x => new ClaimGroup(x.Key, x.Value))
             .ToList();
         //Create and insert insurance checks for the supplemental claimprocs that were just inserted.
-        for (int i = 0; i < listClaimGroups.Count; i++)
+        for (var i = 0; i < listClaimGroups.Count; i++)
         {
-            ClaimPayment claimPayment = new ClaimPayment();
+            var claimPayment = new ClaimPayment();
             claimPayment.CheckDate = listClaimGroups[i].ListClaimProcs.First().DateCP;
             claimPayment.CheckAmt = listClaimGroups[i].ListClaimProcs.Sum(x => x.InsPayAmt);
             claimPayment.ClinicNum = listClaimGroups[i].ListClaimProcs.First().ClinicNum;
@@ -4568,7 +4568,7 @@ public class PaymentEdit
             claimPayment.PayType = Defs.GetFirstForCategory(DefCat.InsurancePaymentType, true).DefNum;
             claimPayment.Note = "Conv Ins Overpayment";
             ClaimPayments.Insert(claimPayment);
-            for (int j = 0; j < listClaimGroups[i].ListClaimProcs.Count; j++)
+            for (var j = 0; j < listClaimGroups[i].ListClaimProcs.Count; j++)
             {
                 listClaimGroups[i].ListClaimProcs[j].ClaimPaymentNum = claimPayment.ClaimPaymentNum;
                 ClaimProcs.Update(listClaimGroups[i].ListClaimProcs[j]);
@@ -4576,7 +4576,7 @@ public class PaymentEdit
         }
 
         //Insert the unearned payments.
-        for (int i = 0; i < insOverpayResult.ListPayNumPaySplitsGroups.Count; i++)
+        for (var i = 0; i < insOverpayResult.ListPayNumPaySplitsGroups.Count; i++)
         {
             Payments.Insert(insOverpayResult.ListPayNumPaySplitsGroups[i].Payment, insOverpayResult.ListPayNumPaySplitsGroups[i].ListPaySplits);
             SecurityLogs.MakeLogEntry(EnumPermType.PaymentCreate, insOverpayResult.ListPayNumPaySplitsGroups[i].Payment.PatNum, logText);
@@ -4602,7 +4602,7 @@ public class PaymentEdit
 
         public LoadData Copy()
         {
-            LoadData loadData = (LoadData) this.MemberwiseClone();
+            var loadData = (LoadData) this.MemberwiseClone();
             loadData.ConstructChargesData = this.ConstructChargesData.Copy();
             loadData.ListAssociatedPatients = this.ListAssociatedPatients.Select(x => x.Copy()).ToList();
             loadData.ListCreditCards = this.ListCreditCards.Select(x => x.Copy()).ToList();
@@ -4628,7 +4628,7 @@ public class PaymentEdit
 
         public ConstructChargesData Copy()
         {
-            ConstructChargesData constructChargesData = new ConstructChargesData();
+            var constructChargesData = new ConstructChargesData();
             constructChargesData.ListAdjustments = this.ListAdjustments.Select(x => x.Clone()).ToList();
             constructChargesData.ListClaimProcsFiltered = this.ListClaimProcsFiltered.Select(x => x.Copy()).ToList();
             constructChargesData.ListInsPayAsTotal = this.ListInsPayAsTotal.Select(x => x.Copy()).ToList();
@@ -4769,13 +4769,13 @@ public class PaymentEdit
 
         public static IncomeTransferData CreateTransfer(PaySplit parentSplit, bool isTransferToUnearned = false, double transferAmtOverride = 0)
         {
-            IncomeTransferData transferReturning = new IncomeTransferData();
-            AccountEntry accountEntrySplit = new AccountEntry(parentSplit);
-            double offsetSplitAmt = (transferAmtOverride == 0 ? parentSplit.SplitAmt : transferAmtOverride) * -1;
-            double allocationSplitAmt = transferAmtOverride == 0 ? parentSplit.SplitAmt : transferAmtOverride;
-            long allocationUnearnedType = isTransferToUnearned ? PrefC.GetLong(PrefName.PrepaymentUnearnedType) : parentSplit.UnearnedType;
-            PaySplit splitOffset = CreatePaySplitHelper(accountEntrySplit, offsetSplitAmt, DateTime.Today, unearnedType: parentSplit.UnearnedType);
-            PaySplit splitAllocate = CreatePaySplitHelper(accountEntrySplit, allocationSplitAmt, DateTime.Today, unearnedType: allocationUnearnedType);
+            var transferReturning = new IncomeTransferData();
+            var accountEntrySplit = new AccountEntry(parentSplit);
+            var offsetSplitAmt = (transferAmtOverride == 0 ? parentSplit.SplitAmt : transferAmtOverride) * -1;
+            var allocationSplitAmt = transferAmtOverride == 0 ? parentSplit.SplitAmt : transferAmtOverride;
+            var allocationUnearnedType = isTransferToUnearned ? PrefC.GetLong(PrefName.PrepaymentUnearnedType) : parentSplit.UnearnedType;
+            var splitOffset = CreatePaySplitHelper(accountEntrySplit, offsetSplitAmt, DateTime.Today, unearnedType: parentSplit.UnearnedType);
+            var splitAllocate = CreatePaySplitHelper(accountEntrySplit, allocationSplitAmt, DateTime.Today, unearnedType: allocationUnearnedType);
             transferReturning.ListSplitsCur.AddRange(new List<PaySplit>()
             {
                 splitOffset,
@@ -4897,7 +4897,7 @@ public class FamilyProdBalances(long guarantorPatNum)
     public decimal GetAmountForStatementProdIfExists(StatementProd statementProd)
     {
         decimal amount = 0;
-        for (int i = 0; i < _accountEntries.Count; i++)
+        for (var i = 0; i < _accountEntries.Count; i++)
         {
             switch (statementProd.ProdType)
             {

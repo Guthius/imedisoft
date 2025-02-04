@@ -1,8 +1,5 @@
 using System;
-using System.Collections;
 using System.IO;
-using System.Runtime.InteropServices;
-using System.Text;
 using System.Windows.Forms;
 using OpenDentBusiness;
 using CodeBase;
@@ -52,7 +49,7 @@ and should be accessed/opened by C:/Program Files/Digirex/digirex.ini
 				else{
 					iniString+="ID="+pat.ChartNumber+"\r\n";
 				}
-				Provider priProv=Providers.GetProv(pat.PriProv);
+				var priProv=Providers.GetById(pat.PriProv);
 				if(priProv==null) {
 					MsgBox.Show("Apixia","Invalid provider for the selected patient.");
 					return;

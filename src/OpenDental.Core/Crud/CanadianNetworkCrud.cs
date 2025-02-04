@@ -17,15 +17,16 @@ public class CanadianNetworkCrud
     public static List<CanadianNetwork> TableToList(DataTable table)
     {
         var retVal = new List<CanadianNetwork>();
-        CanadianNetwork canadianNetwork;
         foreach (DataRow row in table.Rows)
         {
-            canadianNetwork = new CanadianNetwork();
-            canadianNetwork.CanadianNetworkNum = SIn.Long(row["CanadianNetworkNum"].ToString());
-            canadianNetwork.Abbrev = SIn.String(row["Abbrev"].ToString());
-            canadianNetwork.Descript = SIn.String(row["Descript"].ToString());
-            canadianNetwork.CanadianTransactionPrefix = SIn.String(row["CanadianTransactionPrefix"].ToString());
-            canadianNetwork.CanadianIsRprHandler = SIn.Bool(row["CanadianIsRprHandler"].ToString());
+            var canadianNetwork = new CanadianNetwork
+            {
+                CanadianNetworkNum = SIn.Long(row["CanadianNetworkNum"].ToString()),
+                Abbrev = SIn.String(row["Abbrev"].ToString()),
+                Descript = SIn.String(row["Descript"].ToString()),
+                CanadianTransactionPrefix = SIn.String(row["CanadianTransactionPrefix"].ToString()),
+                CanadianIsRprHandler = SIn.Bool(row["CanadianIsRprHandler"].ToString())
+            };
             retVal.Add(canadianNetwork);
         }
 

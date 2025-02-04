@@ -441,15 +441,6 @@ public class ChartModules
             #region Commlog
 
             var listCommLogTypeDefs = Defs.GetDefsForCategory(DefCat.CommLogTypes);
-            var podiumProgramNum = Programs.GetCur(ProgramName.Podium).ProgramNum;
-            var showPodiumCommlogs = SIn.Bool(ProgramProperties.GetPropVal(podiumProgramNum, Podium.PropertyDescs.ShowCommlogsInChartAndAccount));
-            var wherePodiumCommlog = "";
-            if (!showPodiumCommlogs)
-            {
-                wherePodiumCommlog = "AND (commlog.CommSource!=" + SOut.Int((int) CommItemSource.ProgramLink)
-                                                                 + " OR (commlog.CommSource=" + SOut.Int((int) CommItemSource.ProgramLink) + " AND commlog.ProgramNum!=" + SOut.Long(podiumProgramNum) + ")) ";
-            }
-
             var whereFamilyCommLog = "AND p1.PatNum=p2.PatNum ";
             if (componentsToLoad.ShowSuperFamilyCommLog)
             {
@@ -466,7 +457,6 @@ public class ChartModules
                       + "WHERE commlog.PatNum=p1.PatNum "
                       + whereFamilyCommLog
                       + "AND p2.PatNum=" + SOut.Long(patNum) + " "
-                      + wherePodiumCommlog
                       + "ORDER BY CommDateTime";
             var rawComm = dcon.GetTable(command);
             for (var i = 0; i < rawComm.Rows.Count; i++)
@@ -674,101 +664,7 @@ public class ChartModules
 
             #endregion formpat
         }
-
-        if (componentsToLoad.ShowRx)
-        {
-            #region Rx
-
-            command = "SELECT RxNum,RxDate,Drug,Disp,ProvNum,Notes,PharmacyNum,UserNum,RxType,DateTStamp FROM rxpat WHERE PatNum=" + SOut.Long(patNum)
-                                                                                                                                   + " ORDER BY RxDate";
-            var rawRx = dcon.GetTable(command);
-            for (var i = 0; i < rawRx.Rows.Count; i++)
-            {
-                row = table.NewRow();
-                row["AbbrDesc"] = "";
-                row["aptDateTime"] = DateTime.MinValue;
-                row["AptNum"] = 0;
-                row["clinic"] = "";
-                row["ClinicNum"] = 0;
-                row["CodeNum"] = "";
-                row["colorBackG"] = Color.White.ToArgb();
-                row["colorText"] = listProgNoteColorDefs[5].ItemColor.ToArgb().ToString();
-                row["CommlogNum"] = 0;
-                row["CommSource"] = "";
-                row["commType"] = "";
-                row["dateEntryC"] = "";
-                row["dateTP"] = "";
-                row["description"] = Lans.g("ChartModule", "Rx - ") + rawRx.Rows[i]["Drug"].ToString() + " - #" + rawRx.Rows[i]["Disp"].ToString();
-                if (rawRx.Rows[i]["PharmacyNum"].ToString() != "0")
-                {
-                    row["description"] += "\r\n" + Pharmacies.GetDescription(SIn.Long(rawRx.Rows[i]["PharmacyNum"].ToString()));
-                }
-
-                row["DocNum"] = 0;
-                row["dx"] = "";
-                row["Dx"] = "";
-                row["EFormNum"] = 0;
-                row["EmailMessageNum"] = 0;
-                row["FormPatNum"] = 0;
-                row["HideGraphics"] = "";
-                row["isLocked"] = "";
-                row["LabCaseNum"] = 0;
-                row["length"] = "";
-                row["note"] = rawRx.Rows[i]["Notes"].ToString();
-                row["PatNum"] = "";
-                row["Priority"] = "";
-                row["priority"] = "";
-                row["ProcCode"] = "";
-                dateT = SIn.Date(rawRx.Rows[i]["RxDate"].ToString());
-                if (dateT.Year < 1880)
-                {
-                    row["procDate"] = "";
-                }
-                else
-                {
-                    row["procDate"] = dateT.ToString(Lans.GetShortDateTimeFormat());
-                }
-
-                row["ProcDate"] = dateT;
-                row["procFee"] = "";
-                row["ProcNum"] = 0;
-                row["ProcNumLab"] = "";
-                row["procStatus"] = "";
-                row["ProcStatus"] = "";
-                row["procTime"] = "";
-                row["procTimeEnd"] = "";
-                row["prov"] = Providers.GetAbbr(SIn.Long(rawRx.Rows[i]["ProvNum"].ToString()));
-                row["ProvNum"] = rawRx.Rows[i]["ProvNum"];
-                row["quadrant"] = "";
-                row["RxNum"] = rawRx.Rows[i]["RxNum"].ToString();
-                row["SheetNum"] = 0;
-                row["signature"] = "";
-                row["Surf"] = "";
-                row["TaskNum"] = 0;
-                row["toothNum"] = "";
-                row["ToothNum"] = "";
-                row["ToothRange"] = "";
-                row["user"] = "";
-                row["WebChatSessionNum"] = 0;
-                row["EmailMessageHideIn"] = "0";
-                row["EmailMessageHtmlType"] = "0";
-                var rxType = SIn.Enum<RxTypes>(rawRx.Rows[i]["RxType"].ToString());
-                row["RxType"] = rxType;
-                //If RxPat entry is a log of pdmp bridge access
-                if (rxType != RxTypes.Rx)
-                {
-                    var timeAccessed = SIn.DateTime(rawRx.Rows[i]["DateTStamp"].ToString());
-                    row["Description"] = "PDMP Access: " + rxType.GetDescription() + "\nTime Accessed: " + timeAccessed.ToShortTimeString();
-                    row["colorText"] = Color.Black.ToArgb();
-                    row["user"] = Userods.GetName(SIn.Long(rawRx.Rows[i]["UserNum"].ToString()));
-                }
-
-                rows.Add(row);
-            }
-
-            #endregion Rx
-        }
-
+        
         if (componentsToLoad.ShowLabCases)
         {
             #region LabCase
@@ -1327,8 +1223,7 @@ public class ChartModules
                 listPatientClonesAll = Patients.GetLimForPats(listPatientClonePatNums);
             }
 
-            command += ") AND SheetType!=" + SOut.Long((int) SheetTypeEnum.Rx) + " " //rx are only accesssible from within Rx edit window.
-                       + "AND SheetType!=" + SOut.Long((int) SheetTypeEnum.LabSlip) + " "; //labslips are only accesssible from within the labslip edit window.
+            command += ") AND SheetType!=" + SOut.Long((int) SheetTypeEnum.LabSlip) + " "; //labslips are only accesssible from within the labslip edit window.
             if (!isAuditMode)
             {
                 command += "AND IsDeleted=0 "; //Don't show deleted sheets unless it's audit mode.
@@ -2258,20 +2153,20 @@ public class ChartModules
                 }
             }
 
-            if (Providers.GetProv(provPri).IsHidden)
+            if (Providers.GetById(provPri).IsHidden)
             {
                 //If the Patient's Primary Provider is hidden, use the patient's clinic's default provider, or practice default provider
                 if (true)
                 {
-                    provPri = Providers.GetDefaultProvider(patientData.Patient.ClinicNum).ProvNum;
+                    provPri = Providers.GetDefaultProvider(patientData.Patient.ClinicNum).Id;
                 }
                 else
                 {
-                    provPri = Providers.GetDefaultProvider().ProvNum;
+                    provPri = Providers.GetDefaultProvider().Id;
                 }
             }
 
-            if (procedureCode.IsHygiene && provSec != 0 && !Providers.GetProv(provSec).IsHidden)
+            if (procedureCode.IsHygiene && provSec != 0 && !Providers.GetById(provSec).IsHidden)
             {
                 //Do not assign Sec. Provider's to Procedures when hidden
                 procedure.ProvNum = provSec;
@@ -2332,7 +2227,7 @@ public class ChartModules
         procedure.RevCode = procedureCode.RevenueCodeDefault;
         Procedures.SetDiagnosticCodesToDefault(procedure, procedureCode);
         procedure.PlaceService = Clinics.GetPlaceService(procedure.ClinicNum);
-        if (Userods.IsUserCpoe(Security.CurUser))
+        if (Userods.IsUserCpoe())
         {
             //This procedure is considered CPOE because the provider is the one that has added it.
             procedure.IsCpoe = true;

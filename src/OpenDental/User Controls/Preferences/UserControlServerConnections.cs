@@ -1,17 +1,10 @@
 ﻿using System;
 using System.Collections;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
 using System.Diagnostics;
 using System.Drawing;
-using System.Globalization;
 using System.IO;
-using System.Linq;
 using System.Net;
-using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 using CodeBase;
 using DataConnectionBase;
@@ -126,9 +119,6 @@ public partial class UserControlServerConnections:UserControl {
 				streamReader=new StreamReader(filename);
 			}
 			catch(Exception) {
-				if(/* ODBuild.IsDebug() */ false){
-					return [];
-				}
 			}
 			if(streamReader.EndOfStream){
 				return [];
@@ -190,29 +180,23 @@ public partial class UserControlServerConnections:UserControl {
 	#endregion Methods - Private
 
 	#region Methods - Public
-	public void FillServerConnections() {
-		if(/* ODEnvironment.IsCloudServer */ false) {//Web users can't change their database settings.
-			checkUseReadOnlyServer.Enabled=false;
-			groupBoxReadOnlyServerSetup.Enabled=false;
-		}
-		else {
-			checkUseReadOnlyServer.Checked=PrefC.GetString(PrefName.ReadOnlyServerCompName)!="" || PrefC.GetString(PrefName.ReadOnlyServerURI)!="";
-			radioReadOnlyServerDirect.Checked=PrefC.GetString(PrefName.ReadOnlyServerURI)=="";
-			radioReadOnlyServerMiddleTier.Checked=PrefC.GetString(PrefName.ReadOnlyServerURI)!="";
-			comboServerName.Text=PrefC.GetString(PrefName.ReadOnlyServerCompName);
-			comboDatabase.Text=PrefC.GetString(PrefName.ReadOnlyServerDbName);
-			textMysqlUser.Text=PrefC.GetString(PrefName.ReadOnlyServerMySqlUser);
-			string decryptedPass;
-			CDT.Class1.Decrypt(PrefC.GetString(PrefName.ReadOnlyServerMySqlPassHash),out decryptedPass);
-			textMysqlPass.Text=decryptedPass;
-			textMysqlPass.PasswordChar='*';
-			textMiddleTierURI.Text=PrefC.GetString(PrefName.ReadOnlyServerURI);
-			textSkySQL.Text=PrefC.GetString(PrefName.ReadOnlyServerSslCa);
-			FillComboComputers();
-			FillComboDatabases();
-			SetReadOnlyServerUIEnabled();
-		}
-
+	public void FillServerConnections()
+	{
+		checkUseReadOnlyServer.Checked=PrefC.GetString(PrefName.ReadOnlyServerCompName)!="" || PrefC.GetString(PrefName.ReadOnlyServerURI)!="";
+		radioReadOnlyServerDirect.Checked=PrefC.GetString(PrefName.ReadOnlyServerURI)=="";
+		radioReadOnlyServerMiddleTier.Checked=PrefC.GetString(PrefName.ReadOnlyServerURI)!="";
+		comboServerName.Text=PrefC.GetString(PrefName.ReadOnlyServerCompName);
+		comboDatabase.Text=PrefC.GetString(PrefName.ReadOnlyServerDbName);
+		textMysqlUser.Text=PrefC.GetString(PrefName.ReadOnlyServerMySqlUser);
+		string decryptedPass;
+		CDT.Class1.Decrypt(PrefC.GetString(PrefName.ReadOnlyServerMySqlPassHash),out decryptedPass);
+		textMysqlPass.Text=decryptedPass;
+		textMysqlPass.PasswordChar='*';
+		textMiddleTierURI.Text=PrefC.GetString(PrefName.ReadOnlyServerURI);
+		textSkySQL.Text=PrefC.GetString(PrefName.ReadOnlyServerSslCa);
+		FillComboComputers();
+		FillComboDatabases();
+		SetReadOnlyServerUIEnabled();
 	}
 
 	public bool SaveServerConnections() {

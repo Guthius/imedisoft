@@ -17,14 +17,15 @@ public class AutoCodeCrud
     public static List<AutoCode> TableToList(DataTable table)
     {
         var retVal = new List<AutoCode>();
-        AutoCode autoCode;
         foreach (DataRow row in table.Rows)
         {
-            autoCode = new AutoCode();
-            autoCode.AutoCodeNum = SIn.Long(row["AutoCodeNum"].ToString());
-            autoCode.Description = SIn.String(row["Description"].ToString());
-            autoCode.IsHidden = SIn.Bool(row["IsHidden"].ToString());
-            autoCode.LessIntrusive = SIn.Bool(row["LessIntrusive"].ToString());
+            var autoCode = new AutoCode
+            {
+                AutoCodeNum = SIn.Long(row["AutoCodeNum"].ToString()),
+                Description = SIn.String(row["Description"].ToString()),
+                IsHidden = SIn.Bool(row["IsHidden"].ToString()),
+                LessIntrusive = SIn.Bool(row["LessIntrusive"].ToString())
+            };
             retVal.Add(autoCode);
         }
 
@@ -44,7 +45,7 @@ public class AutoCodeCrud
         return table;
     }
 
-    public static long Insert(AutoCode autoCode)
+    public static void Insert(AutoCode autoCode)
     {
         var command = "INSERT INTO autocode (";
 
@@ -57,7 +58,6 @@ public class AutoCodeCrud
         {
             autoCode.AutoCodeNum = Db.NonQ(command, true, "AutoCodeNum", "autoCode");
         }
-        return autoCode.AutoCodeNum;
     }
 
     public static void Update(AutoCode autoCode)

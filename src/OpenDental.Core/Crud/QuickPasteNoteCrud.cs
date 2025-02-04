@@ -1,5 +1,3 @@
-#region
-
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
@@ -7,28 +5,10 @@ using DataConnectionBase;
 using Imedisoft.Core.Entities;
 using OpenDentBusiness;
 
-#endregion
-
 namespace Imedisoft.Core.Crud;
 
 public class QuickPasteNoteCrud
 {
-    public static QuickPasteNote SelectOne(long quickPasteNoteNum)
-    {
-        var command = "SELECT * FROM quickpastenote "
-                      + "WHERE QuickPasteNoteNum = " + SOut.Long(quickPasteNoteNum);
-        var list = TableToList(DataCore.GetTable(command));
-        if (list.Count == 0) return null;
-        return list[0];
-    }
-
-    public static QuickPasteNote SelectOne(string command)
-    {
-        var list = TableToList(DataCore.GetTable(command));
-        if (list.Count == 0) return null;
-        return list[0];
-    }
-
     public static List<QuickPasteNote> SelectMany(string command)
     {
         var list = TableToList(DataCore.GetTable(command));
@@ -38,15 +18,16 @@ public class QuickPasteNoteCrud
     public static List<QuickPasteNote> TableToList(DataTable table)
     {
         var retVal = new List<QuickPasteNote>();
-        QuickPasteNote quickPasteNote;
         foreach (DataRow row in table.Rows)
         {
-            quickPasteNote = new QuickPasteNote();
-            quickPasteNote.QuickPasteNoteNum = SIn.Long(row["QuickPasteNoteNum"].ToString());
-            quickPasteNote.QuickPasteCatNum = SIn.Long(row["QuickPasteCatNum"].ToString());
-            quickPasteNote.ItemOrder = SIn.Int(row["ItemOrder"].ToString());
-            quickPasteNote.Note = SIn.String(row["Note"].ToString());
-            quickPasteNote.Abbreviation = SIn.String(row["Abbreviation"].ToString());
+            var quickPasteNote = new QuickPasteNote
+            {
+                QuickPasteNoteNum = SIn.Long(row["QuickPasteNoteNum"].ToString()),
+                QuickPasteCatNum = SIn.Long(row["QuickPasteCatNum"].ToString()),
+                ItemOrder = SIn.Int(row["ItemOrder"].ToString()),
+                Note = SIn.String(row["Note"].ToString()),
+                Abbreviation = SIn.String(row["Abbreviation"].ToString())
+            };
             retVal.Add(quickPasteNote);
         }
 
@@ -67,12 +48,7 @@ public class QuickPasteNoteCrud
         return table;
     }
 
-    public static long Insert(QuickPasteNote quickPasteNote)
-    {
-        return Insert(quickPasteNote, false);
-    }
-
-    public static long Insert(QuickPasteNote quickPasteNote, bool useExistingPK)
+    public static void Insert(QuickPasteNote quickPasteNote)
     {
         var command = "INSERT INTO quickpastenote (";
 
@@ -88,46 +64,6 @@ public class QuickPasteNoteCrud
         {
             quickPasteNote.QuickPasteNoteNum = Db.NonQ(command, true, "QuickPasteNoteNum", "quickPasteNote", paramNote);
         }
-        return quickPasteNote.QuickPasteNoteNum;
-    }
-
-    public static long InsertNoCache(QuickPasteNote quickPasteNote)
-    {
-        return InsertNoCache(quickPasteNote, false);
-    }
-
-    public static long InsertNoCache(QuickPasteNote quickPasteNote, bool useExistingPK)
-    {
-        const bool isRandomKeys = false;
-        var command = "INSERT INTO quickpastenote (";
-        if (isRandomKeys || useExistingPK) command += "QuickPasteNoteNum,";
-        command += "QuickPasteCatNum,ItemOrder,Note,Abbreviation) VALUES(";
-        if (isRandomKeys || useExistingPK) command += SOut.Long(quickPasteNote.QuickPasteNoteNum) + ",";
-        command +=
-            SOut.Long(quickPasteNote.QuickPasteCatNum) + ","
-                                                       + SOut.Int(quickPasteNote.ItemOrder) + ","
-                                                       + DbHelper.ParamChar + "paramNote,"
-                                                       + "'" + SOut.String(quickPasteNote.Abbreviation) + "')";
-        if (quickPasteNote.Note == null) quickPasteNote.Note = "";
-        var paramNote = new OdSqlParameter("paramNote", SOut.StringParam(quickPasteNote.Note));
-        if (useExistingPK || isRandomKeys)
-            Db.NonQ(command, paramNote);
-        else
-            quickPasteNote.QuickPasteNoteNum = Db.NonQ(command, true, "QuickPasteNoteNum", "quickPasteNote", paramNote);
-        return quickPasteNote.QuickPasteNoteNum;
-    }
-
-    public static void Update(QuickPasteNote quickPasteNote)
-    {
-        var command = "UPDATE quickpastenote SET "
-                      + "QuickPasteCatNum =  " + SOut.Long(quickPasteNote.QuickPasteCatNum) + ", "
-                      + "ItemOrder        =  " + SOut.Int(quickPasteNote.ItemOrder) + ", "
-                      + "Note             =  " + DbHelper.ParamChar + "paramNote, "
-                      + "Abbreviation     = '" + SOut.String(quickPasteNote.Abbreviation) + "' "
-                      + "WHERE QuickPasteNoteNum = " + SOut.Long(quickPasteNote.QuickPasteNoteNum);
-        if (quickPasteNote.Note == null) quickPasteNote.Note = "";
-        var paramNote = new OdSqlParameter("paramNote", SOut.StringParam(quickPasteNote.Note));
-        Db.NonQ(command, paramNote);
     }
 
     public static bool Update(QuickPasteNote quickPasteNote, QuickPasteNote oldQuickPasteNote)
@@ -166,22 +102,6 @@ public class QuickPasteNoteCrud
         return true;
     }
 
-    public static bool UpdateComparison(QuickPasteNote quickPasteNote, QuickPasteNote oldQuickPasteNote)
-    {
-        if (quickPasteNote.QuickPasteCatNum != oldQuickPasteNote.QuickPasteCatNum) return true;
-        if (quickPasteNote.ItemOrder != oldQuickPasteNote.ItemOrder) return true;
-        if (quickPasteNote.Note != oldQuickPasteNote.Note) return true;
-        if (quickPasteNote.Abbreviation != oldQuickPasteNote.Abbreviation) return true;
-        return false;
-    }
-
-    public static void Delete(long quickPasteNoteNum)
-    {
-        var command = "DELETE FROM quickpastenote "
-                      + "WHERE QuickPasteNoteNum = " + SOut.Long(quickPasteNoteNum);
-        Db.NonQ(command);
-    }
-
     public static void DeleteMany(List<long> listQuickPasteNoteNums)
     {
         if (listQuickPasteNoteNums == null || listQuickPasteNoteNums.Count == 0) return;
@@ -202,15 +122,13 @@ public class QuickPasteNoteCrud
         var idxNew = 0;
         var idxDB = 0;
         var rowsUpdatedCount = 0;
-        QuickPasteNote fieldNew;
-        QuickPasteNote fieldDB;
         //Because both lists have been sorted using the same criteria, we can now walk each list to determine which list contians the next element.  The next element is determined by Primary Key.
         //If the New list contains the next item it will be inserted.  If the DB contains the next item, it will be deleted.  If both lists contain the next item, the item will be updated.
         while (idxNew < listNew.Count || idxDB < listDB.Count)
         {
-            fieldNew = null;
+            QuickPasteNote fieldNew = null;
             if (idxNew < listNew.Count) fieldNew = listNew[idxNew];
-            fieldDB = null;
+            QuickPasteNote fieldDB = null;
             if (idxDB < listDB.Count) fieldDB = listDB[idxDB];
             //begin compare
             if (fieldNew != null && fieldDB == null)

@@ -1,97 +1,130 @@
 using System;
 using System.Collections.Generic;
-using System.Data;
-using System.Drawing;
-using System.Text;
-using System.Windows.Forms;
-using CodeBase;
 using DataConnectionBase;
 using Imedisoft.Core.Entities;
+using Imedisoft.Features.Providers.Dtos;
 using OpenDentBusiness;
 
 namespace OpenDental;
 
-public partial class FormProviderMerge:FormODBase {
-	private List<Provider> _listProvidersActive= [];
+public partial class FormProviderMerge : FormODBase
+{
+    private List<ProviderDto> _activeProviders = [];
 
-	public FormProviderMerge() {
-		InitializeComponent();
+    public FormProviderMerge()
+    {
+        InitializeComponent();
 
-		_listProvidersActive=Providers.GetWhere(x => x.ProvStatus != ProviderStatus.Deleted,true);
-	}
+        _activeProviders = Providers.GetWhere(x => !x.IsDeleted, true);
+    }
 
-	private void butChangeProvInto_Click(object sender,EventArgs e) {
-		var frmProviderPick=new FrmProviderPick(_listProvidersActive);
-		frmProviderPick.ShowDialog();
-		if(!frmProviderPick.IsDialogOK){
-			return;
-		}
-		var providerSelected=Providers.GetProv(frmProviderPick.ProvNumSelected);
-		textAbbrInto.Text=providerSelected.Abbr;
-		textProvNumInto.Text=SOut.Long(providerSelected.ProvNum);
-		textNpiInto.Text=providerSelected.NationalProvID;
-		textFullNameInto.Text=providerSelected.FName+" "+providerSelected.LName;
-		CheckUIState();
-	}
+    private void butChangeProvInto_Click(object sender, EventArgs e)
+    {
+        var frmProviderPick = new FrmProviderPick(_activeProviders);
+        
+        frmProviderPick.ShowDialog();
+        
+        if (!frmProviderPick.IsDialogOK)
+        {
+            return;
+        }
 
-	private void butChangeProvFrom_Click(object sender,EventArgs e) {
-		var frmProviderPick=new FrmProviderPick(checkDeletedProvs.Checked ? Providers.GetDeepCopy() : _listProvidersActive);
-		frmProviderPick.ShowDialog();
-		if(!frmProviderPick.IsDialogOK){
-			return;
-		}
-		var providerSelected=Providers.GetProv(frmProviderPick.ProvNumSelected);
-		textAbbrFrom.Text=providerSelected.Abbr;
-		textProvNumFrom.Text=SOut.Long(providerSelected.ProvNum);
-		textNpiFrom.Text=providerSelected.NationalProvID;
-		textFullNameFrom.Text=providerSelected.FName+" "+providerSelected.LName;
-		CheckUIState();
-	}
+        var providerSelected = Providers.GetById(frmProviderPick.ProvNumSelected);
+        
+        textAbbrInto.Text = providerSelected.Abbr;
+        textProvNumInto.Text = providerSelected.Id.ToString();
+        textNpiInto.Text = providerSelected.NationalProviderId;
+        textFullNameInto.Text = providerSelected.FirstName + " " + providerSelected.LastName;
+        
+        CheckUIState();
+    }
 
-	private void CheckUIState() {
-		butMerge.Enabled=(textProvNumInto.Text!="" && textProvNumFrom.Text!="");
-	}
+    private void butChangeProvFrom_Click(object sender, EventArgs e)
+    {
+        var frmProviderPick = new FrmProviderPick(checkDeletedProvs.Checked ? Providers.GetDeepCopy() : _activeProviders);
+        
+        frmProviderPick.ShowDialog();
+        
+        if (!frmProviderPick.IsDialogOK)
+        {
+            return;
+        }
 
-	private void butMerge_Click(object sender,EventArgs e) {
-		var differentFields="";
-		if(textProvNumFrom.Text==textProvNumInto.Text) { 
-			//do not attempt a merge if the same provider was selected twice, or if one of the fields is blank.
-			MsgBox.Show(this,"You must select two different providers to merge.");
-			return;
-		}
-		if(textNpiFrom.Text!=textNpiInto.Text) {
-			differentFields+="\r\nNPI";
-		}
-		if(textFullNameFrom.Text!=textFullNameInto.Text) {
-			differentFields+="\r\nFull Name";
-		}
-		var numPats=Providers.CountPats(SIn.Long(textProvNumFrom.Text));
-		var numClaims=Providers.CountClaims(SIn.Long(textProvNumFrom.Text));
-		if(!MsgBox.Show(this,MsgBoxButtons.YesNo,"Are you sure?  The results are permanent and cannot be undone.")) {
-			return;
-		}
-		var msgText="";
-		if(differentFields!="") {
-			msgText=Lan.g(this,"The following provider fields do not match")+": "+differentFields+"\r\n";
-		}
-		msgText+=Lan.g(this,"This change is irreversible")+".  "+Lan.g(this,"This provider is the primary or secondary provider for")+" "+numPats+" "+Lan.g(this,"active patients")
-		         +", "+Lan.g(this,"and the billing or treating provider for")+" "+numClaims+" "+Lan.g(this,"claims")+".  "
-		         +Lan.g(this,"Continue anyways?");
-		if(ODMessageBox.Show(msgText,"",MessageBoxButtons.OKCancel)!=DialogResult.OK)	{
-			return;
-		}
-		var rowsChanged=Providers.Merge(SIn.Long(textProvNumFrom.Text),SIn.Long(textProvNumInto.Text));
-		var logText=Lan.g(this,"Providers merged")+": "+textAbbrFrom.Text+" "+Lan.g(this,"merged into")+" "+textAbbrInto.Text+".\r\n"
-		            +Lan.g(this,"Rows changed")+": "+SOut.Long(rowsChanged);
-		SecurityLogs.MakeLogEntry(EnumPermType.ProviderMerge,0,logText);
-		textAbbrFrom.Clear();
-		textProvNumFrom.Clear();
-		textNpiFrom.Clear();
-		textFullNameFrom.Clear();
-		CheckUIState();
-		MsgBox.Show(this,"Done.");
-		DataValid.SetInvalid(InvalidType.Providers);
-		_listProvidersActive=Providers.GetWhere(x => x.ProvStatus != ProviderStatus.Deleted,true);
-	}
+        var providerSelected = Providers.GetById(frmProviderPick.ProvNumSelected);
+        
+        textAbbrFrom.Text = providerSelected.Abbr;
+        textProvNumFrom.Text = providerSelected.Id.ToString();
+        textNpiFrom.Text = providerSelected.NationalProviderId;
+        textFullNameFrom.Text = providerSelected.FirstName + " " + providerSelected.LastName;
+        
+        CheckUIState();
+    }
 
+    private void CheckUIState()
+    {
+        butMerge.Enabled = textProvNumInto.Text != "" && textProvNumFrom.Text != "";
+    }
+
+    private void ButtonMerge_Click(object sender, EventArgs e)
+    {
+        var differentFields = "";
+        if (textProvNumFrom.Text == textProvNumInto.Text)
+        {
+            ShowError("You must select two different providers to merge.");
+            return;
+        }
+
+        if (textNpiFrom.Text != textNpiInto.Text)
+        {
+            differentFields += "\r\nNPI";
+        }
+
+        if (textFullNameFrom.Text != textFullNameInto.Text)
+        {
+            differentFields += "\r\nFull Name";
+        }
+
+        var numPats = Providers.CountPats(SIn.Long(textProvNumFrom.Text));
+        var numClaims = Providers.CountClaims(SIn.Long(textProvNumFrom.Text));
+        
+        if (!Confirm("Are you sure?  The results are permanent and cannot be undone."))
+        {
+            return;
+        }
+
+        var confirmPrompt = "";
+        if (differentFields != "")
+        {
+            confirmPrompt = "The following provider fields do not match: " + differentFields + "\r\n";
+        }
+
+        confirmPrompt += 
+            "This change is irreversible.  " +
+            "This provider is the primary or secondary provider for " + numPats + " active patients, and the billing or treating provider for " + numClaims + " claims.  " +
+            "Continue anyways?";
+        
+        if (!ConfirmOk(confirmPrompt))
+        {
+            return;
+        }
+
+        var rowsChanged = Providers.Merge(SIn.Long(textProvNumFrom.Text), SIn.Long(textProvNumInto.Text));
+        
+        var logText = "Providers merged: " + textAbbrFrom.Text + " merged into " + textAbbrInto.Text + ".\r\nRows changed: " + SOut.Long(rowsChanged);
+        
+        SecurityLogs.MakeLogEntry(EnumPermType.ProviderMerge, 0, logText);
+        
+        textAbbrFrom.Clear();
+        textProvNumFrom.Clear();
+        textNpiFrom.Clear();
+        textFullNameFrom.Clear();
+        
+        CheckUIState();
+        
+        ShowInfo("Done.");
+        
+        DataValid.SetInvalid(InvalidType.Providers);
+        
+        _activeProviders = Providers.GetWhere(x => !x.IsDeleted, true);
+    }
 }

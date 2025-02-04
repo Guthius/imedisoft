@@ -10,6 +10,7 @@ using Imedisoft.Core.Data;
 using Imedisoft.Core.Entities;
 using Imedisoft.Core.Features.Clinics;
 using Imedisoft.Core.Features.Clinics.Dtos;
+using Imedisoft.Features.Providers.Dtos;
 
 namespace OpenDental;
 
@@ -19,12 +20,12 @@ public partial class FormScheduleDayEdit:FormODBase {
 	private List<Schedule> _listSchedules;
 	///<summary>Stale copy of schedule entries.</summary>
 	private List<Schedule> _listSchedulesOld;
-	private List<Provider> _listProviders;
+	private List<ProviderDto> _listProviders;
 	private List<Employee> _listEmployees;
 	///<summary>Only used in schedule sorting. Greatly increases speed of large databases.</summary>
 	private List<Employee> _listEmployeesSort;
 	///<summary>Only used in schedule sorting. Greatly increases speed of large databases.</summary>
-	private List<Provider> _listProvidersSort;
+	private List<ProviderDto> _listProvidersSort;
 	private List<ClinicDto> _listClinics;
 	public bool ShowOkSchedule = false;
 	///<summary>Set by butOkSchedule only.</summary>
@@ -109,7 +110,7 @@ public partial class FormScheduleDayEdit:FormODBase {
 		}
 		//Fill lists with new information from new clinic
 		FillProvsAndEmps();
-		_listSchedules=Schedules.RefreshDayEditForPracticeProvsEmps(_dateSched,_listProviders.Select(x => x.ProvNum).Where(x => x>0).ToList(),
+		_listSchedules=Schedules.RefreshDayEditForPracticeProvsEmps(_dateSched,_listProviders.Select(x => x.Id).Where(x => x>0).ToList(),
 			_listEmployees.Select(x => x.EmployeeNum).Where(x => x>0).ToList(),comboClinic.ClinicNumSelected);
 		_listSchedulesOld=_listSchedules.Select(x => x.Copy()).ToList();
 		FillGrid();
@@ -124,24 +125,17 @@ public partial class FormScheduleDayEdit:FormODBase {
 		employee.EmployeeNum=0;
 		employee.FName="none";
 		_listEmployees= [employee];
-		var provider = new Provider();
-		provider.ProvNum=0;
+		var provider = new ProviderDto();
 		provider.Abbr="none";
 		_listProviders= [provider];
-		if(true) {
-			_listProviders.AddRange(Providers.GetProvsForClinic(comboClinic.ClinicNumSelected));
-			_listEmployees.AddRange(Employees.GetEmpsForClinic(comboClinic.ClinicNumSelected));
-		}
-		else {
-			_listProviders.AddRange(Providers.GetDeepCopy(true));
-			_listEmployees.AddRange(Employees.GetDeepCopy(true));
-		}
+		_listProviders.AddRange(Providers.GetProvsForClinic(comboClinic.ClinicNumSelected));
+		_listEmployees.AddRange(Employees.GetEmpsForClinic(comboClinic.ClinicNumSelected));
 		//Prov Listbox
 		var listProvNumsPreviouslySelected=listProv.GetListSelected<Provider>().Select(x => x.ProvNum).ToList();
 		listProv.Items.Clear();
 		listProv.Items.AddList(_listProviders,x => x.Abbr);
 		for(var i=0; i<_listProviders.Count;i++) {
-			if(listProvNumsPreviouslySelected.Contains(_listProviders[i].ProvNum)) {
+			if(listProvNumsPreviouslySelected.Contains(_listProviders[i].Id)) {
 				listProv.SetSelected(i,true);
 			}
 		}
@@ -173,28 +167,9 @@ public partial class FormScheduleDayEdit:FormODBase {
 	private void FillGrid() {
 		_listEmployeesSort=_listSchedules.Select(x=>x.EmployeeNum).Distinct().Select(x=>Employees.GetEmp(x))//returns null if EmployeeNum==0 or invalid
 			.Where(x=>x!=null).ToList();//speed up sort.
-		_listProvidersSort=_listSchedules.Select(x=>x.ProvNum).Distinct().Select(x=>Providers.GetProv(x))//returns null if ProvNum==0 or invalid
+		_listProvidersSort=_listSchedules.Select(x=>x.ProvNum).Distinct().Select(x=>Providers.GetById(x))//returns null if ProvNum==0 or invalid
 			.Where(x=>x!=null).ToList();//speed up sort.
-		if(false) {
-			//HQ wants their own sort, so instead of complicating the comparer we will just do the comparer on four seperate lists.
-			var listSchedulesPracticeNotes=_listSchedules.Where(x => x.EmployeeNum==0 && x.ProvNum==0).ToList();
-			listSchedulesPracticeNotes.Sort(CompareSchedule);
-			var listSchedulesEmpNotes=_listSchedules.Where(x => x.EmployeeNum!=0 && x.ProvNum==0 && x.StartTime==TimeSpan.Zero).ToList();
-			listSchedulesEmpNotes.Sort(CompareSchedule);
-			var listSchedulesProv=_listSchedules.Where(x => x.EmployeeNum==0 && x.ProvNum!=0).ToList();
-			listSchedulesProv.Sort(CompareSchedule);
-			var listSchedulesEmp=_listSchedules.Where(x => x.EmployeeNum!=0 && x.ProvNum==0 && x.StartTime!=TimeSpan.Zero).ToList();
-			listSchedulesEmp.Sort(CompareSchedule);
-			_listSchedules= [];
-			_listSchedules.AddRange(listSchedulesPracticeNotes);
-			_listSchedules.AddRange(listSchedulesEmpNotes);
-			_listSchedules.AddRange(listSchedulesProv);
-			_listSchedules.AddRange(listSchedulesEmp);
-			_listSchedules.Distinct();
-		}
-		else {
-			_listSchedules.Sort(CompareSchedule);
-		}
+		_listSchedules.Sort(CompareSchedule);
 		graphScheduleDay.SetSchedules(_listSchedules);
 		gridMain.BeginUpdate();
 		gridMain.Columns.Clear();
@@ -306,9 +281,6 @@ public partial class FormScheduleDayEdit:FormODBase {
 		if(scheduleX.SchedType!=scheduleY.SchedType){
 			return scheduleX.SchedType.CompareTo(scheduleY.SchedType);
 		}
-		if(scheduleX.ProvNum!=scheduleY.ProvNum){
-			return _listProvidersSort.Find(x=>x.ProvNum == scheduleX.ProvNum).ItemOrder.CompareTo(_listProvidersSort.Find(x=>x.ProvNum == scheduleY.ProvNum).ItemOrder);
-		}
 		if(scheduleX.EmployeeNum!=scheduleY.EmployeeNum) {
 			var employeeX = _listEmployeesSort.Find(x=>x.EmployeeNum==scheduleX.EmployeeNum);
 			var employeeY = _listEmployeesSort.Find(x=>x.EmployeeNum==scheduleY.EmployeeNum);
@@ -369,7 +341,7 @@ public partial class FormScheduleDayEdit:FormODBase {
 			MsgBox.Show(this,ex.Message);
 			return;
 		}
-		_listSchedules=Schedules.RefreshDayEditForPracticeProvsEmps(_dateSched,_listProviders.Select(x => x.ProvNum).Where(x => x>0).ToList(),
+		_listSchedules=Schedules.RefreshDayEditForPracticeProvsEmps(_dateSched,_listProviders.Select(x => x.Id).Where(x => x>0).ToList(),
 			_listEmployees.Select(x => x.EmployeeNum).Where(x => x>0).ToList(),comboClinic.ClinicNumSelected);
 		_listSchedulesOld=_listSchedules.Select(x => x.Copy()).ToList();
 		FillGrid();
@@ -409,7 +381,7 @@ public partial class FormScheduleDayEdit:FormODBase {
 		if(!listProv.SelectedIndices.Contains(0)) {// Add all selected providers to the provider number list
 			var listSelectedIndices=listProv.SelectedIndices.OfType<int>().ToList();
 			for(var i=0;i<listSelectedIndices.Count();i++) {
-				_listProvNumsSelected.Add(_listProviders[listSelectedIndices[i]].ProvNum);
+				_listProvNumsSelected.Add(_listProviders[listSelectedIndices[i]].Id);
 			}
 		}
 		var schedule=new Schedule();
@@ -437,18 +409,18 @@ public partial class FormScheduleDayEdit:FormODBase {
 			scheduleTemp=new Schedule();
 			scheduleTemp=schedule.Copy();
 			scheduleTemp.SchedType=ScheduleType.Provider;
-			scheduleTemp.ProvNum=_listProviders[listProv.SelectedIndices[i]].ProvNum;
+			scheduleTemp.ProvNum=_listProviders[listProv.SelectedIndices[i]].Id;
 			listProviderNums.Add(scheduleTemp.ProvNum);
 			_listSchedules.Add(scheduleTemp);
 		}
 		listProviderNums=listProviderNums.Distinct().ToList();
 		var listProviderNames=new List<string>();
 		for(var i=0;i<listProviderNums.Count;i++) {
-			var provider=Providers.GetFirstOrDefault(x => x.ProvNum==listProviderNums[i]);
+			var provider=Providers.GetFirstOrDefault(x => x.Id==listProviderNums[i]);
 			if(provider==null) {
 				continue;
 			}
-			listProviderNames.Add(Providers.GetFormalName(provider.ProvNum));
+			listProviderNames.Add(Providers.GetFormalName(provider.Id));
 		}
 		if(listProviderNames.Count>0){
 			SecurityLogs.MakeLogEntry(EnumPermType.Schedules,0,"Schedule Added for "+string.Join(", ",listProviderNames.OrderBy(x => x))+" on "+_dateSched.ToShortDateString());
@@ -504,7 +476,7 @@ public partial class FormScheduleDayEdit:FormODBase {
 			scheduleTemp=new Schedule();
 			scheduleTemp=schedule.Copy();
 			scheduleTemp.SchedType=ScheduleType.Provider;
-			scheduleTemp.ProvNum=_listProviders[listProvIndices[i]].ProvNum;
+			scheduleTemp.ProvNum=_listProviders[listProvIndices[i]].Id;
 			_listSchedules.Add(scheduleTemp);
 		}
 		var listEmpIndices=new List<int>();
@@ -567,7 +539,7 @@ public partial class FormScheduleDayEdit:FormODBase {
 		labelDate.Text=_dateSched.ToString("dddd")+"\r\n"+_dateSched.ToShortDateString();
 		//Fill lists with new information from new clinic
 		FillProvsAndEmps();
-		_listSchedules=Schedules.RefreshDayEditForPracticeProvsEmps(_dateSched,_listProviders.Select(x => x.ProvNum).Where(x => x>0).ToList(),
+		_listSchedules=Schedules.RefreshDayEditForPracticeProvsEmps(_dateSched,_listProviders.Select(x => x.Id).Where(x => x>0).ToList(),
 			_listEmployees.Select(x => x.EmployeeNum).Where(x => x>0).ToList(),comboClinic.ClinicNumSelected);
 		_listSchedulesOld=_listSchedules.Select(x => x.Copy()).ToList();
 		FillGrid();
@@ -586,7 +558,7 @@ public partial class FormScheduleDayEdit:FormODBase {
 		labelDate.Text=_dateSched.ToString("dddd")+"\r\n"+_dateSched.ToShortDateString();
 		//Fill lists with new information from new clinic
 		FillProvsAndEmps();
-		_listSchedules=Schedules.RefreshDayEditForPracticeProvsEmps(_dateSched,_listProviders.Select(x => x.ProvNum).Where(x => x>0).ToList(),
+		_listSchedules=Schedules.RefreshDayEditForPracticeProvsEmps(_dateSched,_listProviders.Select(x => x.Id).Where(x => x>0).ToList(),
 			_listEmployees.Select(x => x.EmployeeNum).Where(x => x>0).ToList(),comboClinic.ClinicNumSelected);
 		_listSchedulesOld=_listSchedules.Select(x => x.Copy()).ToList();
 		FillGrid();
@@ -612,11 +584,11 @@ public partial class FormScheduleDayEdit:FormODBase {
 		_listSchedules.RemoveAll(x => listSchedulesToRemove.Contains(x));
 		var listProviderNames=new List<string>();
 		for(var i=0;i<listSchedulesToRemove.Count;i++) {
-			var provider=Providers.GetFirstOrDefault(x => x.ProvNum==listSchedulesToRemove[i].ProvNum);
+			var provider=Providers.GetFirstOrDefault(x => x.Id==listSchedulesToRemove[i].ProvNum);
 			if(provider==null) {
 				continue;
 			}
-			listProviderNames.Add(Providers.GetFormalName(provider.ProvNum));
+			listProviderNames.Add(Providers.GetFormalName(provider.Id));
 		}
 		if(listProviderNames.Count>0) {
 			SecurityLogs.MakeLogEntry(EnumPermType.Schedules,0,"Schedule Removed for "+string.Join(", ",listProviderNames.OrderBy(x => x))+" on "+_dateSched.ToShortDateString());

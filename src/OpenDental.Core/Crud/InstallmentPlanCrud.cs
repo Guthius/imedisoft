@@ -26,17 +26,18 @@ public class InstallmentPlanCrud
     public static List<InstallmentPlan> TableToList(DataTable table)
     {
         var retVal = new List<InstallmentPlan>();
-        InstallmentPlan installmentPlan;
         foreach (DataRow row in table.Rows)
         {
-            installmentPlan = new InstallmentPlan();
-            installmentPlan.InstallmentPlanNum = SIn.Long(row["InstallmentPlanNum"].ToString());
-            installmentPlan.PatNum = SIn.Long(row["PatNum"].ToString());
-            installmentPlan.DateAgreement = SIn.Date(row["DateAgreement"].ToString());
-            installmentPlan.DateFirstPayment = SIn.Date(row["DateFirstPayment"].ToString());
-            installmentPlan.MonthlyPayment = SIn.Double(row["MonthlyPayment"].ToString());
-            installmentPlan.APR = SIn.Float(row["APR"].ToString());
-            installmentPlan.Note = SIn.String(row["Note"].ToString());
+            var installmentPlan = new InstallmentPlan
+            {
+                InstallmentPlanNum = SIn.Long(row["InstallmentPlanNum"].ToString()),
+                PatNum = SIn.Long(row["PatNum"].ToString()),
+                DateAgreement = SIn.Date(row["DateAgreement"].ToString()),
+                DateFirstPayment = SIn.Date(row["DateFirstPayment"].ToString()),
+                MonthlyPayment = SIn.Double(row["MonthlyPayment"].ToString()),
+                APR = SIn.Float(row["APR"].ToString()),
+                Note = SIn.String(row["Note"].ToString())
+            };
             retVal.Add(installmentPlan);
         }
 

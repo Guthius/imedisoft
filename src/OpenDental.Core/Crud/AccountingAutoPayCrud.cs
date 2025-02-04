@@ -39,12 +39,11 @@ public class AccountingAutoPayCrud
         return table;
     }
 
-    public static long Insert(AccountingAutoPay accountingAutoPay)
+    public static void Insert(AccountingAutoPay accountingAutoPay)
     {
         var command = "INSERT INTO accountingautopay (";
         command += "PayType,PickList) VALUES(";
         command += SOut.Long(accountingAutoPay.PayType) + "," + "'" + SOut.String(accountingAutoPay.PickList) + "')";
         accountingAutoPay.AccountingAutoPayNum = Db.NonQ(command, true, "AccountingAutoPayNum", "accountingAutoPay");
-        return accountingAutoPay.AccountingAutoPayNum;
     }
 }

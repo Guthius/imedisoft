@@ -1,6 +1,4 @@
-﻿using OpenDental.UI.Design;
-using System;
-using System.Collections;
+﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
@@ -8,11 +6,7 @@ using System.ComponentModel.Design;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
-using System.Windows.Forms.Design;
-using System.Windows.Forms.Layout;
 
 namespace OpenDental.UI;
 
@@ -28,7 +22,7 @@ public class TabControl:UserControl {
 	//4. In the Designer, move something back and forth by a pixel. This will trigger serialization. TabPages will shift by a few pixels.
 	//5. If in doubt, test it.
 	#region Fields - Public
-	public LayoutManagerForms LayoutManager=new LayoutManagerForms();
+	
 	///<summary>These rectangles are of the unselected tabs.  The selected tab will be a little bigger.</summary>
 	public List<Rectangle> ListRectanglesTabs= [];
 	#endregion Fields - Public

@@ -264,11 +264,6 @@ public partial class FormReconcileEdit : FormODBase {
 		documentRenderer.PrepareDocument();
 		migraDocPrintDocument.PrinterSettings=printDocument.PrinterSettings;
 		migraDocPrintDocument.Renderer=documentRenderer;
-		if(/* ODBuild.IsDebug() */ false) {
-			using var formRpPrintPreview=new FormRpPrintPreview(migraDocPrintDocument);
-			formRpPrintPreview.ShowDialog();
-			return;
-		}
 		migraDocPrintDocument.Print();
 	}
 

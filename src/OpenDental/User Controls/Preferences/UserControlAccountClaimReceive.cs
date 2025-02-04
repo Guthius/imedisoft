@@ -1,14 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Globalization;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
-using CodeBase;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Entities;
 using OpenDentBusiness;
@@ -31,11 +23,7 @@ public partial class UserControlAccountClaimReceive:UserControl {
 		Font=new("Microsoft Sans Serif", 8.25f);
 	}
 	#endregion Constructors
-
-	#region Events
-	public event EventHandler SyncChanged;
-	#endregion Events
-
+	
 	#region Methods - Event Handlers
 	private void butReplacements_Click(object sender,EventArgs e) {
 		var listMessageReplaceTypes=new List<MessageReplaceType>();

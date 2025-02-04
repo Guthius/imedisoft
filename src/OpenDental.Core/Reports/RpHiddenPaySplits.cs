@@ -2,17 +2,13 @@
 using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Linq;
-using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace OpenDentBusiness {
 	public class RpHiddenPaySplits {
 		public static DataTable GetReportData(List<long> listProvNums,List<long> listUnearnedTypeDefNums,List<long> listClinicNums
 			,bool hasClinicsEnabled,DateTime dateFrom,DateTime dateTo)
 		{
-			string command=$@"SELECT paysplit.DatePay,
+			var command=$@"SELECT paysplit.DatePay,
 												CONCAT(patient.LName,', ',patient.FName),COALESCE(provider.Abbr,'') Abbr,";
 			if(hasClinicsEnabled) {
 				//If clinic is not hidden, get clinic.Abbr. Else, concatenate clinic.Abbr with "(hidden)".

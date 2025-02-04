@@ -22,10 +22,10 @@ public static class UserClinics
     public static bool Sync(List<UserClinic> listUserClinicsNew, long userNum)
     {
         var listUserClinicsOld = GetForUser(userNum);
-        
+
         return UserClinicCrud.Sync(listUserClinicsNew, listUserClinicsOld);
     }
-    
+
     private class UserClinicCache : CacheListAbs<UserClinic>
     {
         protected override List<UserClinic> GetCacheFromDb()
@@ -55,10 +55,10 @@ public static class UserClinics
     }
 
     private static readonly UserClinicCache Cache = new();
-    
-    public static List<UserClinic> GetWhere(Predicate<UserClinic> match, bool isShort = false)
+
+    public static List<UserClinic> GetWhere(Predicate<UserClinic> predicate, bool shortList = false)
     {
-        return Cache.GetWhere(match, isShort);
+        return Cache.GetWhere(predicate, shortList);
     }
 
     public static DataTable GetTableFromCache(bool refreshCache)

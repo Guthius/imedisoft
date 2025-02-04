@@ -1,8 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Windows.Forms;
-using CodeBase;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Data;
 using Imedisoft.Core.Entities;
@@ -87,7 +87,7 @@ public partial class FormEmailTemplateEdit : FormODBase {
 
 	private void gridAttachments_CellDoubleClick(object sender,ODGridClickEventArgs e) {
 		var emailAttach=_listEmailAttachesDisplayed[gridAttachments.SelectedIndices[0]];
-		FileAtoZ.OpenFile(FileAtoZ.CombinePaths(EmailAttaches.GetAttachPath(),emailAttach.ActualFileName),emailAttach.DisplayedFileName);
+		FileAtoZ.OpenFile(Path.Combine(EmailAttaches.GetAttachPath(),emailAttach.ActualFileName),emailAttach.DisplayedFileName);
 	}
 
 	private void butSubjectFields_Click(object sender,EventArgs e) {
@@ -143,7 +143,7 @@ public partial class FormEmailTemplateEdit : FormODBase {
 
 	private void menuItemOpen_Click(object sender,EventArgs e) {
 		var emailAttach=_listEmailAttachesDisplayed[gridAttachments.SelectedIndices[0]];
-		FileAtoZ.OpenFile(FileAtoZ.CombinePaths(EmailAttaches.GetAttachPath(),emailAttach.ActualFileName),emailAttach.DisplayedFileName);
+		FileAtoZ.OpenFile(Path.Combine(EmailAttaches.GetAttachPath(),emailAttach.ActualFileName),emailAttach.DisplayedFileName);
 	}
 
 	private void menuItemRename_Click(object sender,EventArgs e) {
@@ -240,7 +240,7 @@ public partial class FormEmailTemplateEdit : FormODBase {
 				webBrowserHtml.DocumentText=_htmlDocument;
 				webBrowserHtml.BringToFront();
 			}
-			catch(Exception ex) {
+			catch {
 				//invalid preview
 			}
 		}

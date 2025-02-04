@@ -758,24 +758,6 @@ public class ImageStore
         }
     }
 
-    public static void CleanAmdAttach(string amdFileName)
-    {
-        var path = Path.Combine(GetAmdFolder(), amdFileName);
-        if (!File.Exists(path))
-        {
-            return;
-        }
-
-        try
-        {
-            File.Delete(path);
-        }
-        catch
-        {
-            // ignored
-        }
-    }
-
     public static void DeleteThumbnailImage(Document document, string patientFolder)
     {
         var path = Path.Combine(patientFolder, "Thumbnails", document.FileName);

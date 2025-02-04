@@ -17,21 +17,22 @@ public class EFormDefCrud
     public static List<EFormDef> TableToList(DataTable table)
     {
         var retVal = new List<EFormDef>();
-        EFormDef eFormDef;
         foreach (DataRow row in table.Rows)
         {
-            eFormDef = new EFormDef();
-            eFormDef.EFormDefNum = SIn.Long(row["EFormDefNum"].ToString());
-            eFormDef.FormType = (EnumEFormType) SIn.Int(row["FormType"].ToString());
-            eFormDef.Description = SIn.String(row["Description"].ToString());
-            eFormDef.DateTCreated = SIn.DateTime(row["DateTCreated"].ToString());
-            eFormDef.IsInternalHidden = SIn.Bool(row["IsInternalHidden"].ToString());
-            eFormDef.MaxWidth = SIn.Int(row["MaxWidth"].ToString());
-            eFormDef.RevID = SIn.Int(row["RevID"].ToString());
-            eFormDef.ShowLabelsBold = SIn.Bool(row["ShowLabelsBold"].ToString());
-            eFormDef.SpaceBelowEachField = SIn.Int(row["SpaceBelowEachField"].ToString());
-            eFormDef.SpaceToRightEachField = SIn.Int(row["SpaceToRightEachField"].ToString());
-            eFormDef.SaveImageCategory = SIn.Long(row["SaveImageCategory"].ToString());
+            var eFormDef = new EFormDef
+            {
+                EFormDefNum = SIn.Long(row["EFormDefNum"].ToString()),
+                FormType = (EnumEFormType) SIn.Int(row["FormType"].ToString()),
+                Description = SIn.String(row["Description"].ToString()),
+                DateTCreated = SIn.DateTime(row["DateTCreated"].ToString()),
+                IsInternalHidden = SIn.Bool(row["IsInternalHidden"].ToString()),
+                MaxWidth = SIn.Int(row["MaxWidth"].ToString()),
+                RevID = SIn.Int(row["RevID"].ToString()),
+                ShowLabelsBold = SIn.Bool(row["ShowLabelsBold"].ToString()),
+                SpaceBelowEachField = SIn.Int(row["SpaceBelowEachField"].ToString()),
+                SpaceToRightEachField = SIn.Int(row["SpaceToRightEachField"].ToString()),
+                SaveImageCategory = SIn.Long(row["SaveImageCategory"].ToString())
+            };
             retVal.Add(eFormDef);
         }
 
@@ -58,7 +59,7 @@ public class EFormDefCrud
         return table;
     }
 
-    public static long Insert(EFormDef eFormDef)
+    public static void Insert(EFormDef eFormDef)
     {
         var command = "INSERT INTO eformdef (";
 
@@ -78,30 +79,5 @@ public class EFormDefCrud
         {
             eFormDef.EFormDefNum = Db.NonQ(command, true, "EFormDefNum", "eFormDef");
         }
-        return eFormDef.EFormDefNum;
-    }
-
-    public static void Update(EFormDef eFormDef)
-    {
-        var command = "UPDATE eformdef SET "
-                      + "FormType             =  " + SOut.Int((int) eFormDef.FormType) + ", "
-                      + "Description          = '" + SOut.String(eFormDef.Description) + "', "
-                      + "DateTCreated         =  " + SOut.DateTime(eFormDef.DateTCreated) + ", "
-                      + "IsInternalHidden     =  " + SOut.Bool(eFormDef.IsInternalHidden) + ", "
-                      + "MaxWidth             =  " + SOut.Int(eFormDef.MaxWidth) + ", "
-                      + "RevID                =  " + SOut.Int(eFormDef.RevID) + ", "
-                      + "ShowLabelsBold       =  " + SOut.Bool(eFormDef.ShowLabelsBold) + ", "
-                      + "SpaceBelowEachField  =  " + SOut.Int(eFormDef.SpaceBelowEachField) + ", "
-                      + "SpaceToRightEachField=  " + SOut.Int(eFormDef.SpaceToRightEachField) + ", "
-                      + "SaveImageCategory    =  " + SOut.Long(eFormDef.SaveImageCategory) + " "
-                      + "WHERE EFormDefNum = " + SOut.Long(eFormDef.EFormDefNum);
-        Db.NonQ(command);
-    }
-
-    public static void Delete(long eFormDefNum)
-    {
-        var command = "DELETE FROM eformdef "
-                      + "WHERE EFormDefNum = " + SOut.Long(eFormDefNum);
-        Db.NonQ(command);
     }
 }

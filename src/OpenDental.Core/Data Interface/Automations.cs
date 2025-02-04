@@ -4,7 +4,6 @@ using System.Data;
 using System.Drawing;
 using System.Linq;
 using CodeBase;
-using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Crud;
 using Imedisoft.Core.Data;
@@ -26,9 +25,7 @@ public class Automations
     
     public static void Delete(Automation automation)
     {
-        var command = "DELETE FROM automation"
-                      + " WHERE AutomationNum = " + SOut.Long(automation.AutomationNum);
-        Db.NonQ(command);
+        Db.NonQ("DELETE FROM automation WHERE AutomationNum = " + automation.AutomationNum);
     }
     
     public static bool Trigger<T>(
@@ -158,7 +155,7 @@ public class Automations
                             || (x.FieldType == SheetFieldType.Special && x.FieldName == "toothChart")))
                     {
                         var listProcs = Procedures.GetCompletedForDateRange(DateTime.Today, DateTime.Today
-                            , listPatNums: new List<long> {patNum}
+                            , listPatNums: [patNum]
                             , includeNote: true
                             , includeGroupNote: true
                         );
@@ -206,7 +203,7 @@ public class Automations
                     {
                         appointmentNew.ColorOverride = appointmentType.AppointmentTypeColor;
                         appointmentNew.Pattern = AppointmentTypes.GetTimePatternForAppointmentType(appointmentType);
-                        var listProcs = Appointments.ApptTypeMissingProcHelper(appointmentNew, appointmentType, new List<Procedure>());
+                        var listProcs = Appointments.ApptTypeMissingProcHelper(appointmentNew, appointmentType, []);
                         Procedures.UpdateAptNums(listProcs.Select(x => x.ProcNum).ToList(), appointmentNew.AptNum, appointmentNew.AptStatus == ApptStatus.Planned);
                     }
 
@@ -243,34 +240,6 @@ public class Automations
                     didAutomationHappen = true;
 
                     #endregion PatRestrictApptSchedTrue
-
-                    continue;
-                case AutomationAction.PrintRxInstruction:
-
-                    #region PrintRxInstruction
-
-                    var listRxPats = (List<RxPat>) (object) triggerObj;
-                    if (listRxPats == null)
-                        //Got here via a pre-existing trigger that doesn't pass in triggerObj.  We now block creation of automation triggers that could get 
-                        //here via code that does not pass in triggerObj.
-                        continue;
-                    //We go through each new Rx where the patient note isn't blank.
-                    //There should only usually be one new rx, but we'll loop just in case.
-                    var listRxPatsWithNotes = listRxPats.FindAll(x => !string.IsNullOrWhiteSpace(x.PatientInstruction));
-                    for (var j = 0; j < listRxPatsWithNotes.Count; j++)
-                    {
-                        //This logic is an exact copy of FormRxManage.butPrintSelect_Click()'s logic when 1 Rx is selected.  
-                        //If this is updated, that method needs to be updated as well.
-                        sheetDef = SheetDefs.GetSheetDef(listAutomations[i].SheetDefNum);
-                        sheet = SheetUtil.CreateSheet(sheetDef, patNum);
-                        SheetParameter.SetParameter(sheet, "RxNum", listRxPatsWithNotes[j].RxNum);
-                        SheetFiller.FillFields(sheet);
-                        SheetUtil.CalculateHeights(sheet);
-                        actionShowSheetFillEdit.Invoke(sheet);
-                        didAutomationHappen = true;
-                    }
-
-                    #endregion PrintRxInstruction
 
                     continue;
                 case AutomationAction.ChangePatStatus:
@@ -351,18 +320,6 @@ public class Automations
                     break;
                 case AutoCondField.BillingType:
                     if (!BillingTypeComparison(listAutomationConditions[i], patNum)) return false;
-                    break;
-                case AutoCondField.IsProcRequired:
-                    //ONLY TO BE USED FOR RxCreate AUTOMATION TRIGGER
-                    if (!IsProcRequiredComparison(triggerObj)) return false;
-                    break;
-                case AutoCondField.IsControlled:
-                    //ONLY TO BE USED FOR RxCreate AUTOMATION TRIGGER
-                    if (!IsControlledComparison(triggerObj)) return false;
-                    break;
-                case AutoCondField.IsPatientInstructionPresent:
-                    //ONLY TO BE USED FOR RxCreate AUTOMATION TRIGGER
-                    if (!IsPatientInstructionPresent(triggerObj)) return false;
                     break;
                 case AutoCondField.PlanNum:
                     if (!PlanNumComparison(listAutomationConditions[i], patNum)) return false;
@@ -574,45 +531,6 @@ public class Automations
                 return defBillType.ItemName.ToLower().Contains(automationCondition.CompareString.ToLower());
             default:
                 return false;
-        }
-    }
-
-    private static bool IsProcRequiredComparison<T>(T triggerObj)
-    {
-        try
-        {
-            var listRxPats = (List<RxPat>) (object) triggerObj;
-            return listRxPats.Any(x => x.IsProcRequired);
-        }
-        catch (Exception e)
-        {
-            return false;
-        }
-    }
-
-    private static bool IsControlledComparison<T>(T triggerObj)
-    {
-        try
-        {
-            var listRxPats = (List<RxPat>) (object) triggerObj;
-            return listRxPats.Any(x => x.IsControlled);
-        }
-        catch (Exception e)
-        {
-            return false;
-        }
-    }
-
-    private static bool IsPatientInstructionPresent<T>(T triggerObj)
-    {
-        try
-        {
-            var listRxPats = (List<RxPat>) (object) triggerObj;
-            return listRxPats.Any(x => !string.IsNullOrWhiteSpace(x.PatientInstruction));
-        }
-        catch (Exception e)
-        {
-            return false;
         }
     }
 

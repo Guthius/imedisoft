@@ -1,13 +1,8 @@
 using System;
 using System.Collections.Generic;
-using System.Data;
-using System.Diagnostics;
 using System.Drawing;
-using System.Drawing.Printing;
 using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading;
 using System.Windows.Forms;
 using CodeBase;
 using DataConnectionBase;
@@ -15,7 +10,6 @@ using Imedisoft.Core.Caching;
 using Imedisoft.Core.Entities;
 using Imedisoft.Core.Features.Clinics;
 using Imedisoft.Core.Features.Clinics.Dtos;
-using OpenDental.Bridges;
 using OpenDental.Logic;
 using OpenDental.UI;
 using OpenDentBusiness;
@@ -104,24 +98,19 @@ public partial class FormCreditRecurringCharges:FormODBase {
 		}
 		_isSelecting=true;
 		_listClinics= [];
-		if(true) {
-			if(!Security.CurUser.ClinicIsRestricted) {
-				_listClinics.Add(new ClinicDto { Description=Lan.g(this,"Unassigned") });
-			}
-			var listClinicsForUserod=Clinics.GetForUserod(Security.CurUser);
-			for(var i = 0;i<listClinicsForUserod.Count;i++) {
-				_listClinics.Add(listClinicsForUserod[i]);
-			}
-			for(var i=0;i<_listClinics.Count;i++) {
-				listClinics.Items.Add(_listClinics[i].Description);
-				listClinics.SetSelected(i,true);
-			}
-			//checkAllClin.Checked=true;//checked true by default in designer so we don't trigger the event to select all and fill grid
+		if(!Security.CurUser.ClinicIsRestricted) {
+			_listClinics.Add(new ClinicDto { Description=Lan.g(this,"Unassigned") });
 		}
-		else {
-			groupClinics.Visible=false;
+		var listClinicsForUserod=Clinics.GetForUserod(Security.CurUser);
+		for(var i = 0;i<listClinicsForUserod.Count;i++) {
+			_listClinics.Add(listClinicsForUserod[i]);
 		}
-		_recurringChargerator=new RecurringChargerator(new ShowErrors(this),true);
+		for(var i=0;i<_listClinics.Count;i++) {
+			listClinics.Items.Add(_listClinics[i].Description);
+			listClinics.SetSelected(i,true);
+		}
+		//checkAllClin.Checked=true;//checked true by default in designer so we don't trigger the event to select all and fill grid
+		_recurringChargerator=new RecurringChargerator(true);
 		_recurringChargerator.SingleCardFinished=new Action(() => {
 			this.Invoke(() => {
 				labelCharged.Text=Lans.g("Charged=")+_recurringChargerator.Success;
@@ -147,12 +136,7 @@ public partial class FormCreditRecurringCharges:FormODBase {
 		}
 		var listSelectedClinicNums=listClinics.SelectedIndices.OfType<int>().Select(x => _listClinics[x].Id).ToList();
 		List<RecurringChargeData> listRecurringChargeDatas;
-		if(true) {
-			listRecurringChargeDatas=_recurringChargerator.ListRecurringChargeData.Where(x => listSelectedClinicNums.Contains(x.RecurringCharge.ClinicNum)).ToList();
-		}
-		else {
-			listRecurringChargeDatas=_recurringChargerator.ListRecurringChargeData;
-		}
+		listRecurringChargeDatas=_recurringChargerator.ListRecurringChargeData.Where(x => listSelectedClinicNums.Contains(x.RecurringCharge.ClinicNum)).ToList();
 		gridMain.BeginUpdate();
 		gridMain.Columns.Clear();
 		gridMain.Columns.Add(new GridColumn(Lan.g("TableRecurring","PatNum"),55));
@@ -180,29 +164,7 @@ public partial class FormCreditRecurringCharges:FormODBase {
 				}
 			}
 		}
-		else { //Clinics disabled
-			gridMain.Columns.Add(new GridColumn(Lan.g("TableRecurring","Name"),220));
-			gridMain.Columns.Add(new GridColumn(Lan.g("TableRecurring","Date"),80,HorizontalAlignment.Right));
-			gridMain.Columns.Add(new GridColumn(Lan.g("TableRecurring","Family Bal"),85,HorizontalAlignment.Right));
-			gridMain.Columns.Add(new GridColumn(Lan.g("TableRecurring","PayPlan Due"),85,HorizontalAlignment.Right));
-			gridMain.Columns.Add(new GridColumn(Lan.g("TableRecurring","Total Due"),80,HorizontalAlignment.Right));
-			gridMain.Columns.Add(new GridColumn(Lan.g("TableRecurring","Repeat Amt"),90,HorizontalAlignment.Right));//RptChrgAmt
-			gridMain.Columns.Add(new GridColumn(Lan.g("TableRecurring","Charge Amt"),100,HorizontalAlignment.Right));
-			if(Programs.HasMultipleCreditCardProgramsEnabled()) {
-				if(Programs.IsEnabled(ProgramName.EdgeExpress)) {
-					gridMain.Columns.Add(new GridColumn("EdgeExpress",80,HorizontalAlignment.Center));
-				}
-				if(Programs.IsEnabled(ProgramName.Xcharge)) {
-					gridMain.Columns.Add(new GridColumn("X-Charge",80,HorizontalAlignment.Center));
-				}
-				if(Programs.IsEnabled(ProgramName.PayConnect)) {
-					gridMain.Columns.Add(new GridColumn("PayConnect",95,HorizontalAlignment.Center));
-				}
-				if(Programs.IsEnabled(ProgramName.PaySimple)) {
-					gridMain.Columns.Add(new GridColumn("PaySimple",90,HorizontalAlignment.Center));
-				}
-			}
-		}
+
 		gridMain.Columns.Add(new GridColumn("IsActive",70,HorizontalAlignment.Center));
 		gridMain.ListGridRows.Clear();
 		GridRow row;

@@ -30,7 +30,7 @@ public static class OrthoChartLogs
         {
             userNum = orthoChartRow.UserNum;
         }
-        
+
         OrthoChartLogCrud.Insert(new OrthoChartLog
         {
             LogData = logData,

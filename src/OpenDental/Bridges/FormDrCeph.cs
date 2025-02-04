@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Windows.Forms;
 using CodeBase;
+using Imedisoft.Core.Data;
 using Imedisoft.Core.Entities;
 using OpenDental.Logic;
 using OpenDentBusiness;
@@ -141,8 +142,8 @@ public partial class FormDrCeph:FormODBase {
 			patID=PatientCur.ChartNumber;
 		}
 		var referalList=RefAttaches.Refresh(PatientCur.PatNum);
-		var prov=Providers.GetProv(Patients.GetProvNum(PatientCur));
-		var provName=prov.FName+" "+prov.MI+" "+prov.LName+" "+prov.Suffix;
+		var prov=Providers.GetById(Patients.GetProvNum(PatientCur));
+		var provName=prov.FirstName+" "+prov.MiddleName+" "+prov.LastName+" "+prov.Suffix;
 		var fam=Patients.GetFamily(PatientCur.PatNum);
 		var guar=fam.ListPats[0];
 		var relat="UnKnown";

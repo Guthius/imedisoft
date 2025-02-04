@@ -1,12 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Data;
-using System.Globalization;
 using System.IO;
-using System.Linq;
-using System.Text;
-using System.Text.RegularExpressions;
 using System.Windows;
 using System.Windows.Documents;
 using System.Windows.Input;
@@ -18,7 +13,6 @@ using CodeBase;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Entities;
 using OpenDental.Drawing;
-using PdfSharp;
 using PdfSharp.Drawing;
 using PdfSharp.Pdf;
 
@@ -109,7 +103,7 @@ namespace OpenDental {
 				return;
 			}
 			EFormFields.DeleteForForm(EFormCur.EFormNum);
-			EForms.Delete(EFormCur.EFormNum,EFormCur.PatNum);
+			EForms.Delete(EFormCur.EFormNum);
 			//There is no need to send any signal to calling form that user deleted.
 			IsDialogOK=true;
 		}
@@ -156,7 +150,6 @@ namespace OpenDental {
 			if(_wasError){
 				return;
 			}
-			MobileNotifications.CI_AddEForm(EFormCur.PatNum,EFormCur.EFormNum);//tells eClipboard to pull the eForm
 			SecurityLogs.MakeLogEntry(EnumPermType.EFormEdit,EFormCur.PatNum,EFormCur.Description+" from "+EFormCur.DateTimeShown.ToShortDateString());
 			IsDialogOK=true;
 		}

@@ -1,8 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Data;
-using System.Drawing;
-using System.Text;
 using System.Windows.Forms;
 using OpenDental;
 using OpenDental.UI;
@@ -30,7 +27,7 @@ public partial class FormImagingDevices:FormODBase {
 			Close();
 			return;
 		}
-		textComputer.Text=ODEnvironment.MachineName;
+		textComputer.Text=Environment.MachineName;
 		FillGrid();
 	}
 

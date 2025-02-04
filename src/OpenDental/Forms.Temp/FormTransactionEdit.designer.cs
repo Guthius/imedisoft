@@ -203,7 +203,7 @@ namespace OpenDental {
 			this.butChange.Size = new System.Drawing.Size(75, 26);
 			this.butChange.TabIndex = 3;
 			this.butChange.Text = "Change";
-			this.butChange.Click += new System.EventHandler(this.butChange_Click);
+			this.butChange.Click += new System.EventHandler(this.ButtonChange_Click);
 			// 
 			// textAccount
 			// 
@@ -281,7 +281,7 @@ namespace OpenDental {
 			this.butAdd.Size = new System.Drawing.Size(75, 26);
 			this.butAdd.TabIndex = 0;
 			this.butAdd.Text = "Add";
-			this.butAdd.Click += new System.EventHandler(this.butAdd_Click);
+			this.butAdd.Click += new System.EventHandler(this.ButtonAdd_Click);
 			// 
 			// gridMain
 			// 
@@ -291,7 +291,7 @@ namespace OpenDental {
 			this.gridMain.TabIndex = 2;
 			this.gridMain.Title = "Splits";
 			this.gridMain.TranslationName = "TableTransSplits";
-			this.gridMain.CellDoubleClick += new OpenDental.UI.ODGridClickEventHandler(this.gridMain_CellDoubleClick);
+			this.gridMain.CellDoubleClick += new OpenDental.UI.ODGridClickEventHandler(this.GridMain_CellDoubleClick);
 			// 
 			// groupBox1
 			// 
@@ -329,7 +329,7 @@ namespace OpenDental {
 			this.butAttachInvoice.Size = new System.Drawing.Size(58, 26);
 			this.butAttachInvoice.TabIndex = 15;
 			this.butAttachInvoice.Text = "Attach";
-			this.butAttachInvoice.Click += new System.EventHandler(this.butAttachInvoice_Click);
+			this.butAttachInvoice.Click += new System.EventHandler(this.ButtonAttachInvoice_Click);
 			// 
 			// textSourceInvoice
 			// 
@@ -384,7 +384,7 @@ namespace OpenDental {
 			this.butAttachPay.Size = new System.Drawing.Size(58, 26);
 			this.butAttachPay.TabIndex = 1;
 			this.butAttachPay.Text = "Attach";
-			this.butAttachPay.Click += new System.EventHandler(this.butAttachPay_Click);
+			this.butAttachPay.Click += new System.EventHandler(this.ButtonAttachPay_Click);
 			// 
 			// textSourceDeposit
 			// 
@@ -402,7 +402,7 @@ namespace OpenDental {
 			this.butAttachDep.Size = new System.Drawing.Size(58, 26);
 			this.butAttachDep.TabIndex = 0;
 			this.butAttachDep.Text = "Attach";
-			this.butAttachDep.Click += new System.EventHandler(this.butAttachDep_Click);
+			this.butAttachDep.Click += new System.EventHandler(this.ButtonAttachDep_Click);
 			// 
 			// butDelete
 			// 
@@ -414,7 +414,7 @@ namespace OpenDental {
 			this.butDelete.Size = new System.Drawing.Size(75, 26);
 			this.butDelete.TabIndex = 3;
 			this.butDelete.Text = "Delete";
-			this.butDelete.Click += new System.EventHandler(this.butDelete_Click);
+			this.butDelete.Click += new System.EventHandler(this.ButtonDelete_Click);
 			// 
 			// textDate
 			// 
@@ -431,7 +431,7 @@ namespace OpenDental {
 			this.butSave.Size = new System.Drawing.Size(75, 26);
 			this.butSave.TabIndex = 2;
 			this.butSave.Text = "&Save";
-			this.butSave.Click += new System.EventHandler(this.butSave_Click);
+			this.butSave.Click += new System.EventHandler(this.ButtonSave_Click);
 			// 
 			// labelReconcileDate
 			// 

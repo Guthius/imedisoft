@@ -26,11 +26,13 @@ public class UpdateHistoryCrud
         var retVal = new List<UpdateHistory>();
         foreach (DataRow row in table.Rows)
         {
-            var updateHistory = new UpdateHistory();
-            updateHistory.UpdateHistoryNum = SIn.Long(row["UpdateHistoryNum"].ToString());
-            updateHistory.DateTimeUpdated = SIn.DateTime(row["DateTimeUpdated"].ToString());
-            updateHistory.ProgramVersion = SIn.String(row["ProgramVersion"].ToString());
-            updateHistory.Signature = SIn.String(row["Signature"].ToString());
+            var updateHistory = new UpdateHistory
+            {
+                UpdateHistoryNum = SIn.Long(row["UpdateHistoryNum"].ToString()),
+                DateTimeUpdated = SIn.DateTime(row["DateTimeUpdated"].ToString()),
+                ProgramVersion = SIn.String(row["ProgramVersion"].ToString()),
+                Signature = SIn.String(row["Signature"].ToString())
+            };
             retVal.Add(updateHistory);
         }
 

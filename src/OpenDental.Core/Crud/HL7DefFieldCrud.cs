@@ -18,14 +18,15 @@ public class HL7DefFieldCrud
     public static List<HL7DefField> TableToList(DataTable table)
     {
         var retVal = new List<HL7DefField>();
-        HL7DefField hL7DefField;
         foreach (DataRow row in table.Rows)
         {
-            hL7DefField = new HL7DefField();
-            hL7DefField.HL7DefFieldNum = SIn.Long(row["HL7DefFieldNum"].ToString());
-            hL7DefField.HL7DefSegmentNum = SIn.Long(row["HL7DefSegmentNum"].ToString());
-            hL7DefField.OrdinalPos = SIn.Int(row["OrdinalPos"].ToString());
-            hL7DefField.TableId = SIn.String(row["TableId"].ToString());
+            var hL7DefField = new HL7DefField
+            {
+                HL7DefFieldNum = SIn.Long(row["HL7DefFieldNum"].ToString()),
+                HL7DefSegmentNum = SIn.Long(row["HL7DefSegmentNum"].ToString()),
+                OrdinalPos = SIn.Int(row["OrdinalPos"].ToString()),
+                TableId = SIn.String(row["TableId"].ToString())
+            };
             var dataType = row["DataType"].ToString();
             if (dataType == "")
                 hL7DefField.DataType = 0;

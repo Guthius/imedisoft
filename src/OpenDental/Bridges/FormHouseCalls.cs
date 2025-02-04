@@ -1,12 +1,7 @@
 using System;
-using System.Data;
-using System.Drawing;
-using System.Collections;
-using System.ComponentModel;
 using System.IO;
 using System.Windows.Forms;
 using OpenDentBusiness;
-using System.Collections.Generic;
 using CodeBase;
 using DataConnectionBase;
 using Imedisoft.Core.Entities;
@@ -105,7 +100,7 @@ public partial class FormHouseCalls : FormODBase{
 			sr.Write("\""+Dequote(SIn.String(table.Rows[i][14].ToString()))+"\",");//14-ApptReason
 			sr.Write("\""+table.Rows[i][15]+"\",");//15-DoctorNumber. might possibly be 0
 			//15-DoctorName. Can handle 0 without any problem.
-			sr.Write("\""+Dequote(Providers.GetLName(SIn.Long(table.Rows[i][15].ToString())))+"\",");
+			sr.Write("\""+Dequote(Providers.GetLastName(SIn.Long(table.Rows[i][15].ToString())))+"\",");
 			if(table.Rows[i][16].ToString()=="1"){//16-IsNewPatient
 				sr.Write("\"T\",");//SendEmail
 			}

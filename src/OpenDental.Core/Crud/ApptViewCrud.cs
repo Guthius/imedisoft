@@ -17,26 +17,27 @@ public class ApptViewCrud
     public static List<ApptView> TableToList(DataTable table)
     {
         var retVal = new List<ApptView>();
-        ApptView apptView;
         foreach (DataRow row in table.Rows)
         {
-            apptView = new ApptView();
-            apptView.ApptViewNum = SIn.Long(row["ApptViewNum"].ToString());
-            apptView.Description = SIn.String(row["Description"].ToString());
-            apptView.ItemOrder = SIn.Int(row["ItemOrder"].ToString());
-            apptView.RowsPerIncr = SIn.Byte(row["RowsPerIncr"].ToString());
-            apptView.OnlyScheduledProvs = SIn.Bool(row["OnlyScheduledProvs"].ToString());
-            apptView.OnlySchedBeforeTime = SIn.TimeSpan(row["OnlySchedBeforeTime"].ToString());
-            apptView.OnlySchedAfterTime = SIn.TimeSpan(row["OnlySchedAfterTime"].ToString());
-            apptView.StackBehavUR = (ApptViewStackBehavior) SIn.Int(row["StackBehavUR"].ToString());
-            apptView.StackBehavLR = (ApptViewStackBehavior) SIn.Int(row["StackBehavLR"].ToString());
-            apptView.ClinicNum = SIn.Long(row["ClinicNum"].ToString());
-            apptView.ApptTimeScrollStart = SIn.TimeSpan(row["ApptTimeScrollStart"].ToString());
-            apptView.IsScrollStartDynamic = SIn.Bool(row["IsScrollStartDynamic"].ToString());
-            apptView.IsApptBubblesDisabled = SIn.Bool(row["IsApptBubblesDisabled"].ToString());
-            apptView.WidthOpMinimum = SIn.Int(row["WidthOpMinimum"].ToString());
-            apptView.WaitingRmName = (EnumWaitingRmName) SIn.Int(row["WaitingRmName"].ToString());
-            apptView.OnlyScheduledProvDays = SIn.Bool(row["OnlyScheduledProvDays"].ToString());
+            var apptView = new ApptView
+            {
+                ApptViewNum = SIn.Long(row["ApptViewNum"].ToString()),
+                Description = SIn.String(row["Description"].ToString()),
+                ItemOrder = SIn.Int(row["ItemOrder"].ToString()),
+                RowsPerIncr = SIn.Byte(row["RowsPerIncr"].ToString()),
+                OnlyScheduledProvs = SIn.Bool(row["OnlyScheduledProvs"].ToString()),
+                OnlySchedBeforeTime = SIn.TimeSpan(row["OnlySchedBeforeTime"].ToString()),
+                OnlySchedAfterTime = SIn.TimeSpan(row["OnlySchedAfterTime"].ToString()),
+                StackBehavUR = (ApptViewStackBehavior) SIn.Int(row["StackBehavUR"].ToString()),
+                StackBehavLR = (ApptViewStackBehavior) SIn.Int(row["StackBehavLR"].ToString()),
+                ClinicNum = SIn.Long(row["ClinicNum"].ToString()),
+                ApptTimeScrollStart = SIn.TimeSpan(row["ApptTimeScrollStart"].ToString()),
+                IsScrollStartDynamic = SIn.Bool(row["IsScrollStartDynamic"].ToString()),
+                IsApptBubblesDisabled = SIn.Bool(row["IsApptBubblesDisabled"].ToString()),
+                WidthOpMinimum = SIn.Int(row["WidthOpMinimum"].ToString()),
+                WaitingRmName = (EnumWaitingRmName) SIn.Int(row["WaitingRmName"].ToString()),
+                OnlyScheduledProvDays = SIn.Bool(row["OnlyScheduledProvDays"].ToString())
+            };
             retVal.Add(apptView);
         }
 

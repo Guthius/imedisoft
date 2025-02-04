@@ -5,7 +5,6 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
-using System.Xml.Serialization;
 using CodeBase;
 using DataConnectionBase;
 using Imedisoft.Core.Caching;
@@ -14,7 +13,6 @@ using Imedisoft.Core.Data;
 using Imedisoft.Core.Entities;
 using Imedisoft.Core.Features.Clinics;
 using OpenDentBusiness.AutoComm;
-using OpenDentBusiness.FileIO;
 using OpenDentBusiness.SheetFramework;
 
 namespace OpenDentBusiness;
@@ -28,7 +26,7 @@ public class Statements
 
     public static List<Statement> GetStatements(List<long> listStatementNums)
     {
-        if (listStatementNums == null || listStatementNums.Count < 1) return new List<Statement>();
+        if (listStatementNums == null || listStatementNums.Count < 1) return [];
         //Sort by patient num pref only valid when clinics turned on.
         var sortByPatientName = true && PrefC.GetBool(PrefName.PrintStatementsAlphabetically);
         var command = "SELECT * FROM statement ";
@@ -196,40 +194,6 @@ public class Statements
         return emailMessage;
     }
 
-    public static EmailMessage GetEmailMessageForPortalStatement(Statement statement, Patient patient)
-    {
-        if (statement.PatNum != patient.PatNum)
-        {
-            var logMsg = Lans.g("Statements", "Mismatched PatNums detected between current patient and current statement:") + "\r\n"
-                                                                                                                            + Lans.g("Statements", "Statement PatNum:") + " " + statement.PatNum + " " + Lans.g("Statements", "(assumed correct)") + "\r\n"
-                                                                                                                            + Lans.g("Statements", "Patient PatNum:") + " " + patient.PatNum + " " + Lans.g("Statements", "(possibly incorrect)");
-            SecurityLogs.MakeLogEntry(EnumPermType.StatementPatNumMismatch, statement.PatNum, logMsg, LogSources.Diagnostic);
-        }
-
-        var emailMessage = new EmailMessage();
-        emailMessage.PatNum = patient.PatNum;
-        emailMessage.ToAddress = patient.Email;
-        var emailAddress = EmailAddresses.GetByClinic(patient.ClinicNum);
-        emailMessage.FromAddress = EmailAddresses.OverrideSenderAddressClinical(emailAddress, patient.ClinicNum).GetFrom();
-        string emailBody;
-        if (statement.EmailSubject != null && statement.EmailSubject != "")
-            emailMessage.Subject = statement.EmailSubject;
-        else //Subject was not preset, set a default subject.
-            emailMessage.Subject = Lans.g("Statements", "New Statement Available");
-        if (statement.EmailBody != null && statement.EmailBody != "")
-            emailBody = statement.EmailBody;
-        else //Body was not preset, set a body text.
-            emailBody = Lans.g("Statements", "Dear") + " [nameFnoPref],\r\n\r\n"
-                                                     + Lans.g("Statements", "A new account statement is available.") + "\r\n\r\n"
-                                                     + Lans.g("Statements", "To view your account statement, log on to our portal by following these steps:") + "\r\n\r\n"
-                                                     + Lans.g("Statements", "1. Visit the following URL in a web browser:") + " " + PrefC.GetString(PrefName.PatientPortalURL) + "\r\n"
-                                                     + Lans.g("Statements", "2. Enter your credentials to gain access to your account.") + "\r\n"
-                                                     + Lans.g("Statements", "3. Click the Account icon on the left and select the most recent Statement to view.");
-        emailMessage.BodyText = new MsgToPayTagReplacer().ReplaceTagsForStatement(emailBody, patient, statement, isEmail: true);
-        emailMessage.MsgType = EmailMessageSource.Statement;
-        return emailMessage;
-    }
-
     public static long Insert(Statement statement)
     {
         return StatementCrud.Insert(statement);
@@ -246,7 +210,7 @@ public class Statements
         if (listStmtNumsToUpdate.Count == 0) return;
 
         var command = "UPDATE statement SET SmsSendStatus=" + SOut.Int((int) autoCommStatus)
-                                                            + " WHERE StatementNum IN(" + string.Join(",", listStmtNumsToUpdate.Select(x => SOut.Long(x))) + ")";
+                                                            + " WHERE StatementNum IN(" + string.Join(",", listStmtNumsToUpdate.Select(x => (x))) + ")";
         Db.NonQ(command);
     }
 
@@ -255,23 +219,18 @@ public class Statements
         StatementCrud.Update(statement);
     }
 
-    public static void Update(Statement statement, Statement statementOld)
-    {
-        StatementCrud.Update(statement, statementOld);
-    }
-
     public static void MarkSent(long statementNum, DateTime dateSent)
     {
         var command = "UPDATE statement SET DateSent=" + SOut.Date(dateSent) + ", "
-                      + "IsSent=1 WHERE StatementNum=" + SOut.Long(statementNum);
+                      + "IsSent=1 WHERE StatementNum=" + (statementNum);
         Db.NonQ(command);
     }
 
     public static void AttachDoc(long statementNum, Document document, bool doUpdateDoc = true)
     {
         if (doUpdateDoc) Documents.Update(document);
-        var command = "UPDATE statement SET DocNum=" + SOut.Long(document.DocNum)
-                                                     + " WHERE StatementNum=" + SOut.Long(statementNum);
+        var command = "UPDATE statement SET DocNum=" + (document.DocNum)
+                                                     + " WHERE StatementNum=" + (statementNum);
         Db.NonQ(command);
     }
 
@@ -279,7 +238,7 @@ public class Statements
     {
         if (docNum == 0) return; //Avoid MiddleTier.
 
-        Db.NonQ("UPDATE statement SET DocNum=0 WHERE DocNum=" + SOut.Long(docNum));
+        Db.NonQ("UPDATE statement SET DocNum=0 WHERE DocNum=" + (docNum));
     }
 
     public static void DeleteStatements(List<Statement> listStatements, bool forceImageDelete = false)
@@ -321,7 +280,7 @@ public class Statements
 
     public static void Delete(long statementNum)
     {
-        DeleteAll(new List<long> {statementNum});
+        DeleteAll([statementNum]);
     }
 
     public static void DeleteAll(List<long> listStatementNums)
@@ -329,13 +288,13 @@ public class Statements
         if (listStatementNums == null || listStatementNums.Count == 0) return;
         //Removed all linked dependencies from these statements.
         StmtLinks.DetachAllFromStatements(listStatementNums);
-        var command = DbHelper.WhereIn("UPDATE procedurelog SET StatementNum=0 WHERE StatementNum IN ({0})", false, listStatementNums.Select(x => SOut.Long(x)).ToList());
+        var command = $"UPDATE procedurelog SET StatementNum=0 WHERE StatementNum IN ({string.Join(",", listStatementNums)})";
         Db.NonQ(command);
-        command = DbHelper.WhereIn("UPDATE adjustment SET StatementNum=0 WHERE StatementNum IN({0})", false, listStatementNums.Select(x => SOut.Long(x)).ToList());
+        command = $"UPDATE adjustment SET StatementNum=0 WHERE StatementNum IN({string.Join(",", listStatementNums)})";
         Db.NonQ(command);
-        command = DbHelper.WhereIn("UPDATE payplancharge SET StatementNum=0 WHERE StatementNum IN({0})", false, listStatementNums.Select(x => SOut.Long(x)).ToList());
+        command = $"UPDATE payplancharge SET StatementNum=0 WHERE StatementNum IN({string.Join(",", listStatementNums)})";
         Db.NonQ(command);
-        command = DbHelper.WhereIn("DELETE FROM statement WHERE StatementNum IN ({0})", false, listStatementNums.Select(x => SOut.Long(x)).ToList());
+        command = $"DELETE FROM statement WHERE StatementNum IN ({string.Join(",", listStatementNums)})";
         Db.NonQ(command);
     }
 
@@ -475,17 +434,6 @@ public class Statements
         return statement;
     }
 
-    public static void AssignURLsIfNecessary(Statement statement, Patient patient)
-    {
-        if (!string.IsNullOrEmpty(statement.ShortGUID) && !string.IsNullOrEmpty(statement.StatementURL)) return;
-        var listShortGuidResultsUrls = WebServiceMainHQProxy.GetShortGUIDs(1, 1, patient.ClinicNum, eServiceCode.PatientPortalViewStatement);
-        var statementOld = statement.Copy();
-        statement.ShortGUID = listShortGuidResultsUrls[0].ShortGuid;
-        statement.StatementURL = listShortGuidResultsUrls[0].MediumURL;
-        statement.StatementShortURL = listShortGuidResultsUrls[0].ShortURL;
-        Update(statement, statementOld);
-    }
-
     public static Statement CreateLimitedStatement(List<long> listPatNumsSelected, long patNum, List<long> listPayClaimNums, List<long> listAdjustments, List<long> listPayNums, List<long> listProcNums, long superFamily = 0, EnumLimitedCustomFamily limitedCustomFamily = EnumLimitedCustomFamily.None)
     {
         var statement = new Statement();
@@ -594,17 +542,17 @@ public class Statements
         {
             if (listStatements[i].SuperFamily > 0)
             {
-                if (!dictionarySuperFamInstallmentPlans.TryGetValue(dictFamilies[listStatements[i].PatNum].Guarantor.SuperFamily, out listStatements[i].ListInstallmentPlans)) listStatements[i].ListInstallmentPlans = new List<InstallmentPlan>();
+                if (!dictionarySuperFamInstallmentPlans.TryGetValue(dictFamilies[listStatements[i].PatNum].Guarantor.SuperFamily, out listStatements[i].ListInstallmentPlans)) listStatements[i].ListInstallmentPlans = [];
                 continue;
             }
 
             if (dictionaryFamInstallmentPlans.ContainsKey(dictFamilies[listStatements[i].PatNum].Guarantor.PatNum))
             {
-                listStatements[i].ListInstallmentPlans = new List<InstallmentPlan> {dictionaryFamInstallmentPlans[dictFamilies[listStatements[i].PatNum].Guarantor.PatNum]};
+                listStatements[i].ListInstallmentPlans = [dictionaryFamInstallmentPlans[dictFamilies[listStatements[i].PatNum].Guarantor.PatNum]];
                 continue;
             }
 
-            listStatements[i].ListInstallmentPlans = new List<InstallmentPlan>();
+            listStatements[i].ListInstallmentPlans = [];
         }
     }
 
@@ -641,8 +589,8 @@ public class Statements
                     BatchNum = i + 1, //1-based batch num. For UI.
                     ClinicNum = x.Key, //We grouped by guar ClinicNum above.
                     ListStatements = x.ToList(), //The grouping of statements for this ClinicNum.
-                    ListStatementDatas = new List<StatementData>(),
-                    ListEbillStatements = new List<EbillStatement>()
+                    ListStatementDatas = [],
+                    ListEbillStatements = []
                 }).ToList();
             return listBatchesOfStatements;
         }
@@ -660,9 +608,9 @@ public class Statements
                 {
                     BatchNum = listBatchesOfStatements.Count + 1, //1-based batch num. For UI.
                     ClinicNum = 0,
-                    ListStatements = new List<Statement>(),
-                    ListStatementDatas = new List<StatementData>(),
-                    ListEbillStatements = new List<EbillStatement>()
+                    ListStatements = [],
+                    ListStatementDatas = [],
+                    ListEbillStatements = []
                 };
                 listBatchesOfStatements.Add(statementBatch);
             }
@@ -739,7 +687,7 @@ public class Statements
         SheetFiller.FillFields(sheet, dataSet, statementNew, patient: patient, family: family);
         SheetUtil.CalculateHeights(sheet, dataSet, statementNew, pat: patient, patGuar: family.Guarantor);
         var tempPath = ODFileUtils.CombinePaths(PrefC.GetTempFolderPath(), statementNew.PatNum + ".pdf");
-        SheetPrinting.CreatePdf(sheet, tempPath, statementNew, dataSet, null, patient, family.Guarantor);
+        SheetPrinting.CreatePdf(sheet, tempPath, statementNew, dataSet, patient, family.Guarantor);
         var listDefsImageCat = Defs.GetDefsForCategory(DefCat.ImageCats, true);
         long category = 0;
         for (var i = 0; i < listDefsImageCat.Count; i++)
@@ -866,7 +814,7 @@ public class Statements
             if (PrefC.GetBool(PrefName.BillingShowTransSinceBalZero))
             {
                 var patientForAging = Patients.GetPat(statement.PatNum);
-                var listPatAgings = Patients.GetAgingListSimple(new List<long>(), new List<long> {patientForAging.Guarantor}, true);
+                var listPatAgings = Patients.GetAgingListSimple([], [patientForAging.Guarantor], true);
                 var tableBals = Ledgers.GetDateBalanceBegan(listPatAgings, false); //More Options selection has a super family option. We would need new checkbox here.
                 if (tableBals.Rows.Count > 0)
                 {
@@ -1074,7 +1022,7 @@ public class StatementData
 					ON statement.PatNum=patient.PatNum
 				INNER JOIN patient guar
 					ON patient.Guarantor=guar.PatNum 
-					AND guar.BillingType IN({string.Join(",", listBillingTypes.Select(x => SOut.Long(x)).ToList())}) ";
+					AND guar.BillingType IN({string.Join(",", listBillingTypes.Select(x => (x)).ToList())}) ";
         if (isExcludeAccountNoTil) command += "AND guar.HasSignedTil=1 ";
         command += @"
 				LEFT JOIN document

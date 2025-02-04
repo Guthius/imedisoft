@@ -48,7 +48,7 @@ public partial class FormApptBreak : FormODBase
 
     private void DisplayFormAsapForWebSched()
     {
-        if (!AppointmentL.PromptTextAsapList(_appointment.ClinicNum))
+        if (!AppointmentL.PromptTextAsapList())
         {
             return;
         }
@@ -76,8 +76,6 @@ public partial class FormApptBreak : FormODBase
         using var formAsap = new FormASAP(_appointment.Op);
 
         formAsap.DateTimeChosen = _appointment.AptDateTime;
-        formAsap.DateTimeSlotStart = dateRange.Start;
-        formAsap.DateTimeSlotEnd = dateRange.End;
 
         formAsap.ShowDialog();
     }

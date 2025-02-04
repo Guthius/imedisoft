@@ -4,7 +4,6 @@ using System.Data;
 using System.Drawing;
 using System.Linq;
 using System.Windows.Forms;
-using CodeBase;
 using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Entities;
@@ -37,12 +36,7 @@ public partial class FormRpDPPOvercharged: FormODBase {
 		if(_patNum>0) {
 			textPatient.Text=Patients.GetLim(_patNum).GetNameLF();
 		}
-		if(!true) {
-			comboBoxMultiClinics.Visible=false;
-		}
-		else {
-			comboBoxMultiClinics.IsAllSelected=true;
-		}
+		comboBoxMultiClinics.IsAllSelected=true;
 		FillProvs();
 	}
 
@@ -135,7 +129,7 @@ public partial class FormRpDPPOvercharged: FormODBase {
 	private void FillProvs() {
 		comboBoxMultiProv.IncludeAll=true;
 		foreach(var provCur in Providers.GetListReports()) {
-			comboBoxMultiProv.Items.Add(provCur.GetLongDesc(),provCur);
+			comboBoxMultiProv.Items.Add(provCur.Description,provCur);
 		}
 		comboBoxMultiProv.IsAllSelected=true;
 	}

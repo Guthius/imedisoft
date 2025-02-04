@@ -18,12 +18,13 @@ public class HL7DefMessageCrud
     public static List<HL7DefMessage> TableToList(DataTable table)
     {
         var retVal = new List<HL7DefMessage>();
-        HL7DefMessage hL7DefMessage;
         foreach (DataRow row in table.Rows)
         {
-            hL7DefMessage = new HL7DefMessage();
-            hL7DefMessage.HL7DefMessageNum = SIn.Long(row["HL7DefMessageNum"].ToString());
-            hL7DefMessage.HL7DefNum = SIn.Long(row["HL7DefNum"].ToString());
+            var hL7DefMessage = new HL7DefMessage
+            {
+                HL7DefMessageNum = SIn.Long(row["HL7DefMessageNum"].ToString()),
+                HL7DefNum = SIn.Long(row["HL7DefNum"].ToString())
+            };
             var messageType = row["MessageType"].ToString();
             if (messageType == "")
                 hL7DefMessage.MessageType = 0;

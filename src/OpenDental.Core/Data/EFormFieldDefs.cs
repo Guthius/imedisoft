@@ -10,19 +10,10 @@ namespace Imedisoft.Core.Data;
 
 public static class EFormFieldDefs
 {
-    public static void Insert(EFormFieldDef eFormFieldDef)
-    {
-        EFormFieldDefCrud.Insert(eFormFieldDef);
-    }
-
-    public static void Update(EFormFieldDef eFormFieldDef)
-    {
-        EFormFieldDefCrud.Update(eFormFieldDef);
-    }
-
     public static void Delete(long eFormFieldDefNum)
     {
         LanguagePats.DeleteForEFormFieldDef(eFormFieldDefNum);
+
         EFormFieldDefCrud.Delete(eFormFieldDefNum);
     }
 
@@ -45,7 +36,7 @@ public static class EFormFieldDefs
             _ => throw new Exception("Missing a type.")
         };
     }
-    
+
     private class EFormFieldDefCache : CacheListAbs<EFormFieldDef>
     {
         protected override List<EFormFieldDef> GetCacheFromDb()
@@ -81,23 +72,13 @@ public static class EFormFieldDefs
         Cache.ClearCache();
     }
 
-    public static List<EFormFieldDef> GetDeepCopy(bool isShort = false)
+    public static List<EFormFieldDef> GetDeepCopy(bool shortList = false)
     {
-        return Cache.GetDeepCopy(isShort);
+        return Cache.GetDeepCopy(shortList);
     }
 
-    public static List<EFormFieldDef> GetWhere(Predicate<EFormFieldDef> match, bool isShort = false)
+    public static DataTable GetTableFromCache(bool refreshCache)
     {
-        return Cache.GetWhere(match, isShort);
-    }
-
-    public static void RefreshCache()
-    {
-        GetTableFromCache(true);
-    }
-
-    public static DataTable GetTableFromCache(bool doRefreshCache)
-    {
-        return Cache.GetTableFromCache(doRefreshCache);
+        return Cache.GetTableFromCache(refreshCache);
     }
 }

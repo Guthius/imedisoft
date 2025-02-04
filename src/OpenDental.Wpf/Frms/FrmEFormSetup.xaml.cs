@@ -1,21 +1,7 @@
 using System;
-using System.Collections.Generic;
-using System.Data;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Windows;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Xml;
-using System.Xml.Serialization;
-using CodeBase;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Entities;
-using Microsoft.Win32;
 using OpenDentBusiness;
-using WpfControls.UI;
 
 namespace OpenDental {
 	

@@ -909,9 +909,6 @@ public class SendStatementsIO
     ///Will be converted to list of Statements as needed inside SendStatements.</summary>
     public List<long> ListStatementNumsToSend = [];
 
-    ///<summary>Use for logging.</summary>
-    public readonly LogWriter LogWriter = null;
-
     ///<summary>ODService will not allow user to select xml file for e-bill generation. Default folder for e-billing type must exist or billing will fail.
     ///True by default.</summary>
     public const bool AllowXmlFileSelection = true;
@@ -1201,7 +1198,6 @@ public class SendStatementsIO
     ///<summary>Helper method to log message to logger file for Statement action type.</summary>
     public void LogWrite(string logMsg, LogLevel logLevel)
     {
-        LogWriter?.WriteLine(logMsg, logLevel);
     }
 
     #endregion

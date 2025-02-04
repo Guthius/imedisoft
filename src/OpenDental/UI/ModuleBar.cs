@@ -17,7 +17,7 @@ namespace OpenDental;
 public class ModuleBar : System.Windows.Forms.Control{
 	#region Fields - Public
 	///<summary>Just holds the scaling factor.</summary>
-	public LayoutManagerForms LayoutManager=new LayoutManagerForms();
+	
 	#endregion Fields - Public
 
 	#region Fields - Private
@@ -244,7 +244,7 @@ public class ModuleBar : System.Windows.Forms.Control{
 				g.DrawLine(Pens.DarkGray,0,_listButtons[i].Bounds.Bottom,Width,_listButtons[i].Bounds.Bottom);
 			}
 		}
-		catch(Exception ex) {
+		catch {
 			//We had one customer who was receiving overflow exceptions because the ClientRetangle provided by the system was invalid,
 			//due to a graphics device hardware state change when loading the Dexis client application via our Dexis bridge.
 			//If we receive an invalid ClientRectangle, then we will simply not draw the button for a frame or two until the system has initialized.

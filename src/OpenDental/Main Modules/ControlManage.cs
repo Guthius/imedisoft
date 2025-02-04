@@ -1,12 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Drawing;
 using System.Linq;
 using System.Threading;
 using System.Windows.Forms;
 using CDT;
 using CodeBase;
-using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Data;
 using Imedisoft.Core.Entities;
@@ -22,38 +22,30 @@ public partial class ControlManage : UserControl
 {
     public FormAccounting FormAccounting;
 
-    private readonly ErrorProvider _errorProvider1 = new();
     private readonly List<TimeClockStatus> _listTimeClockStatusesShown = [];
-
-    private SigElementDef[] _sigElementDefsForExtra;
-    private SigElementDef[] _sigElementDefsForMessage;
-    private SigElementDef[] _sigElementDefsForUser;
+    
     private Employee _employee;
-    private FormArManager _formArManager;
     private FormBilling _formBilling;
     private FormClaimsSend _formClaimsSend;
     private FormEmailInbox _formEmailInbox;
     private FormEtrans834Import _formEtrans834Import;
     private List<Employee> _listEmployees = [];
-    private List<SigMessage> _sigMessages;
     private long _patNum;
     private TimeSpan _timeSpanDelta;
 
     public ControlManage()
     {
         InitializeComponent();
-
-        Font = new("Microsoft Sans Serif", 8.25f);
     }
 
-    private void butAccounting_Click(object sender, EventArgs e)
+    private void ButtonAccounting_Click(object sender, EventArgs e)
     {
         if (!Security.IsAuthorized(EnumPermType.Accounting))
         {
             return;
         }
 
-        if (FormAccounting == null || FormAccounting.IsDisposed)
+        if (FormAccounting is null || FormAccounting.IsDisposed)
         {
             FormAccounting = new FormAccounting();
         }
@@ -67,7 +59,7 @@ public partial class ControlManage : UserControl
         FormAccounting.BringToFront();
     }
 
-    private void butBackup_Click(object sender, EventArgs e)
+    private void ButtonBackup_Click(object sender, EventArgs e)
     {
         if (!Security.IsAuthorized(EnumPermType.Backup))
         {
@@ -90,7 +82,7 @@ public partial class ControlManage : UserControl
         ModuleSelected(_patNum);
     }
 
-    private void butBilling_Click(object sender, EventArgs e)
+    private void ButtonBilling_Click(object sender, EventArgs e)
     {
         if (!Security.IsAuthorized(EnumPermType.Billing))
         {
@@ -118,7 +110,7 @@ public partial class ControlManage : UserControl
         SecurityLogs.MakeLogEntry(EnumPermType.Billing, 0, "");
     }
 
-    private void butBreaks_Click(object sender, EventArgs e)
+    private void ButtonBreaks_Click(object sender, EventArgs e)
     {
         if (PayPeriods.GetCount() == 0)
         {
@@ -135,7 +127,7 @@ public partial class ControlManage : UserControl
         ModuleSelected(_patNum);
     }
 
-    private void butClaimPay_Click(object sender, EventArgs e)
+    private void ButtonClaimPay_Click(object sender, EventArgs e)
     {
         if (!Security.IsAuthorized(EnumPermType.InsPayCreate, true) && !Security.IsAuthorized(EnumPermType.InsPayEdit, true))
         {
@@ -152,7 +144,7 @@ public partial class ControlManage : UserControl
         formClaimPayList.Show();
     }
 
-    private void butClockIn_Click(object sender, EventArgs e)
+    private void ButtonClockIn_Click(object sender, EventArgs e)
     {
         var progress = new ProgressWin
         {
@@ -186,12 +178,12 @@ public partial class ControlManage : UserControl
         if (!PayPeriods.HasPayPeriodForDate(DateTime.Today))
         {
             MsgBox.Show(this,
-                "No dates exist for this pay period.  " +
+                "No dates exist for this pay period. " +
                 "Time clock events will not display until pay periods have been created for this date range");
         }
     }
 
-    private void butClockOut_Click(object sender, EventArgs e)
+    private void ButtonClockOut_Click(object sender, EventArgs e)
     {
         if (listBoxStatus.SelectedIndex == -1)
         {
@@ -304,60 +296,6 @@ public partial class ControlManage : UserControl
         ModuleSelected(_patNum);
     }
 
-    private void butManageAR_Click(object sender, EventArgs e)
-    {
-        if (!Security.IsAuthorized(EnumPermType.Billing))
-        {
-            return;
-        }
-
-        if (!Programs.IsEnabled(ProgramName.Transworld))
-        {
-            const string url = "https://opendental.com/resources/redirects/redirecttransworldsystems.html";
-            try
-            {
-                Process.Start(url);
-            }
-            catch
-            {
-                MsgBox.Show(this,
-                    "Failed to open web browser.  " +
-                    "Please make sure you have a default browser set and are connected to the internet and then try again.");
-            }
-
-            return;
-        }
-
-        if (_formArManager == null || _formArManager.IsDisposed)
-        {
-            while (!ValidateConnectionDetails())
-            {
-                const string messageText =
-                    "An SFTP connection could not be made using the connection details for any clinic " +
-                    "in the enabled Transworld (TSI) program link.  " +
-                    "Would you like to edit the Transworld program link now?";
-
-                if (!MsgBox.Show(this, MsgBoxButtons.YesNo, messageText))
-                {
-                    return;
-                }
-
-                using var formTransworldSetup = new FormTransworldSetup();
-                if (formTransworldSetup.ShowDialog() != DialogResult.OK)
-                {
-                    return;
-                }
-            }
-
-            _formArManager = new FormArManager();
-            _formArManager.FormClosed += (_, _) => { _formArManager = null; };
-        }
-
-        _formArManager.Restore();
-        _formArManager.Show();
-        _formArManager?.BringToFront();
-    }
-
     private void butSendClaims_Click(object sender, EventArgs e)
     {
         if (!Security.IsAuthorized(EnumPermType.ClaimSend))
@@ -387,7 +325,7 @@ public partial class ControlManage : UserControl
 
     private void butTasks_Click(object sender, EventArgs e)
     {
-        LaunchTaskWindow(false);
+        LaunchTaskWindow();
     }
 
     private void butTimeCard_Click(object sender, EventArgs e)
@@ -417,181 +355,6 @@ public partial class ControlManage : UserControl
         using var formSchedule = new FormSchedule(listEmployeeNumsPreSelected, listProvNumsPreSelected);
         
         formSchedule.ShowDialog();
-    }
-
-    private void butAck_Click(object sender, EventArgs e)
-    {
-        if (gridMessages.SelectedIndices.Length == 0)
-        {
-            MsgBox.Show(this, "Please select at least one item first.");
-            return;
-        }
-
-        for (var i = gridMessages.SelectedIndices.Length - 1; i >= 0; i--)
-        {
-            var sigMessage = (SigMessage) gridMessages.ListGridRows[gridMessages.SelectedIndices[i]].Tag;
-            if (sigMessage.AckDateTime.Year > 1880)
-            {
-                continue;
-            }
-
-            SigMessages.AckSigMessage(sigMessage);
-            
-            if (checkIncludeAck.Checked)
-            {
-                gridMessages.ListGridRows[gridMessages.SelectedIndices[i]].Cells[3].Text = sigMessage.MessageDateTime.ToShortTimeString();
-                Signalods.SetInvalid(InvalidType.SigMessages, KeyType.SigMessage, sigMessage.SigMessageNum);
-                continue;
-            }
-
-            try
-            {
-                gridMessages.ListGridRows.RemoveAt(gridMessages.SelectedIndices[i]);
-            }
-            catch
-            {
-                // ignored
-            }
-
-            Signalods.SetInvalid(InvalidType.SigMessages, KeyType.SigMessage, sigMessage.SigMessageNum);
-        }
-
-        gridMessages.SetAll(false);
-    }
-
-    private void butSend_Click(object sender, EventArgs e)
-    {
-        if (textMessage.Text == "")
-        {
-            MsgBox.Show(this, "Please type in a message first.");
-            return;
-        }
-
-        var sigMessage = new SigMessage
-        {
-            SigText = textMessage.Text
-        };
-        
-        if (listBoxTo.SelectedIndex != -1)
-        {
-            sigMessage.ToUser = _sigElementDefsForUser[listBoxTo.SelectedIndex].SigText;
-            sigMessage.SigElementDefNumUser = _sigElementDefsForUser[listBoxTo.SelectedIndex].SigElementDefNum;
-        }
-
-        if (listBoxFrom.SelectedIndex != -1)
-        {
-            sigMessage.FromUser = _sigElementDefsForUser[listBoxFrom.SelectedIndex].SigText;
-        }
-
-        if (listBoxExtras.SelectedIndex != -1)
-        {
-            sigMessage.SigElementDefNumExtra = _sigElementDefsForExtra[listBoxExtras.SelectedIndex].SigElementDefNum;
-        }
-
-        SigMessages.Insert(sigMessage);
-        textMessage.Text = "";
-        listBoxFrom.SelectedIndex = -1;
-        listBoxTo.SelectedIndex = -1;
-        listBoxExtras.SelectedIndex = -1;
-        listBoxMessages.SelectedIndex = -1;
-        ShowSendingLabel();
-        Signalods.SetInvalid(InvalidType.SigMessages, KeyType.SigMessage, sigMessage.SigMessageNum);
-    }
-
-    private void checkIncludeAck_Click(object sender, EventArgs e)
-    {
-        if (checkIncludeAck.Checked)
-        {
-            textDays.Text = "1";
-            labelDays.Visible = true;
-            textDays.Visible = true;
-            FillMessages();
-            return;
-        }
-
-        labelDays.Visible = false;
-        textDays.Visible = false;
-        _sigMessages = SigMessages.GetSigMessagesSinceDateTime(DateTime.Today); //since midnight this morning.
-        FillMessages();
-    }
-
-    private void comboViewUser_SelectionChangeCommitted(object sender, EventArgs e)
-    {
-        FillMessages();
-    }
-
-    private void listMessages_Click(object sender, EventArgs e)
-    {
-        if (listBoxMessages.SelectedIndex == -1)
-        {
-            return;
-        }
-
-        var sigMessage = new SigMessage
-        {
-            SigText = textMessage.Text
-        };
-        
-        if (listBoxTo.SelectedIndex != -1)
-        {
-            sigMessage.ToUser = _sigElementDefsForUser[listBoxTo.SelectedIndex].SigText;
-            sigMessage.SigElementDefNumUser = _sigElementDefsForUser[listBoxTo.SelectedIndex].SigElementDefNum;
-        }
-
-        if (listBoxFrom.SelectedIndex != -1)
-        {
-            sigMessage.FromUser = _sigElementDefsForUser[listBoxFrom.SelectedIndex].SigText;
-            //We do not set a SigElementDefNumUser for From.
-        }
-
-        if (listBoxExtras.SelectedIndex != -1)
-        {
-            sigMessage.SigElementDefNumExtra = _sigElementDefsForExtra[listBoxExtras.SelectedIndex].SigElementDefNum;
-        }
-
-        sigMessage.SigElementDefNumMsg = _sigElementDefsForMessage[listBoxMessages.SelectedIndex].SigElementDefNum;
-        //need to do this all as a transaction, so need to do a writelock on the signal table first.
-        //alternatively, we could just make sure not to retrieve any signals that were less the 300ms old.
-        SigMessages.Insert(sigMessage);
-        //reset the controls
-        textMessage.Text = "";
-        listBoxFrom.SelectedIndex = -1;
-        listBoxTo.SelectedIndex = -1;
-        listBoxExtras.SelectedIndex = -1;
-        listBoxMessages.SelectedIndex = -1;
-        ShowSendingLabel();
-        Signalods.SetInvalid(InvalidType.SigMessages, KeyType.SigMessage, sigMessage.SigMessageNum);
-    }
-
-    private void textDays_TextChanged(object sender, EventArgs e)
-    {
-        if (!textDays.Visible)
-        {
-            _errorProvider1.SetError(textDays, "");
-            return;
-        }
-
-        int numDays;
-        try
-        {
-            numDays = int.Parse(textDays.Text);
-        }
-        catch
-        {
-            _errorProvider1.SetError(textDays, "Invalid number.  Usually 1 or 2.");
-            return;
-        }
-
-        _errorProvider1.SetError(textDays, "");
-        _sigMessages = SigMessages.GetSigMessagesSinceDateTime(DateTime.Today.AddDays(-numDays));
-        try
-        {
-            FillMessages();
-        }
-        catch
-        {
-            _errorProvider1.SetError(textDays, "Invalid number.  Usually 1 or 2.");
-        }
     }
 
     private static void formClaimsSend_GoToChanged(ODEventArgs e)
@@ -679,15 +442,9 @@ public partial class ControlManage : UserControl
 
     public void InitializeOnStartup()
     {
-        RefreshFullMessages();
     }
 
-    public void JumpToTriageTaskWindow()
-    {
-        LaunchTaskWindow(true);
-    }
-
-    public void LaunchTaskWindow(bool isTriage, UserControlTasksTab tab = UserControlTasksTab.Invalid)
+    public void LaunchTaskWindow(UserControlTasksTab tab = UserControlTasksTab.Invalid)
     {
         var formTasks = new FormTasks();
 
@@ -706,10 +463,6 @@ public partial class ControlManage : UserControl
         RefreshModuleScreen();
     }
 
-    public void ModuleUnselected()
-    {
-    }
-
     public void TryRefreshFormClaimSend()
     {
         if (_formClaimsSend != null && !FormODBase.IsDisposedOrClosed(_formClaimsSend))
@@ -717,26 +470,7 @@ public partial class ControlManage : UserControl
             _formClaimsSend.RefreshClaimsGrid();
         }
     }
-
-    public void LogMsgs(List<SigMessage> sigMessages)
-    {
-        foreach (var sigMessage in sigMessages)
-        {
-            var sigMessageUpdate = _sigMessages.FirstOrDefault(x => x.SigMessageNum == sigMessage.SigMessageNum);
-            if (sigMessageUpdate is null)
-            {
-                _sigMessages.Add(sigMessage.Copy());
-                continue;
-            }
-
-            sigMessageUpdate.AckDateTime = sigMessage.AckDateTime;
-        }
-
-        _sigMessages.Sort();
-
-        FillMessages();
-    }
-
+    
     private static string ConvertClockStatus(string status)
     {
         if (!PrefC.GetBool(PrefName.ClockEventAllowBreak) && status == TimeClockStatus.Lunch.GetDescription())
@@ -850,7 +584,6 @@ public partial class ControlManage : UserControl
         textFilterName.Text = "";
 
         FillEmps(true);
-        FillMessageDefs();
 
         butManage.Enabled = Security.IsAuthorized(EnumPermType.TimecardsEditAll, true);
         butBreaks.Visible = PrefC.GetBool(PrefName.ClockEventAllowBreak);
@@ -860,8 +593,6 @@ public partial class ControlManage : UserControl
         {
             butImportInsPlans.Visible = false;
         }
-
-        butManageAR.Visible = !ProgramProperties.IsAdvertisingDisabled(ProgramName.Transworld);
     }
 
     private void EnableTimeControlsForEmpI(int index)
@@ -989,157 +720,5 @@ public partial class ControlManage : UserControl
         }
 
         return false;
-    }
-
-    private void FillMessageDefs()
-    {
-        _sigElementDefsForUser = SigElementDefs.GetSubList(SignalElementType.User);
-        _sigElementDefsForExtra = SigElementDefs.GetSubList(SignalElementType.Extra);
-        _sigElementDefsForMessage = SigElementDefs.GetSubList(SignalElementType.Message);
-
-        listBoxTo.Items.Clear();
-        listBoxTo.Items.AddList(_sigElementDefsForUser, x => x.SigText);
-
-        listBoxFrom.Items.Clear();
-        listBoxFrom.Items.AddList(_sigElementDefsForUser, x => x.SigText);
-
-        listBoxExtras.Items.Clear();
-        listBoxExtras.Items.AddList(_sigElementDefsForExtra, x => x.SigText);
-
-        listBoxMessages.Items.Clear();
-        listBoxMessages.Items.AddList(_sigElementDefsForMessage, x => x.SigText);
-
-        comboBoxViewUser.Items.Clear();
-        comboBoxViewUser.Items.Add("all");
-        foreach (var sigElementDef in _sigElementDefsForUser)
-        {
-            comboBoxViewUser.Items.Add(sigElementDef.SigText);
-        }
-
-        comboBoxViewUser.SelectedIndex = 0;
-    }
-
-    private void FillMessages()
-    {
-        if (textDays.Visible && _errorProvider1.GetError(textDays) != "")
-        {
-            return;
-        }
-
-        var selectedSigMessageNums = gridMessages.SelectedTags<SigMessage>().Select(x => x.SigMessageNum).ToList();
-
-        gridMessages.BeginUpdate();
-
-        gridMessages.Columns.Clear();
-        gridMessages.Columns.Add(new GridColumn("To", 60));
-        gridMessages.Columns.Add(new GridColumn("From", 60));
-        gridMessages.Columns.Add(new GridColumn("Sent", 63));
-        gridMessages.Columns.Add(new GridColumn("Ack'd", 63) {TextAlign = HorizontalAlignment.Center});
-        gridMessages.Columns.Add(new GridColumn("Text", 274));
-        gridMessages.ListGridRows.Clear();
-
-        foreach (var sigMessage in _sigMessages)
-        {
-            if (checkIncludeAck.Checked)
-            {
-                if (sigMessage.AckDateTime.Year > 1880 && sigMessage.AckDateTime < DateTime.Today.AddDays(1 - SIn.Long(textDays.Text)))
-                {
-                    continue;
-                }
-            }
-            else
-            {
-                if (sigMessage.AckDateTime.Year > 1880)
-                {
-                    continue;
-                }
-            }
-
-            if (sigMessage.ToUser != "" && comboBoxViewUser.SelectedIndex != 0 && _sigElementDefsForUser != null && _sigElementDefsForUser[comboBoxViewUser.SelectedIndex - 1].SigText != sigMessage.ToUser)
-            {
-                continue;
-            }
-
-            var gridRow = new GridRow();
-
-            gridRow.Cells.Add(sigMessage.ToUser);
-            gridRow.Cells.Add(sigMessage.FromUser);
-
-            if (sigMessage.MessageDateTime.Date == DateTime.Today)
-            {
-                gridRow.Cells.Add(sigMessage.MessageDateTime.ToShortTimeString());
-            }
-            else
-            {
-                gridRow.Cells.Add(sigMessage.MessageDateTime.ToShortDateString() + "\r\n" + sigMessage.MessageDateTime.ToShortTimeString());
-            }
-
-            if (sigMessage.AckDateTime.Year > 1880)
-            {
-                if (sigMessage.AckDateTime.Date == DateTime.Today)
-                {
-                    gridRow.Cells.Add(sigMessage.AckDateTime.ToShortTimeString());
-                }
-                else
-                {
-                    gridRow.Cells.Add(sigMessage.AckDateTime.ToShortDateString() + "\r\n" + sigMessage.AckDateTime.ToShortTimeString());
-                }
-            }
-            else
-            {
-                gridRow.Cells.Add("");
-            }
-
-            var strSigText = sigMessage.SigText;
-            var sigElementDefExtra = SigElementDefs.GetElementDef(sigMessage.SigElementDefNumExtra);
-            if (sigElementDefExtra != null && !string.IsNullOrEmpty(sigElementDefExtra.SigText))
-            {
-                strSigText += (strSigText == "") ? "" : ".  ";
-                strSigText += sigElementDefExtra.SigText;
-            }
-
-            var sigElementDefMsg = SigElementDefs.GetElementDef(sigMessage.SigElementDefNumMsg);
-            if (sigElementDefMsg != null && !string.IsNullOrEmpty(sigElementDefMsg.SigText))
-            {
-                strSigText += (strSigText == "") ? "" : ".  ";
-                strSigText += sigElementDefMsg.SigText;
-            }
-
-            gridRow.Cells.Add(strSigText);
-            gridRow.Tag = sigMessage.Copy();
-            gridMessages.ListGridRows.Add(gridRow);
-        }
-
-        gridMessages.EndUpdate();
-
-        for (var i = 0; i < gridMessages.ListGridRows.Count; i++)
-        {
-            var sigMessage = (SigMessage) gridMessages.ListGridRows[i].Tag;
-            if (selectedSigMessageNums.Contains(sigMessage.SigMessageNum))
-            {
-                gridMessages.SetSelected(i);
-            }
-        }
-    }
-
-    private void RefreshFullMessages()
-    {
-        _sigMessages = SigMessages.GetSigMessagesSinceDateTime(DateTime.Today);
-
-        FillMessages();
-    }
-
-    private void ShowSendingLabel()
-    {
-        labelSending.Visible = true;
-
-        var thread = new ODThread(_ =>
-        {
-            Thread.Sleep((int) TimeSpan.FromSeconds(1).TotalMilliseconds);
-
-            ODException.SwallowAnyException(() => { Invoke(() => { labelSending.Visible = false; }); });
-        });
-
-        thread.Start();
     }
 }

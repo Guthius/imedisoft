@@ -1,20 +1,17 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Data;
 using System.Drawing;
 using System.Globalization;
 using System.Linq;
-using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading;
 using System.Windows.Forms;
 using CodeBase;
 using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Data;
 using Imedisoft.Core.Entities;
+using Imedisoft.Features.Providers.Dtos;
 using OpenDental.Forms;
 using OpenDental.Logic;
 using OpenDental.UI;
@@ -91,7 +88,7 @@ public partial class FormProcEdit : FormODBase {
 		var listProcedures=new List<Procedure> {_procedure };
 		var discountPlanNum=DiscountPlanSubs.GetDiscountPlanNumForPat(_patient.PatNum,_procedure.ProcDate);
 		_listFees=Fees.GetListFromObjects(listProcedureCodes,listProcedures.Select(x=>x.MedicalCode).ToList(),
-			Providers.GetProvsForClinic(comboClinic.ClinicNumSelected).Select(x=>x.ProvNum).ToList(), //Get fees for all selectable providers.
+			Providers.GetProvsForClinic(comboClinic.ClinicNumSelected).Select(x=>x.Id).ToList(), //Get fees for all selectable providers.
 			_patient.PriProv,_patient.SecProv,_patient.FeeSched,_listInsPlans,listProcedures.Select(x=>x.ClinicNum).ToList(),null,//appts not needed
 			_listSubstitutionLinks,discountPlanNum);
 		_lookupFees=(Lookup<FeeKey2,Fee>)_listFees.ToLookup(x => new FeeKey2(x.CodeNum,x.FeeSched));
@@ -120,14 +117,6 @@ public partial class FormProcEdit : FormODBase {
 	}
 
 	private void FormProcInfo_Load(object sender,System.EventArgs e) {
-		if(false) {
-			labelTaxEst.Visible=true;
-			textTaxAmt.Visible=true;
-			textTaxAmt.Text=SOut.Double(_procedure.TaxAmt);
-			if(_procedure.ProcStatus==ProcStat.C) {
-				labelTaxEst.Text="Tax Amt";
-			}
-		}
 		_loadData=ProcEdit.GetLoadData(_procedure,_patient,_family);
 		_orthoProcLink=_loadData.OrthoProcedureLink;
 		if(_orthoProcLink!=null) {
@@ -267,16 +256,11 @@ public partial class FormProcEdit : FormODBase {
 			labelTimeFinal.Visible=true;
 			textTimeFinal.Visible=true;
 		}
-		if(PrefC.GetBool(PrefName.ShowFeatureEhr)) {
-			textNotes.HideSelection=false;//When text is selected programmatically using our Search function, this causes the selection to be visible to the users.
-		}
-		else {
-			butSearch.Visible=false;
-			labelSnomedBodySite.Visible=false;
-			textSnomedBodySite.Visible=false;
-			butSnomedBodySiteSelect.Visible=false;
-			butNoneSnomedBodySite.Visible=false;
-		}
+		butSearch.Visible=false;
+		labelSnomedBodySite.Visible=false;
+		textSnomedBodySite.Visible=false;
+		butSnomedBodySiteSelect.Visible=false;
+		butNoneSnomedBodySite.Visible=false;
 		if(CultureInfo.CurrentCulture.Name.EndsWith("CA")) {//Canadian. en-CA or fr-CA
 			radioS1.Text="03";//Sextant 1 in the United States is sextant 03 in Canada.
 			radioS2.Text="04";//Sextant 2 in the United States is sextant 04 in Canada.
@@ -287,7 +271,7 @@ public partial class FormProcEdit : FormODBase {
 		}
 		SetOrderingProvider(null);//Clears both the internal ordering and referral ordering providers.
 		if(_procedure.ProvOrderOverride!=0) {
-			SetOrderingProvider(Providers.GetProv(_procedure.ProvOrderOverride));
+			SetOrderingProvider(Providers.GetById(_procedure.ProvOrderOverride));
 		}
 		else if(_procedure.OrderingReferralNum!=0) {
 			Referral referral=null;
@@ -369,7 +353,7 @@ public partial class FormProcEdit : FormODBase {
 	}
 
 	private void butPickProv_Click(object sender,EventArgs e) {
-		var frmProviderPick = new FrmProviderPick(comboProv.Items.GetAll<Provider>());
+		var frmProviderPick = new FrmProviderPick(comboProv.Items.GetAll<ProviderDto>());
 		frmProviderPick.ProvNumSelected=comboProv.GetSelectedProvNum();
 		frmProviderPick.ShowDialog();
 		if(!frmProviderPick.IsDialogOK) {
@@ -379,13 +363,13 @@ public partial class FormProcEdit : FormODBase {
 	}
 
 	private void butPickOrderProvInternal_Click(object sender,EventArgs e) {
-		var frmProviderPick = new FrmProviderPick(comboProv.Items.GetAll<Provider>());
+		var frmProviderPick = new FrmProviderPick(comboProv.Items.GetAll<ProviderDto>());
 		frmProviderPick.ProvNumSelected=_provNumSelectedOrder;
 		frmProviderPick.ShowDialog();
 		if(!frmProviderPick.IsDialogOK) {
 			return;
 		}
-		SetOrderingProvider(Providers.GetProv(frmProviderPick.ProvNumSelected));
+		SetOrderingProvider(Providers.GetById(frmProviderPick.ProvNumSelected));
 	}
 
 	private void butPickOrderProvReferral_Click(object sender,EventArgs e) {
@@ -406,14 +390,14 @@ public partial class FormProcEdit : FormODBase {
 		SetOrderingProvider(null);//Clears both the internal ordering and referral ordering providers.
 	}
 
-	private void SetOrderingProvider(Provider provider) {
+	private void SetOrderingProvider(ProviderDto provider) {
 		if(provider==null) {
 			_provNumSelectedOrder=0;
 			textOrderingProviderOverride.Text="";
 		}
 		else {
-			_provNumSelectedOrder=provider.ProvNum;
-			textOrderingProviderOverride.Text=provider.GetFormalName()+"  NPI: "+(provider.NationalProvID.Trim()==""?"Missing":provider.NationalProvID);
+			_provNumSelectedOrder=provider.Id;
+			textOrderingProviderOverride.Text=provider.FormalName+"  NPI: "+(provider.NationalProviderId.Trim()==""?"Missing":provider.NationalProviderId);
 		}
 		_referralOrdering=null;
 	}
@@ -2579,7 +2563,7 @@ public partial class FormProcEdit : FormODBase {
 	private void FormProcEdit_FormClosing(object sender,FormClosingEventArgs e) {
 		signatureBoxWrapper?.SetTabletState(0);
 		//We need to update the CPOE status even if the user is cancelling out of the window.
-		if(Userods.IsUserCpoe(_Userod) && !_procedureOld.IsCpoe) {
+		if(Userods.IsUserCpoe() && !_procedureOld.IsCpoe) {
 			//There's a possibility that we are making a second, unnecessary call to the database here but it is worth it to help meet EHR measures.
 			Procedures.UpdateCpoeForProc(_procedure.ProcNum,true);
 			//Make a log that we edited this procedure's CPOE flag.

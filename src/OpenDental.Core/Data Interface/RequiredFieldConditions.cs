@@ -23,65 +23,68 @@ public class RequiredFieldConditions
         RequiredFieldConditionCrud.Insert(requiredFieldCondition);
     }
 
-    public static void DeleteAll(List<long> listRequiredFieldConditionNums)
+    public static void DeleteAll(List<long> requiredFieldConditionNums)
     {
-        if (listRequiredFieldConditionNums.Count < 1) return;
-        var command = "DELETE FROM requiredfieldcondition WHERE RequiredFieldConditionNum IN(" + string.Join(",", listRequiredFieldConditionNums) + ")";
-        Db.NonQ(command);
-    }
-
-    public static bool CheckStudentStatusConditions(int condCurIndex, List<RequiredFieldCondition> listRequiredFieldConditions, bool isNonStudent, bool isFullTimeStudent, bool isPartTimeStudent)
-    {
-        if (CultureInfo.CurrentCulture.Name.EndsWith("CA")) //Canadian. en-CA or fr-CA
-            return true;
-        if (listRequiredFieldConditions[condCurIndex].Operator == ConditionOperator.Equals)
+        if (requiredFieldConditionNums.Count < 1)
         {
-            if ((isNonStudent && listRequiredFieldConditions[condCurIndex].ConditionValue == "Nonstudent")
-                || (isFullTimeStudent && listRequiredFieldConditions[condCurIndex].ConditionValue == "Fulltime")
-                || (isPartTimeStudent && listRequiredFieldConditions[condCurIndex].ConditionValue == "Parttime"))
-                return true;
-            return false;
+            return;
         }
 
-        //condCur.Operator==ConditionOperator.NotEquals
-        var listRequiredFieldConditionsStudent = listRequiredFieldConditions.FindAll(x => x.ConditionType == RequiredFieldName.StudentStatus);
-        if ((isNonStudent && listRequiredFieldConditionsStudent.Any(x => x.ConditionValue == "Nonstudent"))
-            || (isFullTimeStudent && listRequiredFieldConditionsStudent.Any(x => x.ConditionValue == "Fulltime"))
-            || (isPartTimeStudent && listRequiredFieldConditionsStudent.Any(x => x.ConditionValue == "Parttime")))
-            return false;
-        return true;
+        Db.NonQ("DELETE FROM requiredfieldcondition WHERE RequiredFieldConditionNum IN (" + string.Join(",", requiredFieldConditionNums) + ")");
     }
 
-    public static string CheckMedicaidIDLength(string medicaidState, string medicaidID)
+    public static bool CheckStudentStatusConditions(int condCurIndex, List<RequiredFieldCondition> requiredFieldConditions, bool isNonStudent, bool isFullTimeStudent, bool isPartTimeStudent)
+    {
+        if (CultureInfo.CurrentCulture.Name.EndsWith("CA"))
+        {
+            return true;
+        }
+
+        if (requiredFieldConditions[condCurIndex].Operator == ConditionOperator.Equals)
+        {
+            return (isNonStudent && requiredFieldConditions[condCurIndex].ConditionValue == "Nonstudent") ||
+                   (isFullTimeStudent && requiredFieldConditions[condCurIndex].ConditionValue == "Fulltime") ||
+                   (isPartTimeStudent && requiredFieldConditions[condCurIndex].ConditionValue == "Parttime");
+        }
+
+        var requiredFieldConditionsStudent = requiredFieldConditions.FindAll(x => x.ConditionType == RequiredFieldName.StudentStatus);
+        return (!isNonStudent || requiredFieldConditionsStudent.All(x => x.ConditionValue != "Nonstudent")) &&
+               (!isFullTimeStudent || requiredFieldConditionsStudent.All(x => x.ConditionValue != "Fulltime")) &&
+               (!isPartTimeStudent || requiredFieldConditionsStudent.All(x => x.ConditionValue != "Parttime"));
+    }
+
+    public static string CheckMedicaidIDLength(string medicaidState, string medicaidId)
     {
         var reqLength = StateAbbrs.GetMedicaidIdLength(medicaidState);
-        if (reqLength == 0 || reqLength == medicaidID.Length) return "";
+        if (reqLength == 0 || reqLength == medicaidId.Length)
+        {
+            return "";
+        }
+
         return reqLength.ToString();
     }
 
-    public static bool CheckMedicaidConditions(string val, int condCurIndex, List<RequiredFieldCondition> listRequiredFieldConditions)
+    public static bool CheckMedicaidConditions(string val, int condCurIndex, List<RequiredFieldCondition> requiredFieldConditions)
     {
-        if (PrefC.GetBool(PrefName.EasyHideMedicaid)) return true;
-        //The only possible value for ConditionValue is '' (an empty string)
-        if ((listRequiredFieldConditions[condCurIndex].Operator == ConditionOperator.Equals && val == "")
-            || (listRequiredFieldConditions[condCurIndex].Operator == ConditionOperator.NotEquals && val != ""))
+        if (PrefC.GetBool(PrefName.EasyHideMedicaid))
+        {
             return true;
-        return false;
+        }
+
+        return (requiredFieldConditions[condCurIndex].Operator == ConditionOperator.Equals && val == "") ||
+               (requiredFieldConditions[condCurIndex].Operator == ConditionOperator.NotEquals && val != "");
     }
 
-    public static bool ConditionComparerHelper(string val, int condCurIndex, List<RequiredFieldCondition> listRequiredFieldConditions)
+    public static bool ConditionComparerHelper(string val, int condCurIndex, List<RequiredFieldCondition> requiredFieldConditions)
     {
-        var requiredFieldCondition = listRequiredFieldConditions[condCurIndex]; //Variable for convenience
-        if (requiredFieldCondition.ConditionType == RequiredFieldName.Clinic && !true) return true;
-        switch (requiredFieldCondition.Operator)
+        var requiredFieldCondition = requiredFieldConditions[condCurIndex];
+
+        return requiredFieldCondition.Operator switch
         {
-            case ConditionOperator.Equals:
-                return listRequiredFieldConditions.Any(x => x.ConditionType == requiredFieldCondition.ConditionType && x.ConditionValue == val);
-            case ConditionOperator.NotEquals:
-                return !listRequiredFieldConditions.Any(x => x.ConditionType == requiredFieldCondition.ConditionType && x.ConditionValue == val);
-            default:
-                return false;
-        }
+            ConditionOperator.Equals => requiredFieldConditions.Any(x => x.ConditionType == requiredFieldCondition.ConditionType && x.ConditionValue == val),
+            ConditionOperator.NotEquals => !requiredFieldConditions.Any(x => x.ConditionType == requiredFieldCondition.ConditionType && x.ConditionValue == val),
+            _ => false
+        };
     }
 
     public static bool CheckDateConditions(string dateStr, int condCurIndex, List<RequiredFieldCondition> listRequiredFieldConditions)
@@ -89,7 +92,7 @@ public class RequiredFieldConditions
         var requiredFieldCondition = listRequiredFieldConditions[condCurIndex]; //Variable for convenience
         if (requiredFieldCondition.ConditionType == RequiredFieldName.AdmitDate && PrefC.GetBool(PrefName.EasyHideHospitals)) return true;
         if (requiredFieldCondition.ConditionType == RequiredFieldName.DischargeDate && PrefC.GetBool(PrefName.EasyHideHospitals)) return true;
-        if (requiredFieldCondition.ConditionType == RequiredFieldName.DateTimeDeceased && !PrefC.GetBool(PrefName.ShowFeatureEhr)) return true;
+        if (requiredFieldCondition.ConditionType == RequiredFieldName.DateTimeDeceased && !false) return true;
         var dateTime = DateTime.MinValue;
         if (dateStr == "" || !DateTime.TryParse(dateStr, out dateTime)) return false;
         var listRequiredFieldConditionDate = listRequiredFieldConditions.FindAll(x => x.ConditionType == requiredFieldCondition.ConditionType);
@@ -108,31 +111,23 @@ public class RequiredFieldConditions
 
     public static bool CondOpComparer(int value1, ConditionOperator conditionOperator, int value2)
     {
-        switch (conditionOperator)
+        return conditionOperator switch
         {
-            case ConditionOperator.Equals:
-                return value1 == value2;
-            case ConditionOperator.NotEquals:
-                return value1 != value2;
-            case ConditionOperator.GreaterThan:
-                return value1 > value2;
-            case ConditionOperator.GreaterThanOrEqual:
-                return value1 >= value2;
-            case ConditionOperator.LessThan:
-                return value1 < value2;
-            case ConditionOperator.LessThanOrEqual:
-                return value1 <= value2;
-        }
-
-        return false;
+            ConditionOperator.Equals => value1 == value2,
+            ConditionOperator.NotEquals => value1 != value2,
+            ConditionOperator.GreaterThan => value1 > value2,
+            ConditionOperator.GreaterThanOrEqual => value1 >= value2,
+            ConditionOperator.LessThan => value1 < value2,
+            ConditionOperator.LessThanOrEqual => value1 <= value2,
+            _ => false
+        };
     }
 
     private class RequiredFieldConditionCache : CacheListAbs<RequiredFieldCondition>
     {
         protected override List<RequiredFieldCondition> GetCacheFromDb()
         {
-            var command = "SELECT * FROM requiredfieldcondition ORDER BY ConditionType,RequiredFieldConditionNum";
-            return RequiredFieldConditionCrud.SelectMany(command);
+            return RequiredFieldConditionCrud.SelectMany("SELECT * FROM requiredfieldcondition ORDER BY ConditionType, RequiredFieldConditionNum");
         }
 
         protected override List<RequiredFieldCondition> TableToList(DataTable dataTable)
@@ -158,9 +153,9 @@ public class RequiredFieldConditions
 
     private static readonly RequiredFieldConditionCache Cache = new();
 
-    public static List<RequiredFieldCondition> GetWhere(Predicate<RequiredFieldCondition> match, bool isShort = false)
+    public static List<RequiredFieldCondition> GetWhere(Predicate<RequiredFieldCondition> predicate, bool shortList = false)
     {
-        return Cache.GetWhere(match, isShort);
+        return Cache.GetWhere(predicate, shortList);
     }
 
     public static void RefreshCache()
@@ -168,9 +163,9 @@ public class RequiredFieldConditions
         GetTableFromCache(true);
     }
 
-    public static DataTable GetTableFromCache(bool doRefreshCache)
+    public static DataTable GetTableFromCache(bool refreshCache)
     {
-        return Cache.GetTableFromCache(doRefreshCache);
+        return Cache.GetTableFromCache(refreshCache);
     }
 
     public static void ClearCache()

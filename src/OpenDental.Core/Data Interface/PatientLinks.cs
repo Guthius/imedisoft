@@ -15,8 +15,8 @@ public class PatientLinks
 
     public static void UpdateFromPatientClonesAfterMerge(long patNumFromOriginal, long patNumFromNew)
     {
-        var command = "UPDATE patientlink SET PatNumFrom=" + SOut.Long(patNumFromNew) + " "
-                      + "WHERE PatNumFrom=" + SOut.Long(patNumFromOriginal) + " "
+        var command = "UPDATE patientlink SET PatNumFrom=" + (patNumFromNew) + " "
+                      + "WHERE PatNumFrom=" + (patNumFromOriginal) + " "
                       + "AND LinkType=" + SOut.Int((int) PatientLinkType.Clone);
         Db.NonQ(command);
     }
@@ -27,14 +27,14 @@ public class PatientLinks
         //We must find the master Patient's PatNum in order to show the complete list of clones on each clone account.
         //The master Patient's PatNum is the only one that can pull all clones at once.
         var command = "SELECT PatNumFrom FROM patientlink "
-                      + "WHERE PatNumTo=" + SOut.Long(patNum) + " "
+                      + "WHERE PatNumTo=" + (patNum) + " "
                       + "AND LinkType=" + SOut.Int((int) PatientLinkType.Clone);
         var patNumMasterPatient = Db.GetLong(command);
         //If Patient doesn't have a PatNumFrom, then it is the master.
         if (patNumMasterPatient == 0) patNumMasterPatient = patNum;
         listPatNums.Add(patNumMasterPatient);
         command = "SELECT PatNumTo FROM patientlink "
-                  + "WHERE PatNumFrom=" + SOut.Long(patNumMasterPatient) + " "
+                  + "WHERE PatNumFrom=" + (patNumMasterPatient) + " "
                   + "AND LinkType=" + SOut.Int((int) PatientLinkType.Clone);
         listPatNums.AddRange(Db.GetListLong(command));
         var patientArray = Patients.GetMultPats(listPatNums);
@@ -45,7 +45,7 @@ public class PatientLinks
     public static List<long> GetPatNumsLinkedFrom(long patNumFrom, PatientLinkType patLinkType)
     {
         var command = "SELECT PatNumTo FROM patientlink "
-                      + "WHERE PatNumFrom=" + SOut.Long(patNumFrom) + " "
+                      + "WHERE PatNumFrom=" + (patNumFrom) + " "
                       + "AND LinkType=" + SOut.Int((int) patLinkType);
         return Db.GetListLong(command);
     }
@@ -53,23 +53,23 @@ public class PatientLinks
     public static List<long> GetPatNumsLinkedTo(long patNumTo, PatientLinkType patLinkType)
     {
         var command = "SELECT PatNumFrom FROM patientlink "
-                      + "WHERE PatNumTo=" + SOut.Long(patNumTo) + " "
+                      + "WHERE PatNumTo=" + (patNumTo) + " "
                       + "AND LinkType=" + SOut.Int((int) patLinkType);
         return Db.GetListLong(command);
     }
 
     public static List<PatientLink> GetLinks(long patNum, PatientLinkType patLinkType)
     {
-        return GetLinks(new List<long> {patNum}, patLinkType);
+        return GetLinks([patNum], patLinkType);
     }
 
     public static List<PatientLink> GetLinks(List<long> listPatNums, PatientLinkType patLinkType)
     {
-        if (listPatNums.Count == 0) return new List<PatientLink>();
+        if (listPatNums.Count == 0) return [];
 
         var command = "SELECT * FROM patientlink "
-                      + "WHERE (PatNumTo IN(" + string.Join(",", listPatNums.Select(x => SOut.Long(x))) + ") "
-                      + "OR PatNumFrom IN(" + string.Join(",", listPatNums.Select(x => SOut.Long(x))) + ")) "
+                      + "WHERE (PatNumTo IN(" + string.Join(",", listPatNums.Select(x => (x))) + ") "
+                      + "OR PatNumFrom IN(" + string.Join(",", listPatNums.Select(x => (x))) + ")) "
                       + "AND LinkType=" + SOut.Int((int) patLinkType);
         return PatientLinkCrud.SelectMany(command);
     }
@@ -84,7 +84,7 @@ public class PatientLinks
     private static void AddPatNumsLinkedFromRecursive(long patNumFrom, PatientLinkType patLinkType, List<long> listPatNums)
     {
         var command = "SELECT PatNumTo FROM patientlink "
-                      + "WHERE PatNumFrom=" + SOut.Long(patNumFrom) + " "
+                      + "WHERE PatNumFrom=" + (patNumFrom) + " "
                       + "AND LinkType=" + SOut.Int((int) patLinkType);
         var listPatNumTos = Db.GetListLong(command);
         if (listPatNumTos.Count == 0) return; //Base case
@@ -106,7 +106,7 @@ public class PatientLinks
     private static void AddPatNumsLinkedToRecursive(long patNumTo, PatientLinkType patLinkType, List<long> listPatNums)
     {
         var command = "SELECT PatNumFrom FROM patientlink "
-                      + "WHERE PatNumTo=" + SOut.Long(patNumTo) + " "
+                      + "WHERE PatNumTo=" + (patNumTo) + " "
                       + "AND LinkType=" + SOut.Int((int) patLinkType);
         var listPatNumFroms = Db.GetListLong(command);
         if (listPatNumFroms.Count == 0) return; //Base case
@@ -121,7 +121,7 @@ public class PatientLinks
     public static void DeletePatNumFroms(long patNumFrom, PatientLinkType patLinkType)
     {
         var command = "DELETE FROM patientlink "
-                      + "WHERE PatNumFrom=" + SOut.Long(patNumFrom) + " "
+                      + "WHERE PatNumFrom=" + (patNumFrom) + " "
                       + "AND LinkType=" + SOut.Int((int) patLinkType);
         Db.NonQ(command);
     }
@@ -129,15 +129,15 @@ public class PatientLinks
     public static void DeletePatNumTos(long patNumTo, PatientLinkType patLinkType)
     {
         var command = "DELETE FROM patientlink "
-                      + "WHERE PatNumTo=" + SOut.Long(patNumTo) + " "
+                      + "WHERE PatNumTo=" + (patNumTo) + " "
                       + "AND LinkType=" + SOut.Int((int) patLinkType);
         Db.NonQ(command);
     }
 
     public static void DeleteCloneBetweenToAndFrom(long patNumTo, long patNumFrom)
     {
-        var command = "DELETE FROM patientlink WHERE ((PatNumTo=" + SOut.Long(patNumTo) + " AND PatNumFrom=" + SOut.Long(patNumFrom) + ") " +
-                      "OR (PatNumTo=" + SOut.Long(patNumFrom) + " AND PatNumFrom=" + SOut.Long(patNumTo) + ")) AND LinkType=" + SOut.Int((int) PatientLinkType.Clone);
+        var command = "DELETE FROM patientlink WHERE ((PatNumTo=" + (patNumTo) + " AND PatNumFrom=" + (patNumFrom) + ") " +
+                      "OR (PatNumTo=" + (patNumFrom) + " AND PatNumFrom=" + (patNumTo) + ")) AND LinkType=" + SOut.Int((int) PatientLinkType.Clone);
         Db.NonQ(command);
     }
 

@@ -1,13 +1,9 @@
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Drawing;
-using System.Linq;
 using System.Windows.Forms;
-using CodeBase;
 using Imedisoft.Core.Entities;
 using OpenDental.UI;
-using OpenDentBusiness;
 
 namespace OpenDental;
 
@@ -18,7 +14,6 @@ public partial class FormTasks:FormODBase {
 	//public TaskObjectType GotoType;
 	/////<summary>After closing, if this is not zero, then it will jump to the specified patient.</summary>
 	//public long GotoKeyNum;
-	private bool _isTriage;
 	private FormWindowState _formWindowStateOld;
 	public static Color ColorLightRed=Color.FromArgb(247,110,110);
 

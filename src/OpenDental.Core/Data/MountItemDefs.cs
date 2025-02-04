@@ -9,7 +9,7 @@ public static class MountItemDefs
 {
     public static List<MountItemDef> GetForMountDef(long mountDefNum)
     {
-        return MountItemDefCrud.SelectMany("SELECT * FROM mountitemdef WHERE MountDefNum=" + mountDefNum + " ORDER BY ItemOrder");
+        return MountItemDefCrud.SelectMany("SELECT * FROM mountitemdef WHERE MountDefNum = " + mountDefNum + " ORDER BY ItemOrder");
     }
 
     public static List<MountItemDef> GetAll()
@@ -29,11 +29,11 @@ public static class MountItemDefs
 
     public static void Delete(long mountItemDefNum)
     {
-        Db.NonQ("DELETE FROM mountitemdef WHERE MountItemDefNum=" + mountItemDefNum);
+        Db.NonQ("DELETE FROM mountitemdef WHERE MountItemDefNum = " + mountItemDefNum);
     }
 
     public static void DeleteForMount(long mountDefNum)
     {
-        Db.NonQ("DELETE FROM mountitemdef WHERE MountDefNum=" + mountDefNum);
+        Db.NonQ("DELETE FROM mountitemdef WHERE MountDefNum = " + mountDefNum);
     }
 }

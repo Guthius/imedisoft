@@ -5,12 +5,12 @@ using System.IO;
 using System.Text;
 using System.Windows.Forms;
 using CodeBase;
-using OpenDental.UI;
 using OpenDentBusiness;
 using System.Linq;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Entities;
 using Imedisoft.Core.Features.Clinics;
+using Imedisoft.Features.Providers.Dtos;
 using OpenDental.Logic;
 
 namespace OpenDental;
@@ -45,11 +45,11 @@ public partial class FormWebMailMessageEdit:FormODBase {
 	private Patient _patientRegarding;
 	///<summary>The provider that this Web Mail will be sent from.  User can change this at any time.
 	///If the user currently logged in is not associated to this provider then they will be prompted to enter credentials.</summary>
-	private Provider _provider;
+	private ProviderDto _provider;
 	///<summary>Set to the provider that is associated to the user currently logged in.  Null if no provider associated.</summary>
-	private Provider _providerCurUser;
+	private ProviderDto _providerCurUser;
 	///<summary>A list of all providers in the cache that have a user associated to them.</summary>
-	private List<Provider> _listProviders;
+	private List<ProviderDto> _listProviders;
 
 	///<summary>Method returns the Web Mail body text preference.  Also replaces all replaceable variables.</summary>
 	private string GetBodyTextInsecure(){
@@ -109,18 +109,15 @@ public partial class FormWebMailMessageEdit:FormODBase {
 			_patientRegarding=Patients.GetLim(_emailMessage.PatNumSubj);
 		}
 		if(Security.CurUser!=null) {
-			_providerCurUser=Providers.GetProv(Security.CurUser.ProvNum);
+			_providerCurUser=Providers.GetById(Security.CurUser.ProvNum);
 		}
 		var listProvNums=listUserods.Select(x => x.ProvNum).Distinct().ToList();
-		_listProviders=Providers.GetProvsByProvNums(listProvNums);
+		_listProviders=Providers.GetManyById(listProvNums);
 		LayoutMenu();
 		FillFields();
 	}
 
 	private void LayoutMenu() {
-		menuMain.BeginUpdate();
-		menuMain.Add(new MenuItemOD("Setup",menuItemSetup_Click));
-		menuMain.EndUpdate();
 	}
 
 	///<summary>Only called on load and on Send Click if in View mode so that the form gets put into Reply mode correctly.
@@ -139,9 +136,9 @@ public partial class FormWebMailMessageEdit:FormODBase {
 				}
 			}
 			textTo.Text=_patient.GetNameFL();
-			var provider=Providers.GetProv(_patient.PriProv);
+			var provider=Providers.GetById(_patient.PriProv);
 			//Check to see if the patients primary provider has a user associated to them.
-			if(_listProviders.Any(x => x.ProvNum==provider.ProvNum)) {
+			if(_listProviders.Any(x => x.Id==provider.Id)) {
 				//The patients primary provider has at least one user associated to them.
 				_provider=provider;
 			}
@@ -149,10 +146,10 @@ public partial class FormWebMailMessageEdit:FormODBase {
 			if(_providerCurUser!=null) {
 				_provider=_providerCurUser;//Always prefer the provider that is associated to the user currently logged in.
 			}
-			textFrom.Text=(_provider==null) ? "" : _provider.GetFormalName();
+			textFrom.Text=(_provider==null) ? "" : _provider.FormalName;
 		}
 		else {//An existing email has been passed in.
-			_provider=Providers.GetProv(_emailMessage.ProvNumWebMail);
+			_provider=Providers.GetById(_emailMessage.ProvNumWebMail);
 			_listPatients.Add(_patientRegarding);
 			comboRegardingPatient.Items.Add(_patientRegarding.GetNameFL());
 			comboRegardingPatient.SelectedIndex=0;
@@ -248,9 +245,9 @@ public partial class FormWebMailMessageEdit:FormODBase {
 		if(_patient.Email=="") {
 			BlockSendNotificationMessage("Missing patient email. Setup patient email using Family module.");
 		}
-		if(!Patients.HasPatientPortalAccess(_patient.PatNum)) {
-			BlockSendNotificationMessage("Patient has not been given online access. Setup patient online access using Chart module.");
-		}
+		// if(!Patients.HasPatientPortalAccess(_patient.PatNum)) {
+		// 	BlockSendNotificationMessage("Patient has not been given online access. Setup patient online access using Chart module.");
+		// }
 		if(_emailMessage!=null) {
 			if(_patientRegarding.PatNum==0) {
 				BlockSendNotificationMessage("Patient who sent this message cannot access PHI for regarding patient.");
@@ -296,15 +293,15 @@ public partial class FormWebMailMessageEdit:FormODBase {
 			return false;
 		}
 		//Don't require validating credentials if the user currently logged in is associated to the selected provider.
-		if(_providerCurUser!=null && _providerCurUser.ProvNum==_provider.ProvNum) {
+		if(_providerCurUser!=null && _providerCurUser.Id==_provider.Id) {
 			return true;
 		}
-		var listUserods=Userods.GetUsersByProvNum(_provider.ProvNum);//Get all potential users for this provider.
+		var listUserods=Userods.GetUsersByProvNum(_provider.Id);//Get all potential users for this provider.
 		while(true) {
 			//Get the password for a user that is associated to the provider chosen.
 			var inputBoxParam=new InputBoxParam();
 			inputBoxParam.InputBoxType_=InputBoxType.TextBox;
-			inputBoxParam.LabelText=Lan.g(this,"Input a password for a User that is associated to provider:")+"\r\n"+_provider.GetFormalName();
+			inputBoxParam.LabelText=Lan.g(this,"Input a password for a User that is associated to provider:")+"\r\n"+_provider.FormalName;
 			inputBoxParam.IsPassswordCharStar=true;
 			var inputBox=new InputBox(inputBoxParam);
 			inputBox.ShowDialog();
@@ -345,7 +342,7 @@ public partial class FormWebMailMessageEdit:FormODBase {
 			return;
 		}
 		var emailAttach=_listEmailAttaches[listAttachments.SelectedIndex];
-		FileAtoZ.OpenFile(FileAtoZ.CombinePaths(EmailAttaches.GetAttachPath(),emailAttach.ActualFileName),emailAttach.DisplayedFileName);		
+		FileAtoZ.OpenFile(Path.Combine(EmailAttaches.GetAttachPath(),emailAttach.ActualFileName),emailAttach.DisplayedFileName);		
 	}
 
 	private void menuItemAttachmentPreview_Click(object sender,EventArgs e) {
@@ -366,20 +363,12 @@ public partial class FormWebMailMessageEdit:FormODBase {
 		}
 	}
 
-	private void menuItemSetup_Click(object sender,EventArgs e) {
-		using var formEServicesPatientPortal=new FormEServicesPatientPortal();
-		formEServicesPatientPortal.ShowDialog();
-		if(formEServicesPatientPortal.DialogResult==DialogResult.OK) {
-			VerifyInputs();//Validates preferences that are necessary to sending notification emails.
-		}
-	}
-
 	private void butProvPick_Click(object sender,EventArgs e) {
 		var frmProviderPick=new FrmProviderPick(_listProviders);
 		frmProviderPick.ShowDialog();
 		if(frmProviderPick.IsDialogOK) {
-			_provider=_listProviders.First(x => x.ProvNum==frmProviderPick.ProvNumSelected);
-			textFrom.Text=Providers.GetFormalName(_provider.ProvNum);
+			_provider=_listProviders.First(x => x.Id==frmProviderPick.ProvNumSelected);
+			textFrom.Text=Providers.GetFormalName(_provider.Id);
 		}
 	}
 
@@ -471,7 +460,7 @@ public partial class FormWebMailMessageEdit:FormODBase {
 		_emailMessageSecure.ToAddress=textTo.Text;
 		_emailMessageSecure.PatNum=_patient.PatNum;
 		_emailMessageSecure.SentOrReceived=EmailSentOrReceived.WebMailSent;  //this is secure so mark as webmail sent
-		_emailMessageSecure.ProvNumWebMail=_provider.ProvNum;
+		_emailMessageSecure.ProvNumWebMail=_provider.Id;
 		_emailMessageSecure.Subject=textSubject.Text;
 		_emailMessageSecure.BodyText=textBody.Text;
 		_emailMessageSecure.MsgDateTime=DateTime.Now;
@@ -500,7 +489,7 @@ public partial class FormWebMailMessageEdit:FormODBase {
 				EmailMessages.PrepHtmlEmail(_emailMessageInsecure);
 				EmailMessages.SendEmail(_emailMessageInsecure,_emailAddressSender);
 			}
-			catch(Exception ex) {
+			catch {
 				ODMessageBox.Show(this,"An error occurred sending the message. Please try again later or contact support.");
 				//TODO:Logger.Openlog.LogMB(this,System.Reflection.MethodBase.GetCurrentMethod().Name,ex.Message,Logger.Severity.ERROR);
 				butSend.Enabled=true;

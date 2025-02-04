@@ -24,22 +24,23 @@ public class LaboratoryCrud
     public static List<Laboratory> TableToList(DataTable table)
     {
         var retVal = new List<Laboratory>();
-        Laboratory laboratory;
         foreach (DataRow row in table.Rows)
         {
-            laboratory = new Laboratory();
-            laboratory.LaboratoryNum = SIn.Long(row["LaboratoryNum"].ToString());
-            laboratory.Description = SIn.String(row["Description"].ToString());
-            laboratory.Phone = SIn.String(row["Phone"].ToString());
-            laboratory.Notes = SIn.String(row["Notes"].ToString());
-            laboratory.Slip = SIn.Long(row["Slip"].ToString());
-            laboratory.Address = SIn.String(row["Address"].ToString());
-            laboratory.City = SIn.String(row["City"].ToString());
-            laboratory.State = SIn.String(row["State"].ToString());
-            laboratory.Zip = SIn.String(row["Zip"].ToString());
-            laboratory.Email = SIn.String(row["Email"].ToString());
-            laboratory.WirelessPhone = SIn.String(row["WirelessPhone"].ToString());
-            laboratory.IsHidden = SIn.Bool(row["IsHidden"].ToString());
+            var laboratory = new Laboratory
+            {
+                LaboratoryNum = SIn.Long(row["LaboratoryNum"].ToString()),
+                Description = SIn.String(row["Description"].ToString()),
+                Phone = SIn.String(row["Phone"].ToString()),
+                Notes = SIn.String(row["Notes"].ToString()),
+                Slip = SIn.Long(row["Slip"].ToString()),
+                Address = SIn.String(row["Address"].ToString()),
+                City = SIn.String(row["City"].ToString()),
+                State = SIn.String(row["State"].ToString()),
+                Zip = SIn.String(row["Zip"].ToString()),
+                Email = SIn.String(row["Email"].ToString()),
+                WirelessPhone = SIn.String(row["WirelessPhone"].ToString()),
+                IsHidden = SIn.Bool(row["IsHidden"].ToString())
+            };
             retVal.Add(laboratory);
         }
 

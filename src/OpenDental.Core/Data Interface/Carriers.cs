@@ -126,14 +126,14 @@ public class Carriers
             }
 
             //so the edited carrier looks good, but now we need to make sure that the original was allowed to be changed.
-            command = "SELECT ElectID,IsCDA FROM carrier WHERE CarrierNum = '" + SOut.Long(carrier.CarrierNum) + "'";
+            command = "SELECT ElectID,IsCDA FROM carrier WHERE CarrierNum = '" + (carrier.CarrierNum) + "'";
             table = DataCore.GetTable(command);
             if (SIn.Bool(table.Rows[0]["IsCDA"].ToString()) //if original carrier IsCDA
                 && SIn.String(table.Rows[0]["ElectID"].ToString()).Trim() != "" //and the ElectID was already set
                 && SIn.String(table.Rows[0]["ElectID"].ToString()) != carrier.ElectID) //and the ElectID was changed
             {
-                command = "SELECT COUNT(*) FROM etrans WHERE CarrierNum= " + SOut.Long(carrier.CarrierNum)
-                                                                           + " OR CarrierNum2=" + SOut.Long(carrier.CarrierNum);
+                command = "SELECT COUNT(*) FROM etrans WHERE CarrierNum= " + (carrier.CarrierNum)
+                                                                           + " OR CarrierNum2=" + (carrier.CarrierNum);
                 if (Db.GetCount(command) != "0") throw new ApplicationException(Lans.g("Carriers", "Not allowed to change Carrier Identification Number because it's in use in the claim history."));
             }
         }
@@ -168,7 +168,7 @@ public class Carriers
         var command = "SELECT insplan.PlanNum,CONCAT(CONCAT(LName,', '),FName) FROM insplan "
                       + "LEFT JOIN inssub ON insplan.PlanNum=inssub.PlanNum "
                       + "LEFT JOIN patient ON inssub.Subscriber=patient.PatNum "
-                      + "WHERE insplan.CarrierNum = " + SOut.Long(carrier.CarrierNum) + " "
+                      + "WHERE insplan.CarrierNum = " + (carrier.CarrierNum) + " "
                       + "ORDER BY LName,FName";
         var table = DataCore.GetTable(command);
         string strInUse;
@@ -185,8 +185,8 @@ public class Carriers
         }
 
         //look for dependencies in etrans table.
-        command = "SELECT DateTimeTrans FROM etrans WHERE CarrierNum=" + SOut.Long(carrier.CarrierNum)
-                                                                       + " OR CarrierNum2=" + SOut.Long(carrier.CarrierNum);
+        command = "SELECT DateTimeTrans FROM etrans WHERE CarrierNum=" + (carrier.CarrierNum)
+                                                                       + " OR CarrierNum2=" + (carrier.CarrierNum);
         table = DataCore.GetTable(command);
         if (table.Rows.Count > 0)
         {
@@ -200,7 +200,7 @@ public class Carriers
             throw new ApplicationException(Lans.g("Carriers", "Not allowed to delete carrier because it is in use in the etrans table.  Dates of claim sent history include ") + strInUse);
         }
 
-        command = "DELETE from carrier WHERE CarrierNum = " + SOut.Long(carrier.CarrierNum);
+        command = "DELETE from carrier WHERE CarrierNum = " + (carrier.CarrierNum);
         Db.NonQ(command);
         //Security.CurUser.UserNum gets set on MT by the DtoProcessor so it matches the user from the client WS.
         InsEditLogs.MakeLogEntry(null, carrier, InsEditLogType.Carrier, Security.CurUser.UserNum);
@@ -211,7 +211,7 @@ public class Carriers
         var command = "SELECT CONCAT(CONCAT(LName,', '),FName) FROM patient,insplan,inssub"
                       + " WHERE patient.PatNum=inssub.Subscriber"
                       + " AND insplan.PlanNum=inssub.PlanNum"
-                      + " AND insplan.CarrierNum = '" + SOut.Long(carrier.CarrierNum) + "'"
+                      + " AND insplan.CarrierNum = '" + (carrier.CarrierNum) + "'"
                       + " ORDER BY LName,FName";
         var table = DataCore.GetTable(command);
         var listStrings = new List<string>();
@@ -231,7 +231,7 @@ public class Carriers
 
     public static Carrier GetCarrierDB(long carrierNum)
     {
-        var command = "SELECT * FROM carrier WHERE CarrierNum=" + SOut.Long(carrierNum);
+        var command = "SELECT * FROM carrier WHERE CarrierNum=" + (carrierNum);
         return CarrierCrud.SelectOne(command);
     }
 
@@ -292,7 +292,7 @@ public class Carriers
             //When "Change Plan for all subscribers is selected on FormInsPlan, the user can be prompted to change the carrier for the plan's received
             //claims if any carrier information is edited. This prompt also could incorrectly appear when a plan was picked from the list
             //as a new plan for the patient, but no carrier info was changed. To prevent that, we first try to choose carrierOld if it is in our table.
-            command += "ORDER BY (CASE WHEN CarrierNum=" + SOut.Long(carrierOld.CarrierNum) + " THEN 0 ELSE 1 END)";
+            command += "ORDER BY (CASE WHEN CarrierNum=" + (carrierOld.CarrierNum) + " THEN 0 ELSE 1 END)";
         var table = DataCore.GetTable(command);
         //Previously carrier.Phone has been given to us after being formatted by ValidPhone in the UI (FormInsPlan).
         //Strip all formatting from the given phone number and the DB phone numbers to compare.
@@ -358,7 +358,7 @@ public class Carriers
         //Remove the CarrierNum that was picked as the superior carrier in order to get the list of carriers that will be combined into the picked carrier.
         var listCarrierNumsToCombine = listCarrierNums.FindAll(x => x != pickedCarrierNum);
         if (listCarrierNumsToCombine.IsNullOrEmpty()) return; //No carriers to combine.
-        var strCarrierNums = string.Join(",", listCarrierNumsToCombine.Select(x => SOut.Long(x)));
+        var strCarrierNums = string.Join(",", listCarrierNumsToCombine.Select(x => (x)));
         //Create InsEditLogs============================================================================================================
         //Get all of the related insplan objects from the database.
         var listInsPlans = InsPlans.GetAllByCarrierNums(listCarrierNumsToCombine);
@@ -366,8 +366,8 @@ public class Carriers
         var listInsEditLogs = listInsPlans.Select(x =>
             InsEditLogs.MakeLogEntry("CarrierNum",
                 Security.CurUser.UserNum, //Security.CurUser.UserNum gets set on MT by the DtoProcessor so it matches the user from the client WS.
-                SOut.Long(x.CarrierNum),
-                SOut.Long(pickedCarrierNum),
+                (x.CarrierNum.ToString()),
+                (pickedCarrierNum.ToString()),
                 InsEditLogType.InsPlan,
                 x.PlanNum,
                 0,
@@ -375,16 +375,16 @@ public class Carriers
                 false)
         ).ToList();
         //Update insplan.CarrierNum=====================================================================================================
-        var command = $"UPDATE insplan SET CarrierNum = {SOut.Long(pickedCarrierNum)} WHERE CarrierNum IN({strCarrierNums})";
+        var command = $"UPDATE insplan SET CarrierNum = {(pickedCarrierNum)} WHERE CarrierNum IN({strCarrierNums})";
         Db.NonQ(command);
         //Update insbluebook.CarrierNum=================================================================================================
-        command = $"UPDATE insbluebook SET insbluebook.CarrierNum = {SOut.Long(pickedCarrierNum)} WHERE insbluebook.CarrierNum IN({strCarrierNums})";
+        command = $"UPDATE insbluebook SET insbluebook.CarrierNum = {(pickedCarrierNum)} WHERE insbluebook.CarrierNum IN({strCarrierNums})";
         Db.NonQ(command);
         //Update etrans.CarrierNum======================================================================================================
-        command = $"UPDATE etrans SET CarrierNum = {SOut.Long(pickedCarrierNum)} WHERE CarrierNum IN({strCarrierNums})";
+        command = $"UPDATE etrans SET CarrierNum = {(pickedCarrierNum)} WHERE CarrierNum IN({strCarrierNums})";
         Db.NonQ(command);
         //Update etrans.CarrierNum2=====================================================================================================
-        command = $"UPDATE etrans SET CarrierNum2 = {SOut.Long(pickedCarrierNum)} WHERE CarrierNum2 IN({strCarrierNums})";
+        command = $"UPDATE etrans SET CarrierNum2 = {(pickedCarrierNum)} WHERE CarrierNum2 IN({strCarrierNums})";
         Db.NonQ(command);
         //Insert InsEditLogs============================================================================================================
         InsEditLogs.InsertMany(listInsEditLogs);
@@ -406,7 +406,7 @@ public class Carriers
 
     public static List<Carrier> GetForInsPlans(List<InsPlan> listInsPlans)
     {
-        if (listInsPlans.Count == 0) return new List<Carrier>();
+        if (listInsPlans.Count == 0) return [];
         var listCarrierNumsForClaims = listInsPlans.Select(x => x.CarrierNum).Distinct().ToList();
         return GetCarriers(listCarrierNumsForClaims);
     }
@@ -446,13 +446,6 @@ public class Carriers
         return GetWhere(x => x.ElectID == electID);
     }
 
-    public static List<string> GetAllDistinctCarrierNames()
-    {
-        var command = "SELECT DISTINCT CarrierName FROM carrier WHERE CarrierName!='' ORDER BY CarrierName ASC";
-        var listCarrierNames = Db.GetListString(command);
-        return listCarrierNames;
-    }
-
     public static Carrier GetByNameAndPhone(string carrierName, string phone, bool updateCacheIfNew = false)
     {
         if (string.IsNullOrEmpty(carrierName)) throw new ApplicationException("Carrier cannot be blank");
@@ -489,7 +482,7 @@ public class Carriers
                       "FROM claimproc cp " +
                       "INNER JOIN insplan p ON cp.PlanNum=p.PlanNum " +
                       "INNER JOIN carrier c ON c.CarrierNum=p.CarrierNum " +
-                      "WHERE cp.ClaimNum=" + SOut.Long(claim.ClaimNum) + " " +
+                      "WHERE cp.ClaimNum=" + (claim.ClaimNum) + " " +
                       "GROUP BY c.CarrierNum";
         return CarrierCrud.SelectMany(command);
     }

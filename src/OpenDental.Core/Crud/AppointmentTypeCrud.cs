@@ -19,20 +19,21 @@ public class AppointmentTypeCrud
     public static List<AppointmentType> TableToList(DataTable table)
     {
         var retVal = new List<AppointmentType>();
-        AppointmentType appointmentType;
         foreach (DataRow row in table.Rows)
         {
-            appointmentType = new AppointmentType();
-            appointmentType.AppointmentTypeNum = SIn.Long(row["AppointmentTypeNum"].ToString());
-            appointmentType.AppointmentTypeName = SIn.String(row["AppointmentTypeName"].ToString());
-            appointmentType.AppointmentTypeColor = Color.FromArgb(SIn.Int(row["AppointmentTypeColor"].ToString()));
-            appointmentType.ItemOrder = SIn.Int(row["ItemOrder"].ToString());
-            appointmentType.IsHidden = SIn.Bool(row["IsHidden"].ToString());
-            appointmentType.Pattern = SIn.String(row["Pattern"].ToString());
-            appointmentType.CodeStr = SIn.String(row["CodeStr"].ToString());
-            appointmentType.CodeStrRequired = SIn.String(row["CodeStrRequired"].ToString());
-            appointmentType.RequiredProcCodesNeeded = (EnumRequiredProcCodesNeeded) SIn.Int(row["RequiredProcCodesNeeded"].ToString());
-            appointmentType.BlockoutTypes = SIn.String(row["BlockoutTypes"].ToString());
+            var appointmentType = new AppointmentType
+            {
+                AppointmentTypeNum = SIn.Long(row["AppointmentTypeNum"].ToString()),
+                AppointmentTypeName = SIn.String(row["AppointmentTypeName"].ToString()),
+                AppointmentTypeColor = Color.FromArgb(SIn.Int(row["AppointmentTypeColor"].ToString())),
+                ItemOrder = SIn.Int(row["ItemOrder"].ToString()),
+                IsHidden = SIn.Bool(row["IsHidden"].ToString()),
+                Pattern = SIn.String(row["Pattern"].ToString()),
+                CodeStr = SIn.String(row["CodeStr"].ToString()),
+                CodeStrRequired = SIn.String(row["CodeStrRequired"].ToString()),
+                RequiredProcCodesNeeded = (EnumRequiredProcCodesNeeded) SIn.Int(row["RequiredProcCodesNeeded"].ToString()),
+                BlockoutTypes = SIn.String(row["BlockoutTypes"].ToString())
+            };
             retVal.Add(appointmentType);
         }
 
@@ -58,7 +59,7 @@ public class AppointmentTypeCrud
         return table;
     }
 
-    public static long Insert(AppointmentType appointmentType)
+    public static void Insert(AppointmentType appointmentType)
     {
         var command = "INSERT INTO appointmenttype (";
 
@@ -77,7 +78,6 @@ public class AppointmentTypeCrud
         {
             appointmentType.AppointmentTypeNum = Db.NonQ(command, true, "AppointmentTypeNum", "appointmentType");
         }
-        return appointmentType.AppointmentTypeNum;
     }
 
     public static bool Update(AppointmentType appointmentType, AppointmentType oldAppointmentType)
@@ -164,15 +164,13 @@ public class AppointmentTypeCrud
         var idxNew = 0;
         var idxDB = 0;
         var rowsUpdatedCount = 0;
-        AppointmentType fieldNew;
-        AppointmentType fieldDB;
         //Because both lists have been sorted using the same criteria, we can now walk each list to determine which list contians the next element.  The next element is determined by Primary Key.
         //If the New list contains the next item it will be inserted.  If the DB contains the next item, it will be deleted.  If both lists contain the next item, the item will be updated.
         while (idxNew < listNew.Count || idxDB < listDB.Count)
         {
-            fieldNew = null;
+            AppointmentType fieldNew = null;
             if (idxNew < listNew.Count) fieldNew = listNew[idxNew];
-            fieldDB = null;
+            AppointmentType fieldDB = null;
             if (idxDB < listDB.Count) fieldDB = listDB[idxDB];
             //begin compare
             if (fieldNew != null && fieldDB == null)

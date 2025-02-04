@@ -1,7 +1,6 @@
 using System;
 using System.Windows.Forms;
 using OpenDentBusiness;
-using System.Linq;
 using CodeBase;
 using DataConnectionBase;
 using Imedisoft.Core.Caching;
@@ -29,11 +28,6 @@ public partial class FormTaskListEdit : FormODBase {
 	}
 
 	private void FormTaskListEdit_Load(object sender, System.EventArgs e) {
-		if(/* ODBuild.IsDebug() */ false) {
-			labelTaskListNum.Visible=true;
-			textTaskListNum.Visible=true;
-			textTaskListNum.Text=_taskList.TaskListNum.ToString();
-		}
 		var isTasksUseRepeating=PrefC.GetBool(PrefName.TasksUseRepeating);
 		if(!isTasksUseRepeating){//Repeating Task List (Legacy) disabled.
 			labelDate.Visible=false;

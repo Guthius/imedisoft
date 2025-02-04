@@ -1,95 +1,109 @@
 using System;
-using System.Drawing;
-using System.Collections;
-using System.ComponentModel;
-using System.Windows.Forms;
-using OpenDentBusiness;
 using System.Collections.Generic;
-using CodeBase;
+using System.Windows.Forms;
 using Imedisoft.Core.Data;
 using Imedisoft.Core.Entities;
+using OpenDentBusiness;
 
 namespace OpenDental;
 
-/// <summary>
-/// Summary description for FormBasicTemplate.
-/// </summary>
-public partial class FormContactEdit : FormODBase {
-		
-	public bool IsNew;
-	public Contact ContactCur;
-	private List<Def> _listDefsContactCategories;
+public partial class FormContactEdit : FormODBase
+{
+    public bool IsNew;
+    public Contact ContactCur;
 
-		
-	public FormContactEdit()
-	{
-		//
-		// Required for Windows Form Designer support
-		//
-		InitializeComponent();
-	}
+    private List<Def> _contactCategoriesDefs;
 
-	private void FormContactEdit_Load(object sender, System.EventArgs e) {
-		_listDefsContactCategories=Defs.GetDefsForCategory(DefCat.ContactCategories,true);
-		for(var i=0;i<_listDefsContactCategories.Count;i++){
-			listCategory.Items.Add(_listDefsContactCategories[i].ItemName);
-			if(ContactCur.Category==_listDefsContactCategories[i].DefNum){
-				listCategory.SelectedIndex=i;
-			}
-		}
-		textLName.Text=ContactCur.LName;
-		textFName.Text=ContactCur.FName;
-		textWkPhone.Text=ContactCur.WkPhone;
-		textFax.Text=ContactCur.Fax;
-		textNotes.Text=ContactCur.Notes;
-	}
+    public FormContactEdit()
+    {
+        InitializeComponent();
+    }
 
-	private void butDelete_Click(object sender, System.EventArgs e) {
-		if(ODMessageBox.Show(Lan.g(this,"Delete contact"),"",MessageBoxButtons.OKCancel)!=DialogResult.OK){
-			return;
-		}
-		if(IsNew){
-			DialogResult=DialogResult.Cancel;
-		}
-		else{
-			Contacts.Delete(ContactCur);
-			DialogResult=DialogResult.OK;
-		}
-	}
+    private void FormContactEdit_Load(object sender, EventArgs e)
+    {
+        _contactCategoriesDefs = Defs.GetDefsForCategory(DefCat.ContactCategories, true);
 
-	private void textLName_TextChanged(object sender, System.EventArgs e) {
-		if(textLName.Text.Length==1){
-			textLName.Text=textLName.Text.ToUpper();
-			textLName.SelectionStart=1;
-		}
-	}
+        for (var i = 0; i < _contactCategoriesDefs.Count; i++)
+        {
+            listCategory.Items.Add(_contactCategoriesDefs[i].ItemName);
+            if (ContactCur.Category == _contactCategoriesDefs[i].DefNum)
+            {
+                listCategory.SelectedIndex = i;
+            }
+        }
 
-	private void textFName_TextChanged(object sender, System.EventArgs e) {
-		if(textFName.Text.Length==1){
-			textFName.Text=textFName.Text.ToUpper();
-			textFName.SelectionStart=1;
-		}
-	}
+        textLName.Text = ContactCur.LName;
+        textFName.Text = ContactCur.FName;
+        textWkPhone.Text = ContactCur.WkPhone;
+        textFax.Text = ContactCur.Fax;
+        textNotes.Text = ContactCur.Notes;
+    }
 
-	private void butSave_Click(object sender, System.EventArgs e) {
-		if(textLName.Text==""){
-			ODMessageBox.Show(Lan.g(this,"Last Name cannot be blank."));
-			return;
-		}
-		//a category will always be selected because of the manner in which Contact is accessed
-		ContactCur.Category=_listDefsContactCategories[listCategory.SelectedIndex].DefNum;
-		ContactCur.LName=textLName.Text;
-		ContactCur.FName=textFName.Text;
-		ContactCur.WkPhone=textWkPhone.Text;
-		ContactCur.Fax=textFax.Text;
-		ContactCur.Notes=textNotes.Text;
-		if(IsNew){
-			Contacts.Insert(ContactCur);
-		}
-		else{
-			Contacts.Update(ContactCur);
-		}
-		DialogResult=DialogResult.OK;
-	}
+    private void ButtonDelete_Click(object sender, EventArgs e)
+    {
+        if (!ConfirmOk("Delete contact"))
+        {
+            return;
+        }
 
+        if (IsNew)
+        {
+            DialogResult = DialogResult.Cancel;
+        }
+        else
+        {
+            Contacts.Delete(ContactCur);
+
+            DialogResult = DialogResult.OK;
+        }
+    }
+
+    private void TextBoxLName_TextChanged(object sender, EventArgs e)
+    {
+        if (textLName.Text.Length != 1)
+        {
+            return;
+        }
+
+        textLName.Text = textLName.Text.ToUpper();
+        textLName.SelectionStart = 1;
+    }
+
+    private void TextBoxFName_TextChanged(object sender, EventArgs e)
+    {
+        if (textFName.Text.Length != 1)
+        {
+            return;
+        }
+
+        textFName.Text = textFName.Text.ToUpper();
+        textFName.SelectionStart = 1;
+    }
+
+    private void ButtonSave_Click(object sender, EventArgs e)
+    {
+        if (textLName.Text == "")
+        {
+            ShowError("Last Name cannot be blank.");
+            return;
+        }
+
+        ContactCur.Category = _contactCategoriesDefs[listCategory.SelectedIndex].DefNum;
+        ContactCur.LName = textLName.Text;
+        ContactCur.FName = textFName.Text;
+        ContactCur.WkPhone = textWkPhone.Text;
+        ContactCur.Fax = textFax.Text;
+        ContactCur.Notes = textNotes.Text;
+
+        if (IsNew)
+        {
+            Contacts.Insert(ContactCur);
+        }
+        else
+        {
+            Contacts.Update(ContactCur);
+        }
+
+        DialogResult = DialogResult.OK;
+    }
 }

@@ -48,19 +48,19 @@ public static class OrthoChartTabs
 
     private static readonly OrthoChartTabCache Cache = new();
 
-    public static List<OrthoChartTab> GetDeepCopy(bool isShort = false)
+    public static List<OrthoChartTab> GetDeepCopy(bool shortList = false)
     {
-        return Cache.GetDeepCopy(isShort);
+        return Cache.GetDeepCopy(shortList);
     }
 
-    public static OrthoChartTab GetFirst(bool isShort = false)
+    public static OrthoChartTab GetFirst(bool shortList = false)
     {
-        return Cache.GetFirst(isShort);
+        return Cache.GetFirst(shortList);
     }
 
-    public static int GetCount(bool isShort = false)
+    public static int GetCount(bool shortList = false)
     {
-        return Cache.GetCount(isShort);
+        return Cache.GetCount(shortList);
     }
 
     public static void RefreshCache()
@@ -68,9 +68,9 @@ public static class OrthoChartTabs
         GetTableFromCache(true);
     }
 
-    public static DataTable GetTableFromCache(bool doRefreshCache)
+    public static DataTable GetTableFromCache(bool refreshCache)
     {
-        return Cache.GetTableFromCache(doRefreshCache);
+        return Cache.GetTableFromCache(refreshCache);
     }
 
     public static void ClearCache()

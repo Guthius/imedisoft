@@ -1,5 +1,4 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Text;
@@ -67,7 +66,7 @@ namespace OpenDentBusiness
                 return false;
             }
 
-            int intTooth = ToInt(toothNum);
+            var intTooth = ToInt(toothNum);
             if (intTooth >= 6 && intTooth <= 11)
             {
                 return true;
@@ -84,7 +83,7 @@ namespace OpenDentBusiness
 
         public static bool IsAnterior(int intTooth)
         {
-            string toothNum = FromInt(intTooth);
+            var toothNum = FromInt(intTooth);
             return IsAnterior(toothNum);
         }
 
@@ -96,7 +95,7 @@ namespace OpenDentBusiness
                 return false;
             }
 
-            int intTooth = ToInt(toothNum);
+            var intTooth = ToInt(toothNum);
             if (intTooth >= 1 && intTooth <= 5)
             {
                 return true;
@@ -118,14 +117,14 @@ namespace OpenDentBusiness
 
         public static bool IsPosterior(int intTooth)
         {
-            string toothNum = FromInt(intTooth);
+            var toothNum = FromInt(intTooth);
             return IsPosterior(toothNum);
         }
 
 
         public static bool IsMaxillary(int intTooth)
         {
-            string toothNum = FromInt(intTooth);
+            var toothNum = FromInt(intTooth);
             return IsMaxillary(toothNum);
         }
 
@@ -137,7 +136,7 @@ namespace OpenDentBusiness
                 return false;
             }
 
-            int intTooth = ToInt(toothNum);
+            var intTooth = ToInt(toothNum);
             if (intTooth >= 1 && intTooth <= 16)
             {
                 return true;
@@ -154,7 +153,7 @@ namespace OpenDentBusiness
                 return false;
             }
 
-            int intTooth = ToInt(toothNum);
+            var intTooth = ToInt(toothNum);
             if (IsPrimary(toothNum))
             {
                 if (intTooth <= 5 || intTooth >= 28)
@@ -193,7 +192,7 @@ namespace OpenDentBusiness
 
         public static bool IsMolar(int intTooth)
         {
-            string toothNum = FromInt(intTooth);
+            var toothNum = FromInt(intTooth);
             return IsMolar(toothNum);
         }
 
@@ -205,7 +204,7 @@ namespace OpenDentBusiness
                 return false;
             }
 
-            int intTooth = ToInt(toothNum);
+            var intTooth = ToInt(toothNum);
             if (intTooth == 2 || intTooth == 15 || intTooth == 18 || intTooth == 31)
             {
                 return true;
@@ -222,7 +221,7 @@ namespace OpenDentBusiness
                 return false;
             }
 
-            int intTooth = ToInt(toothNum);
+            var intTooth = ToInt(toothNum);
             if (intTooth == 4
                 || intTooth == 5
                 || intTooth == 12
@@ -241,7 +240,7 @@ namespace OpenDentBusiness
 
         public static bool IsPreMolar(int intTooth)
         {
-            string toothNum = FromInt(intTooth);
+            var toothNum = FromInt(intTooth);
             return IsPreMolar(toothNum);
         }
 
@@ -252,7 +251,7 @@ namespace OpenDentBusiness
         ///<summary>Used every time user enters tooth number in a procedure box. Follow with Parse. These are the *ONLY* methods that are designed to accept user input.  Can also handle international toothnum.</summary>
         public static bool IsValidEntry(string toothLabel)
         {
-            ToothNumberingNomenclature toothNumberingNomenclature = (ToothNumberingNomenclature) PrefC.GetInt(PrefName.UseInternationalToothNumbers);
+            var toothNumberingNomenclature = (ToothNumberingNomenclature) PrefC.GetInt(PrefName.UseInternationalToothNumbers);
             return IsValidEntry(toothLabel, toothNumberingNomenclature);
         }
 
@@ -301,7 +300,7 @@ namespace OpenDentBusiness
                     return false;
                 }
 
-                for (int i = 0; i < _listHaderup.Count; i++)
+                for (var i = 0; i < _listHaderup.Count; i++)
                 {
                     if (_listHaderup[i] == toothLabel)
                     {
@@ -318,7 +317,7 @@ namespace OpenDentBusiness
                 return false;
             }
 
-            for (int i = 0; i < _listPalmer.Count; i++)
+            for (var i = 0; i < _listPalmer.Count; i++)
             {
                 if (_listPalmer[i] == toothLabel)
                 {
@@ -354,7 +353,7 @@ namespace OpenDentBusiness
                 return false;
             }
 
-            int intTooth = Convert.ToInt32(toothNum);
+            var intTooth = Convert.ToInt32(toothNum);
             if (intTooth <= 32)
             {
                 return true;
@@ -382,7 +381,7 @@ namespace OpenDentBusiness
                 return toothNum;
             }
 
-            int index = _listUniversal.IndexOf(toothNum);
+            var index = _listUniversal.IndexOf(toothNum);
             if (index == -1)
             {
                 if (toothNumberingNomenclature == ToothNumberingNomenclature.FDI
@@ -428,7 +427,7 @@ namespace OpenDentBusiness
                 return toothNum;
             }
 
-            int index = _listUniversal.IndexOf(toothNum);
+            var index = _listUniversal.IndexOf(toothNum);
             if (index == -1)
             {
                 return "-";
@@ -458,7 +457,7 @@ namespace OpenDentBusiness
         ///<summary>MUST be validated by IsValidEntry before coming here. All user entered toothnumbers are run through this method which automatically checks to see if using international toothnumbers. So the procedurelog class will always contain the American toothnum.</summary>
         public static string Parse(string toothLabel)
         {
-            ToothNumberingNomenclature toothNumberingNomenclature = (ToothNumberingNomenclature) PrefC.GetInt(PrefName.UseInternationalToothNumbers);
+            var toothNumberingNomenclature = (ToothNumberingNomenclature) PrefC.GetInt(PrefName.UseInternationalToothNumbers);
             return Parse(toothLabel, toothNumberingNomenclature);
         }
 
@@ -470,7 +469,7 @@ namespace OpenDentBusiness
                 return toothLabel;
             }
 
-            int index = 0;
+            var index = 0;
             if (toothNumberingNomenclature == ToothNumberingNomenclature.FDI)
             {
                 if (toothLabel == "99")
@@ -504,7 +503,7 @@ namespace OpenDentBusiness
                 return "";
             }
 
-            int intTooth = ToInt(toothNum);
+            var intTooth = ToInt(toothNum);
             if (intTooth >= 1 && intTooth <= 8)
             {
                 return "UR";
@@ -536,11 +535,11 @@ namespace OpenDentBusiness
                 return new List<string>();
             }
 
-            List<string> listQuads = new List<string>();
-            List<string> listToothNumsDistinct = listToothNums.Distinct().ToList();
-            for (int i = 0; i < listToothNumsDistinct.Count(); i++)
+            var listQuads = new List<string>();
+            var listToothNumsDistinct = listToothNums.Distinct().ToList();
+            for (var i = 0; i < listToothNumsDistinct.Count(); i++)
             {
-                string quad = GetQuadrant(listToothNumsDistinct[i]);
+                var quad = GetQuadrant(listToothNumsDistinct[i]);
                 if (quad != "")
                 {
                     listQuads.Add(quad);
@@ -559,7 +558,7 @@ namespace OpenDentBusiness
                 return new List<string>();
             }
 
-            List<string> listArches = new List<string>();
+            var listArches = new List<string>();
             if (listToothNums.Where(x => IsMaxillary(x)).Count() > 0)
             {
                 listArches.Add("U");
@@ -639,7 +638,7 @@ namespace OpenDentBusiness
                 return "";
             }
 
-            List<string> listTeeth = toothNumbers.Split(',').ToList();
+            var listTeeth = toothNumbers.Split(',').ToList();
             if (listTeeth.Count == 1)
             {
                 return Tooth.Display(listTeeth[0]);
@@ -650,13 +649,13 @@ namespace OpenDentBusiness
             }
 
             listTeeth.Sort(new ToothComparer());
-            StringBuilder stringBuilder = new StringBuilder();
+            var stringBuilder = new StringBuilder();
             //List<string> toothList=new List<string>();
             //strbuild.Append(Tooth.ToInternat(toothArray[0]));//always show the first number
             int intToothCurrent;
             int intToothNext;
-            int numberInaRow = 1; //must have 3 in a row to trigger dash
-            for (int i = 0; i < listTeeth.Count - 1; i++)
+            var numberInaRow = 1; //must have 3 in a row to trigger dash
+            for (var i = 0; i < listTeeth.Count - 1; i++)
             {
                 //in each loop, we are comparing the current number with the next number
                 intToothCurrent = Tooth.ToOrdinal(listTeeth[i]);
@@ -712,14 +711,14 @@ namespace OpenDentBusiness
                 return "";
             }
 
-            List<string> listToothRanges = toothNumbers.Split(',').ToList(); //some items will contain dashes
-            List<string> listTeeth = new List<string>();
+            var listToothRanges = toothNumbers.Split(',').ToList(); //some items will contain dashes
+            var listTeeth = new List<string>();
             string rangeBegin;
             string rangeEnd;
             int intBegin;
             int intEnd;
             //not sure how to handle supernumerary.  Probably just not acceptable.
-            for (int i = 0; i < listToothRanges.Count; i++)
+            for (var i = 0; i < listToothRanges.Count; i++)
             {
                 if (listToothRanges[i].Contains("-"))
                 {
@@ -755,7 +754,7 @@ namespace OpenDentBusiness
                 }
                 else
                 {
-                    string toothNum = listToothRanges[i].ToUpper();
+                    var toothNum = listToothRanges[i].ToUpper();
                     if (!IsValidEntry(toothNum))
                     {
                         throw new ApplicationException(toothNum + " " + Lans.g("Tooth", "is not a valid tooth number."));
@@ -766,8 +765,8 @@ namespace OpenDentBusiness
             }
 
             listTeeth.Sort(new ToothComparer());
-            string teethRetVal = "";
-            for (int i = 0; i < listTeeth.Count; i++)
+            var teethRetVal = "";
+            for (var i = 0; i < listTeeth.Count; i++)
             {
                 if (i > 0)
                 {
@@ -808,7 +807,7 @@ namespace OpenDentBusiness
                 return false;
             }
 
-            int intTooth = Convert.ToInt32(toothNum);
+            var intTooth = Convert.ToInt32(toothNum);
             if (intTooth <= 32)
             {
                 return false;
@@ -961,7 +960,7 @@ namespace OpenDentBusiness
 
         public static string PermToPri(int intTooth)
         {
-            string toothNum = FromInt(intTooth);
+            var toothNum = FromInt(intTooth);
             return PermToPri(toothNum);
         }
 
@@ -1107,7 +1106,7 @@ namespace OpenDentBusiness
         public static string FromInt(int intTooth)
         {
             //don't need much error checking.
-            string retStr = "";
+            var retStr = "";
             retStr = intTooth.ToString();
             return retStr;
         }
@@ -1119,16 +1118,16 @@ namespace OpenDentBusiness
         ///<summary>Handles direct user input and tidies according to rules.  ToothNum might be empty, and a tidy should still be attempted.  Otherwise, toothNum must be valid.</summary>
         public static string SurfTidyForDisplay(string surf, string toothNum)
         {
-            bool isCanadian = CultureInfo.CurrentCulture.Name.EndsWith("CA"); //Canadian. en-CA or fr-CA
+            var isCanadian = CultureInfo.CurrentCulture.Name.EndsWith("CA"); //Canadian. en-CA or fr-CA
             //Canadian valid=MOIDBLV
             if (surf == null)
             {
                 surf = "";
             }
 
-            string surfTidy = "";
-            List<string> listSurfaces = new List<string>();
-            for (int i = 0; i < surf.Length; i++)
+            var surfTidy = "";
+            var listSurfaces = new List<string>();
+            for (var i = 0; i < surf.Length; i++)
             {
                 listSurfaces.Add(surf.Substring(i, 1).ToUpper());
             }
@@ -1224,16 +1223,16 @@ namespace OpenDentBusiness
         ///<summary>Converts the database value to a claim value.  Special handling for V surfaces.  ToothNum must be valid.</summary>
         public static string SurfTidyForClaims(string surf, string toothNum)
         {
-            bool isCanadian = CultureInfo.CurrentCulture.Name.EndsWith("CA"); //Canadian. en-CA or fr-CA
+            var isCanadian = CultureInfo.CurrentCulture.Name.EndsWith("CA"); //Canadian. en-CA or fr-CA
             //Canadian valid=MOIDBLV
             if (surf == null)
             {
                 surf = "";
             }
 
-            string surfTidy = "";
-            List<string> listSurfaces = new List<string>();
-            for (int i = 0; i < surf.Length; i++)
+            var surfTidy = "";
+            var listSurfaces = new List<string>();
+            for (var i = 0; i < surf.Length; i++)
             {
                 listSurfaces.Add(surf.Substring(i, 1).ToUpper());
             }
@@ -1306,16 +1305,16 @@ namespace OpenDentBusiness
         ///<summary>Takes display string and converts it into Db string.  ToothNum does not need to be valid.</summary>
         public static string SurfTidyFromDisplayToDb(string surf, string toothNum)
         {
-            bool isCanadian = CultureInfo.CurrentCulture.Name.EndsWith("CA"); //Canadian. en-CA or fr-CA
+            var isCanadian = CultureInfo.CurrentCulture.Name.EndsWith("CA"); //Canadian. en-CA or fr-CA
             //Canadian valid=MOIDBLV
             if (surf == null)
             {
                 surf = "";
             }
 
-            string surfTidy = "";
-            List<string> listSurfaces = new List<string>();
-            for (int i = 0; i < surf.Length; i++)
+            var surfTidy = "";
+            var listSurfaces = new List<string>();
+            for (var i = 0; i < surf.Length; i++)
             {
                 listSurfaces.Add(surf.Substring(i, 1).ToUpper());
             }
@@ -1411,7 +1410,7 @@ namespace OpenDentBusiness
         ///<summary>Takes surfaces from Db and converts them to appropriate culture for display.  Only Canada supported so far.  ToothNum does not need to be valid since minimal manipulation here.</summary>
         public static string SurfTidyFromDbToDisplay(string surf, string toothNum)
         {
-            bool isCanadian = CultureInfo.CurrentCulture.Name.EndsWith("CA"); //Canadian. en-CA or fr-CA
+            var isCanadian = CultureInfo.CurrentCulture.Name.EndsWith("CA"); //Canadian. en-CA or fr-CA
             //Canadian valid=MOIDBLV
             if (!isCanadian)
             {
@@ -1424,7 +1423,7 @@ namespace OpenDentBusiness
                 return "";
             }
 
-            string surfTidy = surf.Replace("V", "5"); //USA classV becomes 5 for Canadian display
+            var surfTidy = surf.Replace("V", "5"); //USA classV becomes 5 for Canadian display
             surfTidy = surfTidy.Replace("F", "V"); //USA Facial becomes Vestibular for Canadian display
             return surfTidy;
         }
@@ -1441,9 +1440,9 @@ namespace OpenDentBusiness
                 return "";
             }
 
-            List<string> listTeeth = toothNumbers.Split(',').ToList();
-            string strResult = "";
-            for (int i = 0; i < listTeeth.Count; i++)
+            var listTeeth = toothNumbers.Split(',').ToList();
+            var strResult = "";
+            for (var i = 0; i < listTeeth.Count; i++)
             {
                 if (!IsValidDB(listTeeth[i]))
                 {
@@ -1469,7 +1468,7 @@ namespace OpenDentBusiness
                 return "";
             }
 
-            List<string> listTeeth = toothNumbers.Split('-').ToList();
+            var listTeeth = toothNumbers.Split('-').ToList();
             if (listTeeth.Count != 2)
             {
                 return "";
@@ -1485,7 +1484,7 @@ namespace OpenDentBusiness
                 return "";
             }
 
-            string strResult = Display(listTeeth[0], toothNumberingNomenclature) + "-" + Display(listTeeth[1], toothNumberingNomenclature);
+            var strResult = Display(listTeeth[0], toothNumberingNomenclature) + "-" + Display(listTeeth[1], toothNumberingNomenclature);
             return strResult;
         }
 
@@ -1498,9 +1497,9 @@ namespace OpenDentBusiness
             }
 
             toothNumbers = toothNumbers.Replace(" ", ""); //remove all spaces
-            List<string> listTeeth = toothNumbers.Split(',').ToList();
-            string strResult = "";
-            for (int i = 0; i < listTeeth.Count; i++)
+            var listTeeth = toothNumbers.Split(',').ToList();
+            var strResult = "";
+            for (var i = 0; i < listTeeth.Count; i++)
             {
                 if (!IsValidEntry(listTeeth[i], toothNumberingNomenclature))
                 {
@@ -1527,7 +1526,7 @@ namespace OpenDentBusiness
             }
 
             toothNumbers = toothNumbers.Replace(" ", ""); //remove all spaces
-            List<string> listTeeth = toothNumbers.Split('-').ToList();
+            var listTeeth = toothNumbers.Split('-').ToList();
             if (listTeeth.Count != 2)
             {
                 throw new ApplicationException(toothNumbers + " " + Lans.g("Tooth", "is not in valid format. Only two teeth, separated with hyphen."));
@@ -1543,16 +1542,16 @@ namespace OpenDentBusiness
                 throw new ApplicationException(listTeeth[1] + " " + Lans.g("Tooth", "is not a valid tooth number."));
             }
 
-            string tooth1 = Parse(listTeeth[0], toothNumberingNomenclature);
-            string tooth2 = Parse(listTeeth[1], toothNumberingNomenclature);
-            bool isMaxillary1 = IsMaxillary(tooth1);
-            bool isMaxillary2 = IsMaxillary(tooth2);
+            var tooth1 = Parse(listTeeth[0], toothNumberingNomenclature);
+            var tooth2 = Parse(listTeeth[1], toothNumberingNomenclature);
+            var isMaxillary1 = IsMaxillary(tooth1);
+            var isMaxillary2 = IsMaxillary(tooth2);
             if (isMaxillary1 != isMaxillary2)
             {
                 throw new ApplicationException(Lans.g("Tooth", "Teeth must be in the same arch."));
             }
 
-            string strResult = tooth1 + "-" + tooth2;
+            var strResult = tooth1 + "-" + tooth2;
             return strResult;
         }
 
@@ -1572,11 +1571,5 @@ namespace OpenDentBusiness
 
         ///<summary>3- For ortho.</summary>
         Palmer
-        //We could use these UTF8 characters for true Palmer, but we would have to manually change the font and placement each time, or it looks bad.
-        //This is possible, but I suspect that computer users have already moved to UR, UL, etc, which is also less ambiguous for things like dictation and letters.
-        //string ur="\u23CC";
-        //string ul="\u23BF";
-        //string ll="\u23BE";
-        //string lr="\u23CB";
     }
 }

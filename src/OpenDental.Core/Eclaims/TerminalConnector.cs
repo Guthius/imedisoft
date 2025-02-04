@@ -1,10 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 using RS232;
 
@@ -43,9 +40,9 @@ namespace OpenDentBusiness.Eclaims {
 		///<summary>Events raised when a communication event occurs.</summary>
 		private void moRS232_CommEvent(Rs232 source,Rs232.EventMasks Mask) {
 			if((Mask & Rs232.EventMasks.RxChar) > 0) {
-				StringBuilder strBuilder=new StringBuilder();
+				var strBuilder=new StringBuilder();
 				//loop through each new char and handle it.
-				for(int i=0;i<source.InputStream.Length;i++) {
+				for(var i=0;i<source.InputStream.Length;i++) {
 					RxBuff.Append((char)source.InputStream[i]);
 					if(IsSpecialCode((char)source.InputStream[i])) {
 						strBuilder.Append(DisplaySpecialCode((char)source.InputStream[i]));
@@ -100,7 +97,7 @@ namespace OpenDentBusiness.Eclaims {
 				return inputChar.ToString();
 			}
 			if((int)inputChar<32) {
-				return "<"+((int)inputChar).ToString()+">";
+				return "<"+((int)inputChar)+">";
 			}
 			return "";
 		}
@@ -115,14 +112,14 @@ namespace OpenDentBusiness.Eclaims {
 
 		public void Dial(string phone) {
 			moRS232.PurgeBuffer(Rs232.PurgeBuffers.TxClear | Rs232.PurgeBuffers.RXClear);
-			string str="ATDT"+phone+"\r\n";
+			var str="ATDT"+phone+"\r\n";
 			moRS232.Write(str);
 		}
 
 		///<summary>I don't think this actually works.</summary>
 		public void DownloadXmodem(string filePath) {
 			//send ACK
-			int attempts=0;
+			var attempts=0;
 			ClearRxBuff();
 			while(attempts<5) {
 				attempts++;
@@ -194,7 +191,7 @@ namespace OpenDentBusiness.Eclaims {
 			if(timeoutMS>60000) {
 				throw new Exception("Not allowed to wait longer than 60 seconds");
 			}
-			DateTime startTime=DateTime.Now;
+			var startTime=DateTime.Now;
 			while(startTime.AddMilliseconds(timeoutMS)>DateTime.Now) {
 				if(RxBuff.Length>0) {
 					return (byte)RxBuff[RxBuff.Length-1];
@@ -217,7 +214,7 @@ namespace OpenDentBusiness.Eclaims {
 			if(ms>20000) {
 				throw new Exception("Not allowed to pause longer than 20 seconds");
 			}
-			DateTime startTime=DateTime.Now;
+			var startTime=DateTime.Now;
 			while(startTime.AddMilliseconds(ms)>DateTime.Now) {
 				Application.DoEvents();
 			}
@@ -228,7 +225,7 @@ namespace OpenDentBusiness.Eclaims {
 			if(timeoutMS>20000) {
 				throw new Exception("Not allowed to wait longer than 20 seconds");
 			}
-			DateTime startTime=DateTime.Now;
+			var startTime=DateTime.Now;
 			while(startTime.AddMilliseconds(timeoutMS)>DateTime.Now) {
 				Application.DoEvents();
 			}
@@ -256,7 +253,7 @@ namespace OpenDentBusiness.Eclaims {
 		}
 
 		public string Sout(string intputStr,int maxL,int minL) {
-			string retStr=intputStr.ToUpper();
+			var retStr=intputStr.ToUpper();
 			//Debug.Write(retStr+",");
 			retStr=Regex.Replace(retStr,//replaces characters in this input string
 																	//Allowed: !"&'()+,-./;?=(space)
@@ -281,11 +278,11 @@ namespace OpenDentBusiness.Eclaims {
 		public void UploadXmodem(string filePath) {			
 			//divide file into 128 byte packets
 			byte[][] bytes;
-			using(FileStream fs=File.Open(filePath,FileMode.Open,FileAccess.Read)){
-				int numberPackets=(int)Math.Ceiling((double)fs.Length/128);
+			using(var fs=File.Open(filePath,FileMode.Open,FileAccess.Read)){
+				var numberPackets=(int)Math.Ceiling((double)fs.Length/128);
 				bytes=new byte[numberPackets][];
 				byte[] buffer;//this will usually be 128 bytes long, except for the last loop
-				for(int i=0;i<numberPackets;i++){
+				for(var i=0;i<numberPackets;i++){
 					buffer=new byte[128];
 					fs.Read(buffer,0,128);
 					bytes[i]=new byte[128];
@@ -302,7 +299,7 @@ namespace OpenDentBusiness.Eclaims {
 			byte[] block;
 			byte packetNumber;
 			byte response;
-			for(int i=0;i<bytes.GetLength(0);i++){
+			for(var i=0;i<bytes.GetLength(0);i++){
 			SendPacket:// (block):
 				block=new byte[132];
 				//1: SOH byte
@@ -344,7 +341,7 @@ namespace OpenDentBusiness.Eclaims {
 		
 		private byte GetCheckSum(byte[] input){
 			byte retVal=0;
-			for(int i=0;i<input.Length;i++){
+			for(var i=0;i<input.Length;i++){
 				retVal+=input[i];
 			}
 			return (byte)Math.IEEERemainder((double)retVal,(double)256);
@@ -360,7 +357,7 @@ namespace OpenDentBusiness.Eclaims {
 			if(timeoutMS>60000) {
 				throw new Exception("Not allowed to wait longer than 60 seconds");
 			}
-			DateTime startTime=DateTime.Now;
+			var startTime=DateTime.Now;
 			while(startTime.AddMilliseconds(timeoutMS)>DateTime.Now) {
 				if(RxBuff.ToString().IndexOf(expectedText1)!=-1) {
 					return expectedText1;
@@ -384,23 +381,23 @@ namespace OpenDentBusiness.Eclaims {
 			if(timeoutMS>60000) {
 				throw new Exception("Not allowed to wait longer than 60 seconds");
 			}
-			DateTime startTime=DateTime.Now;
+			var startTime=DateTime.Now;
 			while(startTime.AddMilliseconds(timeoutMS)>DateTime.Now) {
-				for(int i=0;i<RxBuff.Length;i++) {
+				for(var i=0;i<RxBuff.Length;i++) {
 					if(RxBuff[i]==(char)expectedByte) {
 						return expectedByte;
 					}
 				}
 				Application.DoEvents();
 			}
-			throw new Exception("Timed out waiting for byte "+expectedByte.ToString()
+			throw new Exception("Timed out waiting for byte "+expectedByte
 				+". Actual text received so far: '"+CharsToString(RxBuff)+"'");
 		}
 
 		///<summary>Converts the char array to a display string. Any of the 5 special chars are transformed into meaningful display strings.</summary>
 		private string CharsToString(StringBuilder inputChars) {
-			StringBuilder strBuilder=new StringBuilder();
-			for(int i=0;i<inputChars.Length;i++) {
+			var strBuilder=new StringBuilder();
+			for(var i=0;i<inputChars.Length;i++) {
 				if(IsSpecialCode(inputChars[i])) {
 					strBuilder.Append(DisplaySpecialCode(inputChars[i]));
 				}
@@ -416,18 +413,18 @@ namespace OpenDentBusiness.Eclaims {
 			if(timeoutMS>60000){
 				throw new Exception("Not allowed to wait longer than 60 seconds");
 			}
-			DateTime startTime=DateTime.Now;
+			var startTime=DateTime.Now;
 			while(startTime.AddMilliseconds(timeoutMS) > DateTime.Now) {
 				if(RxBuff.Length >= numberOfBytes) {
-					byte[] retVal=new byte[numberOfBytes];
-					for(int i=0;i<numberOfBytes;i++) {
+					var retVal=new byte[numberOfBytes];
+					for(var i=0;i<numberOfBytes;i++) {
 						retVal[i]=(byte)RxBuff[i];
 					}
 					return retVal;
 				}
 				Application.DoEvents();
 			}
-			throw new Exception("Timed out.  "+numberOfBytes.ToString()+" bytes not received yet.");
+			throw new Exception("Timed out.  "+numberOfBytes+" bytes not received yet.");
 		}
 	}
 

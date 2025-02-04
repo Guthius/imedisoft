@@ -106,9 +106,6 @@ public partial class FormConfirmationSetup : FormODBase
 
     private void ButtonSetup_Click(object sender, EventArgs e)
     {
-        using var formEServicesAutoMsging = new FormEServicesAutoMsging();
-
-        formEServicesAutoMsging.ShowDialog();
     }
 
     private void ButtonSave_Click(object sender, EventArgs e)

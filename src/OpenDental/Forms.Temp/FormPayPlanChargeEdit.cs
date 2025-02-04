@@ -3,9 +3,6 @@ Open Dental GPL license Copyright (C) 2003  Jordan Sparks, DMD.  http://www.open
 See header in FormOpenDental.cs for complete text.  Redistributions must retain this text.
 ===============================================================================================================*/
 using System;
-using System.Drawing;
-using System.Collections;
-using System.ComponentModel;
 using System.Windows.Forms;
 using OpenDentBusiness;
 using CodeBase;
@@ -13,6 +10,7 @@ using System.Collections.Generic;
 using System.Linq;
 using DataConnectionBase;
 using Imedisoft.Core.Entities;
+using Imedisoft.Features.Providers.Dtos;
 
 namespace OpenDental;
 
@@ -115,7 +113,7 @@ public partial class FormPayPlanChargeEdit : FormODBase {
 			comboBoxProv.Enabled=true;
 			return;
 		}
-		var listProviders=new List<Provider>{Providers.GetProvFromDb(PayPlanChargeCur.ProvNum)};
+		var listProviders=new List<ProviderDto>{Providers.GetByIdNoCache(PayPlanChargeCur.ProvNum)};
 		comboBoxProv.Items.AddProvsAbbr(listProviders);
 		comboBoxProv.SelectedIndex=0;
 	}

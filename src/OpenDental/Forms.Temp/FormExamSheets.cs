@@ -3,12 +3,9 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 using System.Windows.Forms;
-using CodeBase;
 using Imedisoft.Core.Entities;
 using OpenDental.UI;
 using OpenDentBusiness;
-using OpenDentBusiness.WebTypes;
-using PdfSharp.Pdf;
 
 namespace OpenDental;
 
@@ -104,12 +101,6 @@ public partial class FormExamSheets:FormODBase {
 
 	private void gridMain_SelectionCommitted(object sender,EventArgs e) {
 		panelSheetPreview.Invalidate();
-		if(gridMain.GetSelectedIndex()==-1) {
-			butSendToDevice.Enabled=false;
-		}
-		else {
-			butSendToDevice.Enabled=true;
-		}
 	}
 
 	private void panelSheetPreview_Paint(object sender,PaintEventArgs e) {
@@ -195,31 +186,4 @@ public partial class FormExamSheets:FormODBase {
 			panelSheetPreview.Invalidate();//The new sheet is selected, so we refresh the preview.
 		}
 	}
-
-	///<summary>Tries to send a single exam sheet. It attempts to do this by looking for a mobile device that has a logged in user that has also selected a patient.</summary>
-	private void butSendToDevice_Click(object sender,EventArgs e) {
-		if(PatNum==0){
-			MsgBox.Show("Please select a patient first.");
-			return;
-		}
-		if(_listSheets.IsNullOrEmpty()) {
-			MsgBox.Show("The patient doesn't have any exam sheets. Please add one.");
-			return;
-		}
-		var listMobileAppDevices=MobileAppDevices.GetAll();
-		//Get the device that we know has a clinical user logged in, plus they will have to have selected a patient
-		var mobileAppDevice=listMobileAppDevices.Where(x => x.UserNum!=0 && x.PatNum==PatNum).FirstOrDefault();
-		if(mobileAppDevice==null || gridMain.SelectedIndices.Count()==0) {
-			return;//Nothing is selected, but the button was some how still enabled
-		}
-		var sheetSelected=gridMain.SelectedTag<Sheet>();
-		var sheetDrawingJob=new SheetDrawingJob();
-		var errMsg=MobileNotifications.ODT_ExamSheet(PatNum,sheetSelected.SheetNum,mobileAppDevice.MobileAppDeviceNum);
-		if(errMsg.IsNullOrEmpty()){
-			MsgBox.Show(this,$"Exam sheet sent to device: {mobileAppDevice.DeviceName}");
-			return;
-		}
-		MsgBox.Show($"Error sending the exam sheet: {errMsg}");
-	}
-
 }

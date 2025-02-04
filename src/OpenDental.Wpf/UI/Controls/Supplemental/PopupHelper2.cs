@@ -1,14 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Data;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Net.Mail;
 using System.Text.RegularExpressions;
 using CodeBase;
 using DataConnectionBase;
-using Imedisoft.Core.Caching;
 using Imedisoft.Core.Entities;
 using OpenDentBusiness;
 
@@ -75,12 +72,6 @@ namespace WpfControls.UI {
 			for(int i=listStringMatches.Count-1;i>=0;i--) {
 				if(listStringMatches[i].StartsWith("(") && listStringMatches[i].EndsWith(")")) {
 					listStringMatches[i]=listStringMatches[i].Substring(1,listStringMatches[i].Length-2);
-				}
-				if(!listStringMatches[i].StartsWith("http") && !listStringMatches[i].StartsWith("www.")){
-					if(ODFileUtils.IsKnownFileType(listStringMatches[i])){
-						listStringMatches.RemoveAt(i);
-						continue;
-					}
 				}
 				listStringMatches[i]=listStringMatches[i].TrimEnd('.');
 				Regex rgx=new Regex(@"[\\]{1}");

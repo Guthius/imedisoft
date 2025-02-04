@@ -1,11 +1,7 @@
 using System;
-using System.Collections.Generic;
-using System.Data;
-using System.Drawing;
 using System.Text;
 using System.Windows.Forms;
 using OpenDental;
-using OpenDentBusiness;
 using CodeBase;
 using ImagingDeviceManager;
 using Imedisoft.Core.Data;
@@ -34,7 +30,7 @@ public partial class FormImagingDeviceEdit:FormODBase {
 	}
 
 	private void butThis_Click(object sender,EventArgs e) {
-		textComputerName.Text=ODEnvironment.MachineName;
+		textComputerName.Text=Environment.MachineName;
 	}
 
 	private void comboTwainName_DropDown(object sender,EventArgs e) {

@@ -1,6 +1,3 @@
-using System.Windows.Forms;
-using CodeBase;
-
 namespace OpenDental;
 
 public class Shared
@@ -27,24 +24,5 @@ public class Shared
             "3" => str + "rd",
             _ => ""
         };
-    }
-}
-
-public class ShowErrors(Control parent) : Logger.IWriteLine
-{
-    public void WriteLine(string data, LogLevel logLevel)
-    {
-        if (logLevel != LogLevel.Error)
-        {
-            return;
-        }
-
-        if (parent is {InvokeRequired: true})
-        {
-            parent.BeginInvoke(() => WriteLine(data, logLevel));
-            return;
-        }
-
-        ODMessageBox.Show(data);
     }
 }

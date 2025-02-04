@@ -47,14 +47,14 @@ public class ProcMultiVisits
 
     private static readonly ProcMultiVisitCache Cache = new();
 
-    public static ProcMultiVisit GetFirstOrDefault(Func<ProcMultiVisit, bool> match, bool isShort = false)
+    public static ProcMultiVisit GetFirstOrDefault(Func<ProcMultiVisit, bool> predicate, bool shortList = false)
     {
-        return Cache.GetFirstOrDefault(match, isShort);
+        return Cache.GetFirstOrDefault(predicate, shortList);
     }
 
-    public static List<ProcMultiVisit> GetWhere(Predicate<ProcMultiVisit> match, bool isShort = false)
+    public static List<ProcMultiVisit> GetWhere(Predicate<ProcMultiVisit> predicate, bool shortList = false)
     {
-        return Cache.GetWhere(match, isShort);
+        return Cache.GetWhere(predicate, shortList);
     }
 
     public static void RefreshCache()
@@ -62,9 +62,9 @@ public class ProcMultiVisits
         GetTableFromCache(true);
     }
 
-    public static DataTable GetTableFromCache(bool doRefreshCache)
+    public static DataTable GetTableFromCache(bool refreshCache)
     {
-        return Cache.GetTableFromCache(doRefreshCache);
+        return Cache.GetTableFromCache(refreshCache);
     }
 
     public static void ClearCache()
@@ -118,7 +118,7 @@ public class ProcMultiVisits
             var listClaims = Claims.GetClaimsFromClaimNums(listClaimProcs.Select(x => x.ClaimNum).ToList());
             foreach (var claim in listClaims)
             {
-                if (claim.ClaimStatus.In("U", "W", "H"))
+                if (claim.ClaimStatus is "U" or "W" or "H")
                 {
                     var claimOld = claim.Copy();
                     claim.ClaimStatus = "I";
@@ -265,22 +265,22 @@ public class ProcMultiVisits
     {
         var command = "UPDATE procmultivisit "
                       + "SET IsInProcess=" + SOut.Bool(isGroupInProcess) + " "
-                      + "WHERE GroupProcMultiVisitNum=" + SOut.Long(groupProcMultiVisitNum);
+                      + "WHERE GroupProcMultiVisitNum=" + (groupProcMultiVisitNum);
         Db.NonQ(command);
     }
 
     public static void UpdateGroupProcMultiVisitNumForGroup(long groupProcMultiVisitNumOld, long groupProcMultiVisitNumNew)
     {
         var command = "UPDATE procmultivisit "
-                      + "SET GroupProcMultiVisitNum=" + SOut.Long(groupProcMultiVisitNumNew) + " "
-                      + "WHERE GroupProcMultiVisitNum=" + SOut.Long(groupProcMultiVisitNumOld);
+                      + "SET GroupProcMultiVisitNum=" + (groupProcMultiVisitNumNew) + " "
+                      + "WHERE GroupProcMultiVisitNum=" + (groupProcMultiVisitNumOld);
         Db.NonQ(command);
     }
 
     public static List<ProcMultiVisit> GetPatientData(long patNum)
     {
         var command = "SELECT * FROM procmultivisit "
-                      + "WHERE PatNum=" + SOut.Long(patNum);
+                      + "WHERE PatNum=" + (patNum);
         return ProcMultiVisitCrud.SelectMany(command);
     }
 

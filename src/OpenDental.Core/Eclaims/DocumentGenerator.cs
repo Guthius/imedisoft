@@ -123,19 +123,19 @@ namespace OpenDentBusiness.Eclaims {
 		#region APIs
 
 		public void PrintPage(Graphics g,int pageNum){
-			int page=0;
-			int numPageElements=0;
-			int offset=0;
+			var page=0;
+			var numPageElements=0;
+			var offset=0;
 			do{
 				offset=numPageElements;
 				numPageElements=CalcNumElementsInWholePage(g,numPageElements);
 				page++;
 			}while(pageNum>page);
 			float yWritten=0;
-			for(int i=0;i<numPageElements;i++) {
+			for(var i=0;i<numPageElements;i++) {
 				if(offset+i<documentContainer.Count) {
-					List<RenderPrim> renderGroup=documentContainer[offset+i];
-					foreach(RenderPrim prim in renderGroup) {
+					var renderGroup=documentContainer[offset+i];
+					foreach(var prim in renderGroup) {
 						prim.Render(g,bounds.Top+yWritten);
 					}
 					yWritten+=CalcElementHeight(g,renderGroup);
@@ -144,8 +144,8 @@ namespace OpenDentBusiness.Eclaims {
 		}
 
 		public int CalcTotalPages(Graphics g) {
-			int pages=1;
-			int elementsProcessed=CalcNumElementsInWholePage(g,0);
+			var pages=1;
+			var elementsProcessed=CalcNumElementsInWholePage(g,0);
 			while(documentContainer.Count-elementsProcessed>0) {
 				pages++;
 				elementsProcessed+=CalcNumElementsInWholePage(g,elementsProcessed);
@@ -155,7 +155,7 @@ namespace OpenDentBusiness.Eclaims {
 
 		private float CalcElementHeight(Graphics g,List<RenderPrim> element) {
 			float maxy=0;
-			foreach(RenderPrim prim in element) {
+			foreach(var prim in element) {
 				maxy=Math.Max(maxy,prim.Height(g));
 			}
 			return maxy;
@@ -163,13 +163,13 @@ namespace OpenDentBusiness.Eclaims {
 
 		private int CalcNumElementsInWholePage(Graphics g,int offset) {
 			float totalY=0;
-			int numElements=0;
+			var numElements=0;
 			float maxy=0;
 			int i;
 			for(i=offset;i<documentContainer.Count;i++){
 				//Page breaks end the current page.
 				if(documentContainer[i].Count==1){
-					Type elementType=documentContainer[i][0].GetType();
+					var elementType=documentContainer[i][0].GetType();
 					if(elementType==typeof(PageBreak)){
 						numElements++;
 						break;
@@ -193,15 +193,15 @@ namespace OpenDentBusiness.Eclaims {
 		///<summary>Prints the contents of the field if they are non-empty. Also prints the field's name if it is not empty, or if alwaysShowName is true.</summary>
 		public SizeF DrawField(Graphics g,string fieldName,string value,bool alwaysShow,float X,float Y,string divideStr) {
 			if(fieldName==null) {//should never happen
-				MessageBox.Show(this.ToString()+".DrawField: Internal error, attempt to render null field name (Out of memory?)");
+				MessageBox.Show(this+".DrawField: Internal error, attempt to render null field name (Out of memory?)");
 				return new SizeF(0,0);
 			}
 			if(value==null) {//Allow null to count as empty string.
 				value="";
 			}
 			if(alwaysShow || value.Length>0) {
-				SizeF size1=DrawString(g,fieldName+divideStr,X,Y);
-				SizeF size2=DrawString(g,value,X+size1.Width,Y);
+				var size1=DrawString(g,fieldName+divideStr,X,Y);
+				var size2=DrawString(g,value,X+size1.Width,Y);
 				//For most situations when the fields are put in a good place on the output page where the field label fits
 				//in the page bounds and the field value has a reasonable amount of horizontal space, the width will simply
 				//be the width of the two rendered strings added together. This will be the common case and is the only 
@@ -226,11 +226,11 @@ namespace OpenDentBusiness.Eclaims {
 			if(text==null) {
 				text="";
 			}
-			Size renderArea=new Size(Convert.ToInt32(Math.Truncate(bounds.Right-X+1)),bounds.Height);
+			var renderArea=new Size(Convert.ToInt32(Math.Truncate(bounds.Right-X+1)),bounds.Height);
 			if(maxPixelWidth>=0) {
 				renderArea.Width=Math.Min(maxPixelWidth,renderArea.Width);
 			}
-			SizeF size=g.MeasureString(text,font,renderArea);
+			var size=g.MeasureString(text,font,renderArea);
 			renderContainer.Add(new RenderStr(font,Pens.Black,renderArea,text,X,Y));
 			return size;
 		}
@@ -265,8 +265,8 @@ namespace OpenDentBusiness.Eclaims {
 		///<summary>Returns the x-value of the beginning of the left-hand side of the element.</summary>
 		public float StartElement(float extraJumpY,bool alwaysJump) {
 			//Get max height of the container elements.
-			bool hasDims=false;
-			foreach(RenderPrim prim in renderContainer) {
+			var hasDims=false;
+			foreach(var prim in renderContainer) {
 				if(prim.HasDims()) {
 					hasDims=true;
 					break;
@@ -300,8 +300,8 @@ namespace OpenDentBusiness.Eclaims {
 		}
 
 		private List<RenderPrim> ClonePrims() {
-			List<RenderPrim> dup=new List<RenderPrim>();
-			foreach(RenderPrim prim in renderContainer) {
+			var dup=new List<RenderPrim>();
+			foreach(var prim in renderContainer) {
 				dup.Add(prim.Clone());
 			}
 			return dup;

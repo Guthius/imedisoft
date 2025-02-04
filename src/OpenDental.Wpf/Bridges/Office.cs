@@ -48,7 +48,7 @@ namespace OpenDental.Bridges {
 						startInfo.FileName=cmdLocation;//Path for the cmd prompt
 						startInfo.Arguments="/c copy nul "+fileName;
 						process.StartInfo=startInfo;
-						ODFileUtils.ProcessStart(process);
+						process.Start();
 					}
 					catch(Exception ex) {
 						MessageBox.Show(ex.Message);

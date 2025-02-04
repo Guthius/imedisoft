@@ -1,34 +1,13 @@
-#region
-
 using System.Collections.Generic;
 using System.Data;
-using System.Linq;
 using DataConnectionBase;
 using Imedisoft.Core.Entities;
 using OpenDentBusiness;
-
-#endregion
 
 namespace Imedisoft.Core.Crud;
 
 public class ProcMultiVisitCrud
 {
-    public static ProcMultiVisit SelectOne(long procMultiVisitNum)
-    {
-        var command = "SELECT * FROM procmultivisit "
-                      + "WHERE ProcMultiVisitNum = " + SOut.Long(procMultiVisitNum);
-        var list = TableToList(DataCore.GetTable(command));
-        if (list.Count == 0) return null;
-        return list[0];
-    }
-
-    public static ProcMultiVisit SelectOne(string command)
-    {
-        var list = TableToList(DataCore.GetTable(command));
-        if (list.Count == 0) return null;
-        return list[0];
-    }
-
     public static List<ProcMultiVisit> SelectMany(string command)
     {
         var list = TableToList(DataCore.GetTable(command));
@@ -38,18 +17,19 @@ public class ProcMultiVisitCrud
     public static List<ProcMultiVisit> TableToList(DataTable table)
     {
         var retVal = new List<ProcMultiVisit>();
-        ProcMultiVisit procMultiVisit;
         foreach (DataRow row in table.Rows)
         {
-            procMultiVisit = new ProcMultiVisit();
-            procMultiVisit.ProcMultiVisitNum = SIn.Long(row["ProcMultiVisitNum"].ToString());
-            procMultiVisit.GroupProcMultiVisitNum = SIn.Long(row["GroupProcMultiVisitNum"].ToString());
-            procMultiVisit.ProcNum = SIn.Long(row["ProcNum"].ToString());
-            procMultiVisit.ProcStatus = (ProcStat) SIn.Int(row["ProcStatus"].ToString());
-            procMultiVisit.IsInProcess = SIn.Bool(row["IsInProcess"].ToString());
-            procMultiVisit.SecDateTEntry = SIn.DateTime(row["SecDateTEntry"].ToString());
-            procMultiVisit.SecDateTEdit = SIn.DateTime(row["SecDateTEdit"].ToString());
-            procMultiVisit.PatNum = SIn.Long(row["PatNum"].ToString());
+            var procMultiVisit = new ProcMultiVisit
+            {
+                ProcMultiVisitNum = SIn.Long(row["ProcMultiVisitNum"].ToString()),
+                GroupProcMultiVisitNum = SIn.Long(row["GroupProcMultiVisitNum"].ToString()),
+                ProcNum = SIn.Long(row["ProcNum"].ToString()),
+                ProcStatus = (ProcStat) SIn.Int(row["ProcStatus"].ToString()),
+                IsInProcess = SIn.Bool(row["IsInProcess"].ToString()),
+                SecDateTEntry = SIn.DateTime(row["SecDateTEntry"].ToString()),
+                SecDateTEdit = SIn.DateTime(row["SecDateTEdit"].ToString()),
+                PatNum = SIn.Long(row["PatNum"].ToString())
+            };
             retVal.Add(procMultiVisit);
         }
 
@@ -75,11 +55,6 @@ public class ProcMultiVisitCrud
 
     public static long Insert(ProcMultiVisit procMultiVisit)
     {
-        return Insert(procMultiVisit, false);
-    }
-
-    public static long Insert(ProcMultiVisit procMultiVisit, bool useExistingPK)
-    {
         var command = "INSERT INTO procmultivisit (";
 
         command += "GroupProcMultiVisitNum,ProcNum,ProcStatus,IsInProcess,SecDateTEntry,PatNum) VALUES(";
@@ -98,48 +73,7 @@ public class ProcMultiVisitCrud
         return procMultiVisit.ProcMultiVisitNum;
     }
 
-    public static long InsertNoCache(ProcMultiVisit procMultiVisit)
-    {
-        return InsertNoCache(procMultiVisit, false);
-    }
-
-    public static long InsertNoCache(ProcMultiVisit procMultiVisit, bool useExistingPK)
-    {
-        const bool isRandomKeys = false;
-        var command = "INSERT INTO procmultivisit (";
-        if (isRandomKeys || useExistingPK) command += "ProcMultiVisitNum,";
-        command += "GroupProcMultiVisitNum,ProcNum,ProcStatus,IsInProcess,SecDateTEntry,PatNum) VALUES(";
-        if (isRandomKeys || useExistingPK) command += SOut.Long(procMultiVisit.ProcMultiVisitNum) + ",";
-        command +=
-            SOut.Long(procMultiVisit.GroupProcMultiVisitNum) + ","
-                                                             + SOut.Long(procMultiVisit.ProcNum) + ","
-                                                             + SOut.Int((int) procMultiVisit.ProcStatus) + ","
-                                                             + SOut.Bool(procMultiVisit.IsInProcess) + ","
-                                                             + "NOW()" + ","
-                                                             //SecDateTEdit can only be set by MySQL
-                                                             + SOut.Long(procMultiVisit.PatNum) + ")";
-        if (useExistingPK || isRandomKeys)
-            Db.NonQ(command);
-        else
-            procMultiVisit.ProcMultiVisitNum = Db.NonQ(command, true, "ProcMultiVisitNum", "procMultiVisit");
-        return procMultiVisit.ProcMultiVisitNum;
-    }
-
-    public static void Update(ProcMultiVisit procMultiVisit)
-    {
-        var command = "UPDATE procmultivisit SET "
-                      + "GroupProcMultiVisitNum=  " + SOut.Long(procMultiVisit.GroupProcMultiVisitNum) + ", "
-                      + "ProcNum               =  " + SOut.Long(procMultiVisit.ProcNum) + ", "
-                      + "ProcStatus            =  " + SOut.Int((int) procMultiVisit.ProcStatus) + ", "
-                      + "IsInProcess           =  " + SOut.Bool(procMultiVisit.IsInProcess) + ", "
-                      //SecDateTEntry not allowed to change
-                      //SecDateTEdit can only be set by MySQL
-                      + "PatNum                =  " + SOut.Long(procMultiVisit.PatNum) + " "
-                      + "WHERE ProcMultiVisitNum = " + SOut.Long(procMultiVisit.ProcMultiVisitNum);
-        Db.NonQ(command);
-    }
-
-    public static bool Update(ProcMultiVisit procMultiVisit, ProcMultiVisit oldProcMultiVisit)
+    public static void Update(ProcMultiVisit procMultiVisit, ProcMultiVisit oldProcMultiVisit)
     {
         var command = "";
         if (procMultiVisit.GroupProcMultiVisitNum != oldProcMultiVisit.GroupProcMultiVisitNum)
@@ -174,11 +108,10 @@ public class ProcMultiVisitCrud
             command += "PatNum = " + SOut.Long(procMultiVisit.PatNum) + "";
         }
 
-        if (command == "") return false;
+        if (command == "") return;
         command = "UPDATE procmultivisit SET " + command
                                                + " WHERE ProcMultiVisitNum = " + SOut.Long(procMultiVisit.ProcMultiVisitNum);
         Db.NonQ(command);
-        return true;
     }
 
     public static bool UpdateComparison(ProcMultiVisit procMultiVisit, ProcMultiVisit oldProcMultiVisit)
@@ -197,14 +130,6 @@ public class ProcMultiVisitCrud
     {
         var command = "DELETE FROM procmultivisit "
                       + "WHERE ProcMultiVisitNum = " + SOut.Long(procMultiVisitNum);
-        Db.NonQ(command);
-    }
-
-    public static void DeleteMany(List<long> listProcMultiVisitNums)
-    {
-        if (listProcMultiVisitNums == null || listProcMultiVisitNums.Count == 0) return;
-        var command = "DELETE FROM procmultivisit "
-                      + "WHERE ProcMultiVisitNum IN(" + string.Join(",", listProcMultiVisitNums.Select(x => SOut.Long(x))) + ")";
         Db.NonQ(command);
     }
 }

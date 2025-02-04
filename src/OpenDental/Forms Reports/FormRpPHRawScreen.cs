@@ -1,12 +1,7 @@
 using System;
-using System.Data;
-using System.Drawing;
-using System.Collections;
-using System.ComponentModel;
 using System.Windows.Forms;
 using DataConnectionBase;
 using Imedisoft.Core.Features.Clinics;
-using OpenDentBusiness;
 
 namespace OpenDental;
 

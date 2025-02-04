@@ -56,7 +56,7 @@ namespace OpenDental {
 			this.butSend.Size = new System.Drawing.Size(75, 24);
 			this.butSend.TabIndex = 19;
 			this.butSend.Text = "&Send";
-			this.butSend.Click += new System.EventHandler(this.butSend_Click);
+			this.butSend.Click += new System.EventHandler(this.ButtonSend_Click);
 			// 
 			// pictureBox
 			// 
@@ -105,8 +105,8 @@ namespace OpenDental {
 			this.gridMain.Name = "gridMain";
 			this.gridMain.Size = new System.Drawing.Size(375, 469);
 			this.gridMain.TabIndex = 49;
-			this.gridMain.CellDoubleClick += new OpenDental.UI.ODGridClickEventHandler(this.gridMain_CellDoubleClick);
-			this.gridMain.CellClick += new OpenDental.UI.ODGridClickEventHandler(this.gridMain_CellClick);
+			this.gridMain.CellDoubleClick += new OpenDental.UI.ODGridClickEventHandler(this.GridMain_CellDoubleClick);
+			this.gridMain.CellClick += new OpenDental.UI.ODGridClickEventHandler(this.GridMain_CellClick);
 			// 
 			// contextMenuImageGrid
 			// 
@@ -121,67 +121,67 @@ namespace OpenDental {
             this.menuItemRadiologyReports,
             this.menuItemIntraOralPhotograph,
             this.menuItemNarrative});
-			this.contextMenuImageGrid.Popup += new System.EventHandler(this.contextMenuImageGrid_Popup);
+			this.contextMenuImageGrid.Popup += new System.EventHandler(this.ContextMenuImageGrid_Popup);
 			// 
 			// menuItemReferralForm
 			// 
 			this.menuItemReferralForm.Index = 0;
 			this.menuItemReferralForm.Text = "Referral Form";
-			this.menuItemReferralForm.Click += new System.EventHandler(this.menuItemReferralForm_Click);
+			this.menuItemReferralForm.Click += new System.EventHandler(this.MenuItemReferralForm_Click);
 			// 
 			// menuItemDiagnosticReport
 			// 
 			this.menuItemDiagnosticReport.Index = 1;
 			this.menuItemDiagnosticReport.Text = "Diagnostic Report";
-			this.menuItemDiagnosticReport.Click += new System.EventHandler(this.menuItemDiagnosticReport_Click);
+			this.menuItemDiagnosticReport.Click += new System.EventHandler(this.MenuItemDiagnosticReport_Click);
 			// 
 			// menuItemExplanationOfBenefits
 			// 
 			this.menuItemExplanationOfBenefits.Index = 2;
 			this.menuItemExplanationOfBenefits.Text = "Explanation of Benefits";
-			this.menuItemExplanationOfBenefits.Click += new System.EventHandler(this.menuItemExplanationOfBenefits_Click);
+			this.menuItemExplanationOfBenefits.Click += new System.EventHandler(this.MenuItemExplanationOfBenefits_Click);
 			// 
 			// menuItemOtherAttachments
 			// 
 			this.menuItemOtherAttachments.Index = 3;
 			this.menuItemOtherAttachments.Text = "Other Attachments";
-			this.menuItemOtherAttachments.Click += new System.EventHandler(this.menuItemOtherAttachments_Click);
+			this.menuItemOtherAttachments.Click += new System.EventHandler(this.MenuItemOtherAttachments_Click);
 			// 
 			// menuItemPeriodontalCharts
 			// 
 			this.menuItemPeriodontalCharts.Index = 4;
 			this.menuItemPeriodontalCharts.Text = "Periodontal Charts";
-			this.menuItemPeriodontalCharts.Click += new System.EventHandler(this.menuItemPeriodontalCharts_Click);
+			this.menuItemPeriodontalCharts.Click += new System.EventHandler(this.MenuItemPeriodontalCharts_Click);
 			// 
 			// menuItemXRays
 			// 
 			this.menuItemXRays.Index = 5;
 			this.menuItemXRays.Text = "X-Rays";
-			this.menuItemXRays.Click += new System.EventHandler(this.menuItemXRays_Click);
+			this.menuItemXRays.Click += new System.EventHandler(this.MenuItemXRays_Click);
 			// 
 			// menuItemDentalModels
 			// 
 			this.menuItemDentalModels.Index = 6;
 			this.menuItemDentalModels.Text = "Dental Models";
-			this.menuItemDentalModels.Click += new System.EventHandler(this.menuItemDentalModels_Click);
+			this.menuItemDentalModels.Click += new System.EventHandler(this.MenuItemDentalModels_Click);
 			// 
 			// menuItemRadiologyReports
 			// 
 			this.menuItemRadiologyReports.Index = 7;
 			this.menuItemRadiologyReports.Text = "Radiology Reports";
-			this.menuItemRadiologyReports.Click += new System.EventHandler(this.menuItemRadiologyReports_Click);
+			this.menuItemRadiologyReports.Click += new System.EventHandler(this.MenuItemRadiologyReports_Click);
 			// 
 			// menuItemIntraOralPhotograph
 			// 
 			this.menuItemIntraOralPhotograph.Index = 8;
 			this.menuItemIntraOralPhotograph.Text = "Intra-Oral Photograph";
-			this.menuItemIntraOralPhotograph.Click += new System.EventHandler(this.menuItemIntraOralPhotograph_Click);
+			this.menuItemIntraOralPhotograph.Click += new System.EventHandler(this.MenuItemIntraOralPhotograph_Click);
 			// 
 			// menuItemNarrative
 			// 
 			this.menuItemNarrative.Index = 9;
 			this.menuItemNarrative.Text = "Narrative";
-			this.menuItemNarrative.Click += new System.EventHandler(this.menuItemNarrative_Click);
+			this.menuItemNarrative.Click += new System.EventHandler(this.MenuItemNarrative_Click);
 			// 
 			// labelClaimAttachWarning
 			// 
@@ -202,7 +202,7 @@ namespace OpenDental {
 			this.buttonPasteAgain.Size = new System.Drawing.Size(87, 24);
 			this.buttonPasteAgain.TabIndex = 51;
 			this.buttonPasteAgain.Text = "Paste &Again";
-			this.buttonPasteAgain.Click += new System.EventHandler(this.buttonPasteAgain_Click);
+			this.buttonPasteAgain.Click += new System.EventHandler(this.ButtonPasteAgain_Click);
 			// 
 			// textNarrative
 			// 
@@ -220,7 +220,7 @@ namespace OpenDental {
 			this.textNarrative.Size = new System.Drawing.Size(290, 153);
 			this.textNarrative.TabIndex = 55;
 			this.textNarrative.Text = "";
-			this.textNarrative.TextChanged += new System.EventHandler(this.textNarrative_TextChanged);
+			this.textNarrative.TextChanged += new System.EventHandler(this.TextBoxNarrative_TextChanged);
 			// 
 			// labelNarrative
 			// 

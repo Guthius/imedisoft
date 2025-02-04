@@ -1,13 +1,9 @@
 using System;
 using System.Collections.Generic;
-using System.Data;
-using System.Drawing;
-using System.Text;
 using System.Windows.Forms;
 using OpenDental.ReportingComplex;
 using OpenDentBusiness;
 using System.Linq;
-using CodeBase;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Entities;
 using Imedisoft.Core.Features.Clinics;
@@ -26,21 +22,14 @@ public partial class FormRpTreatPlanPresentationStatistics:FormODBase {
 		date2.SelectionStart=new DateTime(DateTime.Today.Year,DateTime.Today.Month,1).AddDays(-1);
 		listUser.Items.AddList(Userods.GetDeepCopy(true),x => x.UserName);
 		checkAllUsers.Checked=true;
-		if(true) {
-			if(!Security.CurUser.ClinicIsRestricted) {
-				listClin.Items.Add(Lan.g(this,"Unassigned"));
-			}
-			_listClinics=Clinics.GetForUserod(Security.CurUser);
-			for(var i=0;i<_listClinics.Count;i++) {
-				listClin.Items.Add(_listClinics[i].Abbr);
-			}
-			checkAllClinics.Checked=true;
+		if(!Security.CurUser.ClinicIsRestricted) {
+			listClin.Items.Add(Lan.g(this,"Unassigned"));
 		}
-		else {
-			listClin.Visible=false;
-			checkAllClinics.Visible=false;
-			labelClin.Visible=false;
+		_listClinics=Clinics.GetForUserod(Security.CurUser);
+		for(var i=0;i<_listClinics.Count;i++) {
+			listClin.Items.Add(_listClinics[i].Abbr);
 		}
+		checkAllClinics.Checked=true;
 	}
 
 	private void RunReport() {

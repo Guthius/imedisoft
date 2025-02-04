@@ -28,9 +28,9 @@ public class Claims
                       + "LEFT JOIN insplan ON claim.PlanNum = insplan.PlanNum "
                       + "LEFT JOIN carrier ON insplan.CarrierNum = carrier.CarrierNum "
                       + "LEFT JOIN clinic ON clinic.ClinicNum = claim.ClinicNum "
-                      + "WHERE (claim.ProvBill = " + SOut.Long(provNum) + " "
-                      + "OR claim.ProvTreat = " + SOut.Long(provNum) + " "
-                      + "OR claim.ProvOrderOverride = " + SOut.Long(provNum) + ") "
+                      + "WHERE (claim.ProvBill = " + (provNum) + " "
+                      + "OR claim.ProvTreat = " + (provNum) + " "
+                      + "OR claim.ProvOrderOverride = " + (provNum) + ") "
                       + "AND claim.ClaimStatus != 'R' "
                       + "AND claim.DateService > " + SOut.Date(dateTerm) + " "
                       + "GROUP BY claim.ClaimNum "
@@ -50,7 +50,7 @@ public class Claims
             + " AND insplan.PlanNum = claim.PlanNum"
             + " AND insplan.CarrierNum = carrier.CarrierNum"
             + " AND (claimproc.Status = '1' OR claimproc.Status = '4' OR claimproc.Status=5)" //received or supplemental or capclaim
-            + " AND (claimproc.ClaimPaymentNum = '" + SOut.Long(claimPaymentNum) + "'";
+            + " AND (claimproc.ClaimPaymentNum = '" + (claimPaymentNum) + "'";
         if (showUnattached) command += " OR (claimproc.InsPayAmt != 0 AND claimproc.ClaimPaymentNum = '0')";
         //else shows only items attached to this payment
         command += ")"
@@ -165,7 +165,7 @@ public class Claims
         //Get list of NotReceived ClaimProcs associated with claims and the list of ProcNums.
         var listClaimProcsForProcsNotReceived = ClaimProcs.GetForProcs(listProcNumsOnClaims)
             .FindAll(x => x.Status == ClaimProcStatus.NotReceived && x.ClaimNum != 0);
-        if (listClaimProcsForProcsNotReceived.Count == 0) return new List<Claim>(); //No unreceived claimprocs for procs.
+        if (listClaimProcsForProcsNotReceived.Count == 0) return []; //No unreceived claimprocs for procs.
         //Filter the claimprocs by ClaimType based on isSecondaryClaim passed in.
         var claimType = "P";
         if (isSecondaryClaim) claimType = "S";
@@ -194,30 +194,6 @@ public class Claims
             + " ORDER BY patName_";
         var table = DataCore.GetTable(command);
         return ClaimPaySplitTableToList(table);
-    }
-
-    public static List<string> GetTopVolumeCarrierNamesForClinicAndPeriod(long clinicNum, int numDaysBack, int numTopCarriers)
-    {
-        var listTopVolumeCarrierNames = new List<string>();
-        var command = "SELECT carrier.CarrierName, COUNT(claim.ClaimNum) AS Total"
-                      + " FROM claim"
-                      + " INNER JOIN insplan"
-                      + " ON insplan.PlanNum=claim.PlanNum"
-                      + " INNER JOIN carrier"
-                      + " ON insplan.CarrierNum=carrier.CarrierNum"
-                      + " WHERE claim.ClaimStatus IN ('S','R')"
-                      + " AND claim.ClinicNum=" + SOut.Long(clinicNum)
-                      + " AND carrier.CarrierName!=''"
-                      + " AND claim.DateSent BETWEEN " + SOut.Date(DateTime.Now.AddDays(-numDaysBack)) + " AND " + SOut.Date(DateTime.Now)
-                      + " GROUP BY carrier.CarrierName"
-                      + " ORDER BY Total DESC"
-                      + " LIMIT " + SOut.Int(numTopCarriers);
-        var table = DataCore.GetTable(command);
-        if (table.Rows.Count > 0)
-            for (var i = 0; i < table.Rows.Count; i++)
-                listTopVolumeCarrierNames.Add(SIn.String(table.Rows[i]["CarrierName"].ToString()));
-
-        return listTopVolumeCarrierNames;
     }
 
     private static List<ClaimPaySplit> ClaimPaySplitTableToList(DataTable table)
@@ -252,21 +228,21 @@ public class Claims
                       + " WHERE ClaimNum = " + claimNum;
         var retClaim = ClaimCrud.SelectOne(command);
         if (retClaim == null) return null;
-        command = "SELECT * FROM claimattach WHERE ClaimNum = " + SOut.Long(claimNum);
+        command = "SELECT * FROM claimattach WHERE ClaimNum = " + (claimNum);
         retClaim.Attachments = ClaimAttachCrud.SelectMany(command);
         return retClaim;
     }
 
     public static List<Claim> GetClaimsFromClaimNums(List<long> listClaimNums)
     {
-        if (listClaimNums.IsNullOrEmpty()) return new List<Claim>();
+        if (listClaimNums.IsNullOrEmpty()) return [];
         var command = $"SELECT * FROM claim WHERE ClaimNum IN ({string.Join(",", listClaimNums)})";
         return ClaimCrud.SelectMany(command);
     }
 
     public static List<Claim> Refresh(long patNum)
     {
-        if (patNum == 0) return new List<Claim>();
+        if (patNum == 0) return [];
         var command =
             "SELECT * FROM claim"
             + " WHERE PatNum = " + patNum
@@ -298,7 +274,7 @@ public class Claims
             claim.SecurityHash = HashFields(claim);
         ClaimCrud.Update(claim);
         //now, delete all attachments and recreate.
-        var command = "DELETE FROM claimattach WHERE ClaimNum=" + SOut.Long(claim.ClaimNum);
+        var command = "DELETE FROM claimattach WHERE ClaimNum=" + (claim.ClaimNum);
         Db.NonQ(command);
         for (var i = 0; i < claim.Attachments.Count; i++)
         {
@@ -335,8 +311,8 @@ public class Claims
             listWhereAnds.Add("claim.ClaimStatus IN ('W','P') ");
         else
             listWhereAnds.Add("claim.ClaimNum IN (" + string.Join(",", listClaimNums) + ") ");
-        if (clinicNum > 0) listWhereAnds.Add("claim.ClinicNum=" + SOut.Long(clinicNum) + " ");
-        if (customTracking > 0) listWhereAnds.Add("claim.CustomTracking=" + SOut.Long(customTracking) + " ");
+        if (clinicNum > 0) listWhereAnds.Add("claim.ClinicNum=" + (clinicNum) + " ");
+        if (customTracking > 0) listWhereAnds.Add("claim.CustomTracking=" + (customTracking) + " ");
         //Removed subselect query for HasIcd9 because we're grabbing all of the claims and claimprocs in the code anyway.
         //Much less punishing to offices that don't have medical procedures.
         var command = $@"SELECT claim.ClaimNum,carrier.NoSendElect,claim.ClaimStatus,carrier.CarrierName,patient.PatNum,carrier.ElectID,claim.MedType,
@@ -433,7 +409,7 @@ public class Claims
         var command = "UPDATE claim SET ClaimStatus = 'S',"
                       + "DateSent=" + SOut.Date(dateT) + ", "
                       + "DateSentOrig=(CASE WHEN DateSentOrig='0001-01-01' THEN " + SOut.Date(dateT) + " ELSE DateSentOrig END) "
-                      + "WHERE ClaimNum = " + SOut.Long(claimNum);
+                      + "WHERE ClaimNum = " + (claimNum);
         Db.NonQ(command);
         if (claimOld != null && IsClaimHashValid(claimOld))
         {
@@ -447,7 +423,7 @@ public class Claims
 
     public static bool IsClaimIdentifierInUse(string claimIdentifier, long claimNumExclude, string claimType)
     {
-        var command = "SELECT COUNT(*) FROM claim WHERE ClaimIdentifier='" + SOut.String(claimIdentifier) + "' AND ClaimNum<>" + SOut.Long(claimNumExclude);
+        var command = "SELECT COUNT(*) FROM claim WHERE ClaimIdentifier='" + SOut.String(claimIdentifier) + "' AND ClaimNum<>" + (claimNumExclude);
         if (claimType == "PreAuth")
             command += " AND ClaimType='PreAuth'";
         else
@@ -462,7 +438,7 @@ public class Claims
 
     public static bool IsReferralAttached(long referralNum)
     {
-        var command = "SELECT COUNT(*) FROM claim WHERE OrderingReferralNum=" + SOut.Long(referralNum);
+        var command = "SELECT COUNT(*) FROM claim WHERE OrderingReferralNum=" + (referralNum);
         if (Db.GetCount(command) == "0") return false;
         return true;
     }
@@ -732,7 +708,7 @@ public class Claims
             #region ClaimIdentifier matching and setting.
 
             //Look for claim matched by full or partial claim identifier.
-            listIndiciesForIdentifier = new List<int>();
+            listIndiciesForIdentifier = [];
             if (x12ClaimMatch.ClaimIdentifier.Length > 0 && x12ClaimMatch.ClaimIdentifier != "0")
             {
                 //Ensure an ID is present and that it is not for a printed claim (when ID=="0").
@@ -918,14 +894,14 @@ public class Claims
         command = "SELECT COUNT(*) "
                   + "FROM claim "
                   + "WHERE claim.ClaimStatus='R' "
-                  + "AND claim.PlanNum=" + SOut.Long(planNum) + " ";
-        if (insSubNum != 0) command += "AND claim.InsSubNum=" + SOut.Long(insSubNum);
+                  + "AND claim.PlanNum=" + (planNum) + " ";
+        if (insSubNum != 0) command += "AND claim.InsSubNum=" + (insSubNum);
         return SIn.Int(Db.GetCount(command));
     }
 
     public static void UpdateClaimIdentifier(long claimNum, string claimIdentifier)
     {
-        var command = "UPDATE claim SET ClaimIdentifier='" + SOut.String(claimIdentifier) + "' WHERE ClaimNum=" + SOut.Long(claimNum);
+        var command = "UPDATE claim SET ClaimIdentifier='" + SOut.String(claimIdentifier) + "' WHERE ClaimNum=" + (claimNum);
         Db.NonQ(command);
     }
 
@@ -1089,9 +1065,9 @@ public class Claims
                 if (provNum == 0) //if no prov set, then use practice default.
                     provNum = PrefC.GetLong(PrefName.PracticeDefaultProv);
                 var providerFirst = Providers.GetFirst(); //Used in order to preserve old behavior...  If this fails, then old code would have failed.
-                var provider = Providers.GetFirstOrDefault(x => x.ProvNum == provNum) ?? providerFirst;
+                var provider = Providers.GetFirstOrDefault(x => x.Id == provNum) ?? providerFirst;
                 //get the fee based on code and prov fee sched
-                var ppoFee = Fees.GetAmount0(procedure.CodeNum, provider.FeeSched, procedure.ClinicNum, provNum, listFees);
+                var ppoFee = Fees.GetAmount0(procedure.CodeNum, provider.FeeScheduleId??0, procedure.ClinicNum, provNum, listFees);
                 var ucrFee = procedure.ProcFee; //Usual Customary and Regular (UCR) fee.  Also known as billed fee.
                 if (ucrFee > ppoFee)
                     listClaimProcsForClaim[i].FeeBilled = procedure.Quantity * ucrFee;
@@ -1249,7 +1225,7 @@ public class Claims
         if (insPlan.PlanType == "c") //if capitation
             claim.ClaimType = "Cap";
         claim.ProvTreat = procedure.ProvNum;
-        if (Providers.GetIsSec(procedure.ProvNum)) claim.ProvTreat = patient.PriProv;
+        if (Providers.IsSecondary(procedure.ProvNum)) claim.ProvTreat = patient.PriProv;
         //OK if zero, because auto select first in list when open claim
         claim.IsProsthesis = "N";
         claim.ProvBill = Providers.GetBillingProvNum(claim.ProvTreat, claim.ClinicNum); //OK if zero, because it will get fixed in claim
@@ -1290,7 +1266,7 @@ public class Claims
 
     public static void CreateClaimForOrthoProc(string claimType, PatPlan patPlan, InsPlan insPlan, InsSub insSub, ClaimProc claimProc, Procedure procedure, double feeBilled, DateTime dateBanding, int totalMonths, int monthsRem)
     {
-        var claimProc2 = Procedures.GetClaimProcEstimate(procedure.ProcNum, new List<ClaimProc> {claimProc}, insPlan, insSub.InsSubNum);
+        var claimProc2 = Procedures.GetClaimProcEstimate(procedure.ProcNum, [claimProc], insPlan, insSub.InsSubNum);
         var listPatPlansForPat = PatPlans.Refresh(patPlan.PatNum);
         var listInsPlansForPat = InsPlans.GetByInsSubs(listPatPlansForPat.Select(x => x.InsSubNum).ToList());
         var listInsSubsForPat = InsSubs.GetMany(listPatPlansForPat.Select(x => x.InsSubNum).ToList());
@@ -1371,7 +1347,7 @@ public class Claims
         if (insPlan.PlanType == "c") //if capitation
             claim.ClaimType = "Cap";
         claim.ProvTreat = procedure.ProvNum;
-        if (Providers.GetIsSec(procedure.ProvNum)) claim.ProvTreat = Patients.GetPat(procedure.PatNum).PriProv;
+        if (Providers.IsSecondary(procedure.ProvNum)) claim.ProvTreat = Patients.GetPat(procedure.PatNum).PriProv;
         //OK if zero, because auto select first in list when open claim
         claim.IsProsthesis = "N";
         claim.ProvBill = Providers.GetBillingProvNum(claim.ProvTreat, claim.ClinicNum); //OK if zero, because it will get fixed in claim
@@ -1469,8 +1445,8 @@ public class Claims
         var command = @"
 				SELECT claim.* 
 				FROM claim
-				WHERE claim.PatNum = " + SOut.Long(patNum) + @"
-				AND claim.PlanNum = " + SOut.Long(planNum) + @"
+				WHERE claim.PatNum = " + (patNum) + @"
+				AND claim.PlanNum = " + (planNum) + @"
 				AND claim.IsOrtho = 1
 				AND claim.ClaimStatus = 'R'
 				AND EXISTS(
@@ -1689,7 +1665,7 @@ public class Claims
         }
 
         //Using RefreshForClaims() to get ClaimProcs for a single Claim because RefreshForClaim() excludes Canada labs.
-        var listClaimProcs = ClaimProcs.RefreshForClaims(new List<long> {claim.ClaimNum});
+        var listClaimProcs = ClaimProcs.RefreshForClaims([claim.ClaimNum]);
         if (listClaimProcs.Any(x => x.Status == ClaimProcStatus.Received || x.InsPayAmt != 0)) return false;
         for (var i = 0; i < listClaimProcs.Count; i++)
         {
@@ -1723,7 +1699,7 @@ public class Claims
         claim.DateReceived = DateTime.Today;
         claim.ClaimStatus = "R";
         Update(claim);
-        if (PrefC.GetBool(PrefName.ClaimPrimaryReceivedRecalcSecondary) && claim.ClaimType == "P") CalculateAndUpdateSecondariesFromPrimaries(new List<Claim> {claim});
+        if (PrefC.GetBool(PrefName.ClaimPrimaryReceivedRecalcSecondary) && claim.ClaimType == "P") CalculateAndUpdateSecondariesFromPrimaries([claim]);
         return true;
     }
 

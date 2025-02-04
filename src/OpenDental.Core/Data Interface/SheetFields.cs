@@ -1,15 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using CodeBase;
 using DataConnectionBase;
 using Imedisoft.Core.Crud;
 using Imedisoft.Core.Entities;
-using OpenDentBusiness.WebTypes.WebForms;
 
 namespace OpenDentBusiness;
 
-public class SheetFields
+public static class SheetFields
 {
     public static void InsertMany(List<SheetField> listSheetFields)
     {
@@ -18,46 +16,44 @@ public class SheetFields
 
     public static List<SheetField> GetListForSheet(long sheetNum)
     {
-        var command = "SELECT * FROM sheetfield WHERE SheetNum=" + SOut.Long(sheetNum)
-                                                                 + " ORDER BY SheetFieldNum"; //the ordering is CRITICAL because the signature key is based on order.
-        return SheetFieldCrud.SelectMany(command);
+        return SheetFieldCrud.SelectMany("SELECT * FROM sheetfield WHERE SheetNum = " + sheetNum + " ORDER BY SheetFieldNum");
     }
 
-    public static List<SheetField> GetListForSheets(List<long> listSheetNums)
+    public static List<SheetField> GetListForSheets(List<long> sheetNums)
     {
-        if (listSheetNums.IsNullOrEmpty()) return new List<SheetField>();
-
-        var command = $"SELECT * FROM sheetfield WHERE SheetNum IN({string.Join(",", listSheetNums.Select(x => SOut.Long(x)))})";
-        return SheetFieldCrud.SelectMany(command);
+        return sheetNums.IsNullOrEmpty() ? [] : SheetFieldCrud.SelectMany($"SELECT * FROM sheetfield WHERE SheetNum IN ({string.Join(",", sheetNums)})");
     }
 
-    public static void GetFieldsAndParameters(Sheet sheet, List<SheetField> listSheetFields = null)
+    public static void GetFieldsAndParameters(Sheet sheet, List<SheetField> sheetFields = null)
     {
-        if (listSheetFields == null)
-            sheet.SheetFields = GetListForSheet(sheet.SheetNum);
-        else
-            sheet.SheetFields = listSheetFields;
-        //so parameters will also be in the field list, but they will just be ignored from here on out.
-        //because we will have an explicit parameter list instead.
-        sheet.Parameters = new List<SheetParameter>();
-        SheetParameter sheetParameter;
-        //int paramVal;
-        for (var i = 0; i < sheet.SheetFields.Count; i++)
-            if (sheet.SheetFields[i].FieldType == SheetFieldType.Parameter)
+        sheet.SheetFields = sheetFields ?? GetListForSheet(sheet.SheetNum);
+        sheet.Parameters = [];
+
+        foreach (var sheetField in sheet.SheetFields)
+        {
+            if (sheetField.FieldType != SheetFieldType.Parameter)
             {
-                sheetParameter = new SheetParameter(true, sheet.SheetFields[i].FieldName, sheet.SheetFields[i].FieldValue);
-                sheet.Parameters.Add(sheetParameter);
+                continue;
             }
+
+            sheet.Parameters.Add(new SheetParameter(true, sheetField.FieldName, sheetField.FieldValue));
+        }
     }
 
     public static List<SheetField> GetFieldFromExamSheet(long patNum, string examDescript, string fieldName)
     {
         var sheet = Sheets.GetMostRecentExamSheet(patNum, examDescript);
-        if (sheet == null) return null;
-        var command = "SELECT * FROM sheetfield WHERE SheetNum="
-                      + SOut.Long(sheet.SheetNum) + " "
-                      + "AND (RadioButtonGroup='" + SOut.String(fieldName) + "' OR ReportableName='" + SOut.String(fieldName) + "' OR FieldName='" + SOut.String(fieldName) + "')";
-        return SheetFieldCrud.SelectMany(command);
+        if (sheet is null)
+        {
+            return null;
+        }
+
+        return SheetFieldCrud.SelectMany(
+            "SELECT * FROM sheetfield " +
+            "WHERE SheetNum = " + sheet.SheetNum + " " +
+            "AND (RadioButtonGroup = '" + SOut.String(fieldName) + "' " +
+            "OR ReportableName='" + SOut.String(fieldName) + "' " +
+            "OR FieldName='" + SOut.String(fieldName) + "')");
     }
 
     public static void Update(SheetField sheetField)
@@ -72,51 +68,25 @@ public class SheetFields
 
     public static int SortDrawingOrderLayers(SheetField sheetField1, SheetField sheetField2)
     {
-        if (FieldTypeSortOrder(sheetField1.FieldType) != FieldTypeSortOrder(sheetField2.FieldType)) return FieldTypeSortOrder(sheetField1.FieldType).CompareTo(FieldTypeSortOrder(sheetField2.FieldType));
-        return sheetField1.YPos.CompareTo(sheetField2.YPos);
-        //return f1.SheetFieldNum.CompareTo(f2.SheetFieldNum);
-    }
-
-    public static DateTime GetBirthDate(string strDate, bool isWebForm, bool isCemtTransfer, string cultureName = "")
-    {
-        DateTime dateTime;
-        //Parse the birthdate field using our websheet_preference for this practice if this sheet was a WebForm, otherwise, use the current 
-        //computer's region/language settings.
-        if (isWebForm && !isCemtTransfer)
-            dateTime = WebForms_Sheets.ParseDateWebForms(strDate, cultureName);
-        else
-            dateTime = SIn.Date(strDate);
-        return dateTime;
+        return FieldTypeSortOrder(sheetField1.FieldType) != FieldTypeSortOrder(sheetField2.FieldType)
+            ? FieldTypeSortOrder(sheetField1.FieldType).CompareTo(FieldTypeSortOrder(sheetField2.FieldType))
+            : sheetField1.YPos.CompareTo(sheetField2.YPos);
     }
 
     internal static int FieldTypeSortOrder(SheetFieldType sheetFieldType)
     {
-        switch (sheetFieldType)
+        return sheetFieldType switch
         {
-            case SheetFieldType.Image:
-            case SheetFieldType.PatImage:
-                return 0;
-            case SheetFieldType.Drawing:
-                return 1;
-            case SheetFieldType.Line:
-            case SheetFieldType.Rectangle:
-                return 2;
-            case SheetFieldType.Grid:
-                return 3;
-            case SheetFieldType.OutputText:
-            case SheetFieldType.InputField:
-            case SheetFieldType.StaticText:
-                return 4;
-            case SheetFieldType.CheckBox:
-                return 5;
-            case SheetFieldType.SigBox:
-            case SheetFieldType.SigBoxPractice:
-                return 6;
-            case SheetFieldType.Special:
-            case SheetFieldType.Parameter:
-            default:
-                return int.MaxValue;
-        }
+            SheetFieldType.Image or SheetFieldType.PatImage => 0,
+            SheetFieldType.Drawing => 1,
+            SheetFieldType.Line or SheetFieldType.Rectangle => 2,
+            SheetFieldType.Grid => 3,
+            SheetFieldType.OutputText or SheetFieldType.InputField or SheetFieldType.StaticText => 4,
+            SheetFieldType.CheckBox => 5,
+            SheetFieldType.SigBox or SheetFieldType.SigBoxPractice => 6,
+            SheetFieldType.Special or SheetFieldType.Parameter => int.MaxValue,
+            _ => int.MaxValue
+        };
     }
 
     public static int SortPrimaryKey(SheetField sheetField1, SheetField sheetField2)
@@ -124,77 +94,70 @@ public class SheetFields
         return sheetField1.SheetFieldNum.CompareTo(sheetField2.SheetFieldNum);
     }
 
-    public static void Sync(List<SheetField> listSheetFieldsNew, long sheetNum, bool isSigBoxOnly)
+    public static void Sync(List<SheetField> sheetFieldsNew, long sheetNum, bool isSigBoxOnly)
     {
-        var listSheetFieldsDB = GetListForSheet(sheetNum);
+        var sheetFieldsDb = GetListForSheet(sheetNum);
         if (!isSigBoxOnly)
         {
-            var listSheetFieldsNoSigNew = listSheetFieldsNew.FindAll(x => x.FieldType != SheetFieldType.Parameter
-                                                                          && !x.FieldType.In(SheetFieldType.SigBox, SheetFieldType.SigBoxPractice));
-            var listSheetFieldsNoSigDB = listSheetFieldsDB.FindAll(x => x.FieldType != SheetFieldType.Parameter
-                                                                        && !x.FieldType.In(SheetFieldType.SigBox, SheetFieldType.SigBoxPractice));
-            SheetFieldCrud.Sync(listSheetFieldsNoSigNew, listSheetFieldsNoSigDB);
+            var sheetFieldsNoSigNew = sheetFieldsNew.FindAll(x => x.FieldType != SheetFieldType.Parameter && x.FieldType is not (SheetFieldType.SigBox or SheetFieldType.SigBoxPractice));
+            var sheetFieldsNoSigDb = sheetFieldsDb.FindAll(x => x.FieldType != SheetFieldType.Parameter && x.FieldType is not (SheetFieldType.SigBox or SheetFieldType.SigBoxPractice));
+
+            SheetFieldCrud.Sync(sheetFieldsNoSigNew, sheetFieldsNoSigDb);
+
             return;
         }
 
-        //SigBoxes must come after ALL other types in order for the keyData to be in the right order.
-        var listSheetFieldsSigOnlyNew = listSheetFieldsNew.FindAll(x => x.FieldType.In(SheetFieldType.SigBox, SheetFieldType.SigBoxPractice));
-        var listSheetFieldsSigOnlyDB = listSheetFieldsDB.FindAll(x => x.FieldType.In(SheetFieldType.SigBox, SheetFieldType.SigBoxPractice));
-        SheetFieldCrud.Sync(listSheetFieldsSigOnlyNew, listSheetFieldsSigOnlyDB);
+        var sheetFieldsSigOnlyNew = sheetFieldsNew.FindAll(x => x.FieldType is SheetFieldType.SigBox or SheetFieldType.SigBoxPractice);
+        var sheetFieldsSigOnlyDb = sheetFieldsDb.FindAll(x => x.FieldType is SheetFieldType.SigBox or SheetFieldType.SigBoxPractice);
+
+        SheetFieldCrud.Sync(sheetFieldsSigOnlyNew, sheetFieldsSigOnlyDb);
     }
 
     public static string GetComboSelectedOption(SheetField sheetField)
     {
-        var listOptions = sheetField.FieldValue.Split(';').ToList();
-        if (listOptions.Count > 1)
-        {
-            var str = listOptions[0]; //empty string when nothing selected
-            return str;
-        }
+        var options = sheetField.FieldValue.Split(';').ToList();
 
-        //Incorrect format.
-        return "";
+        return options.Count > 1 ? options[0] : "";
     }
 
     public static List<string> GetComboMenuItems(SheetField sheetField)
     {
-        var listStringsReturn = new List<string>();
-        var listOptions = sheetField.FieldValue.Split(';').ToList();
-        if (listOptions.Count > 1)
-            listStringsReturn = listOptions[1].Split('|').ToList();
-        else //Incorrect format.
-            //Default to empty string when 'values' is in format 'A|B|C', indicating only combobox options, 
-            //rather than 'C;A|B|C' which indicates selection as well as options.
-            //Upon Ok click this will correct the fieldvalue format.
-            listStringsReturn = listOptions[0].Split('|').ToList(); //Will be an empty string if no '|' is present.
-        for (var i = 0; i < listStringsReturn.Count; i++)
+        var options = sheetField.FieldValue.Split(';').ToList();
+
+        var results = options.Count > 1 ? options[1].Split('|').ToList() : options[0].Split('|').ToList();
+        for (var i = 0; i < results.Count; i++)
         {
-            //'&' is a special character in System.Windows.Forms.ContextMenu. We need to escape all ampersands so that they are displayed correctly in the fill sheet window.
-            listStringsReturn[i] = listStringsReturn[i].Replace("&", "&&");
-            //'-' by itself is a special character in System.Windows.Forms.ContextMenu. We need to escapte it so that it is displayed correctly in the fill sheet window.
-            if (listStringsReturn[i] == "-") listStringsReturn[i] = "&-";
+            results[i] = results[i].Replace("&", "&&");
+
+            if (results[i] == "-")
+            {
+                results[i] = "&-";
+            }
         }
 
-        return listStringsReturn;
+        return results;
     }
 
     public static void SetComboFieldValue(SheetField sheetField, string selectedOption)
     {
-        var stringAll = "";
-        var listOptions = sheetField.FieldValue.Split(';').ToList();
-        if (listOptions.Count > 1)
-            stringAll = listOptions[1];
-        else //Incorrect format.
-            stringAll = listOptions[0];
-        //If there are any double && signs, we need to set them back to single & symbols. If the option is a single hyphen, we would have added a & symbol to the front of it in order to get the context menu to add it as an option. We need to remove either of these additional symbols after selection so that they display correctly. See method GetComboMenuItems() just above.
-        var fieldVal = selectedOption.Replace("&&", "&") + ";" + stringAll;
-        if (selectedOption == "&-") fieldVal = selectedOption.Replace("&-", "-") + ";" + stringAll;
-        sheetField.FieldValue = fieldVal;
+        var options = sheetField.FieldValue.Split(';').ToList();
+        var stringAll = options.Count > 1 ? options[1] : options[0];
+
+        var fieldValue = selectedOption.Replace("&&", "&") + ";" + stringAll;
+        if (selectedOption == "&-")
+        {
+            fieldValue = selectedOption.Replace("&-", "-") + ";" + stringAll;
+        }
+
+        sheetField.FieldValue = fieldValue;
     }
 
     public static bool IsStaticTextFieldObsolete(EnumStaticTextField staticTextField)
     {
-        if (staticTextField.In(EnumStaticTextField.clinicDescription, EnumStaticTextField.clinicAddress, EnumStaticTextField.clinicCityStZip, EnumStaticTextField.clinicPhone)) return true;
-        return false;
+        return staticTextField is
+            EnumStaticTextField.clinicDescription or
+            EnumStaticTextField.clinicAddress or
+            EnumStaticTextField.clinicCityStZip or
+            EnumStaticTextField.clinicPhone;
     }
 }

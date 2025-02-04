@@ -81,7 +81,7 @@ namespace OpenDental{
 			this.butSave.TabIndex = 4;
 			this.butSave.Text = "&Save";
 			this.butSave.UseVisualStyleBackColor = true;
-			this.butSave.Click += new System.EventHandler(this.butSave_Click);
+			this.butSave.Click += new System.EventHandler(this.ButtonSave_Click);
 			// 
 			// textFileName
 			// 
@@ -128,7 +128,7 @@ namespace OpenDental{
 			this.butNewSnip.TabIndex = 6;
 			this.butNewSnip.Text = "&Save";
 			this.butNewSnip.UseVisualStyleBackColor = true;
-			this.butNewSnip.Click += new System.EventHandler(this.butNewSnip_Click);
+			this.butNewSnip.Click += new System.EventHandler(this.ButtonNewSnip_Click);
 			// 
 			// labelNewSnip
 			// 

@@ -37,7 +37,7 @@ public class ComputerPrefs
 
     private static ComputerPref GetForLocalComputer()
     {
-        return GetForComputer(ODEnvironment.MachineName);
+        return GetForComputer(Environment.MachineName);
     }
 
     public static ComputerPref GetForComputer(string computerName)

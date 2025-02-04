@@ -5,7 +5,6 @@ using System.Diagnostics;
 using System.Threading;
 using OpenDentBusiness;
 using CodeBase;
-using Newtonsoft.Json;
 using System.Windows.Forms;
 using Imedisoft.Core.Entities;
 

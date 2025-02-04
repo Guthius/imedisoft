@@ -7,6 +7,7 @@ using System.Windows.Forms;
 using CodeBase;
 using DataConnectionBase;
 using Imedisoft.Core.Caching;
+using Imedisoft.Core.Data;
 using Imedisoft.Core.Entities;
 using OpenDental.UI;
 using OpenDentBusiness;
@@ -265,13 +266,8 @@ public partial class FormMedications : FormODBase {
 		}
 		var countExportedMeds=0;
 		string fileName;
-		if(/* ODEnvironment.IsCloudInstance */ false) {
-			fileName="ExportedMedications.txt";
-		}
-		else {
-			//Prompt for file.
-			fileName=GetFilenameFromUser(false);
-		}
+		//Prompt for file.
+		fileName=GetFilenameFromUser(false);
 		if(string.IsNullOrEmpty(fileName)) {
 			return;
 		}

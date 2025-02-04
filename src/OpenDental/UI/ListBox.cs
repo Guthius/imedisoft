@@ -1,18 +1,10 @@
-﻿using Health.Direct.Common.Extensions;
-using OpenDentBusiness;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.ComponentModel.Design.Serialization;
-using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Linq;
-using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
-using System.Windows.Markup;
 
 namespace OpenDental.UI;
 //Jordan is the only one allowed to edit this file.
@@ -57,7 +49,7 @@ namespace OpenDental.UI;
 ///<summary>A listBox designed to replace the stock MS listBox throughout OD. This supports multi-select or single-select.  It stores objects, paired with their display strings.  It has special handling for Enums.  Unlike ComboBoxOD, there is no special support for Providers, Defs, or "All".  If you want "All", consider a ComboBoxOD, which also handles setting to a value that is not in the list.  You can manually add a none/0 item to any listBoxOD.</summary>
 public partial class ListBox : Control {
 	#region Fields - Public
-	public LayoutManagerForms LayoutManager=new LayoutManagerForms();
+	
 	#endregion Fields - Public
 
 	#region Fields - Private Static

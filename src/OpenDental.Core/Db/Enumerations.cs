@@ -138,60 +138,23 @@ public enum InvalidType
 
     ///<summary>44</summary>
     Employers = 44,
-
-    ///<summary>45</summary>
     ProviderIdents = 45,
-
-    ///<summary>46</summary>
     ShutDownNow = 46,
-
-    ///<summary>47</summary>
     InsFilingCodes = 47,
-
-    ///<summary>49</summary>
     Automation = 49,
-
-    ///<summary>51</summary>
     TimeCardRules = 51,
-
-    ///<summary>52. Includes DrugManufacturers and DrugUnits.</summary>
-    Vaccines = 52,
-
-    ///<summary>53. Includes all 4 HL7Def tables.</summary>
     HL7Defs = 53,
-
-    ///<summary>54</summary>
     DictCustoms = 54,
-
-    ///<summary>56. SourceOfPayment</summary>
     Sops = 56,
-    
-    ///<summary>58. Used to override appointment color.  Might be used for other appointment attributes in the future.</summary>
     AppointmentTypes = 58,
-    
-    ///<summary>60. This is a special InvalidType which indicates a refresh, but also includes the data to be refreshed inside of the signalod.FKey field.</summary>
     SmsTextMsgReceivedUnreadCount = 60,
-    
-    ///<summary>64. Caches the StateAbbrs used for helping prefill state fields and for state validations.</summary>
+   
     StateAbbrs = 64,
-
-    ///<summary>65</summary>
     RequiredFields = 65,
-
-    ///<summary>66</summary>
     Ebills = 66,
-
-    ///<summary>67</summary>
     UserClinics = 67,
-
-    ///<summary>68. Replaces the deprecated "Date" invalid type for more granularity on invalid signals.</summary>
     Appointment = 68,
-
-    ///<summary>69 Also includes OrthoHardwareSpecs.</summary>
     OrthoChartTabs = 69,
-
-    ///<summary>70. A user either acknowledged or added to the messaging buttons system.</summary>
-    SigMessages = 70,
 
     ///<summary>72. THIS IS NOT CACHED. But is used to make server run the alert logic in OpenDentalService.</summary>
     AlertItems = 72,
@@ -204,13 +167,7 @@ public enum InvalidType
 
     ///<summary>76. Not addresses or templates, but inbox and sent messages.</summary>
     EmailMessages = 76,
-
-    ///<summary>77. The eConnector has finished sending web sched recall reminders.</summary>
-    WebSchedRecallReminders = 77,
-
-    ///<summary>78.</summary>
-    SmsBlockPhones = 78,
-
+    
     ///<summary>79.</summary>
     AlertCategories = 79,
 
@@ -250,9 +207,6 @@ public enum InvalidType
     ///<summary>95. Used for refreshing the ProviderClinicLink cache.</summary>
     ProviderClinicLink = 95,
 
-    ///<summary>96. Used for refreshing the KioskManager with eClipboard information.</summary>
-    EClipboard = 96,
-
     ///<summary>97. Used for refreshing the TP module for a specific patient. PatNum used in FKey.</summary>
     TPModule = 97,
 
@@ -267,19 +221,13 @@ public enum InvalidType
 
     ///<summary>102. Used to refresh the Account Module for a specific patient. PatNum used in FKey.</summary>
     AccModule = 102,
-
-    ///<summary>103. Used for limitedBetaFeature Cache.</summary>
-    LimitedBetaFeature = 103,
-
+    
     ///<summary>104. Used to refresh Perio Chart. patient.PatNum used in FKey.</summary>
     PerioExams = 104,
 
     ///<summary>105. </summary>
     EmailInboxRetrieve = 105,
-
-    ///<summary>107. Used as template for Patient eRouting</summary>
-    ERoutingDef = 107,
-
+    
     ///<summary>110. Group of codes used with frequency limitations.</summary>
     CodeGroups = 110,
 

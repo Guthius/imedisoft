@@ -1,14 +1,9 @@
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Linq;
-using System.Text;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using OpenDentBusiness;
 using WpfControls.UI;
 using CodeBase;
 using Imedisoft.Core.Data;
@@ -49,7 +44,7 @@ namespace OpenDental {
 				listViewMounts.SelectedIndex=0;
 			}
 			List<ImagingDevice> listImagingDevicesAll=ImagingDevices.GetDeepCopy();
-			string workstation=ODEnvironment.MachineName;
+			string workstation=Environment.MachineName;
 			_listImagingDevices=listImagingDevicesAll.FindAll(x=>x.ComputerName=="" || x.ComputerName==workstation);
 			listDevices.Items.AddList(_listImagingDevices,x=>x.Description);
 			if(_listImagingDevices.Count!=0){

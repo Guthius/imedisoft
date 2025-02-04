@@ -26,27 +26,22 @@ public class PayConnectResponseWebCrud
         return list[0];
     }
 
-    public static List<PayConnectResponseWeb> SelectMany(string command)
-    {
-        var list = TableToList(DataCore.GetTable(command));
-        return list;
-    }
-
     public static List<PayConnectResponseWeb> TableToList(DataTable table)
     {
         var retVal = new List<PayConnectResponseWeb>();
-        PayConnectResponseWeb payConnectResponseWeb;
         foreach (DataRow row in table.Rows)
         {
-            payConnectResponseWeb = new PayConnectResponseWeb();
-            payConnectResponseWeb.PayConnectResponseWebNum = SIn.Long(row["PayConnectResponseWebNum"].ToString());
-            payConnectResponseWeb.PatNum = SIn.Long(row["PatNum"].ToString());
-            payConnectResponseWeb.PayNum = SIn.Long(row["PayNum"].ToString());
-            payConnectResponseWeb.CCSource = (CreditCardSource) SIn.Int(row["CCSource"].ToString());
-            payConnectResponseWeb.Amount = SIn.Double(row["Amount"].ToString());
-            payConnectResponseWeb.PayNote = SIn.String(row["PayNote"].ToString());
-            payConnectResponseWeb.AccountToken = SIn.String(row["AccountToken"].ToString());
-            payConnectResponseWeb.PayToken = SIn.String(row["PayToken"].ToString());
+            var payConnectResponseWeb = new PayConnectResponseWeb
+            {
+                PayConnectResponseWebNum = SIn.Long(row["PayConnectResponseWebNum"].ToString()),
+                PatNum = SIn.Long(row["PatNum"].ToString()),
+                PayNum = SIn.Long(row["PayNum"].ToString()),
+                CCSource = (CreditCardSource) SIn.Int(row["CCSource"].ToString()),
+                Amount = SIn.Double(row["Amount"].ToString()),
+                PayNote = SIn.String(row["PayNote"].ToString()),
+                AccountToken = SIn.String(row["AccountToken"].ToString()),
+                PayToken = SIn.String(row["PayToken"].ToString())
+            };
             var processingStatus = row["ProcessingStatus"].ToString();
             if (processingStatus == "")
                 payConnectResponseWeb.ProcessingStatus = 0;
@@ -124,35 +119,5 @@ public class PayConnectResponseWebCrud
         {
             payConnectResponseWeb.PayConnectResponseWebNum = Db.NonQ(command, true, "PayConnectResponseWebNum", "payConnectResponseWeb", paramLastResponseStr);
         }
-    }
-
-    public static void Update(PayConnectResponseWeb payConnectResponseWeb)
-    {
-        var command = "UPDATE payconnectresponseweb SET "
-                      + "PatNum                  =  " + SOut.Long(payConnectResponseWeb.PatNum) + ", "
-                      + "PayNum                  =  " + SOut.Long(payConnectResponseWeb.PayNum) + ", "
-                      + "CCSource                =  " + SOut.Int((int) payConnectResponseWeb.CCSource) + ", "
-                      + "Amount                  =  " + SOut.Double(payConnectResponseWeb.Amount) + ", "
-                      + "PayNote                 = '" + SOut.String(payConnectResponseWeb.PayNote) + "', "
-                      + "AccountToken            = '" + SOut.String(payConnectResponseWeb.AccountToken) + "', "
-                      + "PayToken                = '" + SOut.String(payConnectResponseWeb.PayToken) + "', "
-                      + "ProcessingStatus        = '" + SOut.String(payConnectResponseWeb.ProcessingStatus.ToString()) + "', "
-                      //DateTimeEntry not allowed to change
-                      + "DateTimePending         =  " + SOut.DateTime(payConnectResponseWeb.DateTimePending) + ", "
-                      + "DateTimeCompleted       =  " + SOut.DateTime(payConnectResponseWeb.DateTimeCompleted) + ", "
-                      + "DateTimeExpired         =  " + SOut.DateTime(payConnectResponseWeb.DateTimeExpired) + ", "
-                      + "DateTimeLastError       =  " + SOut.DateTime(payConnectResponseWeb.DateTimeLastError) + ", "
-                      + "LastResponseStr         =  " + DbHelper.ParamChar + "paramLastResponseStr, "
-                      + "IsTokenSaved            =  " + SOut.Bool(payConnectResponseWeb.IsTokenSaved) + ", "
-                      + "PaymentToken            = '" + SOut.String(payConnectResponseWeb.PaymentToken) + "', "
-                      + "ExpDateToken            = '" + SOut.String(payConnectResponseWeb.ExpDateToken) + "', "
-                      + "RefNumber               = '" + SOut.String(payConnectResponseWeb.RefNumber) + "', "
-                      + "TransType               = '" + SOut.String(payConnectResponseWeb.TransType.ToString()) + "', "
-                      + "EmailResponse           = '" + SOut.String(payConnectResponseWeb.EmailResponse) + "', "
-                      + "LogGuid                 = '" + SOut.String(payConnectResponseWeb.LogGuid) + "' "
-                      + "WHERE PayConnectResponseWebNum = " + SOut.Long(payConnectResponseWeb.PayConnectResponseWebNum);
-        if (payConnectResponseWeb.LastResponseStr == null) payConnectResponseWeb.LastResponseStr = "";
-        var paramLastResponseStr = new OdSqlParameter("paramLastResponseStr", SOut.StringParam(payConnectResponseWeb.LastResponseStr));
-        Db.NonQ(command, paramLastResponseStr);
     }
 }

@@ -1,16 +1,13 @@
 using System;
 using System.Collections.Generic;
-using System.Data;
-using System.Drawing;
 using System.Linq;
-using System.Text;
 using System.Windows.Forms;
 using OpenDentBusiness;
-using CodeBase;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Entities;
 using Imedisoft.Core.Features.Clinics;
 using Imedisoft.Core.Features.Clinics.Dtos;
+using Imedisoft.Features.Providers.Dtos;
 
 namespace OpenDental;
 
@@ -22,7 +19,7 @@ public partial class FormCloneAdd:FormODBase {
 	private List<InsSub> _listInsSubs;
 	private List<Benefit> _listBenefits;
 	private long _provNumSelected;
-	private List<Provider> _listProviders;
+	private List<ProviderDto> _listProviders;
 	///<summary>A list of specialties and the clinics that are associated to that specialty.
 	///If no specialties are present then this list will have a single entry with an 'Unspecified' specialty with a list of all clinics available to the user.
 	///Only filled on load if clinics are enabled.</summary>
@@ -61,28 +58,23 @@ public partial class FormCloneAdd:FormODBase {
 		_listProviders=Providers.GetDeepCopy(true);
 		comboPriProv.Items.Clear();
 		for(var i=0;i<_listProviders.Count;i++) {
-			comboPriProv.Items.Add(_listProviders[i].GetLongDesc());
-			if(_listProviders[i].ProvNum==_provNumSelected) {
+			comboPriProv.Items.Add(_listProviders[i].Description);
+			if(_listProviders[i].Id==_provNumSelected) {
 				comboPriProv.SelectedIndex=i;
 			}
 		}
 		if(_provNumSelected==0) {
 			comboPriProv.SelectedIndex=0;
-			_provNumSelected=_listProviders[0].ProvNum;
+			_provNumSelected=_listProviders[0].Id;
 		}
 		if(comboPriProv.SelectedIndex==-1) {
 			comboPriProv.Text=Providers.GetLongDesc(_provNumSelected);
 		}
 		labelSpecialty.Visible=true;
 		comboSpecialty.Visible=true;
-		if(true) {
-			labelClinic.Visible=true;
-			comboClinic.Visible=true;
-			FillClinicComboBoxes();
-		}
-		else{//Without clinics enabled the specialty box is filled differently.
-			FillComboSpecialtyNoClinics();
-		}
+		labelClinic.Visible=true;
+		comboClinic.Visible=true;
+		FillClinicComboBoxes();
 	}
 
 	///<summary>Fills both the Specialty and Clinic combo boxes according to the available clinics to the user and the unused specialties for the patient.
@@ -143,9 +135,6 @@ public partial class FormCloneAdd:FormODBase {
 	}
 
 	private void FillComboClinic() {
-		if(!true) {
-			return;
-		}
 		comboClinic.Items.Clear();
 		if(comboSpecialty.GetSelected<Def>()==null || comboSpecialty.GetSelected<Def>().GetType()!=typeof(Def)) {
 			return;//Somehow the specialty box changed to an invalid item.  Nothing else to do.
@@ -190,12 +179,12 @@ public partial class FormCloneAdd:FormODBase {
 		if(!frmProviderPick.IsDialogOK) {
 			return;
 		}
-		comboPriProv.SelectedIndex=_listProviders.FindIndex(x => x.ProvNum==frmProviderPick.ProvNumSelected);
+		comboPriProv.SelectedIndex=_listProviders.FindIndex(x => x.Id==frmProviderPick.ProvNumSelected);
 		_provNumSelected=frmProviderPick.ProvNumSelected;
 	}
 
 	private void comboPriProv_SelectionChangeCommitted(object sender,EventArgs e) {
-		_provNumSelected=_listProviders[comboPriProv.SelectedIndex].ProvNum;
+		_provNumSelected=_listProviders[comboPriProv.SelectedIndex].Id;
 	}
 
 	///<summary>The clinic combo box needs to get refilled every time the specialty changes.</summary>

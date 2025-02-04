@@ -1,14 +1,11 @@
 using System;
 using System.Drawing;
-using System.Collections;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Globalization;
 using System.Text;
 using System.Windows.Forms;
 using OpenDental.UI;
 using OpenDentBusiness;
-using OpenDentBusiness.UI;
 using CodeBase;
 using System.Linq;
 using DataConnectionBase;
@@ -92,7 +89,7 @@ public partial class FormProcCodeEdit : FormODBase {
 		textPaintText.Text=_procedureCode.PaintText;
 		_listDefsProcCodeCat=Defs.GetDefsForCategory(DefCat.ProcCodeCats,!ShowHiddenCategories);
 		for(var i=0;i<_listDefsProcCodeCat.Count;i++){
-			var isHidden=(_listDefsProcCodeCat[i].IsHidden) ? " (hidden)" : "";
+			var isHidden=_listDefsProcCodeCat[i].IsHidden ? " (hidden)" : "";
 			listCategory.Items.Add(_listDefsProcCodeCat[i].ItemName+isHidden);
 			if(_listDefsProcCodeCat[i].DefNum==_procedureCode.ProcCat) {
 				listCategory.SelectedIndex=i;
@@ -115,7 +112,7 @@ public partial class FormProcCodeEdit : FormODBase {
 			textTimeUnits.Visible=true;
 			textTimeUnits.Text=_procedureCode.CanadaTimeUnits.ToString();
 		}
-		checkBypassLockDate.Checked=(_procedureCode.BypassGlobalLock==BypassLockStatus.BypassIfZero);
+		checkBypassLockDate.Checked=_procedureCode.BypassGlobalLock==BypassLockStatus.BypassIfZero;
 		textDiagnosticCodes.Text=_procedureCode.DiagnosticCodes;
 		//Context menu item to open the Fee Schedule Notes form for a fee schedule
 		var menuItem=new MenuItem();
@@ -140,8 +137,8 @@ public partial class FormProcCodeEdit : FormODBase {
 			tbTime.BackGColor[0,i]=Color.FromName("Control");
 		}
 		tbTime.Refresh();
-		LayoutManagerForms.MoveLocation(butSlider,new Point(tbTime.Location.X+2
-			,(tbTime.Location.Y+_stringBuilderTime.Length*14+1)));
+		butSlider.Location = new Point(tbTime.Location.X+2
+			,tbTime.Location.Y+_stringBuilderTime.Length*14+1);
 		textTime2.Text=(_stringBuilderTime.Length*PrefC.GetInt(PrefName.AppointmentTimeIncrement)).ToString();
 	}
 
@@ -317,8 +314,8 @@ public partial class FormProcCodeEdit : FormODBase {
 		if(!_isMouseDown)return;
 		//tempPoint represents the new location of button of smooth dragging.
 		var point=new Point(_pointSliderOrigin.X
-			,_pointSliderOrigin.Y+(e.Y+butSlider.Location.Y)-_pointMouseOrigin.Y);
-		var step=(int)(Math.Round((decimal)(point.Y-tbTime.Location.Y)/14));
+			,_pointSliderOrigin.Y + e.Y + butSlider.Location.Y-_pointMouseOrigin.Y);
+		var step=(int)Math.Round((decimal)(point.Y-tbTime.Location.Y)/14);
 		if(step==_stringBuilderTime.Length)return;
 		if(step<1)return;
 		if(step>tbTime.MaxRows-1) return;

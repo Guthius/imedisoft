@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using DataConnectionBase;
 using Imedisoft.Core.Crud;
 using Imedisoft.Core.Entities;
 
@@ -14,7 +13,7 @@ public class HistAppointments
 
     public static List<HistAppointment> GetForApt(long aptNum)
     {
-        var command = "SELECT * FROM histappointment WHERE AptNum=" + SOut.Long(aptNum);
+        var command = "SELECT * FROM histappointment WHERE AptNum=" + (aptNum);
         return HistAppointmentCrud.SelectMany(command);
     }
 

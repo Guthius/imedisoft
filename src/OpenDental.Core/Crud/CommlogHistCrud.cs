@@ -17,30 +17,31 @@ public class CommlogHistCrud
     public static List<CommlogHist> TableToList(DataTable table)
     {
         var retVal = new List<CommlogHist>();
-        CommlogHist commlogHist;
         foreach (DataRow row in table.Rows)
         {
-            commlogHist = new CommlogHist();
-            commlogHist.CommlogHistNum = SIn.Long(row["CommlogHistNum"].ToString());
-            commlogHist.CustomerNumberRaw = SIn.String(row["CustomerNumberRaw"].ToString());
-            commlogHist.HistSource = (CommlogHistSource) SIn.Int(row["HistSource"].ToString());
-            commlogHist.DateTStamp = SIn.DateTime(row["DateTStamp"].ToString());
-            commlogHist.DateTEntry = SIn.DateTime(row["DateTEntry"].ToString());
-            commlogHist.CommlogNum = SIn.Long(row["CommlogNum"].ToString());
-            commlogHist.PatNum = SIn.Long(row["PatNum"].ToString());
-            commlogHist.CommDateTime = SIn.DateTime(row["CommDateTime"].ToString());
-            commlogHist.CommType = SIn.Long(row["CommType"].ToString());
-            commlogHist.Note = SIn.String(row["Note"].ToString());
-            commlogHist.Mode_ = (CommItemMode) SIn.Int(row["Mode_"].ToString());
-            commlogHist.SentOrReceived = (CommSentOrReceived) SIn.Int(row["SentOrReceived"].ToString());
-            commlogHist.UserNum = SIn.Long(row["UserNum"].ToString());
-            commlogHist.Signature = SIn.String(row["Signature"].ToString());
-            commlogHist.SigIsTopaz = SIn.Bool(row["SigIsTopaz"].ToString());
-            commlogHist.DateTimeEnd = SIn.DateTime(row["DateTimeEnd"].ToString());
-            commlogHist.CommSource = (CommItemSource) SIn.Int(row["CommSource"].ToString());
-            commlogHist.ProgramNum = SIn.Long(row["ProgramNum"].ToString());
-            commlogHist.ReferralNum = SIn.Long(row["ReferralNum"].ToString());
-            commlogHist.CommReferralBehavior = (EnumCommReferralBehavior) SIn.Int(row["CommReferralBehavior"].ToString());
+            var commlogHist = new CommlogHist
+            {
+                CommlogHistNum = SIn.Long(row["CommlogHistNum"].ToString()),
+                CustomerNumberRaw = SIn.String(row["CustomerNumberRaw"].ToString()),
+                HistSource = (CommlogHistSource) SIn.Int(row["HistSource"].ToString()),
+                DateTStamp = SIn.DateTime(row["DateTStamp"].ToString()),
+                DateTEntry = SIn.DateTime(row["DateTEntry"].ToString()),
+                CommlogNum = SIn.Long(row["CommlogNum"].ToString()),
+                PatNum = SIn.Long(row["PatNum"].ToString()),
+                CommDateTime = SIn.DateTime(row["CommDateTime"].ToString()),
+                CommType = SIn.Long(row["CommType"].ToString()),
+                Note = SIn.String(row["Note"].ToString()),
+                Mode_ = (CommItemMode) SIn.Int(row["Mode_"].ToString()),
+                SentOrReceived = (CommSentOrReceived) SIn.Int(row["SentOrReceived"].ToString()),
+                UserNum = SIn.Long(row["UserNum"].ToString()),
+                Signature = SIn.String(row["Signature"].ToString()),
+                SigIsTopaz = SIn.Bool(row["SigIsTopaz"].ToString()),
+                DateTimeEnd = SIn.DateTime(row["DateTimeEnd"].ToString()),
+                CommSource = (CommItemSource) SIn.Int(row["CommSource"].ToString()),
+                ProgramNum = SIn.Long(row["ProgramNum"].ToString()),
+                ReferralNum = SIn.Long(row["ReferralNum"].ToString()),
+                CommReferralBehavior = (EnumCommReferralBehavior) SIn.Int(row["CommReferralBehavior"].ToString())
+            };
             retVal.Add(commlogHist);
         }
 

@@ -712,12 +712,12 @@ public class InsPlans
             if (provNum == 0)
             {
                 //slight corruption
-                if (lookupFees != null) listFees = lookupFees[new FeeKey2(substCodeNum, Providers.GetProv(PrefC.GetLong(PrefName.PracticeDefaultProv)).FeeSched)].ToList();
-                return Fees.GetAmount(substCodeNum, Providers.GetProv(PrefC.GetLong(PrefName.PracticeDefaultProv)).FeeSched, clinicNum, provNum, listFees);
+                if (lookupFees != null) listFees = lookupFees[new FeeKey2(substCodeNum, Providers.GetById(PrefC.GetLong(PrefName.PracticeDefaultProv)).FeeScheduleId??0)].ToList();
+                return Fees.GetAmount(substCodeNum, Providers.GetById(PrefC.GetLong(PrefName.PracticeDefaultProv)).FeeScheduleId??0, clinicNum, provNum, listFees);
             }
 
-            if (lookupFees != null) listFees = lookupFees[new FeeKey2(substCodeNum, Providers.GetProv(provNum).FeeSched)].ToList();
-            return Fees.GetAmount(substCodeNum, Providers.GetProv(provNum).FeeSched, clinicNum, provNum, listFees);
+            if (lookupFees != null) listFees = lookupFees[new FeeKey2(substCodeNum, Providers.GetById(provNum).FeeScheduleId??0)].ToList();
+            return Fees.GetAmount(substCodeNum, Providers.GetById(provNum).FeeScheduleId??0, clinicNum, provNum, listFees);
         }
 
         if (lookupFees != null) listFees = lookupFees[new FeeKey2(substCodeNum, feeSched)].ToList();

@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using System.Globalization;
-using DataConnectionBase;
 using Imedisoft.Core.Crud;
 using Imedisoft.Core.Entities;
 
@@ -312,7 +311,7 @@ public class ProcButtonQuicks
     
     public static void Delete(long procButtonQuickNum)
     {
-        var command = "DELETE FROM procbuttonquick WHERE ProcButtonQuickNum = " + SOut.Long(procButtonQuickNum);
+        var command = "DELETE FROM procbuttonquick WHERE ProcButtonQuickNum = " + (procButtonQuickNum);
         Db.NonQ(command);
     }
 }

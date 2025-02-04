@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Data;
 using System.Diagnostics;
 using System.Drawing;
@@ -289,7 +288,6 @@ public partial class FormPayment:FormODBase {
 		for(var i = 0;i<_listPaySplits.Count;i++) {
 			_listPaySplitsOld.Add(_listPaySplits[i].Copy());
 		}
-		warningIntegrity1.SetTypeAndVisibility(EnumWarningIntegrityType.Payment,Payments.ArePaySplitHashesValid(_payment.PayNum,_listPaySplits));
 		if(IsNew && CompareDecimal.IsGreaterThanZero(UnearnedAmt)) {
 			_loadData.ListSplits=PaymentEdit.AllocateUnearned(_payment.PayNum,UnearnedAmt,ListAccountEntriesPayFirst,_family);
 			_listPaySplits=_loadData.ListSplits;
@@ -439,9 +437,6 @@ public partial class FormPayment:FormODBase {
 		if(!EmailAddresses.ExistsValidEmail()) {
 			listErrors.Add(Lan.g(this,"SMTP server name missing in e-mail setup."));
 		}
-		if(false) {
-			listErrors.Add(Lan.g(this,"No AtoZ folder."));
-		}
 		if(listErrors.Count>0) {
 			ODMessageBox.Show(this,Lan.g(this,"The following errors need to be resolved before creating an email")+":\r\n"+string.Join("\r\n",listErrors));
 			return;
@@ -454,7 +449,7 @@ public partial class FormPayment:FormODBase {
 		pdfDocumentRenderer.Document=CreatePDFDoc(_payment.Receipt);
 		pdfDocumentRenderer.RenderDocument();
 		pdfDocumentRenderer.PdfDocument.Save(tempFile);
-		FileAtoZ.Copy(tempFile,FileAtoZ.CombinePaths(attachPath,Path.GetFileName(tempFile)));
+		FileAtoZ.Copy(tempFile,Path.Combine(attachPath,Path.GetFileName(tempFile)));
 		var emailMessage=new EmailMessage();
 		emailMessage.PatNum=_payment.PatNum;
 		emailMessage.ToAddress=_patient.Email;
@@ -836,12 +831,7 @@ public partial class FormPayment:FormODBase {
 			listPayType.Visible=false;
 			butPay.Text=Lan.g(this,"Transfer");
 			if(tabControlCharges.SelectedTab==tabPageOutstanding) {
-				if(true) {
-					comboGroupBy.SelectedIndex=2;
-				}
-				else {
-					comboGroupBy.SelectedIndex=1;
-				}
+				comboGroupBy.SelectedIndex=2;
 			}
 			butCreatePartial.Visible=false;
 			checkIncludeExplicitCreditsOnly.Enabled=false;
@@ -910,40 +900,6 @@ public partial class FormPayment:FormODBase {
 			return ODMessageBox.Show(Lan.g(this,prompt),"Alert",MessageBoxButtons.YesNoCancel,MessageBoxIcon.Exclamation)==DialogResult.Yes;
 		}
 		return true;//If there's no need to ask for an override, just return true
-	}
-
-	///<summary>Returns the selected provider or first provider. Otherwise returns -1.</summary>
-	private long GetProvNum() {
-		var listProvNums=_listPaySplits.Where(x => x.ProvNum!=0).Select(x => x.ProvNum).Distinct().ToList();
-		long provNum;
-		if(listProvNums.IsNullOrEmpty()) {
-			if(_rigorousAccounting==RigorousAccounting.DontEnforce) {
-				listProvNums.Add(Patients.GetProvNum(_patient));
-			}
-			else {
-				//Paysplits should automatically get created.
-				//Add all providers for the clinic on the payment so user can choose the provider.
-				listProvNums=Providers.GetProvsForClinic(_payment.ClinicNum).Select(x => x.ProvNum).ToList();
-			}
-		}
-		if(listProvNums.Count>1) {
-			//Paysplits are empty or more than one paysplit provider are attached to provider. Choose provider
-			var listProviders=Providers.GetProvsByProvNums(listProvNums);
-			if(listProviders.IsNullOrEmpty()) {
-				MsgBox.Show(this,"No providers found.");
-				return -1;
-			}
-			var frmProviderPick=new FrmProviderPick(listProviders);
-			if(listProvNums.Contains(_patient.PriProv)) {
-				frmProviderPick.ProvNumSelected=_patient.PriProv;
-			}
-			frmProviderPick.ShowDialog();
-			if(!frmProviderPick.IsDialogOK) {
-				return -1;
-			}
-			return frmProviderPick.ProvNumSelected;
-		}
-		return listProvNums.First();//default provNum to the first provider
 	}
 
 	private void AddCreditCardsToCombo(List<CreditCard> listCreditCards,Func<CreditCard,bool> funcSelectCard = null) {
@@ -1126,26 +1082,21 @@ public partial class FormPayment:FormODBase {
 		//show if enabled.  User could have all enabled.
 		if(programPayConnect.Enabled) {
 			var programVersion=ProgramProperties.GetPropVal(programPayConnect.ProgramNum,"Program Version",_payment.ClinicNum);
-			//if clinics are disabled, PayConnect is enabled if marked enabled
-			if(!true) {
-				butPayConnect.Visible=true;
-			}
-			else {//if clinics are enabled, PayConnect is enabled if the PaymentType is valid and the Username and Password are not blank
-				var paymentType=ProgramProperties.GetPropVal(programPayConnect.ProgramNum,"PaymentType",_payment.ClinicNum);
-				if(programVersion=="1") {
-					var password=CDT.Class1.TryDecrypt(ProgramProperties.GetPropVal(programPayConnect.ProgramNum,"Password",_payment.ClinicNum));
-					if(!string.IsNullOrEmpty(ProgramProperties.GetPropVal(programPayConnect.ProgramNum,"Username",_payment.ClinicNum))
-					   && !string.IsNullOrEmpty(password)
-					   && _listDefsPaymentType.Any(x => x.DefNum.ToString()==paymentType))
-					{
-						butPayConnect.Visible=true;
-					}
+			//if clinics are enabled, PayConnect is enabled if the PaymentType is valid and the Username and Password are not blank
+			var paymentType=ProgramProperties.GetPropVal(programPayConnect.ProgramNum,"PaymentType",_payment.ClinicNum);
+			if(programVersion=="1") {
+				var password=CDT.Class1.TryDecrypt(ProgramProperties.GetPropVal(programPayConnect.ProgramNum,"Password",_payment.ClinicNum));
+				if(!string.IsNullOrEmpty(ProgramProperties.GetPropVal(programPayConnect.ProgramNum,"Username",_payment.ClinicNum))
+				   && !string.IsNullOrEmpty(password)
+				   && _listDefsPaymentType.Any(x => x.DefNum.ToString()==paymentType))
+				{
+					butPayConnect.Visible=true;
 				}
-				else if(programVersion=="2") {
-					var apiSecret=PayConnect2.GetApiSecretForClinic(_payment.ClinicNum);
-					if(!apiSecret.IsNullOrEmpty() && _listDefsPaymentType.Any(x => x.DefNum.ToString()==paymentType)) {
-						butPayConnect.Visible=true;
-					}
+			}
+			else if(programVersion=="2") {
+				var apiSecret=PayConnect2.GetApiSecretForClinic(_payment.ClinicNum);
+				if(!apiSecret.IsNullOrEmpty() && _listDefsPaymentType.Any(x => x.DefNum.ToString()==paymentType)) {
+					butPayConnect.Visible=true;
 				}
 			}
 			if(butPayConnect.Visible==true) {
@@ -1165,46 +1116,37 @@ public partial class FormPayment:FormODBase {
 				}
 			}
 		}
-		if(programEdgeExpress.Enabled) {
+		if(programEdgeExpress.Enabled)
+		{
 			//if clinics are disabled, EdgeExpress is enabled if marked enabled
-			if(!true) {
+			//if clinics are enabled, EdgeExpress is enabled if the XWeb creds are not blank
+			if(!string.IsNullOrEmpty(ProgramProperties.GetPropVal(programEdgeExpress.ProgramNum,EdgeExpressProps.XWebID,_payment.ClinicNum))
+			   && !string.IsNullOrEmpty(ProgramProperties.GetPropVal(programEdgeExpress.ProgramNum,EdgeExpressProps.AuthKey,_payment.ClinicNum))
+			   && !string.IsNullOrEmpty(ProgramProperties.GetPropVal(programEdgeExpress.ProgramNum,EdgeExpressProps.TerminalID,_payment.ClinicNum))) {
 				panelEdgeExpress.Visible=true;
-			}
-			else {//if clinics are enabled, EdgeExpress is enabled if the XWeb creds are not blank
-				if(!string.IsNullOrEmpty(ProgramProperties.GetPropVal(programEdgeExpress.ProgramNum,EdgeExpressProps.XWebID,_payment.ClinicNum))
-				   && !string.IsNullOrEmpty(ProgramProperties.GetPropVal(programEdgeExpress.ProgramNum,EdgeExpressProps.AuthKey,_payment.ClinicNum))
-				   && !string.IsNullOrEmpty(ProgramProperties.GetPropVal(programEdgeExpress.ProgramNum,EdgeExpressProps.TerminalID,_payment.ClinicNum))) {
-					panelEdgeExpress.Visible=true;
-					panelEdgeExpress.BringToFront();
-				}
+				panelEdgeExpress.BringToFront();
 			}
 		}
-		if(_programX.Enabled) {
+		if(_programX.Enabled)
+		{
 			//if clinics are disabled, X-Charge is enabled if marked enabled
-			if(!true) {
+			//if clinics are enabled, X-Charge is enabled if the PaymentType is valid and the Username and Password are not blank
+			var paymentType=ProgramProperties.GetPropVal(_programX.ProgramNum,"PaymentType",_payment.ClinicNum);
+			if(!string.IsNullOrEmpty(ProgramProperties.GetPropVal(_programX.ProgramNum,"Username",_payment.ClinicNum))
+			   && !string.IsNullOrEmpty(ProgramProperties.GetPropVal(_programX.ProgramNum,"Password",_payment.ClinicNum))
+			   && _listDefsPaymentType.Any(x => x.DefNum.ToString()==paymentType)) {
 				panelXcharge.Visible=true;
 			}
-			else {//if clinics are enabled, X-Charge is enabled if the PaymentType is valid and the Username and Password are not blank
-				var paymentType=ProgramProperties.GetPropVal(_programX.ProgramNum,"PaymentType",_payment.ClinicNum);
-				if(!string.IsNullOrEmpty(ProgramProperties.GetPropVal(_programX.ProgramNum,"Username",_payment.ClinicNum))
-				   && !string.IsNullOrEmpty(ProgramProperties.GetPropVal(_programX.ProgramNum,"Password",_payment.ClinicNum))
-				   && _listDefsPaymentType.Any(x => x.DefNum.ToString()==paymentType)) {
-					panelXcharge.Visible=true;
-				}
-			}
 		}
-		if(programPaySimple.Enabled) {
+		if(programPaySimple.Enabled)
+		{
 			//if clinics are disabled, PaySimple is enabled if marked enabled
-			if(!true) {
+			//if clinics are enabled, PaySimple is enabled if the PaymentType is valid and the Username and Key are not blank
+			var paymentType=ProgramProperties.GetPropValForClinicOrDefault(programPaySimple.ProgramNum,PaySimple.PropertyDescs.PaySimplePayTypeCC,_payment.ClinicNum);
+			if(!string.IsNullOrEmpty(ProgramProperties.GetPropValForClinicOrDefault(programPaySimple.ProgramNum,PaySimple.PropertyDescs.PaySimpleApiUserName,_payment.ClinicNum))
+			   && !string.IsNullOrEmpty(ProgramProperties.GetPropValForClinicOrDefault(programPaySimple.ProgramNum,PaySimple.PropertyDescs.PaySimpleApiKey,_payment.ClinicNum))
+			   && _listDefsPaymentType.Any(x => x.DefNum.ToString()==paymentType)) {
 				butPaySimple.Visible=true;
-			}
-			else {//if clinics are enabled, PaySimple is enabled if the PaymentType is valid and the Username and Key are not blank
-				var paymentType=ProgramProperties.GetPropValForClinicOrDefault(programPaySimple.ProgramNum,PaySimple.PropertyDescs.PaySimplePayTypeCC,_payment.ClinicNum);
-				if(!string.IsNullOrEmpty(ProgramProperties.GetPropValForClinicOrDefault(programPaySimple.ProgramNum,PaySimple.PropertyDescs.PaySimpleApiUserName,_payment.ClinicNum))
-				   && !string.IsNullOrEmpty(ProgramProperties.GetPropValForClinicOrDefault(programPaySimple.ProgramNum,PaySimple.PropertyDescs.PaySimpleApiKey,_payment.ClinicNum))
-				   && _listDefsPaymentType.Any(x => x.DefNum.ToString()==paymentType)) {
-					butPaySimple.Visible=true;
-				}
 			}
 		}
 		if(panelXcharge.Visible==false && butPayConnect.Visible==false && butPaySimple.Visible==false && panelEdgeExpress.Visible==false) {
@@ -1577,7 +1519,7 @@ public partial class FormPayment:FormODBase {
 		comboProviderOutstandingFilter.Items.Clear();
 		comboProviderOutstandingFilter.IncludeAll=true;
 		comboProviderOutstandingFilter.Items.AddProvNone();
-		var listProviders=Providers.GetProvsByProvNums(_listAccountEntriesCharges.Select(x => x.ProvNum).Distinct().ToList());
+		var listProviders=Providers.GetManyById(_listAccountEntriesCharges.Select(x => x.ProvNum).Distinct().ToList());
 		comboProviderOutstandingFilter.Items.AddProvsAbbr(listProviders);
 		if(!wasAllSelected && doPreserveValues) {
 			//Reselect providers that were selected before refilling the combo box.
@@ -1598,7 +1540,7 @@ public partial class FormPayment:FormODBase {
 		comboProviderPaySplitsFilter.Items.Clear();
 		comboProviderPaySplitsFilter.IncludeAll=true;
 		comboProviderPaySplitsFilter.Items.AddProvNone();
-		var listProviders=Providers.GetProvsByProvNums(_listPaySplits.Select(x=>x.ProvNum).Distinct()
+		var listProviders=Providers.GetManyById(_listPaySplits.Select(x=>x.ProvNum).Distinct()
 			.ToList());
 		comboProviderPaySplitsFilter.Items.AddProvsAbbr(listProviders);
 		if(!wasAllSelected && doPreserveValues) {
@@ -1615,9 +1557,6 @@ public partial class FormPayment:FormODBase {
 	}
 
 	private void FillFilterClinicsChargestreatPlan(bool doPreserveValues) {
-		if(!true) {
-			return;
-		}
 		var wasAllSelected=comboClinicOutstandingFilter.IsAllSelected;
 		var listClinicNumsSelected=comboClinicOutstandingFilter.GetListSelected<ClinicDto>().Select(x => x.Id).ToList();
 		if(!_listClinics.IsNullOrEmpty() && !_listClinics.Any(x => x.Abbr==Lan.g(this,"Unassigned"))) {
@@ -1638,9 +1577,6 @@ public partial class FormPayment:FormODBase {
 	}
 
 	private void FillFilterClinicsPaySplits(bool doPreserveValues) {
-		if(!true) {
-			return;
-		}
 		var wasAllSelected=comboClinicsPaySplitsFilter.IsAllSelected;
 		var listClinicNumsSelected=comboClinicsPaySplitsFilter.GetListSelected<ClinicDto>().Select(x => x.Id).ToList();
 		if(!_listClinics.IsNullOrEmpty() && !_listClinics.Any(x => x.Abbr==Lan.g(this,"Unassigned"))) {
@@ -2688,11 +2624,6 @@ public partial class FormPayment:FormODBase {
 	private void PrintReceipt(string receiptStr,string strAuditDescription) {//TODO: Implement ODprintout pattern - MigraDoc
 		var migraDocPrintDocument=new MigraDocPrintDocument(new DocumentRenderer(CreatePDFDoc(receiptStr)));
 		migraDocPrintDocument.Renderer.PrepareDocument();
-		if(/* ODBuild.IsDebug() */ false) {
-			using var formRpPrintPreview=new FormRpPrintPreview(migraDocPrintDocument);
-			formRpPrintPreview.ShowDialog();
-			return;
-		}
 		if(!PrinterL.SetPrinter(_pd2,PrintSituation.Receipt,_patient.PatNum,strAuditDescription)) {
 			return;
 		}
@@ -3181,7 +3112,7 @@ public partial class FormPayment:FormODBase {
 			try {
 				rcmResponse=EdgeExpress.RCM.VoidTransaction(_patient,_payment.ClinicNum,transactionId,false);
 			}
-			catch(Exception ex) {
+			catch {
 			}
 			Cursor=Cursors.Default;
 			if(rcmResponse is null) {
@@ -3357,7 +3288,7 @@ public partial class FormPayment:FormODBase {
 		try {
 			File.Delete(resultfile);//delete the old result file.
 		}
-		catch(Exception ex) {
+		catch {
 		}
 		processStartInfo.Arguments="";
 		if(isDebit) {
@@ -3465,21 +3396,21 @@ public partial class FormPayment:FormODBase {
 			MsgBox.Show(this,"Only cards that were created from XWeb can process an XWeb return.");
 			return;
 		}
-		using var formXWeb=new FormXWeb(_patient.PatNum,creditCard,XWebTransactionType.CreditReturnTransaction,createPayment:false,_payment.PayAmt);
+		using var formXWeb=new FormXWeb(creditCard,XWebTransactionType.CreditReturnTransaction,createPayment:false,_payment.PayAmt);
 		formXWeb.LockCardInfo=true;
 		if(formXWeb.ShowDialog()!=DialogResult.OK) {
 			return;
 		}
-		if(formXWeb.XWebResponse_==null) {
+		if(formXWeb.XWebResponse==null) {
 			MsgBox.Show(this,"Return failed.");
 			return;
 		}
 		if(textNote.Text!="") {
 			textNote.AppendText(Environment.NewLine);
 		}
-		var paymentReturn=Payments.InsertReturnXWebPayment(_payment,formXWeb.XWebResponse_.GetFormattedNote(false),(-formXWeb.XWebResponse_.Amount));
-		formXWeb.XWebResponse_.PaymentNum=paymentReturn.PayNum;
-		XWebResponses.Update(formXWeb.XWebResponse_);
+		var paymentReturn=Payments.InsertReturnXWebPayment(_payment,formXWeb.XWebResponse.GetFormattedNote(false),(-formXWeb.XWebResponse.Amount));
+		formXWeb.XWebResponse.PaymentNum=paymentReturn.PayNum;
+		XWebResponses.Update(formXWeb.XWebResponse);
 		SecurityLogs.MakeLogEntry(EnumPermType.PaymentCreate,paymentReturn.PatNum,
 			Patients.GetLim(paymentReturn.PatNum).GetNameLF() + ", " + paymentReturn.PayAmt.ToString("c"));
 		butVoid.Visible=true;
@@ -3896,10 +3827,6 @@ public partial class FormPayment:FormODBase {
 	///If prepaidAmt is not zero, then will show the xcharge window with the given prepaid amount and let the user enter card # and exp.
 	///A patient is not required for prepaid cards.</summary>
 	public string MakeXChargeTransaction(double prepaidAmt = 0) {
-		if(/* ODEnvironment.IsCloudServer */ false) {
-			MsgBox.Show(this,"XCharge is not available while using Open Dental Cloud.");
-			return null;
-		}
 		//Need to refresh this list locally in case we are coming from another form
 		_listDefsPaymentType=_listDefsPaymentType??Defs.GetDefsForCategory(DefCat.PaymentTypes,true);
 		XchargeMilestone="Validation";

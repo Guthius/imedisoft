@@ -58,7 +58,6 @@
 			this.textPatientPortalLastVisit = new OpenDental.ValidNum();
 			this.radioSendPatientPortalInviteMultiple = new System.Windows.Forms.RadioButton();
 			this.radioSendPatientPortalInviteOnce = new System.Windows.Forms.RadioButton();
-			this.butSetWebForm = new OpenDental.UI.Button();
 			this.groupSendTime.SuspendLayout();
 			this.groupSendOrder.SuspendLayout();
 			this.groupBox2.SuspendLayout();
@@ -411,23 +410,10 @@
 			this.radioSendPatientPortalInviteOnce.Text = "Invite until patient visits Portal";
 			this.radioSendPatientPortalInviteOnce.Click += new System.EventHandler(this.radioSendPatientPortalInviteOnce_Click);
 			// 
-			// butSetWebForm
-			// 
-			this.butSetWebForm.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-			this.butSetWebForm.Location = new System.Drawing.Point(143, 666);
-			this.butSetWebForm.Name = "butSetWebForm";
-			this.butSetWebForm.Size = new System.Drawing.Size(102, 26);
-			this.butSetWebForm.TabIndex = 134;
-			this.butSetWebForm.Text = "&Set Web Form";
-			this.butSetWebForm.UseVisualStyleBackColor = true;
-			this.butSetWebForm.Visible = false;
-			this.butSetWebForm.Click += new System.EventHandler(this.butSetWebForm_Click);
-			// 
 			// FormApptReminderRuleEdit
 			// 
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.None;
 			this.ClientSize = new System.Drawing.Size(743, 696);
-			this.Controls.Add(this.butSetWebForm);
 			this.Controls.Add(this.groupPatientPortalInvites);
 			this.Controls.Add(this.butRemove);
 			this.Controls.Add(this.checkEConfirmationAutoReplies);
@@ -490,7 +476,6 @@
 		private System.Windows.Forms.RadioButton radioSendPatientPortalInviteMultiple;
 		private System.Windows.Forms.RadioButton radioSendPatientPortalInviteOnce;
 		private System.Windows.Forms.RadioButton radioSendPatientPortalInviteNoVisit;
-		private UI.Button butSetWebForm;
 		public OpenDental.UI.CheckBox checkSendSecureEmail;
 	}
 }

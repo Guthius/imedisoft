@@ -1,8 +1,3 @@
-/*=============================================================================================================
-Open Dental GPL license Copyright (C) 2003  Jordan Sparks, DMD.  http://www.open-dent.com,  www.docsparks.com
-See header in FormOpenDental.cs for complete text.  Redistributions must retain this text.
-===============================================================================================================*/
-
 using System;
 using System.Collections;
 using System.ComponentModel;
@@ -13,550 +8,299 @@ namespace OpenDental;
 
 public class ContrTable : UserControl
 {
-    private Container components = null; // Required designer variable.
+    private readonly Container _components = null;
 
     public int MaxRows = 10;
 
-    public int MaxCols = 10;
-
     public string[,] Cell = new string[10, 10];
-
     public float[,] FontSize = new float[10, 10];
-
     public bool[,] FontBold = new bool[10, 10];
-
     public Color[,] FontColor = new Color[10, 10];
-
     public Color[,] BackGColor = new Color[10, 10];
-
     public Color[,] LeftBorder = new Color[10, 10];
-
     public Color[,] TopBorder = new Color[10, 10];
-
     public int[] RowHeight = new int[10];
-
-    public int[] ColWidth = new int[10];
-    private int[] colPos = new int[10];
-    private int[] rowPos = new int[10];
-
-    public HorizontalAlignment[] ColAlign = new HorizontalAlignment[10];
-
-    public string Heading = "";
-
-    public bool HeadingIsPresent = true; //heading can only be present if fields are present
-
-    public bool FieldsArePresent = true;
-
-    public string[] Fields = new string[10];
-
-    public bool ShowScroll = false;
-    private int scrollWidth;
-    private Panel panelHead;
-    private Panel panelScroll;
-    private VScrollBar vScrollBar1;
-    private ContrPanelTable panelTable;
-    private Point mouseDownPosition;
-    private Font myFont = new Font("Microsoft Sans Serif", 12); //only initialized to prevent complile error
-    private float myFontSize;
-    private FontStyle myFontStyle = FontStyle.Regular;
-    private Color myFontColor = Color.Black;
-    private FontFamily myFontFamily = FontFamily.GenericSansSerif;
-    private int offset; //distance from left of cell to begin of text
-    private bool ControlIsDown;
-    //public Color GridColor=Color.Gray;
-
     public bool[,] IsOverflow;
-
-    public Color DefaultBackGColor = Color.White;
-
-    public Color DefaultGridColor = Color.Gray;
-
-    ///<summary>Use this for tables with single selection.</summary>
     public int SelectedRow = -1;
 
-    public static int SelectedTable; //for arrays of tables
+    protected int MaxCols = 10;
+    protected int[] ColWidth = new int[10];
+    protected HorizontalAlignment[] ColAlign = new HorizontalAlignment[10];
+    protected string Heading = "";
+    protected bool HeadingIsPresent = true;
+    protected bool FieldsArePresent = true;
+    protected bool ShowScroll = false;
 
-    public int MySelectedTable; //for arrays of tables
-
-    public int[] SelectedRows;
-
-    public ArrayList SelectedRowsAL;
-    private SelectionMode selectionMode;
-
-    private int[] selectedIndices;
-
-    //private ArrayList SelectedIAL;//only used for tracking selectedIndices	
-    //private int scrollValue;
-    public LayoutManagerForms LayoutManager = new LayoutManagerForms();
-
+    private string[] _fields = new string[10];
+    private int[] _colPos = new int[10];
+    private int[] _rowPos = new int[10];
+    private int _scrollWidth;
+    private Panel _panelHead;
+    private Panel _panelScroll;
+    private VScrollBar _vScrollBar1;
+    private ContrPanelTable _panelTable;
+    private Point _mouseDownPosition;
+    private Font _myFont = new("Microsoft Sans Serif", 12);
+    private float _myFontSize;
+    private FontStyle _myFontStyle = FontStyle.Regular;
+    private Color _myFontColor = Color.Black;
+    private FontFamily _myFontFamily = FontFamily.GenericSansSerif;
+    private int _offset;
+    private bool _controlIsDown;
+    private int[] _selectedIndices;
 
     public ContrTable()
     {
-        InitializeComponent(); // This call is required by the Windows.Forms Form Designer.
-        panelTable.MouseWheel += new MouseEventHandler(panelTable_MouseWheel);
-        new Font("Microsoft Sans Serif", 8);
-        new Font("Microsoft Sans Serif", (float) 8.25, FontStyle.Bold);
-        selectedIndices = [];
-    }
+        InitializeComponent();
 
+        _panelTable.MouseWheel += panelTable_MouseWheel;
+
+        _selectedIndices = [];
+    }
 
     protected override void Dispose(bool disposing)
     {
         if (disposing)
         {
-            if (components != null)
+            if (_components != null)
             {
-                components.Dispose();
+                _components.Dispose();
             }
         }
 
         base.Dispose(disposing);
     }
 
-    #region Component Designer generated code
-
     private void InitializeComponent()
     {
-        this.panelScroll = new System.Windows.Forms.Panel();
-        this.vScrollBar1 = new System.Windows.Forms.VScrollBar();
-        this.panelTable = new OpenDental.ContrPanelTable();
-        this.panelHead = new System.Windows.Forms.Panel();
-        this.panelScroll.SuspendLayout();
-        this.SuspendLayout();
+        _panelScroll = new Panel();
+        _vScrollBar1 = new VScrollBar();
+        _panelTable = new ContrPanelTable();
+        _panelHead = new Panel();
+        _panelScroll.SuspendLayout();
+        SuspendLayout();
         // 
         // panelScroll
         // 
-        this.panelScroll.BackColor = System.Drawing.SystemColors.Control;
-        this.panelScroll.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-        this.panelScroll.Controls.Add(this.vScrollBar1);
-        this.panelScroll.Controls.Add(this.panelTable);
-        this.panelScroll.Location = new System.Drawing.Point(0, 100);
-        this.panelScroll.Name = "panelScroll";
-        this.panelScroll.Size = new System.Drawing.Size(464, 160);
-        this.panelScroll.TabIndex = 1;
-        this.panelScroll.Paint += new System.Windows.Forms.PaintEventHandler(this.panelScroll_Paint);
+        _panelScroll.BackColor = SystemColors.Control;
+        _panelScroll.BorderStyle = BorderStyle.FixedSingle;
+        _panelScroll.Controls.Add(_vScrollBar1);
+        _panelScroll.Controls.Add(_panelTable);
+        _panelScroll.Location = new Point(0, 100);
+        _panelScroll.Name = "_panelScroll";
+        _panelScroll.Size = new Size(464, 160);
+        _panelScroll.TabIndex = 1;
         // 
         // vScrollBar1
         // 
-        this.vScrollBar1.Dock = System.Windows.Forms.DockStyle.Right;
-        this.vScrollBar1.LargeChange = 50;
-        this.vScrollBar1.Location = new System.Drawing.Point(445, 0);
-        this.vScrollBar1.Maximum = 200;
-        this.vScrollBar1.Minimum = 1;
-        this.vScrollBar1.Name = "vScrollBar1";
-        this.vScrollBar1.Size = new System.Drawing.Size(17, 158);
-        this.vScrollBar1.SmallChange = 50;
-        this.vScrollBar1.TabIndex = 1;
-        this.vScrollBar1.Value = 150;
-        this.vScrollBar1.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.vScrollBar1_KeyPress);
-        this.vScrollBar1.Scroll += new System.Windows.Forms.ScrollEventHandler(this.vScrollBar1_Scroll);
+        _vScrollBar1.Dock = DockStyle.Right;
+        _vScrollBar1.LargeChange = 50;
+        _vScrollBar1.Location = new Point(445, 0);
+        _vScrollBar1.Maximum = 200;
+        _vScrollBar1.Minimum = 1;
+        _vScrollBar1.Name = "_vScrollBar1";
+        _vScrollBar1.Size = new Size(17, 158);
+        _vScrollBar1.SmallChange = 50;
+        _vScrollBar1.TabIndex = 1;
+        _vScrollBar1.Value = 150;
+        _vScrollBar1.KeyPress += vScrollBar1_KeyPress;
+        _vScrollBar1.Scroll += vScrollBar1_Scroll;
         // 
         // panelTable
         // 
-        this.panelTable.BackColor = System.Drawing.SystemColors.Window;
-        this.panelTable.Location = new System.Drawing.Point(0, 0);
-        this.panelTable.Name = "panelTable";
-        this.panelTable.Size = new System.Drawing.Size(420, 168);
-        this.panelTable.TabIndex = 2;
-        this.panelTable.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.panelTable_KeyPress);
-        this.panelTable.Click += new System.EventHandler(this.panelTable_Click);
-        this.panelTable.MouseUp += new System.Windows.Forms.MouseEventHandler(this.panelTable_MouseUp);
-        this.panelTable.Paint += new System.Windows.Forms.PaintEventHandler(this.panelTable_Paint);
-        this.panelTable.KeyUp += new System.Windows.Forms.KeyEventHandler(this.panelTable_KeyUp);
-        this.panelTable.KeyDown += new System.Windows.Forms.KeyEventHandler(this.panelTable_KeyDown);
-        this.panelTable.DoubleClick += new System.EventHandler(this.panelTable_DoubleClick);
-        this.panelTable.MouseWheel += new System.Windows.Forms.MouseEventHandler(this.panelTable_MouseWheel);
-        this.panelTable.MouseDown += new System.Windows.Forms.MouseEventHandler(this.panelTable_MouseDown);
+        _panelTable.BackColor = SystemColors.Window;
+        _panelTable.Location = new Point(0, 0);
+        _panelTable.Name = "_panelTable";
+        _panelTable.Size = new Size(420, 168);
+        _panelTable.TabIndex = 2;
+        _panelTable.KeyPress += panelTable_KeyPress;
+        _panelTable.MouseUp += panelTable_MouseUp;
+        _panelTable.Paint += panelTable_Paint;
+        _panelTable.KeyUp += panelTable_KeyUp;
+        _panelTable.KeyDown += panelTable_KeyDown;
+        _panelTable.DoubleClick += panelTable_DoubleClick;
+        _panelTable.MouseWheel += panelTable_MouseWheel;
+        _panelTable.MouseDown += panelTable_MouseDown;
         // 
         // panelHead
         // 
-        this.panelHead.AutoScroll = true;
-        this.panelHead.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
-        this.panelHead.Location = new System.Drawing.Point(1, 1);
-        this.panelHead.Name = "panelHead";
-        this.panelHead.Size = new System.Drawing.Size(436, 84);
-        this.panelHead.TabIndex = 2;
-        this.panelHead.Click += new System.EventHandler(this.panelHead_Click);
-        this.panelHead.Paint += new System.Windows.Forms.PaintEventHandler(this.panelHead_Paint);
+        _panelHead.AutoScroll = true;
+        _panelHead.BorderStyle = BorderStyle.FixedSingle;
+        _panelHead.Location = new Point(1, 1);
+        _panelHead.Name = "_panelHead";
+        _panelHead.Size = new Size(436, 84);
+        _panelHead.TabIndex = 2;
+        _panelHead.Click += panelHead_Click;
+        _panelHead.Paint += panelHead_Paint;
         // 
         // ContrTable
         // 
-        this.BackColor = System.Drawing.SystemColors.Window;
-        this.Controls.Add(this.panelScroll);
-        this.Controls.Add(this.panelHead);
-        this.Name = "ContrTable";
-        this.Size = new System.Drawing.Size(484, 356);
-        this.Paint += new System.Windows.Forms.PaintEventHandler(this.ContrTable_Paint);
-        this.panelScroll.ResumeLayout(false);
-        this.ResumeLayout(false);
+        BackColor = SystemColors.Window;
+        Controls.Add(_panelScroll);
+        Controls.Add(_panelHead);
+        Name = "ContrTable";
+        Size = new Size(484, 356);
+        Paint += ContrTable_Paint;
+        _panelScroll.ResumeLayout(false);
+        ResumeLayout(false);
     }
 
-    #endregion
+    [Category("Behavior"), Description("Exactly like the listBox.SelectionMode, except no MultiSimple.")]
+    public SelectionMode SelectionMode { get; set; }
 
-
-    [Category("Behavior"),
-     Description("Exactly like the listBox.SelectionMode, except no MultiSimple.")
-    ]
-    public SelectionMode SelectionMode
-    {
-        get { return selectionMode; }
-        set { selectionMode = value; }
-    }
-
-    ///<summary>Gets or sets the position of the scrollbar.</summary>
     public int ScrollValue
     {
-        get { return vScrollBar1.Value; }
+        get => _vScrollBar1.Value;
         set
         {
-            if (value > vScrollBar1.Maximum)
-                value = vScrollBar1.Maximum;
-            if (value < vScrollBar1.Minimum)
-                value = vScrollBar1.Minimum;
-            vScrollBar1.Value = value;
-            LayoutManagerForms.MoveLocation(panelTable, new Point(0, -value));
+            if (value > _vScrollBar1.Maximum)
+            {
+                value = _vScrollBar1.Maximum;
+            }
+
+            if (value < _vScrollBar1.Minimum)
+            {
+                value = _vScrollBar1.Minimum;
+            }
+
+            _vScrollBar1.Value = value;
+
+            _panelTable.Location = new Point(0, -value);
         }
     }
 
-    ///<summary>Holds the int values of the indices of the selected rows.  Use for multiple row selection tables.</summary>
-    [Description("Holds the int values of the indexes of the selected rows")]
-    public int[] SelectedIndices
-    {
-        get { return selectedIndices; }
-        set
-        {
-            /*selectedIndices=value;
-            for(int i=0;i<SelectedIAL.Count;i++){
-                ColorRow((int)SelectedIAL[i],Color.White);
-            }
-            SelectedIAL.Clear();
-            for(int i=0;i<selectedIndices.Length;i++){
-                SelectedIAL.Add(selectedIndices[i]);
-                ColorRow((int)SelectedIAL[i],SystemColors.Highlight);
-            }*/
-        }
-    }
-
-
-    public void SetSelected(int index, bool setValue)
-    {
-        var SelectedIAL = new ArrayList();
-        for (var i = 0; i < selectedIndices.Length; i++)
-        {
-            SelectedIAL.Add(selectedIndices[i]);
-        }
-
-        if (setValue)
-        {
-            //select specified index
-            if (SelectedIAL.Contains(index))
-            {
-                ; //already set
-            }
-            else
-            {
-                SelectedIAL.Add(index);
-                ColorRow(index, Color.Silver); //SystemColors.Highlight);
-            }
-        }
-        else
-        {
-            //unselect specified index
-            if (SelectedIAL.Contains(index))
-            {
-                SelectedIAL.Remove(index);
-                ColorRow(index, Color.White);
-            }
-            else
-            {
-                ; //already unselected
-            }
-        }
-
-        selectedIndices = new int[SelectedIAL.Count];
-        for (var i = 0; i < SelectedIAL.Count; i++)
-        {
-            selectedIndices[i] = (int) SelectedIAL[i];
-        }
-
-        SelectedIAL = null;
-    }
-
-
-    public void SetSelected(int[] iArray, bool setValue)
-    {
-        //allows setting multiple values all at once
-        var SelectedIAL = new ArrayList();
-        for (var i = 0; i < selectedIndices.Length; i++)
-        {
-            SelectedIAL.Add(selectedIndices[i]);
-        }
-
-        for (var i = 0; i < iArray.Length; i++)
-        {
-            if (setValue)
-            {
-                //select specified index
-                if (SelectedIAL.Contains(iArray[i]))
-                {
-                    ; //already set
-                }
-                else
-                {
-                    SelectedIAL.Add(iArray[i]);
-                    ColorRow(iArray[i], Color.Silver); //SystemColors.Highlight);
-                }
-            }
-            else
-            {
-                //unselect specified index
-                if (SelectedIAL.Contains(iArray[i]))
-                {
-                    SelectedIAL.Remove(iArray[i]);
-                    ColorRow(iArray[i], Color.White);
-                }
-                else
-                {
-                    ; //already unselected
-                }
-            }
-        }
-
-        selectedIndices = new int[SelectedIAL.Count];
-        for (var i = 0; i < SelectedIAL.Count; i++)
-        {
-            selectedIndices[i] = (int) SelectedIAL[i];
-        }
-
-        SelectedIAL = null;
-    }
-
-
-    public void SetSelected(bool setValue)
-    {
-        //sets all to specified value, and only redraws affected rows.
-        //Alternative would be to use ResetRows if clearing.
-        var SelectedIAL = new ArrayList();
-        for (var i = 0; i < selectedIndices.Length; i++)
-        {
-            SelectedIAL.Add(selectedIndices[i]);
-        }
-
-        if (setValue)
-        {
-            //select all{
-            selectedIndices = new int[MaxRows];
-            for (var i = 0; i < MaxRows; i++)
-            {
-                if (!SelectedIAL.Contains(i))
-                {
-                    ColorRow(i, Color.Silver); //SystemColors.Highlight);
-                }
-
-                selectedIndices[i] = i;
-            }
-        }
-        else
-        {
-            //unselect all
-            for (var i = 0; i < SelectedIAL.Count; i++)
-            {
-                ColorRow((int) SelectedIAL[i], Color.White);
-            }
-
-            selectedIndices = [];
-        }
-
-        SelectedIAL = null;
-    }
-
-    ///<summary>Sets the selected row and colors it. Resiliant enough to handle a bad value.</summary>
-    public void SetSelectedRow(int rowValue)
-    {
-        if (SelectedRow != -1)
-            ColorRow(SelectedRow, Color.White);
-        SelectedRow = rowValue;
-        if (SelectedRow > MaxRows - 1)
-            SelectedRow = -1;
-        if (SelectedRow != -1)
-            ColorRow(SelectedRow, Color.Silver);
-    }
-
-
-    public void InstantClassesPar()
+    protected void InstantClassesPar()
     {
         Cell = new string[MaxCols, MaxRows];
         FontSize = new float[MaxCols, MaxRows];
         FontBold = new bool[MaxCols, MaxRows];
         FontColor = new Color[MaxCols, MaxRows];
-        //FontAlign = new int[MaxCols,MaxRows];
         BackGColor = new Color[MaxCols, MaxRows];
         LeftBorder = new Color[MaxCols, MaxRows];
         TopBorder = new Color[MaxCols, MaxRows];
         RowHeight = new int[MaxRows];
         ColWidth = new int[MaxCols];
         ColAlign = new HorizontalAlignment[MaxCols];
-        Fields = new string[MaxCols];
+        _fields = new string[MaxCols];
         IsOverflow = new bool[MaxCols, MaxRows];
-        colPos = new int[MaxCols];
-        rowPos = new int[MaxRows];
-        selectedIndices = [];
-        //Lan.C(this, new System.Windows.Forms.Control[] {
-        //	this.panelHead,
-        //	this.panelScroll,
-        //	this.panelTable,
-        //});
+        _colPos = new int[MaxCols];
+        _rowPos = new int[MaxRows];
+        _selectedIndices = [];
     }
 
-
-    public void ResetRows(int maxRows)
+    public void LayoutTables(bool preserveScroll = false)
     {
-        MaxRows = maxRows;
-        Cell = new string[MaxCols, MaxRows];
-        FontSize = new float[MaxCols, MaxRows];
-        FontBold = new bool[MaxCols, MaxRows];
-        FontColor = new Color[MaxCols, MaxRows];
-        //FontAlign = new int[MaxCols,MaxRows];
-        BackGColor = new Color[MaxCols, MaxRows];
-        LeftBorder = new Color[MaxCols, MaxRows];
-        TopBorder = new Color[MaxCols, MaxRows];
-        RowHeight = new int[MaxRows];
-        //ColWidth = new int[MaxCols];
-        //ColAlign = new int[MaxCols];
-        //Fields = new string[MaxCols];
-        IsOverflow = new bool[MaxCols, MaxRows];
-        //colPos = new int[MaxCols];
-        rowPos = new int[MaxRows];
-        SetRowHeight(0, MaxRows - 1, 14);
-        SetBackGColor(Color.White);
-        selectedIndices = [];
-        if (SelectedRow >= maxRows)
-            SelectedRow = -1;
-        //SelectedIAL=new ArrayList();
-    }
+        var scroll = ScrollValue;
 
-
-    public void SetBackGColor(Color myColor)
-    {
-        for (var i = 0; i < MaxRows; i++)
-        {
-            for (var j = 0; j < MaxCols; j++)
-            {
-                BackGColor[j, i] = myColor;
-            }
-        }
-    }
-
-    ///<summary>Lays out the control and refreshes. Option to preserve the scroll position.</summary>
-    ///<param name="preserveScroll">Set to true to preserve the scroll position, or omit to not.</param>
-    public void LayoutTables(bool preserveScroll)
-    {
-        var scroll = ScrollValue; //use this to preserveScroll
-        if (ShowScroll)
-            scrollWidth = 17;
-        else
-            scrollWidth = 0;
+        _scrollWidth = ShowScroll ? 17 : 0;
         if (MaxRows != 0)
-            rowPos[0] = 0;
+        {
+            _rowPos[0] = 0;
+        }
+
         for (var i = 1; i < MaxRows; i++)
         {
-            rowPos[i] = rowPos[i - 1] + RowHeight[i - 1];
+            _rowPos[i] = _rowPos[i - 1] + RowHeight[i - 1];
         }
 
-        //MessageBox.Show(Height.ToString());
-        if (!ShowScroll && MaxRows > 0) //true 50
-            if (FieldsArePresent && HeadingIsPresent)
-                Height = rowPos[MaxRows - 1] + RowHeight[MaxRows - 1] + 1 + 17 + 15 + 1;
-            else if (FieldsArePresent)
-                Height = rowPos[MaxRows - 1] + RowHeight[MaxRows - 1] + 1 + 15 + 2;
-            else
+        if (!ShowScroll && MaxRows > 0)
+        {
+            Height = FieldsArePresent switch
             {
-                Height = rowPos[MaxRows - 1] + RowHeight[MaxRows - 1] + 1;
-            }
+                true when HeadingIsPresent => _rowPos[MaxRows - 1] + RowHeight[MaxRows - 1] + 1 + 17 + 15 + 1,
+                true => _rowPos[MaxRows - 1] + RowHeight[MaxRows - 1] + 1 + 15 + 2,
+                _ => _rowPos[MaxRows - 1] + RowHeight[MaxRows - 1] + 1
+            };
+        }
 
-        colPos[0] = 0;
+        _colPos[0] = 0;
         for (var i = 1; i < MaxCols; i++)
         {
-            colPos[i] = colPos[i - 1] + ColWidth[i - 1];
+            _colPos[i] = _colPos[i - 1] + ColWidth[i - 1];
         }
 
         if (ColWidth[MaxCols - 1] != 0)
         {
-            panelHead.Width= colPos[MaxCols - 1] + ColWidth[MaxCols - 1] + scrollWidth;
+            _panelHead.Width = _colPos[MaxCols - 1] + ColWidth[MaxCols - 1] + _scrollWidth;
             if (!DesignMode)
             {
-                Width = panelHead.Width + 2;
+                Width = _panelHead.Width + 2;
             }
 
-            if (FieldsArePresent && HeadingIsPresent)
-                panelHead.Height= 17 + 15 + 1;
-            else if (FieldsArePresent)
-                panelHead.Height= 15 + 2;
+            switch (FieldsArePresent)
+            {
+                case true when HeadingIsPresent:
+                    _panelHead.Height = 17 + 15 + 1;
+                    break;
+
+                case true:
+                    _panelHead.Height = 15 + 2;
+                    break;
+
+                default:
+                    _panelHead.Visible = false;
+                    _panelHead.Height = 1;
+                    break;
+            }
+
+            _panelScroll.Width = Width - 2;
+            _panelTable.Width = Width - _scrollWidth - 2;
+            if (MaxRows == 0)
+            {
+                _panelTable.Height = 0;
+            }
             else
             {
-                panelHead.Visible = false;
-                panelHead.Height= 1;
+                _panelTable.Height = _rowPos[MaxRows - 1] + RowHeight[MaxRows - 1];
             }
 
-            panelScroll.Width= Width - 2;
-            panelTable.Width= Width - scrollWidth - 2;
-            if (MaxRows == 0)
-                panelTable.Height=0;
-            else
-                panelTable.Height=rowPos[MaxRows - 1] + RowHeight[MaxRows - 1];
-            //Point tempPoint = panelScroll.Location;
-            //tempPoint.Y=panelHead.Height-1;
-            panelScroll.Location= new Point(1, panelHead.Height - 1);
-            panelScroll.Height=Height - panelHead.Height;
-            //scrollbar:
+            _panelScroll.Location = new Point(1, _panelHead.Height - 1);
+            _panelScroll.Height = Height - _panelHead.Height;
+
             if (ShowScroll)
             {
-                //if(panelScroll.Height<0){//prevents a bug
-                //	return;
-                //}
-                if (panelTable.Height < panelScroll.Height)
+                if (_panelTable.Height < _panelScroll.Height)
                 {
-                    vScrollBar1.Enabled = false;
-                    //even though the scroll won't actually move, we need this line so that preserve scroll will work properly
-                    vScrollBar1.Maximum = 1;
-                    vScrollBar1.Value = 1;
-                    LayoutManagerForms.MoveLocation(panelTable, new Point(0, -1));
+                    _vScrollBar1.Enabled = false;
+                    _vScrollBar1.Maximum = 1;
+                    _vScrollBar1.Value = 1;
+                    _panelTable.Location = new Point(0, -1);
                 }
                 else
                 {
-                    vScrollBar1.Enabled = true;
-                    vScrollBar1.Minimum = 1;
-                    vScrollBar1.Maximum = panelTable.Height + 2;
-                    vScrollBar1.LargeChange = panelScroll.Height;
-                    vScrollBar1.SmallChange = 3 * 14; //(3 rows)
-                    if (panelTable.Height == 0) //vScrollBar.Value cannot=0
-                        vScrollBar1.Value = 1;
+                    _vScrollBar1.Enabled = true;
+                    _vScrollBar1.Minimum = 1;
+                    _vScrollBar1.Maximum = _panelTable.Height + 2;
+                    _vScrollBar1.LargeChange = _panelScroll.Height;
+                    _vScrollBar1.SmallChange = 3 * 14;
+                    if (_panelTable.Height == 0)
+                    {
+                        _vScrollBar1.Value = 1;
+                    }
                     else
-                        vScrollBar1.Value = panelTable.Height - panelScroll.Height + 2;
-                    LayoutManagerForms.MoveLocation(panelTable, new Point(0, -vScrollBar1.Value));
+                    {
+                        _vScrollBar1.Value = _panelTable.Height - _panelScroll.Height + 2;
+                    }
+
+                    _panelTable.Location = new Point(0, -_vScrollBar1.Value);
                 }
             }
             else
             {
-                //Scroll not showing
-                vScrollBar1.Visible = false;
-                LayoutManagerForms.MoveLocation(panelTable, new Point(0, -1));
+                _vScrollBar1.Visible = false;
+                _panelTable.Location = new Point(0, -1);
             }
-        } //end if ColWidth not 0
+        }
 
         if (preserveScroll)
+        {
             ScrollValue = scroll;
-        Refresh();
-    } //end Layout Tables
+        }
 
-    ///<summary>Lays out the control without preserving the scroll position.</summary>
-    public void LayoutTables()
-    {
-        LayoutTables(false);
+        Refresh();
     }
 
-
-    public void SetRowHeight(int rowStart, int rowStop, int rowHeight)
+    protected void SetRowHeight(int rowStart, int rowStop, int rowHeight)
     {
         for (var i = rowStart; i <= rowStop; i++)
         {
@@ -564,115 +308,62 @@ public class ContrTable : UserControl
         }
     }
 
-
     public void ColorRow(int row, Color myColor)
     {
         if (row > MaxRows - 1)
+        {
             return;
-        //float Foffset=0;
-        var grfx = panelTable.CreateGraphics();
-        var i = row;
-        //background and left border for overflow cells
-        for (var j = 0; j < MaxCols; j++)
-        {
-            BackGColor[j, i] = myColor;
-            if (IsOverflow[j, i] == true)
-            {
-                grfx.FillRectangle(new SolidBrush(BackGColor[j, i]), colPos[j] + 1, rowPos[i] + 1, ColWidth[j] - 1, RowHeight[i] - 1);
-                //if(DefaultBackGColor==myColor) LeftBorder[j,i]=DefaultGridColor;
-                //else LeftBorder[j,i]=myColor;
-                grfx.DrawLine(new Pen(LeftBorder[j, i]), colPos[j], rowPos[i] + 1, colPos[j], rowPos[i] + RowHeight[i] - 1);
-            }
         }
 
-        //background for nonoverflow cells, borders, and text
-        for (var j = 0; j < MaxCols; j++)
-        {
-            //background and left border
-            if (IsOverflow[j, i] == false)
-            {
-                grfx.FillRectangle(new SolidBrush(BackGColor[j, i]), colPos[j] + 1, rowPos[i] + 1, ColWidth[j] - 1, RowHeight[i] - 1);
-                grfx.DrawLine(new Pen(LeftBorder[j, i]), colPos[j], rowPos[i] + 1, colPos[j], rowPos[i] + RowHeight[i]);
-            }
+        var grfx = _panelTable.CreateGraphics();
 
-            //top border...(not needed)
-            //text
-            //offset=(int)(((float)Width-scrollWidth-grfx.MeasureString(Heading,myFont).Width)/2);
-            if (FontBold[j, i])
-            {
-                myFontStyle = FontStyle.Bold;
-                myFontFamily = FontFamily.GenericSansSerif;
-            }
-            else
-            {
-                myFontStyle = FontStyle.Regular;
-                myFontFamily = FontFamily.GenericSansSerif;
-            }
-
-            if (FontSize[j, i] != 0) myFontSize = FontSize[j, i];
-            //else if (FontBold[j,i]) myFontSize=8.5f;
-            else myFontSize = 8.5f;
-            //myFont=new Font(myFontName,myFontSize,myFontStyle);
-            myFont = new Font(FontFamily.GenericSansSerif, myFontSize, myFontStyle);
-            if (FontColor[j, i].IsEmpty)
-            {
-                myFontColor = Color.Black;
-            }
-            else
-            {
-                myFontColor = FontColor[j, i];
-            }
-
-            if (ColAlign[j] == HorizontalAlignment.Center)
-            {
-                offset = (int) (((float) ColWidth[j] - grfx.MeasureString(Cell[j, i], myFont).Width) / 2);
-            }
-            else if (ColAlign[j] == HorizontalAlignment.Right)
-            {
-                if (myFontStyle == FontStyle.Bold)
-                    offset = ColWidth[j] - (int) Math.Round(Convert.ToDouble(grfx.MeasureString(Cell[j, i], myFont).Width)) - 1;
-                else
-                    offset = ColWidth[j] - (int) Math.Round(Convert.ToDouble(grfx.MeasureString(Cell[j, i], myFont).Width * .92)) - 1;
-                //the .92 factor was the only way I could get the numbers to right-align properly
-            }
-            else offset = 1;
-
-            //grfx.TextRenderingHint=(TextRenderingHint)3;
-            grfx.DrawString(Cell[j, i], myFont, new SolidBrush(myFontColor), (float) colPos[j] + offset, rowPos[i] + 1);
-        } //end for
-
-        if (row == MaxRows - 1)
-        {
-            //if last row
-            grfx.DrawLine(new Pen(Color.Black), 0, panelTable.Height - 1, panelTable.Width - 1, panelTable.Height - 1);
-        }
-
-        grfx.Dispose();
-        //Refresh();//Makes it flicker
-    }
-
-
-    public void SetTextColorRow(int row, Color myColor)
-    {
-        for (var j = 0; j < MaxCols; j++)
-        {
-            FontColor[j, row] = myColor;
-        }
-    }
-
-
-    public void SetBackColorRow(int row, Color myColor)
-    {
         for (var j = 0; j < MaxCols; j++)
         {
             BackGColor[j, row] = myColor;
+            if (!IsOverflow[j, row])
+            {
+                continue;
+            }
+
+            grfx.FillRectangle(new SolidBrush(BackGColor[j, row]), _colPos[j] + 1, _rowPos[row] + 1, ColWidth[j] - 1, RowHeight[row] - 1);
+            grfx.DrawLine(new Pen(LeftBorder[j, row]), _colPos[j], _rowPos[row] + 1, _colPos[j], _rowPos[row] + RowHeight[row] - 1);
         }
+
+        for (var j = 0; j < MaxCols; j++)
+        {
+            if (IsOverflow[j, row] == false)
+            {
+                grfx.FillRectangle(new SolidBrush(BackGColor[j, row]), _colPos[j] + 1, _rowPos[row] + 1, ColWidth[j] - 1, RowHeight[row] - 1);
+                grfx.DrawLine(new Pen(LeftBorder[j, row]), _colPos[j], _rowPos[row] + 1, _colPos[j], _rowPos[row] + RowHeight[row]);
+            }
+
+            _myFontStyle = FontBold[j, row] ? FontStyle.Bold : FontStyle.Regular;
+            _myFontFamily = FontFamily.GenericSansSerif;
+            _myFontSize = FontSize[j, row] != 0 ? FontSize[j, row] : 8.5f;
+            _myFont = new Font(FontFamily.GenericSansSerif, _myFontSize, _myFontStyle);
+            _myFontColor = FontColor[j, row].IsEmpty ? Color.Black : FontColor[j, row];
+
+            _offset = ColAlign[j] switch
+            {
+                HorizontalAlignment.Center => (int) ((ColWidth[j] - grfx.MeasureString(Cell[j, row], _myFont).Width) / 2),
+                HorizontalAlignment.Right when _myFontStyle == FontStyle.Bold => ColWidth[j] - (int) Math.Round(Convert.ToDouble(grfx.MeasureString(Cell[j, row], _myFont).Width)) - 1,
+                HorizontalAlignment.Right => ColWidth[j] - (int) Math.Round(Convert.ToDouble(grfx.MeasureString(Cell[j, row], _myFont).Width * .92)) - 1,
+                _ => 1
+            };
+
+            grfx.DrawString(Cell[j, row], _myFont, new SolidBrush(_myFontColor), (float) _colPos[j] + _offset, _rowPos[row] + 1);
+        }
+
+        if (row == MaxRows - 1)
+        {
+            grfx.DrawLine(new Pen(Color.Black), 0, _panelTable.Height - 1, _panelTable.Width - 1, _panelTable.Height - 1);
+        }
+
+        grfx.Dispose();
     }
 
-
-    public void SetGridColor(Color myColor)
+    protected void SetGridColor(Color myColor)
     {
-        DefaultGridColor = myColor;
         for (var i = 0; i < MaxRows; i++)
         {
             for (var j = 0; j < MaxCols; j++)
@@ -681,194 +372,138 @@ public class ContrTable : UserControl
                 TopBorder[j, i] = myColor;
             }
         }
-
-        //Refresh();
     }
-
 
     protected void panelHead_Paint(object sender, PaintEventArgs pea)
     {
-        if (FieldsArePresent == false) return;
+        if (FieldsArePresent == false)
+        {
+            return;
+        }
+
         var grfx = pea.Graphics;
         var penB = new Pen(Color.Black);
-        var penGr = new Pen(Color.LightGray);
         var penW = new Pen(Color.White);
-        grfx.FillRectangle(new SolidBrush(Color.LightGray), 0, 0, panelHead.Width, panelHead.Height);
-        int fieldsLoc;
-        if (HeadingIsPresent) fieldsLoc = 17;
-        else fieldsLoc = 0;
+
+        grfx.FillRectangle(new SolidBrush(Color.LightGray), 0, 0, _panelHead.Width, _panelHead.Height);
+
+        var fieldsLoc = HeadingIsPresent ? 17 : 0;
+
         if (HeadingIsPresent)
         {
-            grfx.FillRectangle(new SolidBrush(Color.White), 0, 0, panelHead.Width, fieldsLoc);
-            grfx.DrawLine(penW, 0, 0, panelHead.Width, 0);
-            //grfx.DrawLine(penW,1,1,panelHead.Width,1);
-            grfx.DrawLine(penB, 0, fieldsLoc - 1, panelHead.Width, fieldsLoc - 1);
+            grfx.FillRectangle(new SolidBrush(Color.White), 0, 0, _panelHead.Width, fieldsLoc);
+            grfx.DrawLine(penW, 0, 0, _panelHead.Width, 0);
+            grfx.DrawLine(penB, 0, fieldsLoc - 1, _panelHead.Width, fieldsLoc - 1);
             grfx.DrawLine(penW, 0, 0, 0, fieldsLoc - 2);
-            //grfx.DrawLine(penW,1,1,1,fieldsLoc-2);
         }
 
-        //Fields row
-        grfx.DrawLine(penW, 1, fieldsLoc, panelHead.Width, fieldsLoc);
+        grfx.DrawLine(penW, 1, fieldsLoc, _panelHead.Width, fieldsLoc);
         grfx.DrawLine(penW, 0, fieldsLoc + 1, 0, fieldsLoc + 15 + 1);
-        //grfx.DrawLine(penW,1,fieldsLoc+1,1,fieldsLoc+14+1);
+
         for (var j = 1; j < MaxCols; j++)
         {
-            grfx.DrawLine(penB, colPos[j], fieldsLoc - 1, colPos[j], fieldsLoc + 14 + 1);
-            grfx.DrawLine(penW, colPos[j] + 1, fieldsLoc, colPos[j] + 1, fieldsLoc + 14 + 1);
+            grfx.DrawLine(penB, _colPos[j], fieldsLoc - 1, _colPos[j], fieldsLoc + 14 + 1);
+            grfx.DrawLine(penW, _colPos[j] + 1, fieldsLoc, _colPos[j] + 1, fieldsLoc + 14 + 1);
         }
 
-        //myFontFamily=FontFamily.GenericSansSerif;
-        //grfx.DrawLine(penB,panelHead.Width-3,fieldsLoc+1,panelHead.Width-3,fieldsLoc+14+1);
         var myFont = new Font(FontFamily.GenericSansSerif, 10f, FontStyle.Bold);
-        var offset = (int) (((float) panelHead.Width - scrollWidth - grfx.MeasureString(Heading, myFont).Width) / 2);
+        var offset = (int) (((float) _panelHead.Width - _scrollWidth - grfx.MeasureString(Heading, myFont).Width) / 2);
+
         if (HeadingIsPresent)
-            //grfx.TextRenderingHint=TextRenderingHint.AntiAlias;
+        {
             grfx.DrawString(Heading, myFont, new SolidBrush(Color.Black), offset, 0);
-        //grfx.TextRenderingHint=TextRenderingHint.SystemDefault;
+        }
+
         myFont = new Font(FontFamily.GenericSansSerif, 8.5f, FontStyle.Bold);
-        //text
+
         for (var j = 0; j < MaxCols; j++)
         {
-            offset = (int) (((float) ColWidth[j] - grfx.MeasureString(Fields[j], myFont).Width) / 2);
-            grfx.DrawString(Fields[j], myFont, new SolidBrush(Color.Black), colPos[j] + offset, fieldsLoc);
-        } //end for j
-
-        grfx = null;
-    } //end PanelHead_Paint
+            offset = (int) ((ColWidth[j] - grfx.MeasureString(_fields[j], myFont).Width) / 2);
+            grfx.DrawString(_fields[j], myFont, new SolidBrush(Color.Black), _colPos[j] + offset, fieldsLoc);
+        }
+    }
 
     private void panelTable_Paint(object sender, PaintEventArgs pea)
     {
         var grfx = pea.Graphics;
         var penB = new Pen(Color.Black);
-        var penGr = new Pen(Color.LightGray);
+
         var minRow = WorldToLine(pea.ClipRectangle.Top) - 1;
-        if (minRow < 0) minRow = 0;
+        if (minRow < 0)
+        {
+            minRow = 0;
+        }
+
         var maxRow = WorldToLine(pea.ClipRectangle.Bottom) + 1;
-        if (maxRow > MaxRows) maxRow = MaxRows;
+        if (maxRow > MaxRows)
+        {
+            maxRow = MaxRows;
+        }
+
         try
         {
             for (var i = minRow; i < maxRow; i++)
             {
-                //background and left border for overflow cells
                 for (var j = 0; j < MaxCols; j++)
                 {
-                    if (IsOverflow[j, i] == true)
+                    if (!IsOverflow[j, i])
                     {
-                        grfx.FillRectangle(new SolidBrush(BackGColor[j, i]), colPos[j] + 1, rowPos[i] + 1, ColWidth[j] - 1, RowHeight[i] - 1);
-                        grfx.DrawLine(new Pen(LeftBorder[j, i]), colPos[j], rowPos[i] + 1, colPos[j], rowPos[i] + RowHeight[i]);
+                        continue;
                     }
-                } //end for j
 
-                //background for nonoverflow cells,borders, and text
+                    grfx.FillRectangle(new SolidBrush(BackGColor[j, i]), _colPos[j] + 1, _rowPos[i] + 1, ColWidth[j] - 1, RowHeight[i] - 1);
+                    grfx.DrawLine(new Pen(LeftBorder[j, i]), _colPos[j], _rowPos[i] + 1, _colPos[j], _rowPos[i] + RowHeight[i]);
+                }
+
                 for (var j = 0; j < MaxCols; j++)
                 {
-                    //background and left border
                     if (IsOverflow[j, i] == false)
                     {
-                        grfx.FillRectangle(new SolidBrush(BackGColor[j, i]), colPos[j] + 1, rowPos[i] + 1, ColWidth[j] - 1, RowHeight[i] - 1);
-                        grfx.DrawLine(new Pen(LeftBorder[j, i]), colPos[j], rowPos[i] + 1, colPos[j], rowPos[i] + RowHeight[i]);
+                        grfx.FillRectangle(new SolidBrush(BackGColor[j, i]), _colPos[j] + 1, _rowPos[i] + 1, ColWidth[j] - 1, RowHeight[i] - 1);
+                        grfx.DrawLine(new Pen(LeftBorder[j, i]), _colPos[j], _rowPos[i] + 1, _colPos[j], _rowPos[i] + RowHeight[i]);
                     }
 
-                    //top border
-                    grfx.DrawLine(new Pen(TopBorder[j, i]), colPos[j] + 1, rowPos[i], colPos[j] + ColWidth[j], rowPos[i]);
-                    //text
-                    if (FontBold[j, i])
-                    {
-                        myFontStyle = FontStyle.Bold;
-                        myFontFamily = FontFamily.GenericSansSerif;
-                    }
-                    else
-                    {
-                        myFontStyle = FontStyle.Regular;
-                        myFontFamily = FontFamily.GenericSansSerif;
-                    }
+                    grfx.DrawLine(new Pen(TopBorder[j, i]), _colPos[j] + 1, _rowPos[i], _colPos[j] + ColWidth[j], _rowPos[i]);
 
-                    if (FontSize[j, i] != 0) myFontSize = FontSize[j, i];
-                    else if (FontBold[j, i]) myFontSize = 8.5f;
-                    else myFontSize = 8.5f;
-                    //temp:
-                    //myFontSize=9f;
-                    //myFontFamily=new FontFamily("Microsoft Sans Serif");
-                    myFont = new Font(myFontFamily, myFontSize, myFontStyle);
-                    if (FontColor[j, i].IsEmpty)
-                    {
-                        myFontColor = Color.Black;
-                    }
-                    else
-                    {
-                        myFontColor = FontColor[j, i];
-                    }
+                    _myFontStyle = FontBold[j, i] ? FontStyle.Bold : FontStyle.Regular;
+                    _myFontFamily = FontFamily.GenericSansSerif;
 
-                    if (ColAlign[j] == HorizontalAlignment.Center)
-                    {
-                        offset = (int) (((float) ColWidth[j] - grfx.MeasureString(Cell[j, i], myFont).Width) / 2);
-                    }
-                    else if (ColAlign[j] == HorizontalAlignment.Right)
-                    {
-                        if (myFontStyle == FontStyle.Bold)
-                            offset = ColWidth[j] - (int) Math.Round(Convert.ToDouble(grfx.MeasureString(Cell[j, i], myFont).Width)) - 1;
-                        else
-                            offset = ColWidth[j] - (int) Math.Round(Convert.ToDouble(grfx.MeasureString(Cell[j, i], myFont).Width * .92)) - 1;
-                        //the .92 factor was the only way I could get the numbers to right-align properly
-                    }
-                    else offset = 1;
+                    if (FontSize[j, i] != 0) _myFontSize = FontSize[j, i];
+                    else if (FontBold[j, i]) _myFontSize = 8.5f;
+                    else _myFontSize = 8.5f;
 
-                    //grfx.TextRenderingHint=TextRenderingHint.AntiAlias;
-                    //StringFormat strfmt = new StringFormat();
-                    //strfmt.Alignment=StringAlignment.Far;
-                    //strfmt.FormatFlags |=StringFormatFlags.
-                    grfx.DrawString(Cell[j, i], myFont, new SolidBrush(myFontColor), colPos[j] + offset, rowPos[i] + 1);
-                    //if (Cell[j,i]!=null) grfx.DrawString(Cell[j,i],myFont,new SolidBrush(Color.Black),colPos[j]+ColWidth[j],rowPos[i]+1,strfmt);
-                } //end for j
-            } //end for i row
+                    _myFont = new Font(_myFontFamily, _myFontSize, _myFontStyle);
+                    _myFontColor = FontColor[j, i].IsEmpty ? Color.Black : FontColor[j, i];
+
+                    _offset = ColAlign[j] switch
+                    {
+                        HorizontalAlignment.Center => (int) ((ColWidth[j] - grfx.MeasureString(Cell[j, i], _myFont).Width) / 2),
+                        HorizontalAlignment.Right when _myFontStyle == FontStyle.Bold => ColWidth[j] - (int) Math.Round(Convert.ToDouble(grfx.MeasureString(Cell[j, i], _myFont).Width)) - 1,
+                        HorizontalAlignment.Right => ColWidth[j] - (int) Math.Round(Convert.ToDouble(grfx.MeasureString(Cell[j, i], _myFont).Width * .92)) - 1,
+                        _ => 1
+                    };
+
+                    grfx.DrawString(Cell[j, i], _myFont, new SolidBrush(_myFontColor), _colPos[j] + _offset, _rowPos[i] + 1);
+                }
+            }
         }
         catch
         {
-            //design time
+            // ignored
         }
 
-        grfx.DrawLine(penB, 0, panelTable.Height - 1, panelTable.Width - 1, panelTable.Height - 1);
-        //grfx.DrawLine(penB,0,0,0,panelTable.Height-1);
-        grfx = null;
-    } //end panelTable_Paint
-
-    private void panelScroll_Paint(object sender, PaintEventArgs e)
-    {
-        var grfx = e.Graphics;
-        var penB = new Pen(Color.Black);
-        //grfx.DrawLine(penB,0,0,0,panelScroll.Height);
-        //grfx.DrawLine(penB,0,panelScroll.Height-3,panelScroll.Width,panelScroll.Height-3);
-        //grfx.DrawLine(penB,panelScroll.Width-2,0,panelScroll.Width-2,panelScroll.Height);	
-        grfx = null;
+        grfx.DrawLine(penB, 0, _panelTable.Height - 1, _panelTable.Width - 1, _panelTable.Height - 1);
     }
 
     private void ContrTable_Paint(object sender, PaintEventArgs e)
     {
-        //This draws the blue border around each table
         var grfx = e.Graphics;
-        //Pen penB = new Pen(Color.Black);//bottom, right
-        //Pen penW = new Pen(Color.White);//top, left
         var penBlue = new Pen(Color.FromArgb(127, 157, 185));
-        //Pen penBlue = new Pen(Color.FromArgb(0,60,116));
-        //Pen penGray = new Pen(SystemColors.Control);
-        grfx.DrawLine(penBlue, 0, 0, 0, Height - 1); //left
-        grfx.DrawLine(penBlue, 0, Height - 1, Width - 1, Height - 1); //bottom
-        grfx.DrawLine(penBlue, 0, 0, Width, 0); //top
-        //grfx.DrawLine(penGray,Width,0,Width,Height-1);//right, off the edge
-        grfx.DrawLine(penBlue, Width - 1, 0, Width - 1, Height - 1); //right
-        grfx = null;
-    }
 
-    /*public void FillSelectedIAL(){
-        SelectedIAL.Clear();
-        for(int i=0;i<selectedIndices.Length;i++){
-            SelectedIAL.Add(i);
-        }
-    }*/
-
-    private void panelTable_Click(object sender, EventArgs e)
-    {
-        //logic moved to mouse up event
+        grfx.DrawLine(penBlue, 0, 0, 0, Height - 1);
+        grfx.DrawLine(penBlue, 0, Height - 1, Width - 1, Height - 1);
+        grfx.DrawLine(penBlue, 0, 0, Width, 0);
+        grfx.DrawLine(penBlue, Width - 1, 0, Width - 1, Height - 1);
     }
 
     private void panelTable_KeyPress(object sender, KeyPressEventArgs e)
@@ -878,150 +513,141 @@ public class ContrTable : UserControl
 
     private void panelTable_DoubleClick(object sender, EventArgs e)
     {
-        //MessageBox.Show("panelTable doubleclicked");
-        var myCol = 0;
-        var myRow = 0;
-        for (var i = 0; i < MaxCols; i++)
-        {
-            if (mouseDownPosition.X > colPos[i]) myCol = i;
-        }
+        var rowIndex = 0;
 
         for (var i = 0; i < MaxRows; i++)
         {
-            if (mouseDownPosition.Y > rowPos[i]) myRow = i;
+            if (_mouseDownPosition.Y > _rowPos[i])
+            {
+                rowIndex = i;
+            }
         }
 
-        OnCellDoubleClicked(new CellEventArgs(myRow));
+        OnCellDoubleClicked(new CellEventArgs(rowIndex));
     }
 
     private void panelTable_MouseDown(object sender, MouseEventArgs e)
     {
-        //this.OnMouseDown(e);
-        //if(e.Button==MouseButtons.Right)
-
-        mouseDownPosition = new Point(e.X, e.Y);
+        _mouseDownPosition = new Point(e.X, e.Y);
     }
 
     private void panelTable_MouseUp(object sender, MouseEventArgs e)
     {
-        var ea = new MouseEventArgs(e.Button, e.Clicks, e.X, e.Y + panelScroll.Top + panelTable.Top, e.Delta);
+        var ea = new MouseEventArgs(e.Button, e.Clicks, e.X, e.Y + _panelScroll.Top + _panelTable.Top, e.Delta);
+
         OnMouseUp(ea);
+
         if (e.Button == MouseButtons.Right)
         {
             return;
         }
 
-        //this.OnClick(e);
-        ArrayList SelectedIAL;
-        var myCol = 0;
-        var myRow = 0;
-        for (var i = 0; i < MaxCols; i++)
-        {
-            if (mouseDownPosition.X > colPos[i])
-                myCol = i;
-        }
+        var rowIndex = 0;
 
         for (var i = 0; i < MaxRows; i++)
         {
-            if (mouseDownPosition.Y > rowPos[i])
-                myRow = i;
+            if (_mouseDownPosition.Y > _rowPos[i])
+            {
+                rowIndex = i;
+            }
         }
 
-        switch (selectionMode)
+        switch (SelectionMode)
         {
             case SelectionMode.None:
                 break;
+
             case SelectionMode.One:
                 if (SelectedRow != -1)
-                    ColorRow(SelectedRow, Color.White);
-                ColorRow(myRow, Color.Silver); //SystemColors.Highlight);
-                SelectedRow = myRow;
-                break;
-            /*case SelectRowsMode.OneToggle:
-                if(SelectedRow==myRow){
-                    ColorRow(SelectedRow,Color.White);
-                    SelectedRow=-1;
-                }
-                else{
-                    if(SelectedRow!=-1)
-                        ColorRow(SelectedRow,Color.White);
-                    ColorRow(myRow,Color.Silver);
-                    SelectedRow=myRow;
-                }
-                break;*/
-            case SelectionMode.MultiExtended:
-                SelectedIAL = new ArrayList();
-                for (var i = 0; i < selectedIndices.Length; i++)
                 {
-                    SelectedIAL.Add(selectedIndices[i]);
+                    ColorRow(SelectedRow, Color.White);
                 }
 
-                if (!ControlIsDown)
+                ColorRow(rowIndex, Color.Silver);
+                SelectedRow = rowIndex;
+                break;
+
+            case SelectionMode.MultiExtended:
+                var arrayList = new ArrayList();
+                foreach (var inde in _selectedIndices)
                 {
-                    for (var i = 0; i < SelectedIAL.Count; i++)
+                    arrayList.Add(inde);
+                }
+
+                if (!_controlIsDown)
+                {
+                    foreach (var t in arrayList)
                     {
-                        ColorRow((int) SelectedIAL[i], Color.White);
+                        ColorRow((int) t, Color.White);
                     }
 
-                    SelectedIAL.Clear();
-                    SelectedIAL.Add(myRow);
-                    ColorRow(myRow, Color.Silver); //SystemColors.Highlight);
-                    //}
+                    arrayList.Clear();
+                    arrayList.Add(rowIndex);
+
+                    ColorRow(rowIndex, Color.Silver);
                 }
                 else
                 {
-                    if (SelectedIAL.Contains(myRow))
+                    if (arrayList.Contains(rowIndex))
                     {
-                        SelectedIAL.Remove(myRow);
-                        ColorRow(myRow, Color.White);
+                        arrayList.Remove(rowIndex);
+
+                        ColorRow(rowIndex, Color.White);
                     }
                     else
                     {
-                        SelectedIAL.Add(myRow);
-                        ColorRow(myRow, Color.Silver); //SystemColors.Highlight);
+                        arrayList.Add(rowIndex);
+
+                        ColorRow(rowIndex, Color.Silver);
                     }
                 }
 
-                selectedIndices = new int[SelectedIAL.Count];
-                for (var i = 0; i < SelectedIAL.Count; i++)
+                _selectedIndices = new int[arrayList.Count];
+                for (var i = 0; i < arrayList.Count; i++)
                 {
-                    selectedIndices[i] = (int) SelectedIAL[i];
+                    _selectedIndices[i] = (int) arrayList[i];
                 }
 
-                SelectedIAL = null;
-                if (selectedIndices.Length == 1)
+                if (_selectedIndices.Length == 1)
                 {
-                    SelectedRow = selectedIndices[0];
+                    SelectedRow = _selectedIndices[0];
                 }
 
                 break;
         }
 
-        SelectedTable = MySelectedTable; //this is to identify one in an array of tables.
-        //MessageBox.Show(Row:+" "+myRow+" "+this.ToString());
-        OnCellClicked(new CellEventArgs(myRow));
+        OnCellClicked(new CellEventArgs(rowIndex));
     }
 
     private void panelTable_MouseWheel(object sender, MouseEventArgs e)
     {
-        if (!ShowScroll) return;
-        if (panelTable.Height < panelScroll.Height) return;
-        var max = panelTable.Height - panelScroll.Height + 3;
-        var newScrollVal = vScrollBar1.Value - e.Delta / 3;
+        if (!ShowScroll)
+        {
+            return;
+        }
+
+        if (_panelTable.Height < _panelScroll.Height)
+        {
+            return;
+        }
+
+        var max = _panelTable.Height - _panelScroll.Height + 3;
+
+        var newScrollVal = _vScrollBar1.Value - e.Delta / 3;
         if (newScrollVal > max)
         {
-            vScrollBar1.Value = max;
+            _vScrollBar1.Value = max;
         }
-        else if (newScrollVal < vScrollBar1.Minimum)
+        else if (newScrollVal < _vScrollBar1.Minimum)
         {
-            vScrollBar1.Value = vScrollBar1.Minimum;
+            _vScrollBar1.Value = _vScrollBar1.Minimum;
         }
         else
         {
-            vScrollBar1.Value = newScrollVal;
+            _vScrollBar1.Value = newScrollVal;
         }
 
-        LayoutManagerForms.MoveLocation(panelTable, new Point(0, -vScrollBar1.Value));
+        _panelTable.Location = new Point(0, -_vScrollBar1.Value);
     }
 
     private void panelTable_KeyDown(object sender, KeyEventArgs e)
@@ -1029,7 +655,7 @@ public class ContrTable : UserControl
         OnKeyDown(e);
         if (e.KeyCode == Keys.ControlKey)
         {
-            ControlIsDown = true;
+            _controlIsDown = true;
         }
     }
 
@@ -1038,7 +664,7 @@ public class ContrTable : UserControl
         OnKeyUp(e);
         if (e.KeyCode == Keys.ControlKey)
         {
-            ControlIsDown = false;
+            _controlIsDown = false;
         }
     }
 
@@ -1049,54 +675,29 @@ public class ContrTable : UserControl
 
     private void vScrollBar1_Scroll(object sender, ScrollEventArgs e)
     {
-        //Point tempPoint = panelTable.Location;
-        //tempPoint.Y=-e.NewValue;
-        LayoutManagerForms.MoveLocation(panelTable, new Point(0, -e.NewValue));
-        panelTable.Select();
+        _panelTable.Location = new Point(0, -e.NewValue);
+        _panelTable.Select();
     }
-
-
-    public void ScrollToLine(int lineNum)
-    {
-        if (lineNum < 2) lineNum = 2;
-        var tempLoc = rowPos[lineNum - 2];
-        if (tempLoc > vScrollBar1.Maximum) tempLoc = vScrollBar1.Maximum;
-        if (tempLoc < vScrollBar1.Minimum) tempLoc = vScrollBar1.Minimum;
-        vScrollBar1.Value = tempLoc;
-        LayoutManagerForms.MoveLocation(panelTable, new Point(0, -tempLoc));
-    }
-
 
     public delegate void CellEventHandler(object sender, CellEventArgs e);
 
     public event CellEventHandler CellClicked;
 
-    public event CellEventHandler CellDoubleClicked;
-
     protected virtual void OnCellClicked(CellEventArgs e)
     {
-        if (CellClicked != null)
-        {
-            CellClicked(this, e);
-        }
+        CellClicked?.Invoke(this, e);
     }
-
 
     protected virtual void OnCellDoubleClicked(CellEventArgs e)
     {
-        if (CellDoubleClicked != null)
-        {
-            CellDoubleClicked(this, e);
-        }
     }
-
 
     public int WorldToLine(int y)
     {
         var retVal = 0;
         for (var i = 0; i < MaxRows; i++)
         {
-            if (y > rowPos[i])
+            if (y > _rowPos[i])
             {
                 retVal = i;
             }
@@ -1107,16 +708,11 @@ public class ContrTable : UserControl
 
     private void panelHead_Click(object sender, EventArgs e)
     {
-        panelTable.Select();
+        _panelTable.Select();
     }
 }
-    
-public class CellEventArgs : EventArgs
+
+public class CellEventArgs(int row) : EventArgs
 {
-    public CellEventArgs(int row)
-    {
-        Row = row;
-    }
-        
-    public int Row { get; }
+    public int Row { get; } = row;
 }

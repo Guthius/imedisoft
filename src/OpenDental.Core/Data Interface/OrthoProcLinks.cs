@@ -26,13 +26,13 @@ public class OrthoProcLinks
 
     public static List<OrthoProcLink> GetManyByOrthoCase(long orthoCaseNum)
     {
-        var command = "SELECT * FROM orthoproclink WHERE orthoproclink.OrthoCaseNum = " + SOut.Long(orthoCaseNum);
+        var command = "SELECT * FROM orthoproclink WHERE orthoproclink.OrthoCaseNum = " + (orthoCaseNum);
         return OrthoProcLinkCrud.SelectMany(command);
     }
 
     public static OrthoProcLink GetByType(long orthoCaseNum, OrthoProcType orthoProcType)
     {
-        var command = $@"SELECT * FROM orthoproclink WHERE orthoproclink.OrthoCaseNum={SOut.Long(orthoCaseNum)}
+        var command = $@"SELECT * FROM orthoproclink WHERE orthoproclink.OrthoCaseNum={(orthoCaseNum)}
 				AND orthoproclink.ProcLinkType={SOut.Int((int) orthoProcType)}";
         return OrthoProcLinkCrud.SelectOne(command);
     }
@@ -44,7 +44,7 @@ public class OrthoProcLinks
 
     public static List<OrthoProcLink> GetManyByOrthoCases(List<long> listOrthoCaseNums)
     {
-        if (listOrthoCaseNums.Count <= 0) return new List<OrthoProcLink>();
+        if (listOrthoCaseNums.Count <= 0) return [];
 
         var command = $"SELECT * FROM orthoproclink WHERE orthoproclink.OrthoCaseNum IN({string.Join(",", listOrthoCaseNums)})";
         return OrthoProcLinkCrud.SelectMany(command);
@@ -52,7 +52,7 @@ public class OrthoProcLinks
 
     public static List<OrthoProcLink> GetManyForProcs(List<long> listProcNums)
     {
-        if (listProcNums.Count <= 0) return new List<OrthoProcLink>();
+        if (listProcNums.Count <= 0) return [];
 
         var command = $@"SELECT * FROM orthoproclink
 				WHERE orthoproclink.ProcNum IN({string.Join(",", listProcNums)})";
@@ -61,13 +61,13 @@ public class OrthoProcLinks
 
     public static OrthoProcLink GetByProcNum(long procNum)
     {
-        var command = "SELECT * FROM orthoproclink WHERE ProcNum=" + SOut.Long(procNum);
+        var command = "SELECT * FROM orthoproclink WHERE ProcNum=" + (procNum);
         return OrthoProcLinkCrud.SelectOne(command);
     }
 
     public static List<OrthoProcLink> GetVisitLinksForOrthoCase(long orthoCaseNum)
     {
-        var command = $@"SELECT * FROM orthoproclink WHERE orthoproclink.OrthoCaseNum={SOut.Long(orthoCaseNum)}
+        var command = $@"SELECT * FROM orthoproclink WHERE orthoproclink.OrthoCaseNum={(orthoCaseNum)}
 			AND orthoproclink.ProcLinkType={SOut.Int((int) OrthoProcType.Visit)}";
         return OrthoProcLinkCrud.SelectMany(command);
     }
@@ -87,7 +87,7 @@ public class OrthoProcLinks
 
     public static bool IsProcLinked(long procNum)
     {
-        var command = "SELECT * FROM orthoproclink WHERE orthoproclink.ProcNum=" + SOut.Long(procNum);
+        var command = "SELECT * FROM orthoproclink WHERE orthoproclink.ProcNum=" + (procNum);
         return OrthoProcLinkCrud.SelectMany(command).Count > 0;
     }
 }

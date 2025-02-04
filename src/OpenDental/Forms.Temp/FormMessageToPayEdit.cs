@@ -1,12 +1,11 @@
 using CodeBase;
 using Newtonsoft.Json;
-using OpenDental.Thinfinity;
 using OpenDentBusiness;
 using OpenDentBusiness.AutoComm;
 using System;
 using System.Collections.Generic;
-using System.Data;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Windows.Forms;
 using Imedisoft.Core.Caching;
@@ -111,7 +110,6 @@ public partial class FormMessageToPayEdit:FormODBase {
 			return;
 		}
 		statement=Statements.GetStatement(statement.StatementNum);//Refresh just in case
-		EServiceShortGuids.CreateAndInsertMsgToPayShortGuid(_patient.PatNum,statement.ShortGUID);
 		var listSendModes=new List<string>();
 		var message=Lan.g(this,"Message sent via:")+" ";
 		if(emailSent) {
@@ -140,13 +138,9 @@ public partial class FormMessageToPayEdit:FormODBase {
 		sheet.Parameters.Add(new SheetParameter(true,"Statement") { ParamValue=statement });
 		var filePath=ODFileUtils.CombinePaths(PrefC.GetTempFolderPath(),statement.PatNum+".pdf");
 		SheetPrinting.CreatePdf(sheet,filePath,statement,dataSet:dataSetStatement);
-		try {
-			if(false) {
-				ThinfinityUtils.HandleFile(filePath);
-			}
-			else {
-				Process.Start(filePath);
-			}
+		try
+		{
+			Process.Start(filePath);
 		}
 		catch(Exception ex) {
 			FriendlyException.Show(Lan.g(this,"Unable to open the file."),ex);
@@ -154,7 +148,7 @@ public partial class FormMessageToPayEdit:FormODBase {
 		try {
 			Statements.DeleteStatements(ListTools.FromSingle(statement),true);
 		}
-		catch(Exception ex) {
+		catch {
 			//This shouldn't happen
 		}
 	}
@@ -189,14 +183,14 @@ public partial class FormMessageToPayEdit:FormODBase {
 		}
 		if(checkText.Checked) {
 			//Message must contain Text to pay tag.
-			if(!textMessage.Text.Contains(MsgToPayTagReplacer.MSG_TO_PAY_TAG)) {
-				ODMessageBox.Show(Lan.g(this,"SMS Message Text must contain")+" '"+MsgToPayTagReplacer.MSG_TO_PAY_TAG+"'.");
+			if(!textMessage.Text.Contains(MsgToPayTagReplacer.MsgToPayTag)) {
+				ODMessageBox.Show(Lan.g(this,"SMS Message Text must contain")+" '"+MsgToPayTagReplacer.MsgToPayTag+"'.");
 				return false;
 			}
 		}
 		if(checkEmail.Checked) {//Not an else if because we can send for both, in that case validate for both.
-			if(!browserEmail.DocumentText.Contains(MsgToPayTagReplacer.MSG_TO_PAY_TAG)) {
-				ODMessageBox.Show(Lan.g(this,"Email Message Text must contain")+" '"+MsgToPayTagReplacer.MSG_TO_PAY_TAG+"'.");
+			if(!browserEmail.DocumentText.Contains(MsgToPayTagReplacer.MsgToPayTag)) {
+				ODMessageBox.Show(Lan.g(this,"Email Message Text must contain")+" '"+MsgToPayTagReplacer.MsgToPayTag+"'.");
 				return false;
 			}
 			if(string.IsNullOrWhiteSpace(textSubject.Text)) {
@@ -294,13 +288,8 @@ public partial class FormMessageToPayEdit:FormODBase {
 		var documentStatement=Documents.GetByNum(statement.DocNum);
 		var attachPath=EmailAttaches.GetAttachPath();
 		var fileName=DateTime.Now.ToString("yyyyMMdd")+"_"+DateTime.Now.TimeOfDay.Ticks+ODRandom.Next(1000)+".pdf";
-		var filePathAndName=FileAtoZ.CombinePaths(attachPath,fileName);
-		if(false) {
-			ImageStore.Export(filePathAndName,documentStatement,_patient);
-		}
-		else {
-			FileAtoZ.Copy(savedPdfPath,filePathAndName);
-		}
+		var filePathAndName=Path.Combine(attachPath,fileName);
+		FileAtoZ.Copy(savedPdfPath,filePathAndName);
 		var emailAttach=new EmailAttach();
 		emailAttach.DisplayedFileName="Statement.pdf";
 		emailAttach.ActualFileName=fileName;
@@ -354,7 +343,7 @@ public partial class FormMessageToPayEdit:FormODBase {
 			try {
 				browserEmail.DocumentText=MarkupEdit.TranslateToXhtml(templateMessage,isEmail:true,scale:1);
 			}
-			catch(Exception ex) {
+			catch {
 			}
 		}
 	}

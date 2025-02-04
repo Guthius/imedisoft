@@ -1,34 +1,13 @@
-#region
-
 using System.Collections.Generic;
 using System.Data;
-using System.Linq;
 using DataConnectionBase;
 using Imedisoft.Core.Entities;
 using OpenDentBusiness;
-
-#endregion
 
 namespace Imedisoft.Core.Crud;
 
 public class ReplicationServerCrud
 {
-    public static ReplicationServer SelectOne(long replicationServerNum)
-    {
-        var command = "SELECT * FROM replicationserver "
-                      + "WHERE ReplicationServerNum = " + SOut.Long(replicationServerNum);
-        var list = TableToList(DataCore.GetTable(command));
-        if (list.Count == 0) return null;
-        return list[0];
-    }
-
-    public static ReplicationServer SelectOne(string command)
-    {
-        var list = TableToList(DataCore.GetTable(command));
-        if (list.Count == 0) return null;
-        return list[0];
-    }
-
     public static List<ReplicationServer> SelectMany(string command)
     {
         var list = TableToList(DataCore.GetTable(command));
@@ -38,18 +17,19 @@ public class ReplicationServerCrud
     public static List<ReplicationServer> TableToList(DataTable table)
     {
         var retVal = new List<ReplicationServer>();
-        ReplicationServer replicationServer;
         foreach (DataRow row in table.Rows)
         {
-            replicationServer = new ReplicationServer();
-            replicationServer.ReplicationServerNum = SIn.Long(row["ReplicationServerNum"].ToString());
-            replicationServer.Descript = SIn.String(row["Descript"].ToString());
-            replicationServer.ServerId = SIn.Int(row["ServerId"].ToString());
-            replicationServer.RangeStart = SIn.Long(row["RangeStart"].ToString());
-            replicationServer.RangeEnd = SIn.Long(row["RangeEnd"].ToString());
-            replicationServer.AtoZpath = SIn.String(row["AtoZpath"].ToString());
-            replicationServer.UpdateBlocked = SIn.Bool(row["UpdateBlocked"].ToString());
-            replicationServer.SlaveMonitor = SIn.String(row["SlaveMonitor"].ToString());
+            var replicationServer = new ReplicationServer
+            {
+                ReplicationServerNum = SIn.Long(row["ReplicationServerNum"].ToString()),
+                Descript = SIn.String(row["Descript"].ToString()),
+                ServerId = SIn.Int(row["ServerId"].ToString()),
+                RangeStart = SIn.Long(row["RangeStart"].ToString()),
+                RangeEnd = SIn.Long(row["RangeEnd"].ToString()),
+                AtoZpath = SIn.String(row["AtoZpath"].ToString()),
+                UpdateBlocked = SIn.Bool(row["UpdateBlocked"].ToString()),
+                SlaveMonitor = SIn.String(row["SlaveMonitor"].ToString())
+            };
             retVal.Add(replicationServer);
         }
 
@@ -73,62 +53,6 @@ public class ReplicationServerCrud
         return table;
     }
 
-    public static long Insert(ReplicationServer replicationServer)
-    {
-        return Insert(replicationServer, false);
-    }
-
-    public static long Insert(ReplicationServer replicationServer, bool useExistingPK)
-    {
-        var command = "INSERT INTO replicationserver (";
-
-        command += "Descript,ServerId,RangeStart,RangeEnd,AtoZpath,UpdateBlocked,SlaveMonitor) VALUES(";
-
-        command +=
-            DbHelper.ParamChar + "paramDescript,"
-                               + SOut.Int(replicationServer.ServerId) + ","
-                               + SOut.Long(replicationServer.RangeStart) + ","
-                               + SOut.Long(replicationServer.RangeEnd) + ","
-                               + "'" + SOut.String(replicationServer.AtoZpath) + "',"
-                               + SOut.Bool(replicationServer.UpdateBlocked) + ","
-                               + "'" + SOut.String(replicationServer.SlaveMonitor) + "')";
-        if (replicationServer.Descript == null) replicationServer.Descript = "";
-        var paramDescript = new OdSqlParameter("paramDescript", SOut.StringParam(replicationServer.Descript));
-        {
-            replicationServer.ReplicationServerNum = Db.NonQ(command, true, "ReplicationServerNum", "replicationServer", paramDescript);
-        }
-        return replicationServer.ReplicationServerNum;
-    }
-
-    public static long InsertNoCache(ReplicationServer replicationServer)
-    {
-        return InsertNoCache(replicationServer, false);
-    }
-
-    public static long InsertNoCache(ReplicationServer replicationServer, bool useExistingPK)
-    {
-        const bool isRandomKeys = false;
-        var command = "INSERT INTO replicationserver (";
-        if (isRandomKeys || useExistingPK) command += "ReplicationServerNum,";
-        command += "Descript,ServerId,RangeStart,RangeEnd,AtoZpath,UpdateBlocked,SlaveMonitor) VALUES(";
-        if (isRandomKeys || useExistingPK) command += SOut.Long(replicationServer.ReplicationServerNum) + ",";
-        command +=
-            DbHelper.ParamChar + "paramDescript,"
-                               + SOut.Int(replicationServer.ServerId) + ","
-                               + SOut.Long(replicationServer.RangeStart) + ","
-                               + SOut.Long(replicationServer.RangeEnd) + ","
-                               + "'" + SOut.String(replicationServer.AtoZpath) + "',"
-                               + SOut.Bool(replicationServer.UpdateBlocked) + ","
-                               + "'" + SOut.String(replicationServer.SlaveMonitor) + "')";
-        if (replicationServer.Descript == null) replicationServer.Descript = "";
-        var paramDescript = new OdSqlParameter("paramDescript", SOut.StringParam(replicationServer.Descript));
-        if (useExistingPK || isRandomKeys)
-            Db.NonQ(command, paramDescript);
-        else
-            replicationServer.ReplicationServerNum = Db.NonQ(command, true, "ReplicationServerNum", "replicationServer", paramDescript);
-        return replicationServer.ReplicationServerNum;
-    }
-
     public static void Update(ReplicationServer replicationServer)
     {
         var command = "UPDATE replicationserver SET "
@@ -143,86 +67,5 @@ public class ReplicationServerCrud
         if (replicationServer.Descript == null) replicationServer.Descript = "";
         var paramDescript = new OdSqlParameter("paramDescript", SOut.StringParam(replicationServer.Descript));
         Db.NonQ(command, paramDescript);
-    }
-
-    public static bool Update(ReplicationServer replicationServer, ReplicationServer oldReplicationServer)
-    {
-        var command = "";
-        if (replicationServer.Descript != oldReplicationServer.Descript)
-        {
-            if (command != "") command += ",";
-            command += "Descript = " + DbHelper.ParamChar + "paramDescript";
-        }
-
-        if (replicationServer.ServerId != oldReplicationServer.ServerId)
-        {
-            if (command != "") command += ",";
-            command += "ServerId = " + SOut.Int(replicationServer.ServerId) + "";
-        }
-
-        if (replicationServer.RangeStart != oldReplicationServer.RangeStart)
-        {
-            if (command != "") command += ",";
-            command += "RangeStart = " + SOut.Long(replicationServer.RangeStart) + "";
-        }
-
-        if (replicationServer.RangeEnd != oldReplicationServer.RangeEnd)
-        {
-            if (command != "") command += ",";
-            command += "RangeEnd = " + SOut.Long(replicationServer.RangeEnd) + "";
-        }
-
-        if (replicationServer.AtoZpath != oldReplicationServer.AtoZpath)
-        {
-            if (command != "") command += ",";
-            command += "AtoZpath = '" + SOut.String(replicationServer.AtoZpath) + "'";
-        }
-
-        if (replicationServer.UpdateBlocked != oldReplicationServer.UpdateBlocked)
-        {
-            if (command != "") command += ",";
-            command += "UpdateBlocked = " + SOut.Bool(replicationServer.UpdateBlocked) + "";
-        }
-
-        if (replicationServer.SlaveMonitor != oldReplicationServer.SlaveMonitor)
-        {
-            if (command != "") command += ",";
-            command += "SlaveMonitor = '" + SOut.String(replicationServer.SlaveMonitor) + "'";
-        }
-
-        if (command == "") return false;
-        if (replicationServer.Descript == null) replicationServer.Descript = "";
-        var paramDescript = new OdSqlParameter("paramDescript", SOut.StringParam(replicationServer.Descript));
-        command = "UPDATE replicationserver SET " + command
-                                                  + " WHERE ReplicationServerNum = " + SOut.Long(replicationServer.ReplicationServerNum);
-        Db.NonQ(command, paramDescript);
-        return true;
-    }
-
-    public static bool UpdateComparison(ReplicationServer replicationServer, ReplicationServer oldReplicationServer)
-    {
-        if (replicationServer.Descript != oldReplicationServer.Descript) return true;
-        if (replicationServer.ServerId != oldReplicationServer.ServerId) return true;
-        if (replicationServer.RangeStart != oldReplicationServer.RangeStart) return true;
-        if (replicationServer.RangeEnd != oldReplicationServer.RangeEnd) return true;
-        if (replicationServer.AtoZpath != oldReplicationServer.AtoZpath) return true;
-        if (replicationServer.UpdateBlocked != oldReplicationServer.UpdateBlocked) return true;
-        if (replicationServer.SlaveMonitor != oldReplicationServer.SlaveMonitor) return true;
-        return false;
-    }
-
-    public static void Delete(long replicationServerNum)
-    {
-        var command = "DELETE FROM replicationserver "
-                      + "WHERE ReplicationServerNum = " + SOut.Long(replicationServerNum);
-        Db.NonQ(command);
-    }
-
-    public static void DeleteMany(List<long> listReplicationServerNums)
-    {
-        if (listReplicationServerNums == null || listReplicationServerNums.Count == 0) return;
-        var command = "DELETE FROM replicationserver "
-                      + "WHERE ReplicationServerNum IN(" + string.Join(",", listReplicationServerNums.Select(x => SOut.Long(x))) + ")";
-        Db.NonQ(command);
     }
 }

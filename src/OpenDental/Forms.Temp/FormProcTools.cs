@@ -7,6 +7,7 @@ using System.Windows.Forms;
 using CodeBase;
 using DataConnectionBase;
 using Imedisoft.Core.Caching;
+using Imedisoft.Core.Data;
 using Imedisoft.Core.Entities;
 using OpenDentBusiness;
 
@@ -37,25 +38,6 @@ public partial class FormProcTools : FormODBase {
 	}
 
 	private void FormProcTools_Load(object sender,EventArgs e) {
-		if(/* ODBuild.IsTrial() */ false) {
-			checkTcodes.Checked=false;
-			checkNcodes.Checked=false;
-			checkDcodes.Checked=false;
-			checkTreatAreas.Checked=false;
-			checkAutocodes.Checked=false;
-			checkProcButtons.Checked=false;
-			checkApptProcsQuickAdd.Checked=false;
-			checkTcodes.Enabled=false;
-			//checkNcodes.Enabled=false;
-			checkDcodes.Enabled=false;
-			checkTreatAreas.Enabled=false;
-			checkAutocodes.Enabled=false;
-			checkProcButtons.Enabled=false;
-			if(CultureInfo.CurrentCulture.Name.EndsWith("US")) {
-				checkRecallTypes.Enabled=false;
-				checkApptProcsQuickAdd.Enabled=false;
-			}
-		}
 		if(CultureInfo.CurrentCulture.Name.EndsWith("CA")) {//Canadian. en-CA or fr-CA
 			//Tcodes remain enabled
 			//Ncodes remain enabled
@@ -108,7 +90,7 @@ public partial class FormProcTools : FormODBase {
 		try {
 			File.Delete(tempFile);
 		}
-		catch(Exception ex) {
+		catch {
 		}
 		var stringArrayCodeLines=codeData.Split("\n",StringSplitOptions.RemoveEmptyEntries);
 		for(var i=0;i<stringArrayCodeLines.Length;i++) {

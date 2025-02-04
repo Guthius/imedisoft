@@ -17,7 +17,6 @@
 		<ui:Button x:Name="butGetPW" Width="75" Height="24" Margin="1058,634,0,0" Text="Get PW" Click="butGetPW_Click" />
 		<ui:Label x:Name="label17" Width="73" Height="18" Margin="854,637,0,0" Text="Password" HAlign="Right" VAlign="Center" />
 		<ui:Button x:Name="button5" Width="42" Height="24" Margin="510,308,0,0" Text="" Icon="ArrowLeft" ImageAlign="Center" />
-		<ui:WarningIntegrity x:Name="warningIntegrity1" Width="100" Height="100" Margin="1023,227,0,0" />
 		<ui:Button x:Name="butNow" Width="47" Height="24" Margin="1066,186,0,0" Text="Now" Click="butNow_Click" />
 		<ui:Label x:Name="label16" Width="73" Height="18" Margin="862,189,0,0" Text="Time" HAlign="Right" VAlign="Center" />
 		<ui:TextVTime x:Name="textTime" Width="119" Height="20" Margin="941,187,0,0" />

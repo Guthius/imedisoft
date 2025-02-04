@@ -24,59 +24,60 @@ public class ClaimProcCrud
     public static List<ClaimProc> TableToList(DataTable table)
     {
         var retVal = new List<ClaimProc>();
-        ClaimProc claimProc;
         foreach (DataRow row in table.Rows)
         {
-            claimProc = new ClaimProc();
-            claimProc.ClaimProcNum = SIn.Long(row["ClaimProcNum"].ToString());
-            claimProc.ProcNum = SIn.Long(row["ProcNum"].ToString());
-            claimProc.ClaimNum = SIn.Long(row["ClaimNum"].ToString());
-            claimProc.PatNum = SIn.Long(row["PatNum"].ToString());
-            claimProc.ProvNum = SIn.Long(row["ProvNum"].ToString());
-            claimProc.FeeBilled = SIn.Double(row["FeeBilled"].ToString());
-            claimProc.InsPayEst = SIn.Double(row["InsPayEst"].ToString());
-            claimProc.DedApplied = SIn.Double(row["DedApplied"].ToString());
-            claimProc.Status = (ClaimProcStatus) SIn.Int(row["Status"].ToString());
-            claimProc.InsPayAmt = SIn.Double(row["InsPayAmt"].ToString());
-            claimProc.Remarks = SIn.String(row["Remarks"].ToString());
-            claimProc.ClaimPaymentNum = SIn.Long(row["ClaimPaymentNum"].ToString());
-            claimProc.PlanNum = SIn.Long(row["PlanNum"].ToString());
-            claimProc.DateCP = SIn.Date(row["DateCP"].ToString());
-            claimProc.WriteOff = SIn.Double(row["WriteOff"].ToString());
-            claimProc.CodeSent = SIn.String(row["CodeSent"].ToString());
-            claimProc.AllowedOverride = SIn.Double(row["AllowedOverride"].ToString());
-            claimProc.Percentage = SIn.Int(row["Percentage"].ToString());
-            claimProc.PercentOverride = SIn.Int(row["PercentOverride"].ToString());
-            claimProc.CopayAmt = SIn.Double(row["CopayAmt"].ToString());
-            claimProc.NoBillIns = SIn.Bool(row["NoBillIns"].ToString());
-            claimProc.PaidOtherIns = SIn.Double(row["PaidOtherIns"].ToString());
-            claimProc.BaseEst = SIn.Double(row["BaseEst"].ToString());
-            claimProc.CopayOverride = SIn.Double(row["CopayOverride"].ToString());
-            claimProc.ProcDate = SIn.Date(row["ProcDate"].ToString());
-            claimProc.DateEntry = SIn.Date(row["DateEntry"].ToString());
-            claimProc.LineNumber = SIn.Byte(row["LineNumber"].ToString());
-            claimProc.DedEst = SIn.Double(row["DedEst"].ToString());
-            claimProc.DedEstOverride = SIn.Double(row["DedEstOverride"].ToString());
-            claimProc.InsEstTotal = SIn.Double(row["InsEstTotal"].ToString());
-            claimProc.InsEstTotalOverride = SIn.Double(row["InsEstTotalOverride"].ToString());
-            claimProc.PaidOtherInsOverride = SIn.Double(row["PaidOtherInsOverride"].ToString());
-            claimProc.EstimateNote = SIn.String(row["EstimateNote"].ToString());
-            claimProc.WriteOffEst = SIn.Double(row["WriteOffEst"].ToString());
-            claimProc.WriteOffEstOverride = SIn.Double(row["WriteOffEstOverride"].ToString());
-            claimProc.ClinicNum = SIn.Long(row["ClinicNum"].ToString());
-            claimProc.InsSubNum = SIn.Long(row["InsSubNum"].ToString());
-            claimProc.PaymentRow = SIn.Int(row["PaymentRow"].ToString());
-            claimProc.PayPlanNum = SIn.Long(row["PayPlanNum"].ToString());
-            claimProc.ClaimPaymentTracking = SIn.Long(row["ClaimPaymentTracking"].ToString());
-            claimProc.SecUserNumEntry = SIn.Long(row["SecUserNumEntry"].ToString());
-            claimProc.SecDateEntry = SIn.Date(row["SecDateEntry"].ToString());
-            claimProc.SecDateTEdit = SIn.DateTime(row["SecDateTEdit"].ToString());
-            claimProc.DateSuppReceived = SIn.Date(row["DateSuppReceived"].ToString());
-            claimProc.DateInsFinalized = SIn.Date(row["DateInsFinalized"].ToString());
-            claimProc.IsTransfer = SIn.Bool(row["IsTransfer"].ToString());
-            claimProc.ClaimAdjReasonCodes = SIn.String(row["ClaimAdjReasonCodes"].ToString());
-            claimProc.IsOverpay = SIn.Bool(row["IsOverpay"].ToString());
-            claimProc.SecurityHash = SIn.String(row["SecurityHash"].ToString());
+            var claimProc = new ClaimProc
+            {
+                ClaimProcNum = SIn.Long(row["ClaimProcNum"].ToString()),
+                ProcNum = SIn.Long(row["ProcNum"].ToString()),
+                ClaimNum = SIn.Long(row["ClaimNum"].ToString()),
+                PatNum = SIn.Long(row["PatNum"].ToString()),
+                ProvNum = SIn.Long(row["ProvNum"].ToString()),
+                FeeBilled = SIn.Double(row["FeeBilled"].ToString()),
+                InsPayEst = SIn.Double(row["InsPayEst"].ToString()),
+                DedApplied = SIn.Double(row["DedApplied"].ToString()),
+                Status = (ClaimProcStatus) SIn.Int(row["Status"].ToString()),
+                InsPayAmt = SIn.Double(row["InsPayAmt"].ToString()),
+                Remarks = SIn.String(row["Remarks"].ToString()),
+                ClaimPaymentNum = SIn.Long(row["ClaimPaymentNum"].ToString()),
+                PlanNum = SIn.Long(row["PlanNum"].ToString()),
+                DateCP = SIn.Date(row["DateCP"].ToString()),
+                WriteOff = SIn.Double(row["WriteOff"].ToString()),
+                CodeSent = SIn.String(row["CodeSent"].ToString()),
+                AllowedOverride = SIn.Double(row["AllowedOverride"].ToString()),
+                Percentage = SIn.Int(row["Percentage"].ToString()),
+                PercentOverride = SIn.Int(row["PercentOverride"].ToString()),
+                CopayAmt = SIn.Double(row["CopayAmt"].ToString()),
+                NoBillIns = SIn.Bool(row["NoBillIns"].ToString()),
+                PaidOtherIns = SIn.Double(row["PaidOtherIns"].ToString()),
+                BaseEst = SIn.Double(row["BaseEst"].ToString()),
+                CopayOverride = SIn.Double(row["CopayOverride"].ToString()),
+                ProcDate = SIn.Date(row["ProcDate"].ToString()),
+                DateEntry = SIn.Date(row["DateEntry"].ToString()),
+                LineNumber = SIn.Byte(row["LineNumber"].ToString()),
+                DedEst = SIn.Double(row["DedEst"].ToString()),
+                DedEstOverride = SIn.Double(row["DedEstOverride"].ToString()),
+                InsEstTotal = SIn.Double(row["InsEstTotal"].ToString()),
+                InsEstTotalOverride = SIn.Double(row["InsEstTotalOverride"].ToString()),
+                PaidOtherInsOverride = SIn.Double(row["PaidOtherInsOverride"].ToString()),
+                EstimateNote = SIn.String(row["EstimateNote"].ToString()),
+                WriteOffEst = SIn.Double(row["WriteOffEst"].ToString()),
+                WriteOffEstOverride = SIn.Double(row["WriteOffEstOverride"].ToString()),
+                ClinicNum = SIn.Long(row["ClinicNum"].ToString()),
+                InsSubNum = SIn.Long(row["InsSubNum"].ToString()),
+                PaymentRow = SIn.Int(row["PaymentRow"].ToString()),
+                PayPlanNum = SIn.Long(row["PayPlanNum"].ToString()),
+                ClaimPaymentTracking = SIn.Long(row["ClaimPaymentTracking"].ToString()),
+                SecUserNumEntry = SIn.Long(row["SecUserNumEntry"].ToString()),
+                SecDateEntry = SIn.Date(row["SecDateEntry"].ToString()),
+                SecDateTEdit = SIn.DateTime(row["SecDateTEdit"].ToString()),
+                DateSuppReceived = SIn.Date(row["DateSuppReceived"].ToString()),
+                DateInsFinalized = SIn.Date(row["DateInsFinalized"].ToString()),
+                IsTransfer = SIn.Bool(row["IsTransfer"].ToString()),
+                ClaimAdjReasonCodes = SIn.String(row["ClaimAdjReasonCodes"].ToString()),
+                IsOverpay = SIn.Bool(row["IsOverpay"].ToString()),
+                SecurityHash = SIn.String(row["SecurityHash"].ToString())
+            };
             retVal.Add(claimProc);
         }
 
@@ -139,7 +140,7 @@ public class ClaimProcCrud
         };
     }
 
-    public static long Insert(ClaimProc claimProc)
+    public static void Insert(ClaimProc claimProc)
     {
         var command = "INSERT INTO claimproc (";
 
@@ -197,7 +198,6 @@ public class ClaimProcCrud
         {
             claimProc.ClaimProcNum = Db.NonQ(command, true, "ClaimProcNum", "claimProc");
         }
-        return claimProc.ClaimProcNum;
     }
 
     public static void Update(ClaimProc claimProc)

@@ -18,15 +18,16 @@ public class HL7DefSegmentCrud
     public static List<HL7DefSegment> TableToList(DataTable table)
     {
         var retVal = new List<HL7DefSegment>();
-        HL7DefSegment hL7DefSegment;
         foreach (DataRow row in table.Rows)
         {
-            hL7DefSegment = new HL7DefSegment();
-            hL7DefSegment.HL7DefSegmentNum = SIn.Long(row["HL7DefSegmentNum"].ToString());
-            hL7DefSegment.HL7DefMessageNum = SIn.Long(row["HL7DefMessageNum"].ToString());
-            hL7DefSegment.ItemOrder = SIn.Int(row["ItemOrder"].ToString());
-            hL7DefSegment.CanRepeat = SIn.Bool(row["CanRepeat"].ToString());
-            hL7DefSegment.IsOptional = SIn.Bool(row["IsOptional"].ToString());
+            var hL7DefSegment = new HL7DefSegment
+            {
+                HL7DefSegmentNum = SIn.Long(row["HL7DefSegmentNum"].ToString()),
+                HL7DefMessageNum = SIn.Long(row["HL7DefMessageNum"].ToString()),
+                ItemOrder = SIn.Int(row["ItemOrder"].ToString()),
+                CanRepeat = SIn.Bool(row["CanRepeat"].ToString()),
+                IsOptional = SIn.Bool(row["IsOptional"].ToString())
+            };
             var segmentName = row["SegmentName"].ToString();
             if (segmentName == "")
                 hL7DefSegment.SegmentName = 0;

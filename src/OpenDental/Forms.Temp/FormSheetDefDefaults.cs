@@ -1,13 +1,12 @@
 //FormSheetDefDefaults.cs for job 24428
 using System;
 using System.Collections.Generic;
-using System.Data;
 using System.Windows.Forms;
 using OpenDentBusiness;
-using System.Linq;
 using CodeBase;
 using DataConnectionBase;
 using Imedisoft.Core.Caching;
+using Imedisoft.Core.Data;
 using Imedisoft.Core.Entities;
 
 namespace OpenDental;
@@ -28,8 +27,6 @@ public partial class FormSheetDefDefaults:FormODBase {
 		FillSheetDefComboBox(comboReceipt,SheetTypeEnum.Statement,PrefName.SheetsDefaultReceipt);
 		FillSheetDefComboBox(comboLimited,SheetTypeEnum.Statement,PrefName.SheetsDefaultLimited);
 		FillSheetDefComboBox(comboStatements,SheetTypeEnum.Statement,PrefName.SheetsDefaultStatement);
-		//Clinic Dependent comboBoxeODs
-		FillSheetDefComboBox(comboRx,SheetTypeEnum.Rx,PrefName.SheetsDefaultRx);
 		FillSheetDefComboBox(comboBoxChartLayout,SheetTypeEnum.ChartModule,PrefName.SheetsDefaultChartModule);
 		FillSheetDefComboBox(comboTreatmentPlan,SheetTypeEnum.TreatmentPlan,PrefName.SheetsDefaultTreatmentPlan);
 		FillComboLabel();
@@ -70,8 +67,6 @@ public partial class FormSheetDefDefaults:FormODBase {
 		UpdateSheetDefDefault(comboReceipt,PrefName.SheetsDefaultReceipt,isIndependentOfClinic:true);
 		UpdateSheetDefDefault(comboLimited,PrefName.SheetsDefaultLimited,isIndependentOfClinic:true);
 		UpdateSheetDefDefault(comboStatements,PrefName.SheetsDefaultStatement,isIndependentOfClinic:true);
-		//Clinic Dependent Sheets
-		UpdateSheetDefDefault(comboRx,PrefName.SheetsDefaultRx);
 		UpdateSheetDefDefault(comboBoxChartLayout,PrefName.SheetsDefaultChartModule);
 		UpdateSheetDefDefault(comboTreatmentPlan,PrefName.SheetsDefaultTreatmentPlan);
 	}
@@ -127,14 +122,12 @@ public partial class FormSheetDefDefaults:FormODBase {
 		comboClinicDefault.ClinicNumSelected=_clinicNumPrevSelected;//Set the selected clinic to the previous one
 		//Only Clinic dependent combBoxes
 		var isStale=(ClinicDependentComboBoxes_Validate(comboBoxChartLayout,PrefName.SheetsDefaultChartModule)
-		             | ClinicDependentComboBoxes_Validate(comboRx,PrefName.SheetsDefaultRx)
 		             | ClinicDependentComboBoxes_Validate(comboTreatmentPlan,PrefName.SheetsDefaultTreatmentPlan));
 		if(isStale && MsgBox.Show(this, MsgBoxButtons.YesNo, Lan.g(this,"Would you like to save your changes for the selected clinic?"))) {
 			UpdateDefaultSheets();
 		}
 		comboClinicDefault.ClinicNumSelected=tempClinicNum;//Set the selected clinic to the newly selected clinic
 		//Only Clinic Dependant comboBoxODs
-		SelectComboBoxesDefault(comboRx,PrefName.SheetsDefaultRx);
 		SelectComboBoxesDefault(comboBoxChartLayout,PrefName.SheetsDefaultChartModule);
 		SelectComboBoxesDefault(comboTreatmentPlan,PrefName.SheetsDefaultTreatmentPlan);
 		_clinicNumPrevSelected=comboClinicDefault.ClinicNumSelected;//Store the newly selected clinic for when we have to run this event again.

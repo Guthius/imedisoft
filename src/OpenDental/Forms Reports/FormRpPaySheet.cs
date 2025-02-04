@@ -10,6 +10,7 @@ using Imedisoft.Core.Caching;
 using Imedisoft.Core.Entities;
 using Imedisoft.Core.Features.Clinics;
 using Imedisoft.Core.Features.Clinics.Dtos;
+using Imedisoft.Features.Providers.Dtos;
 using OpenDental.ReportingComplex;
 using OpenDentBusiness;
 
@@ -17,7 +18,7 @@ namespace OpenDental;
 
 public partial class FormRpPaySheet : FormODBase{
 	private List<ClinicDto> _listClinics;
-	private List<Provider> _listProviders;
+	private List<ProviderDto> _listProviders;
 	private List<Def> _listInsDefs;
 	private List<Def> _listPayDefs;
 	private List<Def> _listClaimPayGroupDefs;
@@ -34,15 +35,15 @@ public partial class FormRpPaySheet : FormODBase{
 		date2.SelectionStart=DateTime.Today;
 		if(!Security.IsAuthorized(EnumPermType.ReportDailyAllProviders,true)) {
 			//They either have permission or have a provider at this point.  If they don't have permission they must have a provider.
-			_listProviders=_listProviders.FindAll(x => x.ProvNum==Security.CurUser.ProvNum);
+			_listProviders=_listProviders.FindAll(x => x.Id==Security.CurUser.ProvNum);
 			var prov=_listProviders.FirstOrDefault();
 			if(prov!=null) {
-				_listProviders.AddRange(Providers.GetWhere(x => x.FName==prov.FName && x.LName==prov.LName && x.ProvNum!=prov.ProvNum));
+				_listProviders.AddRange(Providers.GetWhere(x => x.FirstName==prov.FirstName && x.LastName==prov.LastName && x.Id!=prov.Id));
 			}
 			checkAllProv.Checked=false;
 			checkAllProv.Enabled=false;
 		}
-		listProv.Items.AddList(_listProviders,x => x.GetLongDesc());
+		listProv.Items.AddList(_listProviders,x => x.Description);
 		//If the user is not allowed to run the report for all providers, default the selection to the first in the list box.
 		if(checkAllProv.Enabled==false && listProv.Items.Count > 0) {
 			listProv.SetSelected(0);
@@ -50,27 +51,20 @@ public partial class FormRpPaySheet : FormODBase{
 		if(!Security.IsAuthorized(EnumPermType.ReportDailyAllProviders,true) && listProv.Items.Count>0) {
 			listProv.SetAll(true);
 		}
-		if(!true) {
-			listClin.Visible=false;
-			labelClin.Visible=false;
-			checkAllClin.Visible=false;
+		_listClinics=Clinics.GetForUserod(Security.CurUser);
+		if(!Security.CurUser.ClinicIsRestricted) {
+			listClin.Items.Add(Lan.g(this,"Unassigned"));
+			listClin.SetSelected(0);
 		}
-		else {
-			_listClinics=Clinics.GetForUserod(Security.CurUser);
-			if(!Security.CurUser.ClinicIsRestricted) {
-				listClin.Items.Add(Lan.g(this,"Unassigned"));
-				listClin.SetSelected(0);
+		for(var i=0;i<_listClinics.Count;i++) {
+			listClin.Items.Add(_listClinics[i].Abbr);
+			if(Clinics.ClinicNum==0) {
+				listClin.SetSelected(listClin.Items.Count-1);
+				checkAllClin.Checked=true;
 			}
-			for(var i=0;i<_listClinics.Count;i++) {
-				listClin.Items.Add(_listClinics[i].Abbr);
-				if(Clinics.ClinicNum==0) {
-					listClin.SetSelected(listClin.Items.Count-1);
-					checkAllClin.Checked=true;
-				}
-				if(_listClinics[i].Id==Clinics.ClinicNum) {
-					listClin.SelectedIndices.Clear();
-					listClin.SetSelected(listClin.Items.Count-1);
-				}
+			if(_listClinics[i].Id==Clinics.ClinicNum) {
+				listClin.SelectedIndices.Clear();
+				listClin.SetSelected(listClin.Items.Count-1);
 			}
 		}
 		checkReportDisplayUnearnedTP.Checked=PrefC.GetBool(PrefName.ReportsDoShowHiddenTPPrepayments);
@@ -222,10 +216,10 @@ public partial class FormRpPaySheet : FormODBase{
 		var listPatTypes=new List<long>();
 		var listSelectedClaimPayGroupNums=new List<long>();
 		if(checkAllProv.Checked) {
-			listProvNums=_listProviders.Select(x => x.ProvNum).ToList();
+			listProvNums=_listProviders.Select(x => x.Id).ToList();
 		}
 		else {
-			listProvNums=listProv.SelectedIndices.Select(x => _listProviders[x].ProvNum).ToList();
+			listProvNums=listProv.SelectedIndices.Select(x => _listProviders[x].Id).ToList();
 		}
 		if(true) {
 			for(var i=0;i<listClin.SelectedIndices.Count;i++) {

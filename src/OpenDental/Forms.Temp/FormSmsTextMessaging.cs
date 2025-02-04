@@ -1,10 +1,8 @@
 using System;
 using System.Collections.Generic;
-using System.Data;
 using System.Drawing;
 using System.Globalization;
 using System.Linq;
-using System.Text;
 using System.Windows.Forms;
 using OpenDentBusiness;
 using CodeBase;
@@ -13,8 +11,6 @@ using Imedisoft.Core.Caching;
 using Imedisoft.Core.Data;
 using Imedisoft.Core.Entities;
 using Imedisoft.Core.Features.Clinics;
-using Intuit.Ipp.Data;
-using OpenDental.UI;
 
 namespace OpenDental;
 
@@ -110,9 +106,6 @@ public partial class FormSmsTextMessaging:FormODBase {
 
 		
 	private List<long> GetListSelectedClinicNums() {
-		if(!true) {
-			return [];//An empty list will cause the clinic filter to be ignored in SmsFromMobiles.GetMessages()
-		}
 		//we don't want an empty list
 		if(comboClinics.ListClinicNumsSelected.Count==0){
 			return [Clinics.ClinicNum];//current clinic
@@ -792,7 +785,6 @@ public partial class FormSmsTextMessaging:FormODBase {
 			return;
 		}
 		SmsBlockPhones.Insert(new SmsBlockPhone { BlockWirelessNumber=strNumberToBlock });
-		DataValid.SetInvalid(InvalidType.SmsBlockPhones);
 	}
 				
 	private void menuItemSelectPatient_Click(object sender,EventArgs e) {
@@ -820,10 +812,7 @@ public partial class FormSmsTextMessaging:FormODBase {
 			return;
 		}
 		long clinicNum=0;
-		if(!true) {
-			clinicNum=0;
-		}
-		else if(GetSelectedSmsGroup()!=null) {
+		if(GetSelectedSmsGroup()!=null) {
 			clinicNum=GetSelectedSmsGroup().ClinicNum;//can be 0
 		}
 		else if(GetSelectedSmsFromMobile()!=null) {
@@ -844,7 +833,7 @@ public partial class FormSmsTextMessaging:FormODBase {
 				return;
 			}
 		}
-		var errorText=PrefC.GetFirstShortURL(textReply.Text);
+		var errorText=PrefC.GetFirstShortUrl(textReply.Text);
 		if(!string.IsNullOrWhiteSpace(errorText)) {
 			MsgBox.Show(this,Lan.g(this,"Message cannot contain the URL")+" "+errorText+" "+Lan.g(this,"as this is only allowed for eServices."));
 			return;
@@ -893,9 +882,7 @@ public partial class FormSmsTextMessaging:FormODBase {
 			SmsToMobiles.SendSmsSingle(GetSelectedPatNum(),GetSelectedMobileNumber(),textReply.Text,clinicNum,SmsMessageSource.DirectSms,userod: Security.CurUser);
 		}
 		catch(Exception ex) {
-			if(!FormEServicesSetup.ProcessSendSmsException(ex)) {
-				MsgBox.Show(this,ex.Message);
-			}
+			MsgBox.Show(this,ex.Message);
 			return;
 		}
 		textReply.Text="";

@@ -11,7 +11,7 @@ namespace OpenDental.UI;
 public partial class Button : System.Windows.Forms.Button {
 	#region Fields - Public
 	///<summary>Just holds the scaling factor.</summary>
-	public LayoutManagerForms LayoutManager=new LayoutManagerForms();
+	
 	#endregion Fields - Public
 
 	#region Fields - Private Static Colors

@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Drawing;
 using System.Windows.Forms;
 using Imedisoft.Core.Entities;
 using Imedisoft.Core.Features.Clinics;
@@ -38,39 +37,20 @@ public partial class UserControlSetupWizOperatory : SetupWizControl
         gridMain.BeginUpdate();
         gridMain.Columns.Clear();
         GridColumn col;
-        if (true)
-        {
-            col = new GridColumn(Lan.g("FormSetupWizard", "OpName"), 110);
-            gridMain.Columns.Add(col);
-            col = new GridColumn(Lan.g("FormSetupWizard", "Abbrev"), 110);
-            gridMain.Columns.Add(col);
-            col = new GridColumn(Lan.g("FormSetupWizard", "Clinic"), 110);
-            gridMain.Columns.Add(col);
-            col = new GridColumn(Lan.g("FormSetupWizard", "ProvDentist"), 110);
-            gridMain.Columns.Add(col);
-            col = new GridColumn(Lan.g("FormSetupWizard", "ProvHygienist"), 110);
-            gridMain.Columns.Add(col);
-            col = new GridColumn(Lan.g("FormSetupWizard", "IsHygiene"), 60, HorizontalAlignment.Center);
-            gridMain.Columns.Add(col);
-            col = new GridColumn(Lan.g("FormSetupWizard", "IsHidden"), 60, HorizontalAlignment.Center);
-            gridMain.Columns.Add(col);
-        }
-        else
-        {
-            col = new GridColumn(Lan.g("FormSetupWizard", "OpName"), 135);
-            gridMain.Columns.Add(col);
-            col = new GridColumn(Lan.g("FormSetupWizard", "Abbrev"), 120);
-            gridMain.Columns.Add(col);
-            col = new GridColumn(Lan.g("FormSetupWizard", "ProvDentist"), 130);
-            gridMain.Columns.Add(col);
-            col = new GridColumn(Lan.g("FormSetupWizard", "ProvHygienist"), 130);
-            gridMain.Columns.Add(col);
-            col = new GridColumn(Lan.g("FormSetupWizard", "IsHygiene"), 80, HorizontalAlignment.Center);
-            gridMain.Columns.Add(col);
-            col = new GridColumn(Lan.g("FormSetupWizard", "IsHidden"), 80, HorizontalAlignment.Center);
-            gridMain.Columns.Add(col);
-        }
-
+        col = new GridColumn(Lan.g("FormSetupWizard", "OpName"), 110);
+        gridMain.Columns.Add(col);
+        col = new GridColumn(Lan.g("FormSetupWizard", "Abbrev"), 110);
+        gridMain.Columns.Add(col);
+        col = new GridColumn(Lan.g("FormSetupWizard", "Clinic"), 110);
+        gridMain.Columns.Add(col);
+        col = new GridColumn(Lan.g("FormSetupWizard", "ProvDentist"), 110);
+        gridMain.Columns.Add(col);
+        col = new GridColumn(Lan.g("FormSetupWizard", "ProvHygienist"), 110);
+        gridMain.Columns.Add(col);
+        col = new GridColumn(Lan.g("FormSetupWizard", "IsHygiene"), 60, HorizontalAlignment.Center);
+        gridMain.Columns.Add(col);
+        col = new GridColumn(Lan.g("FormSetupWizard", "IsHidden"), 60, HorizontalAlignment.Center);
+        gridMain.Columns.Add(col);
         //col = new ODGridColumn("Clinic",120);
         //gridMain.Columns.Add(col);
         gridMain.ListGridRows.Clear();

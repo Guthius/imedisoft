@@ -15,17 +15,17 @@ public class InsEditLogs
         var listCarrierNums = GetAssociatedCarrierNums(planNum);
         listCarrierNums.Add(carrierNum);
         var listInsEditLogsRet = new List<InsEditLog>();
-        var command = @"SELECT PlanNum FROM insplan WHERE PlanNum = " + SOut.Long(planNum);
+        var command = @"SELECT PlanNum FROM insplan WHERE PlanNum = " + (planNum);
         var insPlanNum = Db.GetLong(command);
         command = @"SELECT CarrierNum FROM carrier WHERE CarrierNum IN (" + string.Join(",", listCarrierNums) + @")";
         listCarrierNums = Db.GetListLong(command);
-        command = @"SELECT EmployerNum FROM employer WHERE EmployerNum=" + SOut.Long(employerNum);
+        command = @"SELECT EmployerNum FROM employer WHERE EmployerNum=" + (employerNum);
         var empNum = Db.GetLong(command);
         var listWhereOrs = new List<string>();
-        if (insPlanNum > 0) listWhereOrs.Add("(LogType=" + SOut.Int((int) InsEditLogType.InsPlan) + " AND FKey = " + SOut.Long(insPlanNum) + ")");
+        if (insPlanNum > 0) listWhereOrs.Add("(LogType=" + SOut.Int((int) InsEditLogType.InsPlan) + " AND FKey = " + (insPlanNum) + ")");
         if (listCarrierNums.Count > 0) listWhereOrs.Add("(LogType=" + SOut.Int((int) InsEditLogType.Carrier) + " AND FKey IN (" + string.Join(",", listCarrierNums) + "))");
-        if (empNum > 0) listWhereOrs.Add("(LogType=" + SOut.Int((int) InsEditLogType.Employer) + " AND FKey=" + SOut.Long(empNum) + ")");
-        listWhereOrs.Add("(LogType=" + SOut.Int((int) InsEditLogType.Benefit) + " AND ParentKey=" + SOut.Long(planNum) + ")");
+        if (empNum > 0) listWhereOrs.Add("(LogType=" + SOut.Int((int) InsEditLogType.Employer) + " AND FKey=" + (empNum) + ")");
+        listWhereOrs.Add("(LogType=" + SOut.Int((int) InsEditLogType.Benefit) + " AND ParentKey=" + (planNum) + ")");
         command = @"SELECT * FROM inseditlog
 				WHERE " + string.Join(@"
 				OR ", listWhereOrs);
@@ -75,10 +75,10 @@ public class InsEditLogs
     private static List<InsEditLog> GetLinkedLogs(long FKey, InsEditLogType insEditLogType, InsEditLog insEditLog, List<InsEditLog> listInsEditLogs)
     {
         var command = "SELECT * FROM inseditlog "
-                      + "WHERE FKey = " + SOut.Long(FKey) + " "
+                      + "WHERE FKey = " + (FKey) + " "
                       + "AND LogType = " + SOut.Int((int) insEditLogType) + " "
                       + "AND DateTStamp < " + SOut.DateTime(insEditLog.DateTStamp) + " "
-                      + "AND InsEditLogNum NOT IN( " + string.Join(",", listInsEditLogs.Select(x => SOut.Long(x.InsEditLogNum)).ToList()) + ")";
+                      + "AND InsEditLogNum NOT IN( " + string.Join(",", listInsEditLogs.Select(x => (x.InsEditLogNum)).ToList()) + ")";
         var listInsEditLogsLinked = InsEditLogCrud.SelectMany(command);
         GetChangedLogs(listInsEditLogsLinked);
         return listInsEditLogsLinked;
@@ -110,12 +110,12 @@ public class InsEditLogs
         //Get carrierNums associated to this insPlanNum, using carrierNum as a starting point.
         var command = @"SELECT inseditlog.OldValue,inseditlog.NewValue
 				FROM inseditlog
-				WHERE inseditlog.LogType=" + SOut.Long((long) InsEditLogType.InsPlan) + @"
+				WHERE inseditlog.LogType=" + ((long) InsEditLogType.InsPlan) + @"
 					AND inseditlog.FieldName='CarrierNum' 
 					AND inseditlog.OldValue!=inseditlog.NewValue
 					AND inseditlog.OldValue!=0 
 					AND inseditlog.NewValue!=0
-					AND inseditlog.FKey=" + SOut.Long(insPlanNum);
+					AND inseditlog.FKey=" + (insPlanNum);
         var table = DataCore.GetTable(command);
         var listCarrierNums = new List<long>();
         for (var i = 0; i < table.Rows.Count; i++)
@@ -177,16 +177,6 @@ public class InsEditLogs
         var listFieldInfos = priKeyItem.GetType().GetFields().ToList();
         for (var i = 0; i < listFieldInfos.Count; i++)
         {
-            if (listFieldInfos[i].IsDefined(typeof(CrudColumnAttribute)))
-            {
-                var crudColumnAttribute = (CrudColumnAttribute) listFieldInfos[i].GetCustomAttribute(typeof(CrudColumnAttribute));
-                if (crudColumnAttribute.SpecialType.HasFlag(CrudSpecialColType.DateEntry)
-                    || crudColumnAttribute.SpecialType.HasFlag(CrudSpecialColType.DateTEntry)
-                    || crudColumnAttribute.SpecialType.HasFlag(CrudSpecialColType.ExcludeFromUpdate)
-                    || crudColumnAttribute.SpecialType.HasFlag(CrudSpecialColType.TimeStamp))
-                    continue; //skip logs that are not user editable.
-            }
-
             var objValOld = listFieldInfos[i].GetValue(itemOld);
             if (objValOld == null) objValOld = "";
             if (itemCur == null)
@@ -252,10 +242,10 @@ public class InsEditLogs
     public static void DeletePreInsertedLogsForPlanNum(long planNum)
     {
         var command = "DELETE FROM inseditlog "
-                      + "WHERE LogType=" + SOut.Int((int) InsEditLogType.Benefit) + " AND ParentKey=" + SOut.Long(planNum);
+                      + "WHERE LogType=" + SOut.Int((int) InsEditLogType.Benefit) + " AND ParentKey=" + (planNum);
         Db.NonQ(command);
         command = "DELETE FROM inseditlog "
-                  + "WHERE LogType=" + SOut.Int((int) InsEditLogType.InsPlan) + " AND FKey=" + SOut.Long(planNum);
+                  + "WHERE LogType=" + SOut.Int((int) InsEditLogType.InsPlan) + " AND FKey=" + (planNum);
         Db.NonQ(command);
     }
 }

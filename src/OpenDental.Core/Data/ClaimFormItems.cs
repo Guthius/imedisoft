@@ -60,9 +60,9 @@ public static class ClaimFormItems
 
     private static readonly ClaimFormItemCache Cache = new();
 
-    public static List<ClaimFormItem> GetWhere(Predicate<ClaimFormItem> match, bool isShort = false)
+    public static List<ClaimFormItem> GetWhere(Predicate<ClaimFormItem> predicate, bool shortList = false)
     {
-        return Cache.GetWhere(match, isShort);
+        return Cache.GetWhere(predicate, shortList);
     }
 
     public static void RefreshCache()
@@ -70,9 +70,9 @@ public static class ClaimFormItems
         GetTableFromCache(true);
     }
 
-    public static DataTable GetTableFromCache(bool doRefreshCache)
+    public static DataTable GetTableFromCache(bool refreshCache)
     {
-        return Cache.GetTableFromCache(doRefreshCache);
+        return Cache.GetTableFromCache(refreshCache);
     }
 
     public static void ClearCache()

@@ -38,7 +38,7 @@ public class XWebs
     public static XWebResponse MakePaymentWithAlias(long patNum, string payNote, double amount, long creditCardNum, bool createPayment,
         ChargeSource chargeSource = ChargeSource.PatientPortal, bool forceDuplicates = true, string email = "", string logGuid = "", CreditCardSource creditCardSource = CreditCardSource.XWeb)
     {
-        XWebInputDTGPaymentSale input = new XWebInputDTGPaymentSale(patNum, payNote, amount, creditCardNum, createPayment, forceDuplicates, creditCardSource);
+        var input = new XWebInputDTGPaymentSale(patNum, payNote, amount, creditCardNum, createPayment, forceDuplicates, creditCardSource);
         input.ChargeSource = chargeSource;
         return input.GenerateOutput(email, logGuid);
     }
@@ -132,12 +132,12 @@ public class XWebs
         {
             get
             {
-                Dictionary<string, string> dictGatewayParams = GatewayParams;
-                StringBuilder strBldXml = new StringBuilder();
-                using (XmlWriter xmlWriter = XmlWriter.Create(strBldXml))
+                var dictGatewayParams = GatewayParams;
+                var strBldXml = new StringBuilder();
+                using (var xmlWriter = XmlWriter.Create(strBldXml))
                 {
                     xmlWriter.WriteStartElement("GatewayRequest");
-                    foreach (KeyValuePair<string, string> param in dictGatewayParams)
+                    foreach (var param in dictGatewayParams)
                     {
                         xmlWriter.WriteStartElement(param.Key);
                         xmlWriter.WriteString(param.Value);
@@ -157,13 +157,13 @@ public class XWebs
         {
             get
             {
-                string xWebGatewayUrl = "https://gw.t3secure.net/x-chargeweb.dll";
-                if (/* ODBuild.IsDebug() */ false || UseXWebTestGateway)
+                var xWebGatewayUrl = "https://gw.t3secure.net/x-chargeweb.dll";
+                if (UseXWebTestGateway)
                 {
                     xWebGatewayUrl = "https://test.t3secure.net/x-chargeweb.dll";
                 }
 
-                return Introspection.GetOverride(Introspection.IntrospectionEntity.XWebGatewayURL, xWebGatewayUrl);
+                return xWebGatewayUrl;
             }
         }
 
@@ -173,7 +173,7 @@ public class XWebs
             get
             {
                 //Always add shared params at start. These parameters are shared for both OTK creation and Hpf status monitoring.
-                Dictionary<string, string> ret = new Dictionary<string, string>();
+                var ret = new Dictionary<string, string>();
                 ret.Add("SpecVersion", XWebSpecVersion);
                 if (UseTestAccountOD)
                 {
@@ -233,7 +233,7 @@ public class XWebs
         ///<summary>Interface the XWeb Gateway and return an instance of XWebResponse. Goes to db and/or cache to get patient info and ProgramProperties for XWeb. doThrowWhenOnlinePaymentsDisabled should only be false for deleting CC aliases.</summary>
         public XWebResponse GenerateOutput(string email = "", string logGuid = "", bool doThrowWhenOnlinePaymentsDisabled = true)
         {
-            Patient pat = Patients.GetPat(_patNum);
+            var pat = Patients.GetPat(_patNum);
             if (pat == null)
             {
                 throw new ODException("Patient not found for PatNum: " + _patNum.ToString(), ODException.ErrorCodes.XWebProgramProperties);
@@ -268,7 +268,7 @@ public class XWebs
             _xWebID = xwebProperties.XWebID;
             _authKey = xwebProperties.AuthKey;
             _terminalID = xwebProperties.TerminalID;
-            XWebResponse response = CreateGatewayResponse(UploadData(GatewayInput, _gatewayUrl));
+            var response = CreateGatewayResponse(UploadData(GatewayInput, _gatewayUrl));
             response.PatNum = _patNum;
             response.ProvNum = _provNum;
             response.ClinicNum = _clinicNum;
@@ -290,7 +290,7 @@ public class XWebs
 
             if (EmailAddresses.GetValidMailAddress(response.EmailResponse) != null)
             {
-                EmailAddress emailAddressFrom = EmailAddresses.GetByClinic(_clinicNum, true);
+                var emailAddressFrom = EmailAddresses.GetByClinic(_clinicNum, true);
                 Statements.EmailStatementPatientPortal(Statements.CreateReceiptStatement(pat, StatementMode.Email), response.EmailResponse, emailAddressFrom, pat);
             }
 
@@ -303,11 +303,11 @@ public class XWebs
         ///<summary>Convert output (in xml) from the XWeb gateway to GatewayResponse.</summary>
         private static XWebResponse CreateGatewayResponse(string xml)
         {
-            using (StringReader sr = new StringReader(xml))
+            using (var sr = new StringReader(xml))
             {
                 //XWeb's xml references this class as GatewayResponse but OD wants to deserialize to a class called XWebResponse.
                 //We must explicitly specific the XmlRoot node name here to make that conversion.
-                XWebResponse ret = (XWebResponse) (new XmlSerializer(typeof(XWebResponse), new XmlRootAttribute("GatewayResponse")).Deserialize(sr));
+                var ret = (XWebResponse) (new XmlSerializer(typeof(XWebResponse), new XmlRootAttribute("GatewayResponse")).Deserialize(sr));
                 //Convert int to XWebStatus.
                 ret.XWebResponseCode = XWebResponse.ConvertResponseCode(ret.ResponseCode);
                 ret.AccountExpirationDate = XWebResponse.ConvertExpDate(ret.ExpDate);
@@ -324,7 +324,7 @@ public class XWebs
                 return Mock.ResponseData();
             }
 
-            byte[] inputBytes = Encoding.ASCII.GetBytes(input);
+            var inputBytes = Encoding.ASCII.GetBytes(input);
             if (inputBytes.Length >= 2048)
             {
                 throw new ODException("X-Web gateway request is too long.", ODException.ErrorCodes.MaxRequestDataExceeded);
@@ -332,12 +332,12 @@ public class XWebs
 
             OnInputEvent(input, PrettyPrintXml(input));
             //Create HTTPS connection to X-Web gateway and send GET request.
-            using (WebClient webClient = new WebClient())
+            using (var webClient = new WebClient())
             {
                 webClient.Headers.Add(HttpRequestHeader.ContentType, "application/xml");
                 webClient.Headers.Add(HttpRequestHeader.Accept, "application/xml");
                 //Upload the XML request to the X-Web gateway and retrieve the response string.
-                byte[] response = webClient.UploadData(url, inputBytes);
+                var response = webClient.UploadData(url, inputBytes);
                 //Convert the byte array to a string for parsing.
                 string ret;
                 if (IsUTF16_BE(response))
@@ -394,7 +394,7 @@ public class XWebs
         {
             get
             {
-                Dictionary<string, string> ret = new Dictionary<string, string>();
+                var ret = new Dictionary<string, string>();
                 ret.Add("OTK", _otk);
                 if (_blockUntilResponse)
                 {
@@ -465,7 +465,7 @@ public class XWebs
         {
             get
             {
-                Dictionary<string, string> ret = new Dictionary<string, string>();
+                var ret = new Dictionary<string, string>();
                 //Required but is always NONE in this case.
                 ret.Add("TrackCapabilities", "NONE");
                 //Required but is always false in this case.
@@ -523,7 +523,7 @@ public class XWebs
         {
             get
             {
-                Dictionary<string, string> ret = new Dictionary<string, string>();
+                var ret = new Dictionary<string, string>();
                 //In order to make a DTG payment you MUST provide one (and only one) of the following sets of information about the cc...
                 //Track data, AcctNum & ExpDate, EncryptedData, Alias, OrderID, or DeviceEncryptedData.
                 //We will use Alias so all other forms of credit card identification are NOT required.
@@ -578,7 +578,7 @@ public class XWebs
                 throw new ODException("Invalid Amount", ODException.ErrorCodes.OtkArgsInvalid);
             }
 
-            CreditCard cc = CreditCards.GetOne(creditCardNum);
+            var cc = CreditCards.GetOne(creditCardNum);
             if (cc == null)
             {
                 throw new ODException("CreditCardNum not found: " + creditCardNum.ToString(), ODException.ErrorCodes.OtkArgsInvalid);
@@ -613,7 +613,7 @@ public class XWebs
             }
 
             //XWeb's Decline Minimizer will pass us back updated card information. Update our copy when necessary.
-            bool update = false;
+            var update = false;
             if (_cc.CCExpiration != response.AccountExpirationDate)
             {
                 _cc.CCExpiration = response.AccountExpirationDate;
@@ -644,7 +644,7 @@ public class XWebs
         {
             get
             {
-                Dictionary<string, string> ret = new Dictionary<string, string>();
+                var ret = new Dictionary<string, string>();
                 //From the original CreditSaleTransaction row.
                 ret.Add("TransactionID", _transactionID);
                 return ret;
@@ -660,7 +660,7 @@ public class XWebs
 
         public XWebInputDTGPaymentVoid(long patNum, string payNote, long xWebResponseNum) : base(XWebTransactionType.CreditVoidTransaction, patNum, payNote)
         {
-            XWebResponse xwr = XWebResponses.GetOne(xWebResponseNum);
+            var xwr = XWebResponses.GetOne(xWebResponseNum);
             if (xwr == null)
             {
                 throw new ODException("XWebResponseNum not found: " + xWebResponseNum.ToString(), ODException.ErrorCodes.OtkArgsInvalid);
@@ -735,7 +735,7 @@ public class XWebs
         {
             get
             {
-                Dictionary<string, string> ret = new Dictionary<string, string>();
+                var ret = new Dictionary<string, string>();
                 ret.Add("Alias", _cc.XChargeToken);
                 return ret;
             }
@@ -750,7 +750,7 @@ public class XWebs
 
         public XWebInputDTGDeleteAlias(long patNum, long creditCardNum, LogSources logSource) : base(XWebTransactionType.AliasDeleteTransaction, patNum, "Deleting CreditCard: " + creditCardNum.ToString())
         {
-            CreditCard cc = CreditCards.GetOne(creditCardNum);
+            var cc = CreditCards.GetOne(creditCardNum);
             if (cc == null)
             {
                 throw new ODException("CreditCardNum not found: " + creditCardNum.ToString(), ODException.ErrorCodes.OtkArgsInvalid);

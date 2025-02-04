@@ -74,7 +74,7 @@ public class Lans
 
         protected override void FillCacheIfNeeded()
         {
-            Lans.GetTableFromCache(false);
+            GetTableFromCache(false);
         }
 
         protected override string GetDictKey(Language item)
@@ -100,14 +100,19 @@ public class Lans
 
     private static readonly LanguageCache Cache = new();
 
-    public static DataTable RefreshCache()
+    public static void RefreshCache()
     {
-        return CultureInfo.CurrentCulture.Name == "en-US" ? null : GetTableFromCache(true);
+        if (CultureInfo.CurrentCulture.Name == "en-US")
+        {
+            return;
+        }
+        
+        Cache.GetTableFromCache(true);
     }
 
-    public static DataTable GetTableFromCache(bool doRefreshCache)
+    public static DataTable GetTableFromCache(bool refreshCache)
     {
-        return Cache.GetTableFromCache(doRefreshCache);
+        return Cache.GetTableFromCache(refreshCache);
     }
 
     public static void ClearCache()

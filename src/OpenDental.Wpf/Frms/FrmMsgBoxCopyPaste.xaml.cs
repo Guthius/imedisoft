@@ -1,20 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Linq;
-using System.Text;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using OpenDentBusiness;
-using WpfControls.UI;
-using System.Text.RegularExpressions;
 using CodeBase;
-using System.Windows.Controls;
-using System.Windows.Documents;
-using System.Printing;
 using OpenDental.Drawing;
 
 namespace OpenDental {

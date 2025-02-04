@@ -1,10 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Windows.Forms;
-using CodeBase;
 using Imedisoft.Core.Data;
 using Imedisoft.Core.Entities;
-using OpenDentBusiness;
 using OpenDental.UI;
 
 namespace OpenDental;
@@ -15,16 +13,12 @@ public partial class FormSnomeds:FormODBase {
 	public Snomed SnomedSelected;
 	public List<Snomed> ListSnomedsSelected;
 	private List<Snomed> _listSnomeds;
-	private bool _showingInfoButton;//used when filling grid. for increased speed.
-	private int _showingInfobuttonShift;//used when sorting grid rows. 1 if showing, 0 if hidden
 
 	public FormSnomeds() {
 		InitializeComponent();
 	}
 
 	private void FormSnomeds_Load(object sender,EventArgs e) {
-		_showingInfoButton=CDSPermissions.GetForUser(Security.CurUser.UserNum).ShowInfobutton;
-		_showingInfobuttonShift=(_showingInfoButton?1:0);
 		if(!IsSelectionMode && !IsMultiSelectMode) {
 			butOK.Visible=false;
 		}
@@ -42,11 +36,6 @@ public partial class FormSnomeds:FormODBase {
 		gridMain.BeginUpdate();
 		gridMain.Columns.Clear();
 		GridColumn col;
-		if(_showingInfoButton) {//Security.IsAuthorized(Permissions.EhrInfoButton,true)) {
-			col=new GridColumn("",18);//infoButton
-			col.ImageList=imageListInfoButton;
-			gridMain.Columns.Add(col);
-		}
 		col=new GridColumn(Lan.g(this,"SNOMED CT"),125);//column width of 125 holds the longest Snomed CT code as of 8/7/15 which is 900000000000002006
 		gridMain.Columns.Add(col);
 		//col=new ODGridColumn("Deprecated",75,HorizontalAlignment.Center);
@@ -71,9 +60,6 @@ public partial class FormSnomeds:FormODBase {
 		var listGridRowsAll=new List<GridRow>();
 		for(var i=0;i<_listSnomeds.Count;i++) {
 			row=new GridRow();
-			if(_showingInfoButton) {//Security.IsAuthorized(Permissions.EhrInfoButton,true)) {
-				row.Cells.Add("0");//index of infobutton
-			}
 			row.Cells.Add(_listSnomeds[i].SnomedCode);
 			//row.Cells.Add("");//IsActive==NotDeprecated
 			row.Cells.Add(_listSnomeds[i].Description);
@@ -93,8 +79,8 @@ public partial class FormSnomeds:FormODBase {
 	private int SortMeasuresMet(GridRow row1,GridRow row2) {
 		//int i=(CDSPermissions.GetForUser(Security.CurUser.UserNum).ShowInfobutton?1:0);//used to accomodate infobutton column.
 		//First sort by the number of measures the codes apply to in a comma delimited list
-		var diff=row2.Cells[2+_showingInfobuttonShift].Text.Split([","],StringSplitOptions.RemoveEmptyEntries).Length
-		         -row1.Cells[2+_showingInfobuttonShift].Text.Split([","],StringSplitOptions.RemoveEmptyEntries).Length;
+		var diff=row2.Cells[2].Text.Split([","],StringSplitOptions.RemoveEmptyEntries).Length
+		         -row1.Cells[2].Text.Split([","],StringSplitOptions.RemoveEmptyEntries).Length;
 		if(diff!=0) {
 			return diff;
 		}
@@ -102,7 +88,7 @@ public partial class FormSnomeds:FormODBase {
 			//if the codes apply to the same number of CQMs, order by the code values
 			//return PIn.Long(row1.Cells[2+_showingInfobuttonShift].Text).CompareTo(PIn.Long(row2.Cells[2+_showingInfobuttonShift].Text));
 			//Just string compare
-			return row1.Cells[2+_showingInfobuttonShift].Text.CompareTo(row2.Cells[2+_showingInfobuttonShift].Text);
+			return row1.Cells[2].Text.CompareTo(row2.Cells[2].Text);
 		}
 		catch(Exception) {
 			return 0;
@@ -119,23 +105,6 @@ public partial class FormSnomeds:FormODBase {
 			(Snomed) gridMain.ListGridRows[e.Row].Tag
 		];
 		DialogResult=DialogResult.OK;
-	}
-
-	private void butMapToSnomed_Click(object sender,EventArgs e) {
-		if(!MsgBox.Show(this,MsgBoxButtons.OKCancel,"Will add SNOMED CT code to existing problems list only if the ICD9 code correlates to exactly one SNOMED CT code. If there is any ambiguity at all the code will not be added.")) {
-			return;
-		}
-		var changeCount=0;
-		var dictionaryIcd9ToSnomed = Snomeds.GetICD9toSNOMEDDictionary();
-		//Jordan 2022-11-15-Dict ok as exception to normal patterns
-		DiseaseDefs.RefreshCache();
-		var listDiseaseDefs=DiseaseDefs.GetWhere(x => x.SnomedCode=="" && dictionaryIcd9ToSnomed.ContainsKey(x.ICD9Code));
-		for(var i=0;i<listDiseaseDefs.Count;i++) {
-			listDiseaseDefs[i].SnomedCode=dictionaryIcd9ToSnomed[listDiseaseDefs[i].ICD9Code];
-			DiseaseDefs.Update(listDiseaseDefs[i]);
-			changeCount++;
-		}
-		ODMessageBox.Show(Lan.g(this,"SNOMED CT codes added: ")+changeCount);
 	}
 
 	private void butOK_Click(object sender,EventArgs e) {

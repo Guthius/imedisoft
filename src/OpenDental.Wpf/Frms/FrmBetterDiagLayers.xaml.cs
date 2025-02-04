@@ -1,14 +1,7 @@
 using System;
 using System.Collections.Generic;
-using System.Data;
 using System.Linq;
-using System.Text;
-using System.Windows;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
 using Imedisoft.Core.Entities;
-using OpenDentBusiness;
 using OpenDentBusiness.Bridges;
 using WpfControls.UI;
 

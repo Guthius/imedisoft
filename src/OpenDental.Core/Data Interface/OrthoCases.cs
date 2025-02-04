@@ -55,13 +55,13 @@ public class OrthoCases
 
     public static List<OrthoCase> Refresh(long patNum)
     {
-        var command = "SELECT * FROM orthocase WHERE orthocase.PatNum = " + SOut.Long(patNum);
+        var command = "SELECT * FROM orthocase WHERE orthocase.PatNum = " + (patNum);
         return OrthoCaseCrud.SelectMany(command);
     }
 
     public static List<OrthoCase> GetMany(List<long> listOrthoCaseNums)
     {
-        if (listOrthoCaseNums.Count == 0) return new List<OrthoCase>();
+        if (listOrthoCaseNums.Count == 0) return [];
 
         var command = $"SELECT * FROM orthocase WHERE orthocase.OrthoCaseNum IN({string.Join(",", listOrthoCaseNums)})";
         return OrthoCaseCrud.SelectMany(command);
@@ -69,7 +69,7 @@ public class OrthoCases
 
     public static List<OrthoCase> GetActiveForPats(List<long> listPatNums)
     {
-        if (listPatNums.Count == 0) return new List<OrthoCase>();
+        if (listPatNums.Count == 0) return [];
 
         var command = $"SELECT * FROM orthocase WHERE orthocase.IsActive={SOut.Bool(true)} AND orthocase.PatNum IN({string.Join(",", listPatNums)})";
         return OrthoCaseCrud.SelectMany(command);
@@ -85,11 +85,11 @@ public class OrthoCases
         var orthoPlanLinkSchedule = OrthoPlanLinks.GetOneForOrthoCaseByType(orthoCaseToActivate.OrthoCaseNum, OrthoPlanLinkType.OrthoSchedule);
         var orthoSchedule = OrthoSchedules.GetOne(orthoPlanLinkSchedule.FKey);
         SetActiveState(orthoCaseToActivate, orthoPlanLinkSchedule, orthoSchedule, true);
-        DeactivateOthersForPat(orthoCaseToActivate.OrthoCaseNum, orthoSchedule.OrthoScheduleNum, patNum);
+        DeactivateOthersForPat(orthoCaseToActivate.OrthoCaseNum, patNum);
         return Refresh(patNum);
     }
 
-    public static void DeactivateOthersForPat(long orthoCaseNumActive, long orthoScheduleNumActive, long patNum)
+    public static void DeactivateOthersForPat(long orthoCaseNumActive, long patNum)
     {
         //Get all orthocase nums to deactivate.
         var listOrthoCaseNums = Refresh(patNum).Where(x => x.OrthoCaseNum != orthoCaseNumActive).Select(x => x.OrthoCaseNum).ToList();

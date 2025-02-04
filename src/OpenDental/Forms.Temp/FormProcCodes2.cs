@@ -1,7 +1,5 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.Data;
 using System.Drawing;
 using System.IO;
 using System.Linq;
@@ -13,7 +11,7 @@ using Imedisoft.Core.Caching;
 using Imedisoft.Core.Entities;
 using Imedisoft.Core.Features.Clinics;
 using Imedisoft.Core.Features.Clinics.Dtos;
-using OpenDental.Thinfinity;
+using Imedisoft.Features.Providers.Dtos;
 using OpenDental.UI;
 using OpenDentBusiness;
 
@@ -33,7 +31,7 @@ public partial class FormProcCodes:FormODBase {
 	private Def[] _defArrayCat;
 	private List<FeeSched> _listFeeScheds; //Note to reviewer: I'm doing these to avoid using calls like FeeSchedC.ListShort[idx] later.
 	private List<ClinicDto> _listClinics;
-	private List<Provider> _listProviders;
+	private List<ProviderDto> _listProviders;
 	private Color _colorClinic;
 	private Color _colorProv;
 	private Color _colorProvClinic;
@@ -218,69 +216,50 @@ public partial class FormProcCodes:FormODBase {
 		comboClinic1.HqDescription=defaultClinicText;
 		comboClinic2.HqDescription=defaultClinicText;
 		comboClinic3.HqDescription=defaultClinicText;
-		if(!true) {//No clinics
-			//For UI reasons, leave the clinic combo boxes visible for users not using clinics and they will just say "none".
-			comboClinic1.Enabled=false;
-			comboClinic2.Enabled=false;
-			comboClinic3.Enabled=false;
-			//The clinic pickers need to remain visible even with clinics disabled
-			comboClinic1.Visible=true;
-			comboClinic2.Visible=true;
-			comboClinic3.Visible=true;
-			//The unassigned option needs to be forced shown, otherwise 0 will be present 
-			comboClinic1.ForceShowUnassigned=true;
-			comboClinic2.ForceShowUnassigned=true;
-			comboClinic3.ForceShowUnassigned=true;
-			butPickClinic1.Enabled=false;
-			butPickClinic2.Enabled=false;
-			butPickClinic3.Enabled=false;
-		}
-		else {
-			if(PrefC.GetBool(PrefName.ShowFeeSchedGroups)
-			   && (checkGroups1.Checked || checkGroups2.Checked || checkGroups3.Checked))
-			{
-				var listFeeSchedNumsSelected=new List<long> { feeSchedNum1Selected,feeSchedNum2Selected,feeSchedNum3Selected }.FindAll(x => x>0);
-				var listFeeSchedGroups=FeeSchedGroups.GetListFeeSchedGroups(listFeeSchedNumsSelected);
-				var listClinicNums=_listClinics.Select(x => x.Id).ToList();
-				var listFeeSchedGroups1=listFeeSchedGroups.FindAll(x => x.FeeSchedNum==feeSchedNum1Selected);
-				var listFeeSchedGroups2=listFeeSchedGroups.FindAll(x => x.FeeSchedNum==feeSchedNum2Selected);
-				var listFeeSchedGroups3=listFeeSchedGroups.FindAll(x => x.FeeSchedNum==feeSchedNum3Selected);
-				for(var i = 0;i<listClinicNums.Count();i++) {
-					if(feeSchedNum1Selected>0 
-					   && checkGroups1.Checked 
-					   && listFeeSchedGroups1.Count>0)
-					{
-						var listFeeSchedGroups1Fees=listFeeSchedGroups1.FindAll(x => x.ListClinicNumsAll.Contains(listClinicNums[i]));
-						for(var g=0;g<listFeeSchedGroups1Fees.Count;g++){
-							AddFeeSchedGroupToComboBox(listFeeSchedGroups1Fees[g],comboFeeSchedGroup1,feeSchedGroupNum1Selected);
-						}
-						if(comboFeeSchedGroup1.Items.Count>0 && comboFeeSchedGroup1.SelectedIndex<0) { 
-							comboFeeSchedGroup1.SetSelected(0);
-						}
+		if(PrefC.GetBool(PrefName.ShowFeeSchedGroups)
+		   && (checkGroups1.Checked || checkGroups2.Checked || checkGroups3.Checked))
+		{
+			var listFeeSchedNumsSelected=new List<long> { feeSchedNum1Selected,feeSchedNum2Selected,feeSchedNum3Selected }.FindAll(x => x>0);
+			var listFeeSchedGroups=FeeSchedGroups.GetListFeeSchedGroups(listFeeSchedNumsSelected);
+			var listClinicNums=_listClinics.Select(x => x.Id).ToList();
+			var listFeeSchedGroups1=listFeeSchedGroups.FindAll(x => x.FeeSchedNum==feeSchedNum1Selected);
+			var listFeeSchedGroups2=listFeeSchedGroups.FindAll(x => x.FeeSchedNum==feeSchedNum2Selected);
+			var listFeeSchedGroups3=listFeeSchedGroups.FindAll(x => x.FeeSchedNum==feeSchedNum3Selected);
+			for(var i = 0;i<listClinicNums.Count();i++) {
+				if(feeSchedNum1Selected>0 
+				   && checkGroups1.Checked 
+				   && listFeeSchedGroups1.Count>0)
+				{
+					var listFeeSchedGroups1Fees=listFeeSchedGroups1.FindAll(x => x.ListClinicNumsAll.Contains(listClinicNums[i]));
+					for(var g=0;g<listFeeSchedGroups1Fees.Count;g++){
+						AddFeeSchedGroupToComboBox(listFeeSchedGroups1Fees[g],comboFeeSchedGroup1,feeSchedGroupNum1Selected);
 					}
-					if(feeSchedNum2Selected>0 
-					   && checkGroups2.Checked 
-					   && listFeeSchedGroups2.Count>0)
-					{
-						var listFeeSchedGroups2Fees=listFeeSchedGroups2.FindAll(x => x.ListClinicNumsAll.Contains(listClinicNums[i]));
-						for(var g=0;g<listFeeSchedGroups2Fees.Count;g++){
-							AddFeeSchedGroupToComboBox(listFeeSchedGroups2Fees[g],comboFeeSchedGroup2,feeSchedGroupNum2Selected);
-						}
-						if(comboFeeSchedGroup2.Items.Count>0 && comboFeeSchedGroup2.SelectedIndex<0) { 
-							comboFeeSchedGroup2.SetSelected(0);
-						}
+					if(comboFeeSchedGroup1.Items.Count>0 && comboFeeSchedGroup1.SelectedIndex<0) { 
+						comboFeeSchedGroup1.SetSelected(0);
 					}
-					if(feeSchedNum3Selected>0 
-					   && checkGroups3.Checked 
-					   && listFeeSchedGroups3.Count>0)
-					{
-						var listFeeSchedGroups3Fees=listFeeSchedGroups3.FindAll(x => x.ListClinicNumsAll.Contains(listClinicNums[i]));
-						for(var g=0;g<listFeeSchedGroups3Fees.Count;g++){
-							AddFeeSchedGroupToComboBox(listFeeSchedGroups3Fees[g],comboFeeSchedGroup3,feeSchedGroupNum3Selected);
-						}
-						if(comboFeeSchedGroup3.Items.Count>0 && comboFeeSchedGroup3.SelectedIndex<0) { 
-							comboFeeSchedGroup3.SetSelected(0);
-						}
+				}
+				if(feeSchedNum2Selected>0 
+				   && checkGroups2.Checked 
+				   && listFeeSchedGroups2.Count>0)
+				{
+					var listFeeSchedGroups2Fees=listFeeSchedGroups2.FindAll(x => x.ListClinicNumsAll.Contains(listClinicNums[i]));
+					for(var g=0;g<listFeeSchedGroups2Fees.Count;g++){
+						AddFeeSchedGroupToComboBox(listFeeSchedGroups2Fees[g],comboFeeSchedGroup2,feeSchedGroupNum2Selected);
+					}
+					if(comboFeeSchedGroup2.Items.Count>0 && comboFeeSchedGroup2.SelectedIndex<0) { 
+						comboFeeSchedGroup2.SetSelected(0);
+					}
+				}
+				if(feeSchedNum3Selected>0 
+				   && checkGroups3.Checked 
+				   && listFeeSchedGroups3.Count>0)
+				{
+					var listFeeSchedGroups3Fees=listFeeSchedGroups3.FindAll(x => x.ListClinicNumsAll.Contains(listClinicNums[i]));
+					for(var g=0;g<listFeeSchedGroups3Fees.Count;g++){
+						AddFeeSchedGroupToComboBox(listFeeSchedGroups3Fees[g],comboFeeSchedGroup3,feeSchedGroupNum3Selected);
+					}
+					if(comboFeeSchedGroup3.Items.Count>0 && comboFeeSchedGroup3.SelectedIndex<0) { 
+						comboFeeSchedGroup3.SetSelected(0);
 					}
 				}
 			}
@@ -404,13 +383,13 @@ public partial class FormProcCodes:FormODBase {
 		long provider2Num=0;
 		long provider3Num=0;
 		if(comboProvider1.SelectedIndex>0) {
-			provider1Num=_listProviders[comboProvider1.SelectedIndex-1].ProvNum;
+			provider1Num=_listProviders[comboProvider1.SelectedIndex-1].Id;
 		}
 		if(comboProvider2.SelectedIndex>0) {
-			provider2Num=_listProviders[comboProvider2.SelectedIndex-1].ProvNum;
+			provider2Num=_listProviders[comboProvider2.SelectedIndex-1].Id;
 		}
 		if(comboProvider3.SelectedIndex>0) {
-			provider3Num=_listProviders[comboProvider3.SelectedIndex-1].ProvNum;
+			provider3Num=_listProviders[comboProvider3.SelectedIndex-1].Id;
 		}
 		var listClinicNums1=new List<long> { 0 };
 		var listClinicNums2=new List<long> { 0 };
@@ -496,13 +475,13 @@ public partial class FormProcCodes:FormODBase {
 		long provider2Num=0;
 		long provider3Num=0;
 		if(comboProvider1.SelectedIndex>0) {
-			provider1Num=_listProviders[comboProvider1.SelectedIndex-1].ProvNum;
+			provider1Num=_listProviders[comboProvider1.SelectedIndex-1].Id;
 		}
 		if(comboProvider2.SelectedIndex>0) {
-			provider2Num=_listProviders[comboProvider2.SelectedIndex-1].ProvNum;
+			provider2Num=_listProviders[comboProvider2.SelectedIndex-1].Id;
 		}
 		if(comboProvider3.SelectedIndex>0) {
-			provider3Num=_listProviders[comboProvider3.SelectedIndex-1].ProvNum;
+			provider3Num=_listProviders[comboProvider3.SelectedIndex-1].Id;
 		}
 		//Clinic nums will be 0 for "Default" or "Off" value.
 		long clinic1Num=0;
@@ -721,7 +700,7 @@ public partial class FormProcCodes:FormODBase {
 		if(e.Col==4) {
 			feeSched=_listFeeScheds[comboFeeSched1.SelectedIndex];
 			if(comboProvider1.SelectedIndex>0) {
-				provNum=_listProviders[comboProvider1.SelectedIndex-1].ProvNum;
+				provNum=_listProviders[comboProvider1.SelectedIndex-1].Id;
 			}
 			if(true) {
 				if(checkGroups1.Checked && comboFeeSchedGroup1.SelectedIndex>-1) {
@@ -742,7 +721,7 @@ public partial class FormProcCodes:FormODBase {
 			}
 			feeSched=_listFeeScheds[comboFeeSched2.SelectedIndex-1];
 			if(comboProvider2.SelectedIndex>0) {
-				provNum=_listProviders[comboProvider2.SelectedIndex-1].ProvNum;
+				provNum=_listProviders[comboProvider2.SelectedIndex-1].Id;
 			}
 			if(true) {
 				if(checkGroups2.Checked && comboFeeSchedGroup2.SelectedIndex>-1) {
@@ -763,7 +742,7 @@ public partial class FormProcCodes:FormODBase {
 			}
 			feeSched=_listFeeScheds[comboFeeSched3.SelectedIndex-1];
 			if(comboProvider3.SelectedIndex>0) {
-				provNum=_listProviders[comboProvider3.SelectedIndex-1].ProvNum;
+				provNum=_listProviders[comboProvider3.SelectedIndex-1].Id;
 			}
 			if(true) {
 				if(checkGroups3.Checked && comboFeeSchedGroup3.SelectedIndex>-1) {

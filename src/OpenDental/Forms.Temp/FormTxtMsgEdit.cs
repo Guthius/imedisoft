@@ -1,13 +1,10 @@
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
 using System.Linq;
-using System.Text;
 using System.Windows.Forms;
 using CodeBase;
 using Imedisoft.Core.Caching;
+using Imedisoft.Core.Data;
 using Imedisoft.Core.Entities;
 using Imedisoft.Core.Features.Clinics;
 using OpenDentBusiness;
@@ -24,8 +21,6 @@ public partial class FormTxtMsgEdit:FormODBase {
 	public string Message;
 	///<summary>TxtMsgOk status of the patient.  Required if sending message without loading form or loading with patient selected.</summary>
 	public YN YNTxtMsgOk;
-	/// <summary>List of short-URLs that were pre-generated and already in the message when it was send to this Form. Used to compare outgoing message to see if the user edited the message by adding new/different short-URLs.</summary>
-	private List<string> _listShortURLsAllowed= [];
 
 	public FormTxtMsgEdit() {
 		InitializeComponent();
@@ -33,7 +28,6 @@ public partial class FormTxtMsgEdit:FormODBase {
 
 	private void FormTxtMsgEdit_Load(object sender,EventArgs e) {
 		textWirelessPhone.Text=WirelessPhone;
-		_listShortURLsAllowed=PrefC.GetListShortURLs(Message??"");
 		textMessage.Text=Message;
 		SetMessageCounts();
 		if(PatNum==0) {
@@ -103,22 +97,13 @@ public partial class FormTxtMsgEdit:FormODBase {
 			MsgBox.Show(this,"It is not OK to text this patient.");
 			return false;
 		}
-		var listShortURLs=PrefC.GetListShortURLs(message).Except(_listShortURLsAllowed).ToList();
-		if(listShortURLs.Count>0) {
-			var errorMessage=Lan.g(this,"Message cannot contain the URL")+$" {listShortURLs[0]} "+Lan.g(this,"as these are only allowed for eServices.");
-			ODMessageBox.Show(errorMessage);
-			return false;
-		}
 		if(SmsPhones.IsIntegratedTextingEnabled()) {
 			try {
 				SmsToMobiles.SendSmsSingle(patNum,wirelessPhone,message,clinicNum,smsMessageSource,userod:Security.CurUser);  //Can pass in 0 as PatNum if no patient selected.
 				return true;
 			}
 			catch(Exception ex) {
-				//ProcessSendSmsException handles the spending limit has been reached error, or returns false if the exception is different.
-				if(!canIncreaseLimit || !FormEServicesSetup.ProcessSendSmsException(ex)) { 
-					MsgBox.Show(this,ex.Message);
-				}
+				MsgBox.Show(this,ex.Message);
 				return false;
 			}
 		}

@@ -1,29 +1,24 @@
-using System;
 using OpenDentBusiness;
 
 namespace Imedisoft.Core.Entities;
 
-///<summary>A single autonote template.</summary>
-[Serializable]
-[CrudTable(HasBatchWriteMethods=true)]
-public class AutoNote:TableBase{
-	///<summary>Primary key</summary>
-	[CrudColumn(IsPriKey=true)]
-	public long AutoNoteNum;
-	///<summary>Name of AutoNote</summary>
-	public string AutoNoteName;
-	///<summary>Was 'ControlsToInc' in previous versions.</summary>
-	[CrudColumn(SpecialType=CrudSpecialColType.IsText)]
-	public string MainText;
-	// <summary></summary>
-	//public string AutoNoteOutput;
-	///<summary>FK to definition.DefNum.  This is the AutoNoteCat definition category (DefCat=41), for categorizing autonotes.
-	///Uncategorized autonotes will be set to 0.</summary>
-	public long Category;
+public class AutoNote : TableBase
+{
+    [CrudColumn(IsPriKey = true)]
+    public long AutoNoteNum;
 
-		
-	public AutoNote Copy() {
-		return (AutoNote)MemberwiseClone();
-	}
-		
+    ///<summary>Name of AutoNote</summary>
+    public string AutoNoteName;
+
+    ///<summary>Was 'ControlsToInc' in previous versions.</summary>
+    public string MainText;
+    
+    ///<summary>FK to definition.DefNum.  This is the AutoNoteCat definition category (DefCat=41), for categorizing autonotes.
+    ///Uncategorized autonotes will be set to 0.</summary>
+    public long Category;
+    
+    public AutoNote Copy()
+    {
+        return (AutoNote) MemberwiseClone();
+    }
 }

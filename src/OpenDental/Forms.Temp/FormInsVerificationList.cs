@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Data;
 using System.Linq;
 using System.Windows.Forms;
 using CodeBase;
@@ -57,12 +56,6 @@ public partial class FormInsVerificationList:FormODBase {
 			textPatientEnrollmentDaysMedicaid,textInsBenefitEligibilityDaysMedicaid,textAppointmentScheduledDaysMedicaid);
 		if(PrefC.GetBool(PrefName.InsVerifyDefaultToCurrentUser)) {
 			_userNumVerify=Security.CurUser.UserNum;
-		}
-		if(!true) {
-			labelClinic.Visible=false;
-			listBoxVerifyClinics.Visible=false;
-			labelRegion.Visible=false;
-			listBoxVerifyRegions.Visible=false;
 		}
 		var listDefsVerifyStatuses=Defs.GetDefsForCategory(DefCat.InsuranceVerificationStatus,true);
 		for(var i=0;i<listDefsVerifyStatuses.Count;i++) {
@@ -181,9 +174,6 @@ public partial class FormInsVerificationList:FormODBase {
 			comboSetVerifyStatus.SelectedIndex=0;
 		}
 		listBoxVerifyRegions.Items.Clear();
-		if(!true) {
-			return;
-		}
 		_listDefsRegion=Defs.GetDefsForCategory(DefCat.Regions,true);
 		var listClinicsForUser=Clinics.GetForUserod(Security.CurUser);
 		if(_listDefsRegion.Count!=0) {

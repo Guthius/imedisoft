@@ -1,9 +1,6 @@
 using System;
 using System.Collections.Generic;
-using System.Data;
-using System.Drawing;
 using System.Linq;
-using System.Text;
 using System.Windows.Forms;
 using Imedisoft.Core.Entities;
 using Imedisoft.Core.Features.Clinics;
@@ -23,13 +20,7 @@ public partial class FormOnlinePayments:FormODBase {
 	}
 
 	private void FormPendingOnlinePayments_Load(object sender,EventArgs e) {
-		if(true) {
-			FillClinics();
-		}
-		else {
-			comboClinic.Visible=false;
-			labelClinic.Visible=false;
-		}
+		FillClinics();
 		FillProcessStatus();
 		FillPaymentSource();
 		dateStart.Value=DateTime.Today.AddDays(-30);

@@ -1,4 +1,3 @@
-using System;
 using OpenDentBusiness;
 
 namespace Imedisoft.Core.Entities;
@@ -17,23 +16,20 @@ namespace Imedisoft.Core.Entities;
 ///Johnny Patient had his last procedure completed on 1/1/2018.  There is a "Reactivation" type commlog on his chart from 6/1/2018.  
 ///He does not have any future scheduled appointments.  Johnny would be included in the list of "Reactivation" patients, with a single contact 
 ///attempt having been made already.</summary>
-[Serializable]
-public class Reactivation:TableBase {
-	///<summary>Primary key.</summary>
-	[CrudColumn(IsPriKey=true)]
-	public long ReactivationNum;
-	///<summary>FK to patient.PatNum.</summary>
-	public long PatNum;
-	///<summary>FK to definition.DefNum. Uses the existing RecallUnschedStatus DefCat.</summary>
-	public long ReactivationStatus;
-	///<summary>An administrative note for staff use.</summary>
-	[CrudColumn(SpecialType=CrudSpecialColType.IsText)]
-	public string ReactivationNote;
-	///<summary>The patient can set this property if they don't want to be contacted so that it won't interfere with the max attempts to contact option.</summary>
-	public bool DoNotContact;
+public class Reactivation : TableBase
+{
+    [CrudColumn(IsPriKey = true)]
+    public long ReactivationNum;
 
-	///<summary>Returns a copy of this Reactivation.</summary>
-	public Reactivation Copy(){
-		return (Reactivation)MemberwiseClone();
-	}
+    ///<summary>FK to patient.PatNum.</summary>
+    public long PatNum;
+
+    ///<summary>FK to definition.DefNum. Uses the existing RecallUnschedStatus DefCat.</summary>
+    public long ReactivationStatus;
+
+    ///<summary>An administrative note for staff use.</summary>
+    public string ReactivationNote;
+
+    ///<summary>The patient can set this property if they don't want to be contacted so that it won't interfere with the max attempts to contact option.</summary>
+    public bool DoNotContact;
 }

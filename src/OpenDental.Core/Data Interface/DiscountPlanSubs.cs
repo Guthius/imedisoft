@@ -12,37 +12,38 @@ public class DiscountPlanSubs
 {
     public static DiscountPlanSub GetSubForPat(long patNum)
     {
-        var command = "SELECT * FROM discountplansub WHERE PatNum = " + SOut.Long(patNum);
-        return DiscountPlanSubCrud.SelectOne(command);
+        return DiscountPlanSubCrud.SelectOne("SELECT * FROM discountplansub WHERE PatNum = " + patNum);
     }
 
-    public static List<DiscountPlanSub> GetSubsForPats(List<long> listPatNums)
+    public static List<DiscountPlanSub> GetSubsForPats(List<long> patNums)
     {
-        if (listPatNums.Count < 1) return new List<DiscountPlanSub>();
-
-        var command = "SELECT * FROM discountplansub WHERE PatNum IN (" + string.Join(",", listPatNums) + ")";
-        return DiscountPlanSubCrud.SelectMany(command);
+        return patNums.Count < 1 ? [] : DiscountPlanSubCrud.SelectMany("SELECT * FROM discountplansub WHERE PatNum IN (" + string.Join(",", patNums) + ")");
     }
 
     public static DateTime GetAnnualMaxDateEffective(DateTime dateEffective)
     {
         var dateStart = dateEffective;
-        if (dateStart.Year < 1880) //example 0001
-            dateStart = dateStart.AddYears(DateTime.Now.Year - dateStart.Year); //=0001.AddYears(2024-0001)
+
+        if (dateStart.Year < 1880)
+        {
+            dateStart = dateStart.AddYears(DateTime.Now.Year - dateStart.Year);
+        }
+
         return dateStart;
     }
 
     public static DateTime GetAnnualMaxDateTerm(DateTime dateTerm)
     {
-        var dateEnd = dateTerm;
-        if (dateEnd.Year < 1880) dateEnd = DateTime.MaxValue;
-        return dateEnd;
+        return dateTerm.Year < 1880 ? DateTime.MaxValue : dateTerm;
     }
 
     public static DateTime GetDateEffectiveForAnnualDateRangeSegment(DateTime dateRefPoint, DateTime dateEffective, DateTime dateTerm)
     {
-        if (dateRefPoint < dateEffective || dateRefPoint > dateTerm) //Outside of date range
+        if (dateRefPoint < dateEffective || dateRefPoint > dateTerm)
+        {
             return dateEffective;
+        }
+
         if (dateEffective.AddYears(1) <= dateRefPoint)
         {
             var numYearsLimit = dateRefPoint.Year - dateEffective.Year;
@@ -63,8 +64,11 @@ public class DiscountPlanSubs
 
     public static DateTime GetDateTermForAnnualDateRangeSegment(DateTime dateRefPoint, DateTime dateEffective, DateTime dateTerm)
     {
-        if (dateRefPoint < dateEffective || dateRefPoint > dateTerm) //Outside of date range
+        if (dateRefPoint < dateEffective || dateRefPoint > dateTerm)
+        {
             return dateTerm;
+        }
+
         if (dateEffective.AddYears(1) <= dateRefPoint)
         {
             var numYearsLimit = dateRefPoint.Year - dateEffective.Year;
@@ -80,7 +84,11 @@ public class DiscountPlanSubs
             }
         }
 
-        if (dateTerm > dateEffective.AddYears(1)) dateTerm = dateEffective.AddYears(1).AddDays(-1);
+        if (dateTerm > dateEffective.AddYears(1))
+        {
+            dateTerm = dateEffective.AddYears(1).AddDays(-1);
+        }
+
         return dateTerm;
     }
 
@@ -143,22 +151,23 @@ public class DiscountPlanSubs
 
     public static void DeleteForPatient(long patNum)
     {
-        var command = "DELETE FROM discountplansub WHERE PatNum = " + SOut.Long(patNum);
-        Db.NonQ(command);
+        Db.NonQ("DELETE FROM discountplansub WHERE PatNum = " + patNum);
     }
 
     public static long GetDiscountPlanNumForPat(long patNum, DateTime date = default)
     {
-        var command = "SELECT DiscountPlanNum FROM discountplansub WHERE PatNum = " + SOut.Long(patNum) + " ";
+        var commandText = "SELECT DiscountPlanNum FROM discountplansub WHERE PatNum = " + patNum + " ";
+
         if (date.Year > 1880)
-            command += "AND (" + SOut.Date(date) + ">=DateEffective) "
-                       + "AND (DateTerm='0001-01-01' OR " + SOut.Date(date) + "<=DateTerm)";
-        return Db.GetLong(command);
+        {
+            commandText += "AND (" + SOut.Date(date) + " >= DateEffective) AND (DateTerm = '0001-01-01' OR " + SOut.Date(date) + " <= DateTerm)";
+        }
+
+        return Db.GetLong(commandText);
     }
 
     public static bool HasDiscountPlan(long patNum)
     {
-        var command = "SELECT COUNT(*) FROM discountplansub WHERE PatNum=" + SOut.Long(patNum);
-        return Db.GetLong(command) > 0;
+        return Db.GetLong("SELECT COUNT(*) FROM discountplansub WHERE PatNum = " + patNum) > 0;
     }
 }

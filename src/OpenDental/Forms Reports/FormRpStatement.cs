@@ -1,22 +1,11 @@
 using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.ComponentModel;
 using System.Data;
 using System.Drawing;
-using System.Drawing.Drawing2D;
-using System.Drawing.Design;
-using System.Drawing.Imaging;
 using System.Drawing.Printing;
-using System.Drawing.Text;
 using System.Globalization;
-using System.IO;
-using System.Text.RegularExpressions;
 using System.Windows.Forms;
 using OpenDentBusiness;
 using OpenDental.UI;
-using PdfSharp.Drawing;
-using PdfSharp.Pdf;
 using MigraDoc.DocumentObjectModel;
 using MigraDoc.DocumentObjectModel.Shapes;
 using MigraDoc.DocumentObjectModel.Tables;
@@ -34,8 +23,6 @@ namespace OpenDental;
 ///<summary>OBSOLETE. This class is no longer in use. Statement printing/reporting now uses sheets and this form is no longer needed.</summary>
 public partial class FormRpStatement : FormODBase {
 	private int totalPages;
-	///<summary>Holds the data for one statement.</summary>
-	private DataSet dataSett;
 	private Statement Stmt;
 
 	//private ImageStoreBase imageStore;
@@ -242,13 +229,13 @@ public partial class FormRpStatement : FormODBase {
 				par.AddText(clinic.Description);
 				par.AddLineBreak();
 				if(CultureInfo.CurrentCulture.Name=="en-AU") {//Australia
-					var defaultProv=Providers.GetProv(PrefC.GetLong(PrefName.PracticeDefaultProv));
-					par.AddText("ABN: "+defaultProv.NationalProvID);
+					var defaultProv=Providers.GetById(PrefC.GetLong(PrefName.PracticeDefaultProv));
+					par.AddText("ABN: "+defaultProv.NationalProviderId);
 					par.AddLineBreak();
 				}
 				if(CultureInfo.CurrentCulture.Name=="en-NZ") {//New Zealand
-					var defaultProv=Providers.GetProv(PrefC.GetLong(PrefName.PracticeDefaultProv));
-					par.AddText("GST: "+defaultProv.SSN);
+					var defaultProv=Providers.GetById(PrefC.GetLong(PrefName.PracticeDefaultProv));
+					par.AddText("GST: "+defaultProv.Ssn);
 					par.AddLineBreak();
 				}
 				par.AddText(clinic.AddressLine1);
@@ -280,13 +267,13 @@ public partial class FormRpStatement : FormODBase {
 				par.AddText(PrefC.GetString(PrefName.PracticeTitle));
 				par.AddLineBreak();
 				if(CultureInfo.CurrentCulture.Name=="en-AU"){//Australia
-					var defaultProv=Providers.GetProv(PrefC.GetLong(PrefName.PracticeDefaultProv));
-					par.AddText("ABN: "+defaultProv.NationalProvID);
+					var defaultProv=Providers.GetById(PrefC.GetLong(PrefName.PracticeDefaultProv));
+					par.AddText("ABN: "+defaultProv.NationalProviderId);
 					par.AddLineBreak();
 				}
 				if(CultureInfo.CurrentCulture.Name=="en-NZ") {//New Zealand
-					var defaultProv=Providers.GetProv(PrefC.GetLong(PrefName.PracticeDefaultProv));
-					par.AddText("GST: "+defaultProv.SSN);
+					var defaultProv=Providers.GetById(PrefC.GetLong(PrefName.PracticeDefaultProv));
+					par.AddText("GST: "+defaultProv.Ssn);
 					par.AddLineBreak();
 				}
 				par.AddText(PrefC.GetString(PrefName.PracticeAddress));
@@ -529,7 +516,7 @@ public partial class FormRpStatement : FormODBase {
 				if(prov.Suffix.Trim()!=""){
 					suffix=", "+prov.Suffix.Trim();
 				}
-				par.AddText(prov.Abbr+" - "+prov.FName+" "+prov.LName+suffix+" - "+prov.MedicaidID);
+				par.AddText(prov.Abbr+" - "+prov.FirstName+" "+prov.LastName+suffix+" - "+prov.MedicaidId);
 				par.AddLineBreak();
 			}
 			par.AddLineBreak();

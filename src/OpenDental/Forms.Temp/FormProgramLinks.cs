@@ -3,7 +3,6 @@ using System.Windows.Forms;
 using OpenDentBusiness;
 using OpenDental.UI;
 using System.Drawing;
-using System;
 using Imedisoft.Core.Entities;
 
 namespace OpenDental;
@@ -73,24 +72,9 @@ public partial class FormProgramLinks : FormODBase {
 					dialogResult=formPayConnectSetup.ShowDialog();
 				}
 				break;
-			case "Podium":
-				using(var formPodiumSetup=new FormPodiumSetup()) {
-					dialogResult=formPodiumSetup.ShowDialog();
-				}
-				break;
 			case "Xcharge":
 				using(var fromXChargeSetup=new FormXchargeSetup()) {
 					dialogResult=fromXChargeSetup.ShowDialog();
-				}
-				break;
-			case "FHIR":
-				using(var formFHIRSetup=new FormFHIRSetup()) {
-					dialogResult=formFHIRSetup.ShowDialog();
-				}
-				break;
-			case "Transworld":
-				using(var formTransworldSetup=new FormTransworldSetup()) {
-					dialogResult=formTransworldSetup.ShowDialog();
 				}
 				break;
 			case "PaySimple":
@@ -140,14 +124,6 @@ public partial class FormProgramLinks : FormODBase {
 		if(!_didChange){
 			return;
 		}
-		Cursor=Cursors.WaitCursor;
-		try {
-			//Let HQ know the program link change.
-			Programs.SendEnabledProgramsToHQ();
-		}
-		catch(Exception ex) {
-		}
-		Cursor=Cursors.Default;
 		DataValid.SetInvalid(InvalidType.Programs, InvalidType.ToolButsAndMounts);
 	}
 

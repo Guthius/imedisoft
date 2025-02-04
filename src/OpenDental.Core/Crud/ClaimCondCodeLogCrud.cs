@@ -18,30 +18,31 @@ public class ClaimCondCodeLogCrud
     public static List<ClaimCondCodeLog> TableToList(DataTable table)
     {
         var retVal = new List<ClaimCondCodeLog>();
-        ClaimCondCodeLog claimCondCodeLog;
         foreach (DataRow row in table.Rows)
         {
-            claimCondCodeLog = new ClaimCondCodeLog();
-            claimCondCodeLog.ClaimCondCodeLogNum = SIn.Long(row["ClaimCondCodeLogNum"].ToString());
-            claimCondCodeLog.ClaimNum = SIn.Long(row["ClaimNum"].ToString());
-            claimCondCodeLog.Code0 = SIn.String(row["Code0"].ToString());
-            claimCondCodeLog.Code1 = SIn.String(row["Code1"].ToString());
-            claimCondCodeLog.Code2 = SIn.String(row["Code2"].ToString());
-            claimCondCodeLog.Code3 = SIn.String(row["Code3"].ToString());
-            claimCondCodeLog.Code4 = SIn.String(row["Code4"].ToString());
-            claimCondCodeLog.Code5 = SIn.String(row["Code5"].ToString());
-            claimCondCodeLog.Code6 = SIn.String(row["Code6"].ToString());
-            claimCondCodeLog.Code7 = SIn.String(row["Code7"].ToString());
-            claimCondCodeLog.Code8 = SIn.String(row["Code8"].ToString());
-            claimCondCodeLog.Code9 = SIn.String(row["Code9"].ToString());
-            claimCondCodeLog.Code10 = SIn.String(row["Code10"].ToString());
+            var claimCondCodeLog = new ClaimCondCodeLog
+            {
+                ClaimCondCodeLogNum = SIn.Long(row["ClaimCondCodeLogNum"].ToString()),
+                ClaimNum = SIn.Long(row["ClaimNum"].ToString()),
+                Code0 = SIn.String(row["Code0"].ToString()),
+                Code1 = SIn.String(row["Code1"].ToString()),
+                Code2 = SIn.String(row["Code2"].ToString()),
+                Code3 = SIn.String(row["Code3"].ToString()),
+                Code4 = SIn.String(row["Code4"].ToString()),
+                Code5 = SIn.String(row["Code5"].ToString()),
+                Code6 = SIn.String(row["Code6"].ToString()),
+                Code7 = SIn.String(row["Code7"].ToString()),
+                Code8 = SIn.String(row["Code8"].ToString()),
+                Code9 = SIn.String(row["Code9"].ToString()),
+                Code10 = SIn.String(row["Code10"].ToString())
+            };
             retVal.Add(claimCondCodeLog);
         }
 
         return retVal;
     }
 
-    public static long Insert(ClaimCondCodeLog claimCondCodeLog)
+    public static void Insert(ClaimCondCodeLog claimCondCodeLog)
     {
         var command = "INSERT INTO claimcondcodelog (";
 
@@ -63,7 +64,6 @@ public class ClaimCondCodeLogCrud
         {
             claimCondCodeLog.ClaimCondCodeLogNum = Db.NonQ(command, true, "ClaimCondCodeLogNum", "claimCondCodeLog");
         }
-        return claimCondCodeLog.ClaimCondCodeLogNum;
     }
 
     public static void Update(ClaimCondCodeLog claimCondCodeLog)

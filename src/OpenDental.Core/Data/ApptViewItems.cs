@@ -21,7 +21,7 @@ public static class ApptViewItems
     {
         ApptViewItemCrud.InsertMany(listApptViewItems);
     }
-    
+
     public static void DeleteAllForView(ApptView apptView, bool isMobile = false)
     {
         Db.NonQ($"DELETE from apptviewitem WHERE ApptViewNum = {apptView.ApptViewNum} AND {(isMobile ? "" : "!")}apptviewitem.IsMobile");
@@ -31,7 +31,7 @@ public static class ApptViewItems
     {
         return GetWhere(x => x.ProvNum == provNum);
     }
-    
+
     public static List<long> GetOpsForView(long apptViewNum)
     {
         if (apptViewNum != 0)
@@ -49,22 +49,22 @@ public static class ApptViewItems
     {
         return GetWhere(x => x.OpNum == opNum).Select(x => x.ApptViewNum).ToList();
     }
-    
+
     public static List<long> GetProvsForView(long apptViewNum)
     {
         if (apptViewNum != 0)
         {
             return GetWhere(x => x.ApptViewNum == apptViewNum && x.ProvNum != 0).Select(x => x.ProvNum).ToList();
         }
-        
+
         var visibleOperatories = Operatories.GetWhere(x => Clinics.ClinicNum == 0 || x.ClinicNum == Clinics.ClinicNum, true);
         var provNums = visibleOperatories.Where(x => x.ProvDentist != 0).Select(x => x.ProvDentist).ToList();
-            
+
         provNums.AddRange(visibleOperatories.Where(x => x.ProvHygienist != 0).Select(x => x.ProvHygienist));
-            
+
         return provNums.Distinct().ToList();
     }
-    
+
     private class ApptViewItemCache : CacheListAbs<ApptViewItem>
     {
         protected override List<ApptViewItem> GetCacheFromDb()
@@ -94,12 +94,12 @@ public static class ApptViewItems
     }
 
     private static readonly ApptViewItemCache Cache = new();
-    
+
     public static List<ApptViewItem> GetWhere(Predicate<ApptViewItem> predicate, bool shortList = false)
     {
         return Cache.GetWhere(predicate, shortList);
     }
-    
+
     public static void RefreshCache()
     {
         GetTableFromCache(true);

@@ -1,13 +1,9 @@
-using CodeBase;
 using OpenDental.UI;
 using System;
 using System.Windows.Forms;
 using System.Text;
 using Microsoft.Web.WebView2.Core;
 using System.IO;
-using System.Threading.Tasks;
-using System.Web;
-using System.Diagnostics;
 
 namespace OpenDental;
 

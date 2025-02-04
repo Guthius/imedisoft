@@ -91,30 +91,6 @@ public static class DefLinks
         }
     }
 
-    public static void SyncWebSchedOpLinks(Operatory operatory, DefCat defCat, List<DefLink> defLinks = null)
-    {
-        if ((defCat == DefCat.WebSchedNewPatApptTypes && operatory.ListWSNPAOperatoryDefNums == null) ||
-            (defCat == DefCat.WebSchedExistingApptTypes && operatory.ListWSEPOperatoryDefNums == null))
-        {
-            return;
-        }
-
-        var defNumsWsOps = defCat == DefCat.WebSchedNewPatApptTypes ? operatory.ListWSNPAOperatoryDefNums : operatory.ListWSEPOperatoryDefNums;
-
-        defLinks ??= GetOperatoryDefLinksForCategory(defCat);
-        defLinks = defLinks.Where(x => x.FKey == operatory.OperatoryNum).ToList();
-
-        var defLinksToDelete = defLinks.Where(x => !defNumsWsOps.Contains(x.DefNum)).ToList();
-
-        DeleteDefLinks(defLinksToDelete.Select(x => x.DefLinkNum).ToList());
-
-        var defNumsToInsert = defNumsWsOps
-            .Where(x => !defLinks.Select(y => y.DefNum).Contains(x))
-            .ToList();
-
-        InsertDefLinksForDefs(defNumsToInsert, operatory.OperatoryNum, DefLinkType.Operatory);
-    }
-
     public static void InsertDefLinksForDefs(List<long> defNums, long fkey, DefLinkType defLinkType)
     {
         if (defNums == null || defNums.Count < 1)

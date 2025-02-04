@@ -1,10 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System.Text;
 using System.Text.RegularExpressions;
 using Imedisoft.Core.Entities;
-using Imedisoft.Core.Features.Clinics;
 using Imedisoft.Core.Features.Clinics.Dtos;
+using Imedisoft.Features.Providers.Dtos;
 
 namespace OpenDentBusiness {
 	public class X12Validate {
@@ -69,41 +67,41 @@ namespace OpenDentBusiness {
 		}
 
 		///<summary>StringBuilder does not get altered if no invalid data.</summary>
-		public static void BillProv(Provider billProv,StringBuilder strb) {
-			if(billProv.LName=="") {
+		public static void BillProv(ProviderDto billProv,StringBuilder strb) {
+			if(billProv.LastName=="") {
 				Comma(strb);
 				strb.Append("Billing Prov LName");
 			}
-			if(!billProv.IsNotPerson && billProv.FName=="") {//if is a person, first name cannot be blank.
+			if(!billProv.IsNotPerson && billProv.FirstName=="") {//if is a person, first name cannot be blank.
 				Comma(strb);
 				strb.Append("Billing Prov FName");
 			}
-			if(!Regex.IsMatch(billProv.SSN,"^[0-9]{9}$")) {//must be exactly 9 in length (no dashes)
+			if(!Regex.IsMatch(billProv.Ssn,"^[0-9]{9}$")) {//must be exactly 9 in length (no dashes)
 				Comma(strb);
 				strb.Append("Billing Prov SSN/TIN must be a 9 digit number");
 			}
-			if(!Regex.IsMatch(billProv.NationalProvID,"^(80840)?[0-9]{10}$")) {
+			if(!Regex.IsMatch(billProv.NationalProviderId,"^(80840)?[0-9]{10}$")) {
 				Comma(strb);
 				strb.Append("Billing Prov NPI must be a 10 digit number with an optional prefix of 80840");
 			}
-			if(billProv.TaxonomyCodeOverride.Length>0 && billProv.TaxonomyCodeOverride.Length!=10) {
+			if(billProv.TaxonomyCode is not null && billProv.TaxonomyCode.Length!=10) {
 				Comma(strb);
 				strb.Append("Billing Prov Taxonomy Code must be 10 characters");
 			}
 			//Always check provider name variables regardless of IsNotPerson.
 			if(!billProv.IsNotPerson) {//The first name and middle name are only required if the billing provider is a person. For an organization, these fields are never sent.
-				string fNameInvalidChars=GetNonAN(billProv.FName);
+				var fNameInvalidChars=GetNonAN(billProv.FirstName);
 				if(fNameInvalidChars!="") {
 					Comma(strb);
 					strb.Append("Billing Prov First Name contains invalid characters: "+fNameInvalidChars);
 				}
-				string middleInvalidChars=GetNonAN(billProv.MI);
+				var middleInvalidChars=GetNonAN(billProv.MiddleName);
 				if(middleInvalidChars!="") {
 					Comma(strb);
 					strb.Append("Billing Prov MI contains invalid characters: "+middleInvalidChars);
 				}
 			}
-			string lNameInvalidChars=GetNonAN(billProv.LName);
+			var lNameInvalidChars=GetNonAN(billProv.LastName);
 			if(lNameInvalidChars!="") {
 				Comma(strb);
 				strb.Append("Billing Prov Last Name contains invalid characters: "+lNameInvalidChars);
@@ -209,11 +207,11 @@ namespace OpenDentBusiness {
 
 		///<summary>Returns a string containing all characters not in the Basic Character Set from the given input.  AN stands for alphanumeric.</summary>
 		private static string GetNonAN(string str) {
-			string strUpper=str.ToUpper();//All strings in our X12s are set to uppercase.
+			var strUpper=str.ToUpper();//All strings in our X12s are set to uppercase.
 			//Basic Character Set, includes those selected from the uppercase letters, digits, space, and special characters as specified below.
-			string validChars="ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!\"&'()*+,-./:;?= ";
-			StringBuilder retVal=new StringBuilder();
-			for(int i=0;i<strUpper.Length;i++) {
+			var validChars="ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!\"&'()*+,-./:;?= ";
+			var retVal=new StringBuilder();
+			for(var i=0;i<strUpper.Length;i++) {
 				if(validChars.IndexOf(strUpper[i])==-1) {//Not found.
 					retVal.Append(strUpper[i]);
 				}

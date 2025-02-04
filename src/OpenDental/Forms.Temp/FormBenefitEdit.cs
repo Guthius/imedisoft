@@ -47,7 +47,7 @@ public partial class FormBenefitEdit : FormODBase {
 		var codeGroupNone=new CodeGroup();
 		codeGroupNone.CodeGroupNum=0;
 		codeGroupNone.ProcCodes="";
-		codeGroupNone.GroupName=Lans.g("None");
+		codeGroupNone.GroupName="None";
 		var listCodeGroups=new List<CodeGroup>();
 		listCodeGroups.Add(codeGroupNone);
 		listCodeGroups.AddRange(CodeGroups.GetDeepCopy());

@@ -1,12 +1,7 @@
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Text;
 using System.Windows.Forms;
 using OpenDentBusiness;
-using OpenDental.UI;
 using System.Linq;
 using System.IO;
 using CodeBase;
@@ -35,10 +30,6 @@ public partial class FormReportSetup:FormODBase {
 	}
 
 	private void FormReportSetup_Load(object sender,EventArgs e) {
-		if(!true) {
-			checkReportPIClinic.Visible=false;
-			checkReportPIClinicInfo.Visible=false;
-		}
 		FillComboReportWriteoff();
 		comboReportWriteoff.SelectedIndex=PrefC.GetInt(PrefName.ReportsPPOwriteoffDefaultToProcDate);
 		checkProviderPayrollAllowToday.Checked=PrefC.GetBool(PrefName.ProviderPayrollAllowToday);
@@ -56,12 +47,7 @@ public partial class FormReportSetup:FormODBase {
 		checkReportDisplayUnearnedTP.Checked=PrefC.GetBool(PrefName.ReportsDoShowHiddenTPPrepayments);
 		checkUserQueryDefaultRaw.Checked=PrefC.GetBool(PrefName.UserQueryDefaultRaw);
 		textIncompleteProcsExcludeCodes.Text=PrefC.GetString(PrefName.ReportsIncompleteProcsExcludeCodes);
-		if(/* ODEnvironment.IsCloudServer */ false) {
-			tabControl1.TabPages.Remove(tabReportServer);//Web users can't change their database settings.
-		}
-		else {
-			FillReportServer();
-		}
+		FillReportServer();
 		userControlReportSetup.InitializeOnStartup(true,_userGroupNum,_isPermissionMode);
 		if(_isPermissionMode) {
 			tabControl1.SelectedIndex=1;

@@ -1,10 +1,8 @@
 using System;
 using System.Collections.Generic;
-using System.Data;
 using System.Drawing;
 using System.Linq;
 using System.Windows.Forms;
-using MySqlConnector;
 using OpenDental.UI;
 using OpenDentBusiness;
 using CodeBase;
@@ -13,7 +11,6 @@ using Imedisoft.Core.Caching;
 using Imedisoft.Core.Data;
 using Imedisoft.Core.Entities;
 using Imedisoft.Core.Features.Clinics;
-using OpenDentBusiness.AutoComm;
 
 namespace OpenDental;
 
@@ -186,7 +183,7 @@ public partial class FormBillingOptions : FormODBase {
 						}
 						comboInsFilingCodes.SetSelected(order+2,true);
 					}
-					catch(Exception ex) {//cannot convert string to int, just continue
+					catch {//cannot convert string to int, just continue
 					}
 				}
 			}
@@ -270,7 +267,7 @@ public partial class FormBillingOptions : FormODBase {
 						}
 						comboInsFilingCodes.SetSelected(order+2,true);
 					}
-					catch(Exception ex) {//cannot convert string to int, just continue
+					catch {//cannot convert string to int, just continue
 					}
 				}
 			}
@@ -772,11 +769,9 @@ public partial class FormBillingOptions : FormODBase {
 			billingNums.Add(_listDefsBillingType[listBillType.SelectedIndices[i]-1].DefNum);
 		}
 		var listInsFilingCodeNums=new List<long>();
-		var filterByInsFilingCodes=true;
 		//If None is selected, then ignore any other selections. If (all), select all filing codes. Otherwise, get the selected filing codes.
 		if(comboInsFilingCodes.SelectedIndices[0]==0) {//None
 			listInsFilingCodeNums.Clear();
-			filterByInsFilingCodes=false;
 		}
 		else if(comboInsFilingCodes.SelectedIndices[0]==1) {//(all)
 			listInsFilingCodeNums=_listInsFilingCodes.Select(x => x.InsFilingCodeNum).ToList();
@@ -934,31 +929,6 @@ public partial class FormBillingOptions : FormODBase {
 		Statement statement;
 		var listShortGuidUrls=new List<WebServiceMainHQProxy.ShortGuidResult>();
 		var sheetDefStatement=SheetUtil.GetStatementSheetDef();
-		if(//They are going to send texts
-		   listModeToText.SelectedIndices.Count > 0 
-		   //Or the email body has a statement URL
-		   || PrefC.GetString(PrefName.BillingEmailBodyText).ToLower().Contains(MsgToPayTagReplacer.STATEMENT_URL_TAG.ToLower())
-		   || PrefC.GetString(PrefName.BillingEmailBodyText).ToLower().Contains(MsgToPayTagReplacer.STATEMENT_SHORT_TAG.ToLower())
-		   || PrefC.GetString(PrefName.BillingEmailBodyText).ToLower().Contains(MsgToPayTagReplacer.MSG_TO_PAY_TAG.ToLower())
-		   //Or the statement sheet has a URL field
-		   || (sheetDefStatement!=null && sheetDefStatement.SheetFieldDefs.Any(x => x.FieldType==SheetFieldType.OutputText 
-		                                                                            && (x.FieldValue.ToLower().Contains(MsgToPayTagReplacer.STATEMENT_URL_TAG.ToLower()) || x.FieldValue.ToLower().Contains(MsgToPayTagReplacer.STATEMENT_SHORT_TAG.ToLower())))))
-		{
-			//Then get some short GUIDs and URLs from OD HQ.
-			try {
-				var countForSms=listPatAgings.Count(x => Statements.DoSendSms(x,dictionaryPatAgingData,listModeToText.GetListSelected<StatementMode>()));
-				//Previously we were reserving more guids then neccessary. Would just dump extra GUIDS.
-				listShortGuidUrls=WebServiceMainHQProxy.GetShortGUIDs(countForSms,countForSms,clinicNum,eServiceCode.PatientPortalViewStatement);
-			}
-			catch(Exception ex) {
-				FriendlyException.Show(Lans.g("Unable to create a unique URL for each statement. The Patient Portal URL will be used instead."),ex);
-				listShortGuidUrls=listPatAgings.Select(_ => new WebServiceMainHQProxy.ShortGuidResult {
-					MediumURL=PrefC.GetString(PrefName.PatientPortalURL),
-					ShortURL=PrefC.GetString(PrefName.PatientPortalURL),
-					ShortGuid=""
-				}).ToList();
-			}
-		}
 		var dictionaryInstallmentPlans=InstallmentPlans.GetForFams(listPatAgings.Select(x => x.PatNum).ToList());
 		var listStatementsForInsert=new List<Statement>();
 		DateTime dateBalBeganCur;

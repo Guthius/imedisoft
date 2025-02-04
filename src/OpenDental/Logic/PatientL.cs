@@ -1,11 +1,9 @@
 using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.Linq;
 using System.Windows.Forms;
-using CodeBase;
-using DataConnectionBase;
 using Imedisoft.Core.Caching;
+using Imedisoft.Core.Data;
 using Imedisoft.Core.Entities;
 using Imedisoft.Core.Features.Clinics;
 using OpenDentBusiness;
@@ -78,10 +76,6 @@ public class PatientL
             for (var i = 0; i < family.ListPats.Length; i++)
             {
                 var name = family.ListPats[i].GetNameLF();
-                if (false)
-                {
-                    name += " - " + SOut.Long(family.ListPats[i].PatNum);
-                }
 
                 contextMenu.MenuItems.Add(name, eventHandlerOnClick);
             }
@@ -269,11 +263,6 @@ public class PatientL
         }
 
         retVal += MainTitleUpdateCountdown();
-        //Now check to see if this database has been put into "Testing Mode"
-        if (Introspection.IsTestingMode)
-        {
-            retVal += " <TESTING MODE ENABLED> ";
-        }
 
         return retVal;
     }

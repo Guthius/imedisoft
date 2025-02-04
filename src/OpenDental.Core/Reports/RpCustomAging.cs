@@ -2,9 +2,6 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
-using System.Reflection;
-using System.Text;
-using CodeBase;
 using System.ComponentModel;
 using DataConnectionBase;
 using Imedisoft.Core.Caching;
@@ -15,8 +12,8 @@ namespace OpenDentBusiness {
 	public class RpCustomAging {
 		private static bool _isAgedByProc;
 		public static List<AgingPat> GetAgingList(AgingOptions ageOptions) {
-			_isAgedByProc=PrefC.GetYN(PrefName.AgingProcLifo);
-			string command=@"SELECT patient.fname,patient.lname,patient.patnum,guarAging.Bal_0_30,guarAging.Bal_31_60,
+			_isAgedByProc=PrefC.GetYn(PrefName.AgingProcLifo);
+			var command=@"SELECT patient.fname,patient.lname,patient.patnum,guarAging.Bal_0_30,guarAging.Bal_31_60,
 			 guarAging.Bal_61_90,guarAging.BalOver90,guarAging.BalTotal 
 			 FROM (";
 			command += @"SELECT tSums.PatNum, ";
@@ -66,12 +63,12 @@ namespace OpenDentBusiness {
 			else {
 				command+=@"SELECT p.Guarantor PatNum, ";
 			}
-			List<string> listInstantTranTypes=new List<string>();
+			var listInstantTranTypes=new List<string>();
 			listInstantTranTypes.Add("'WriteoffOrig'");
 			if(_isAgedByProc) {
 				listInstantTranTypes.Add("'SumByProcAndDate'");
 			}
-			string instantAdd="trans.TranType IN ("+string.Join(",",listInstantTranTypes)+")";
+			var instantAdd="trans.TranType IN ("+string.Join(",",listInstantTranTypes)+")";
 			command += @"
 				SUM(CASE WHEN(trans.TranAmount > 0 OR "+instantAdd+@") AND trans.TranDate >= "+SOut.Date(ageOptions.DateAsOf)+@"-INTERVAL 30 DAY THEN trans.TranAmount ELSE 0 END) Charges_0_30,
 				SUM(CASE WHEN(trans.TranAmount > 0 OR "+instantAdd+@") AND trans.TranDate BETWEEN "+SOut.Date(ageOptions.DateAsOf)+@"-INTERVAL 60 DAY AND "+SOut.Date(ageOptions.DateAsOf)+@"-INTERVAL 31 DAY THEN trans.TranAmount ELSE 0 END) Charges_31_60,
@@ -85,7 +82,7 @@ namespace OpenDentBusiness {
 				-SUM(CASE WHEN trans.TranAmount < 0 AND NOT("+instantAdd+@") THEN trans.TranAmount ELSE 0 END) TotalCredits,
 				SUM(CASE WHEN trans.TranAmount != 0 THEN trans.TranAmount ELSE 0 END) BalTotal
 				FROM (";
-			string tranType=
+			var tranType=
 				"(CASE "
 					+"WHEN tranbyproc.AgedProcNum=0 THEN tranbyproc.TranType "
 					+"ELSE 'SumByProcAndDate' "
@@ -99,43 +96,43 @@ namespace OpenDentBusiness {
 					"SUM(tranbyproc.TranAmount) TranAmount "+
 					"FROM (";
 			}
-			string transQueries="";
+			var transQueries="";
 			if(ageOptions.AgingInc.HasFlag(AgingOptions.AgingInclude.ProcedureFees)) {
-				transQueries += String.IsNullOrWhiteSpace(transQueries) ? "" : " UNION ALL ";
+				transQueries += string.IsNullOrWhiteSpace(transQueries) ? "" : " UNION ALL ";
 				transQueries += GetProcAgingQuery(ageOptions);
 			}
 			if(ageOptions.AgingInc.HasFlag(AgingOptions.AgingInclude.InsPayments)) {
-				transQueries += String.IsNullOrWhiteSpace(transQueries) ? "" : " UNION ALL ";
+				transQueries += string.IsNullOrWhiteSpace(transQueries) ? "" : " UNION ALL ";
 				transQueries += GetInsPayAgingQuery(ageOptions);
 			}
 			if(ageOptions.AgingInc.HasFlag(AgingOptions.AgingInclude.Writeoffs)) {
-				transQueries += String.IsNullOrWhiteSpace(transQueries) ? "" : " UNION ALL ";
+				transQueries += string.IsNullOrWhiteSpace(transQueries) ? "" : " UNION ALL ";
 				transQueries += GetWriteoffAgingQuery(ageOptions);
 			}
 			if(ageOptions.AgingInc.HasFlag(AgingOptions.AgingInclude.WriteoffEsts)) {
-				transQueries += String.IsNullOrWhiteSpace(transQueries) ? "" : " UNION ALL ";
+				transQueries += string.IsNullOrWhiteSpace(transQueries) ? "" : " UNION ALL ";
 				transQueries += GetWriteoffEstAgingQuery(ageOptions);
 			}
 			if(ageOptions.AgingInc.HasFlag(AgingOptions.AgingInclude.Adjustments)) {
-				transQueries += String.IsNullOrWhiteSpace(transQueries) ? "" : " UNION ALL ";
+				transQueries += string.IsNullOrWhiteSpace(transQueries) ? "" : " UNION ALL ";
 				transQueries += GetAdjAgingQuery(ageOptions);
 			}
 			if(ageOptions.AgingInc.HasFlag(AgingOptions.AgingInclude.PayPlanCharges) 
 				|| ageOptions.AgingInc.HasFlag(AgingOptions.AgingInclude.PayPlanCredits)) 
 			{
-				transQueries += String.IsNullOrWhiteSpace(transQueries) ? "" : " UNION ALL ";
+				transQueries += string.IsNullOrWhiteSpace(transQueries) ? "" : " UNION ALL ";
 				transQueries += GetPayPlanAgingQuery(ageOptions);
 			}
 			if(ageOptions.AgingInc.HasFlag(AgingOptions.AgingInclude.PayPlanCredits)) {//for dynamic payment plan credits
-				transQueries += String.IsNullOrWhiteSpace(transQueries) ? "" : " UNION ALL ";
+				transQueries += string.IsNullOrWhiteSpace(transQueries) ? "" : " UNION ALL ";
 				transQueries += GetDynamicPayPlanCredits(ageOptions);
 			}
 			if(ageOptions.AgingInc.HasFlag(AgingOptions.AgingInclude.PatPayments)) {
-				transQueries += String.IsNullOrWhiteSpace(transQueries) ? "" : " UNION ALL ";
+				transQueries += string.IsNullOrWhiteSpace(transQueries) ? "" : " UNION ALL ";
 				transQueries += GetPatPayAgingQuery(ageOptions);
 			}
 			if(ageOptions.AgingInc.HasFlag(AgingOptions.AgingInclude.InsEsts)) {
-				transQueries += String.IsNullOrWhiteSpace(transQueries) ? "" : " UNION ALL ";
+				transQueries += string.IsNullOrWhiteSpace(transQueries) ? "" : " UNION ALL ";
 				transQueries += GetInsEstAgingQuery(ageOptions);
 			}
 			if(_isAgedByProc) {
@@ -163,13 +160,13 @@ namespace OpenDentBusiness {
 			INNER JOIN patient ON patient.PatNum=guarAging.PatNum
 			WHERE TRUE ";
 			if(ageOptions.ListBillTypes != null && ageOptions.ListBillTypes.Count > 0) {
-				command+=" AND patient.BillingType IN ("+String.Join(",",ageOptions.ListBillTypes.Select(x => x.DefNum))+") ";
+				command+=" AND patient.BillingType IN ("+string.Join(",",ageOptions.ListBillTypes.Select(x => x.DefNum))+") ";
 			}
 			if(ageOptions.ListProvs != null && ageOptions.ListProvs.Count>0) {
-				command+=@" AND patient.PriProv IN ("+String.Join(",",ageOptions.ListProvs.Select(x => x.ProvNum))+") ";
+				command+=@" AND patient.PriProv IN ("+string.Join(",",ageOptions.ListProvs.Select(x => x.ProvNum))+") ";
 			}
 			if(ageOptions.ListClins != null && ageOptions.ListClins.Count>0) {
-				command+=@" AND patient.ClinicNum IN ("+String.Join(",",ageOptions.ListClins.Select(x => x.Id))+") ";
+				command+=@" AND patient.ClinicNum IN ("+string.Join(",",ageOptions.ListClins.Select(x => x.Id))+") ";
 			}
 			if(ageOptions.ExcludeInactive) {//made to match the way regular aging looks a patient status. 
 				command+=" AND patient.PatStatus != "+(int)PatientStatus.Inactive+" ";
@@ -202,15 +199,15 @@ namespace OpenDentBusiness {
 				command +=" AND guarAging.BalTotal < 0 ";
 			}
 			command += " ORDER BY patient.LName, patient.FName ";
-			DataTable table = DataCore.GetTable(command);
-			List<AgingPat> retVal = new List<AgingPat>();
+			var table = DataCore.GetTable(command);
+			var retVal = new List<AgingPat>();
 			foreach(DataRow row in table.Rows) {
-				Patient patLim = new Patient() {
+				var patLim = new Patient() {
 					PatNum = SIn.Long(row["PatNum"].ToString()),
 					FName = SIn.String(row["FName"].ToString()),
 					LName = SIn.String(row["LName"].ToString()),
 				};
-				AgingPat agingPatCur = new AgingPat() {
+				var agingPatCur = new AgingPat() {
 					Pat = patLim,
 					BalZeroThirty = SIn.Double(row["Bal_0_30"].ToString()),
 					BalThirtySixty = SIn.Double(row["Bal_31_60"].ToString()),
@@ -243,7 +240,7 @@ namespace OpenDentBusiness {
 		}
 
 		private static string GetPayPlanAgingQuery(AgingOptions ageOptions) {
-			string chargeTypeInclude = "";
+			var chargeTypeInclude = "";
 			if(ageOptions.AgingInc.HasFlag(AgingOptions.AgingInclude.PayPlanCharges)) {
 				chargeTypeInclude+=(int)PayPlanChargeType.Debit;
 			}
@@ -271,7 +268,7 @@ namespace OpenDentBusiness {
 			if(!ageOptions.AgingInc.HasFlag(AgingOptions.AgingInclude.PayPlanCredits)) {//we already checked for this, shouldn't happen but just in case.
 				return "";
 			}
-			string command=@$"
+			var command=@$"
 				SELECT 'PayPlanLink' TranType,prodlink.PatNum PatNum,DATE(";
 				if(PrefC.GetBool(PrefName.PayPlanItemDateShowProc)){
 					command+="AgeDate";
@@ -343,9 +340,9 @@ namespace OpenDentBusiness {
 		///Otherwise, only payments not attached to payment plans are included.
 		///This is determined by the user's choice for this particular report, NOT their practice-wide preference.</summary>
 		private static string GetPatPayAgingQuery(AgingOptions ageOptions) {
-			string command = @"
+			var command = @"
 				SELECT 'PatPay' TranType,ps.PatNum,ps.DatePay TranDate,-ps.SplitAmt TranAmount"
-				+(_isAgedByProc?@",0 AgedProcNum,'0001-01-01' AgedProcDate":"")+" "+@"
+			              +(_isAgedByProc?@",0 AgedProcNum,'0001-01-01' AgedProcDate":"")+" "+@"
 				FROM paysplit ps
 				WHERE ps.SplitAmt != 0
 				AND ps.DatePay <= " +SOut.Date(ageOptions.DateAsOf) + " ";
@@ -354,7 +351,7 @@ namespace OpenDentBusiness {
 				command+=@"
 					AND ps.PayPlanNum = 0 ";
 			}
-			List<long> listHiddenUnearnedDefNums=
+			var listHiddenUnearnedDefNums=
 				Defs.GetDefsNoCache(DefCat.PaySplitUnearnedType).Where(x => !string.IsNullOrEmpty(x.ItemValue)).Select(x => x.DefNum).ToList();
 			if(listHiddenUnearnedDefNums.Count > 0) {
 				command+="AND ps.UnearnedType NOT IN ("+string.Join(",",listHiddenUnearnedDefNums)+") ";
@@ -363,12 +360,12 @@ namespace OpenDentBusiness {
 		}
 
 		private static string GetInsPayAgingQuery(AgingOptions ageOptions) {
-			string command = @"
+			var command = @"
 				SELECT 'InsPay' TranType,cp.PatNum,cp.DateCP TranDate,-cp.InsPayAmt TranAmount"
-				+(_isAgedByProc?@",0 AgedProcNum,'0001-01-01' AgedProcDate":"")+" "+@" 
+			              +(_isAgedByProc?@",0 AgedProcNum,'0001-01-01' AgedProcDate":"")+" "+@" 
 				FROM claimproc cp 
 				WHERE cp.Status IN ("+SOut.Int((int)ClaimProcStatus.Received)+","+SOut.Int((int)ClaimProcStatus.Supplemental)+","
-					+SOut.Int((int)ClaimProcStatus.CapClaim)+","+SOut.Int((int)ClaimProcStatus.CapComplete)+@") 
+			              +SOut.Int((int)ClaimProcStatus.CapClaim)+","+SOut.Int((int)ClaimProcStatus.CapComplete)+@") 
 				AND cp.InsPayAmt != 0 
 				AND cp.PayPlanNum = 0 
 				AND cp.DateCP <= " +SOut.Date(ageOptions.DateAsOf);
@@ -376,9 +373,9 @@ namespace OpenDentBusiness {
 		}
 
 		private static string GetInsEstAgingQuery(AgingOptions ageOptions) {
-			string command = @"
+			var command = @"
 				SELECT 'InsEst' TranType,cp.PatNum,cp.DateCP TranDate,-cp.InsPayEst TranAmount"
-				+(_isAgedByProc?@",0 AgedProcNum,'0001-01-01' AgedProcDate":"")+" "+@" 
+			              +(_isAgedByProc?@",0 AgedProcNum,'0001-01-01' AgedProcDate":"")+" "+@" 
 				FROM claimproc cp
 				WHERE cp.Status = "+SOut.Int((int)ClaimProcStatus.NotReceived)+@" 
 				AND cp.InsPayEst != 0 
@@ -387,10 +384,10 @@ namespace OpenDentBusiness {
 		}
 
 		private static string GetWriteoffAgingQuery(AgingOptions ageOptions) {
-			List<ClaimProcStatus> listClaimProcStatus=new List<ClaimProcStatus>() {
+			var listClaimProcStatus=new List<ClaimProcStatus>() {
 				ClaimProcStatus.Received,ClaimProcStatus.Supplemental,ClaimProcStatus.CapClaim,ClaimProcStatus.CapComplete
 			};
-			string statusIn=string.Join(",",listClaimProcStatus.Select(x => SOut.Int((int)x)));
+			var statusIn=string.Join(",",listClaimProcStatus.Select(x => SOut.Int((int)x)));
 			string command;
 			if(ageOptions.WriteoffOptions == PPOWriteoffDateCalc.InsPayDate){
 				command="SELECT 'Writeoff' TranType,"
@@ -447,7 +444,7 @@ namespace OpenDentBusiness {
 		private static string GetWriteoffEstAgingQuery(AgingOptions ageOptions) {
 			//This will add up claims that have been received on a date later than the run date.  This is to attempt to maintain historical information.
 			//This logic matches a lot of our custom queries and can be removed if it becomes an issue, as it doesn't exist in our internal reports currently.
-			string command="";
+			var command="";
 			if(ageOptions.WriteoffOptions==PPOWriteoffDateCalc.ClaimPayDate || ageOptions.WriteoffOptions==PPOWriteoffDateCalc.ProcDate) {
 				command = @"
 					SELECT 'WriteoffEst' TranType,cp.PatNum,cp.ProcDate TranDate,

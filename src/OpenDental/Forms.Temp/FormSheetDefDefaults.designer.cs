@@ -26,8 +26,6 @@ namespace OpenDental{
 			System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(FormSheetDefDefaults));
 			this.butSave = new OpenDental.UI.Button();
 			this.comboClinicDefault = new OpenDental.UI.ComboBoxClinicPicker();
-			this.comboRx = new OpenDental.UI.ComboBox();
-			this.label7 = new System.Windows.Forms.Label();
 			this.comboBoxChartLayout = new OpenDental.UI.ComboBox();
 			this.labelChartLayout = new System.Windows.Forms.Label();
 			this.groupBoxOD1 = new OpenDental.UI.GroupBox();
@@ -69,22 +67,6 @@ namespace OpenDental{
 			this.comboClinicDefault.TabIndex = 5;
 			this.comboClinicDefault.SelectionChangeCommitted += new System.EventHandler(this.comboClinicDefault_SelectionChangeCommitted);
 			// 
-			// comboRx
-			// 
-			this.comboRx.Location = new System.Drawing.Point(93, 11);
-			this.comboRx.Name = "comboRx";
-			this.comboRx.Size = new System.Drawing.Size(200, 21);
-			this.comboRx.TabIndex = 17;
-			// 
-			// label7
-			// 
-			this.label7.Location = new System.Drawing.Point(27, 12);
-			this.label7.Name = "label7";
-			this.label7.Size = new System.Drawing.Size(61, 19);
-			this.label7.TabIndex = 18;
-			this.label7.Text = "Rx";
-			this.label7.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
-			// 
 			// comboBoxChartLayout
 			// 
 			this.comboBoxChartLayout.Location = new System.Drawing.Point(93, 38);
@@ -106,9 +88,7 @@ namespace OpenDental{
 			this.groupBoxOD1.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(249)))), ((int)(((byte)(249)))), ((int)(((byte)(249)))));
 			this.groupBoxOD1.Controls.Add(this.labelTreatmentPlan);
 			this.groupBoxOD1.Controls.Add(this.comboTreatmentPlan);
-			this.groupBoxOD1.Controls.Add(this.comboRx);
 			this.groupBoxOD1.Controls.Add(this.labelChartLayout);
-			this.groupBoxOD1.Controls.Add(this.label7);
 			this.groupBoxOD1.Controls.Add(this.comboBoxChartLayout);
 			this.groupBoxOD1.Location = new System.Drawing.Point(39, 314);
 			this.groupBoxOD1.Name = "groupBoxOD1";
@@ -260,8 +240,6 @@ namespace OpenDental{
 
 		private OpenDental.UI.Button butSave;
 		private OpenDental.UI.ComboBoxClinicPicker comboClinicDefault;
-		private UI.ComboBox comboRx;
-		private System.Windows.Forms.Label label7;
 		private UI.ComboBox comboBoxChartLayout;
 		private System.Windows.Forms.Label labelChartLayout;
 		private OpenDental.UI.GroupBox groupBoxOD1;

@@ -1,27 +1,13 @@
-#region
-
 using System.Collections.Generic;
 using System.Data;
-using System.Linq;
 using DataConnectionBase;
 using Imedisoft.Core.Entities;
 using OpenDentBusiness;
-
-#endregion
 
 namespace Imedisoft.Core.Crud;
 
 public class UserodCrud
 {
-    public static Userod SelectOne(long userNum)
-    {
-        var command = "SELECT * FROM userod "
-                      + "WHERE UserNum = " + SOut.Long(userNum);
-        var list = TableToList(DataCore.GetTable(command));
-        if (list.Count == 0) return null;
-        return list[0];
-    }
-
     public static Userod SelectOne(string command)
     {
         var list = TableToList(DataCore.GetTable(command));
@@ -38,34 +24,35 @@ public class UserodCrud
     public static List<Userod> TableToList(DataTable table)
     {
         var retVal = new List<Userod>();
-        Userod userod;
         foreach (DataRow row in table.Rows)
         {
-            userod = new Userod();
-            userod.UserNum = SIn.Long(row["UserNum"].ToString());
-            userod.UserName = SIn.String(row["UserName"].ToString());
-            userod.Password = SIn.String(row["Password"].ToString());
-            userod.UserGroupNum = SIn.Long(row["UserGroupNum"].ToString());
-            userod.EmployeeNum = SIn.Long(row["EmployeeNum"].ToString());
-            userod.ClinicNum = SIn.Long(row["ClinicNum"].ToString());
-            userod.ProvNum = SIn.Long(row["ProvNum"].ToString());
-            userod.IsHidden = SIn.Bool(row["IsHidden"].ToString());
-            userod.TaskListInBox = SIn.Long(row["TaskListInBox"].ToString());
-            userod.AnesthProvType = SIn.Int(row["AnesthProvType"].ToString());
-            userod.DefaultHidePopups = SIn.Bool(row["DefaultHidePopups"].ToString());
-            userod.PasswordIsStrong = SIn.Bool(row["PasswordIsStrong"].ToString());
-            userod.ClinicIsRestricted = SIn.Bool(row["ClinicIsRestricted"].ToString());
-            userod.InboxHidePopups = SIn.Bool(row["InboxHidePopups"].ToString());
-            userod.UserNumCEMT = SIn.Long(row["UserNumCEMT"].ToString());
-            userod.DateTFail = SIn.DateTime(row["DateTFail"].ToString());
-            userod.FailedAttempts = SIn.Byte(row["FailedAttempts"].ToString());
-            userod.DomainUser = SIn.String(row["DomainUser"].ToString());
-            userod.IsPasswordResetRequired = SIn.Bool(row["IsPasswordResetRequired"].ToString());
-            userod.MobileWebPin = SIn.String(row["MobileWebPin"].ToString());
-            userod.MobileWebPinFailedAttempts = SIn.Byte(row["MobileWebPinFailedAttempts"].ToString());
-            userod.DateTLastLogin = SIn.DateTime(row["DateTLastLogin"].ToString());
-            userod.EClipboardClinicalPin = SIn.String(row["EClipboardClinicalPin"].ToString());
-            userod.BadgeId = SIn.String(row["BadgeId"].ToString());
+            var userod = new Userod
+            {
+                UserNum = SIn.Long(row["UserNum"].ToString()),
+                UserName = SIn.String(row["UserName"].ToString()),
+                Password = SIn.String(row["Password"].ToString()),
+                UserGroupNum = SIn.Long(row["UserGroupNum"].ToString()),
+                EmployeeNum = SIn.Long(row["EmployeeNum"].ToString()),
+                ClinicNum = SIn.Long(row["ClinicNum"].ToString()),
+                ProvNum = SIn.Long(row["ProvNum"].ToString()),
+                IsHidden = SIn.Bool(row["IsHidden"].ToString()),
+                TaskListInBox = SIn.Long(row["TaskListInBox"].ToString()),
+                AnesthProvType = SIn.Int(row["AnesthProvType"].ToString()),
+                DefaultHidePopups = SIn.Bool(row["DefaultHidePopups"].ToString()),
+                PasswordIsStrong = SIn.Bool(row["PasswordIsStrong"].ToString()),
+                ClinicIsRestricted = SIn.Bool(row["ClinicIsRestricted"].ToString()),
+                InboxHidePopups = SIn.Bool(row["InboxHidePopups"].ToString()),
+                UserNumCEMT = SIn.Long(row["UserNumCEMT"].ToString()),
+                DateTFail = SIn.DateTime(row["DateTFail"].ToString()),
+                FailedAttempts = SIn.Byte(row["FailedAttempts"].ToString()),
+                DomainUser = SIn.String(row["DomainUser"].ToString()),
+                IsPasswordResetRequired = SIn.Bool(row["IsPasswordResetRequired"].ToString()),
+                MobileWebPin = SIn.String(row["MobileWebPin"].ToString()),
+                MobileWebPinFailedAttempts = SIn.Byte(row["MobileWebPinFailedAttempts"].ToString()),
+                DateTLastLogin = SIn.DateTime(row["DateTLastLogin"].ToString()),
+                EClipboardClinicalPin = SIn.String(row["EClipboardClinicalPin"].ToString()),
+                BadgeId = SIn.String(row["BadgeId"].ToString())
+            };
             retVal.Add(userod);
         }
 
@@ -107,11 +94,6 @@ public class UserodCrud
 
     public static long Insert(Userod userod)
     {
-        return Insert(userod, false);
-    }
-
-    public static long Insert(Userod userod, bool useExistingPK)
-    {
         var command = "INSERT INTO userod (";
 
         command += "UserName,Password,UserGroupNum,EmployeeNum,ClinicNum,ProvNum,IsHidden,TaskListInBox,AnesthProvType,DefaultHidePopups,PasswordIsStrong,ClinicIsRestricted,InboxHidePopups,UserNumCEMT,DateTFail,FailedAttempts,DomainUser,IsPasswordResetRequired,MobileWebPin,MobileWebPinFailedAttempts,DateTLastLogin,EClipboardClinicalPin,BadgeId) VALUES(";
@@ -146,49 +128,6 @@ public class UserodCrud
         return userod.UserNum;
     }
 
-    public static long InsertNoCache(Userod userod)
-    {
-        return InsertNoCache(userod, false);
-    }
-
-    public static long InsertNoCache(Userod userod, bool useExistingPK)
-    {
-        const bool isRandomKeys = false;
-        var command = "INSERT INTO userod (";
-        if (isRandomKeys || useExistingPK) command += "UserNum,";
-        command += "UserName,Password,UserGroupNum,EmployeeNum,ClinicNum,ProvNum,IsHidden,TaskListInBox,AnesthProvType,DefaultHidePopups,PasswordIsStrong,ClinicIsRestricted,InboxHidePopups,UserNumCEMT,DateTFail,FailedAttempts,DomainUser,IsPasswordResetRequired,MobileWebPin,MobileWebPinFailedAttempts,DateTLastLogin,EClipboardClinicalPin,BadgeId) VALUES(";
-        if (isRandomKeys || useExistingPK) command += SOut.Long(userod.UserNum) + ",";
-        command +=
-            "'" + SOut.String(userod.UserName) + "',"
-            + "'" + SOut.String(userod.Password) + "',"
-            + SOut.Long(userod.UserGroupNum) + ","
-            + SOut.Long(userod.EmployeeNum) + ","
-            + SOut.Long(userod.ClinicNum) + ","
-            + SOut.Long(userod.ProvNum) + ","
-            + SOut.Bool(userod.IsHidden) + ","
-            + SOut.Long(userod.TaskListInBox) + ","
-            + SOut.Int(userod.AnesthProvType) + ","
-            + SOut.Bool(userod.DefaultHidePopups) + ","
-            + SOut.Bool(userod.PasswordIsStrong) + ","
-            + SOut.Bool(userod.ClinicIsRestricted) + ","
-            + SOut.Bool(userod.InboxHidePopups) + ","
-            + SOut.Long(userod.UserNumCEMT) + ","
-            + SOut.DateTime(userod.DateTFail) + ","
-            + SOut.Byte(userod.FailedAttempts) + ","
-            + "'" + SOut.String(userod.DomainUser) + "',"
-            + SOut.Bool(userod.IsPasswordResetRequired) + ","
-            + "'" + SOut.String(userod.MobileWebPin) + "',"
-            + SOut.Byte(userod.MobileWebPinFailedAttempts) + ","
-            + SOut.DateTime(userod.DateTLastLogin) + ","
-            + "'" + SOut.String(userod.EClipboardClinicalPin) + "',"
-            + "'" + SOut.String(userod.BadgeId) + "')";
-        if (useExistingPK || isRandomKeys)
-            Db.NonQ(command);
-        else
-            userod.UserNum = Db.NonQ(command, true, "UserNum", "userod");
-        return userod.UserNum;
-    }
-
     public static void Update(Userod userod)
     {
         var command = "UPDATE userod SET "
@@ -219,7 +158,7 @@ public class UserodCrud
         Db.NonQ(command);
     }
 
-    public static bool Update(Userod userod, Userod oldUserod)
+    public static void Update(Userod userod, Userod oldUserod)
     {
         var command = "";
         if (userod.UserName != oldUserod.UserName)
@@ -360,74 +299,9 @@ public class UserodCrud
             command += "BadgeId = '" + SOut.String(userod.BadgeId) + "'";
         }
 
-        if (command == "") return false;
+        if (command == "") return;
         command = "UPDATE userod SET " + command
                                        + " WHERE UserNum = " + SOut.Long(userod.UserNum);
-        Db.NonQ(command);
-        return true;
-    }
-
-    public static bool UpdateComparison(Userod userod, Userod oldUserod)
-    {
-        if (userod.UserName != oldUserod.UserName) return true;
-        if (userod.Password != oldUserod.Password) return true;
-        if (userod.UserGroupNum != oldUserod.UserGroupNum) return true;
-        if (userod.EmployeeNum != oldUserod.EmployeeNum) return true;
-        if (userod.ClinicNum != oldUserod.ClinicNum) return true;
-        if (userod.ProvNum != oldUserod.ProvNum) return true;
-        if (userod.IsHidden != oldUserod.IsHidden) return true;
-        if (userod.TaskListInBox != oldUserod.TaskListInBox) return true;
-        if (userod.AnesthProvType != oldUserod.AnesthProvType) return true;
-        if (userod.DefaultHidePopups != oldUserod.DefaultHidePopups) return true;
-        if (userod.PasswordIsStrong != oldUserod.PasswordIsStrong) return true;
-        if (userod.ClinicIsRestricted != oldUserod.ClinicIsRestricted) return true;
-        if (userod.InboxHidePopups != oldUserod.InboxHidePopups) return true;
-        if (userod.UserNumCEMT != oldUserod.UserNumCEMT) return true;
-        if (userod.DateTFail != oldUserod.DateTFail) return true;
-        if (userod.FailedAttempts != oldUserod.FailedAttempts) return true;
-        if (userod.DomainUser != oldUserod.DomainUser) return true;
-        if (userod.IsPasswordResetRequired != oldUserod.IsPasswordResetRequired) return true;
-        if (userod.MobileWebPin != oldUserod.MobileWebPin) return true;
-        if (userod.MobileWebPinFailedAttempts != oldUserod.MobileWebPinFailedAttempts) return true;
-        if (userod.DateTLastLogin != oldUserod.DateTLastLogin) return true;
-        if (userod.EClipboardClinicalPin != oldUserod.EClipboardClinicalPin) return true;
-        if (userod.BadgeId != oldUserod.BadgeId) return true;
-        return false;
-    }
-
-    public static void UpdateCemt(Userod userod)
-    {
-        var command = "UPDATE userod SET "
-                      + "UserName             = '" + SOut.String(userod.UserName) + "', "
-                      + "Password             = '" + SOut.String(userod.Password) + "', "
-                      + "ClinicNum            =  " + SOut.Long(userod.ClinicNum) + ", "
-                      + "IsHidden             =  " + SOut.Bool(userod.IsHidden) + ", "
-                      + "TaskListInBox        =  " + SOut.Long(userod.TaskListInBox) + ", "
-                      + "AnesthProvType       =  " + SOut.Int(userod.AnesthProvType) + ", "
-                      + "DefaultHidePopups    =  " + SOut.Bool(userod.DefaultHidePopups) + ", "
-                      + "PasswordIsStrong     =  " + SOut.Bool(userod.PasswordIsStrong) + ", "
-                      + "ClinicIsRestricted   =  " + SOut.Bool(userod.ClinicIsRestricted) + ", "
-                      + "InboxHidePopups      =  " + SOut.Bool(userod.InboxHidePopups) + ", "
-                      + "DomainUser           = '" + SOut.String(userod.DomainUser) + "', "
-                      + "DateTLastLogin       =  " + SOut.DateTime(userod.DateTLastLogin) + ", "
-                      + "EClipboardClinicalPin= '" + SOut.String(userod.EClipboardClinicalPin) + "', "
-                      + "BadgeId              = '" + SOut.String(userod.BadgeId) + "' "
-                      + "WHERE UserNumCEMT = " + SOut.Long(userod.UserNumCEMT);
-        Db.NonQ(command);
-    }
-
-    public static void Delete(long userNum)
-    {
-        var command = "DELETE FROM userod "
-                      + "WHERE UserNum = " + SOut.Long(userNum);
-        Db.NonQ(command);
-    }
-
-    public static void DeleteMany(List<long> listUserNums)
-    {
-        if (listUserNums == null || listUserNums.Count == 0) return;
-        var command = "DELETE FROM userod "
-                      + "WHERE UserNum IN(" + string.Join(",", listUserNums.Select(x => SOut.Long(x))) + ")";
         Db.NonQ(command);
     }
 }

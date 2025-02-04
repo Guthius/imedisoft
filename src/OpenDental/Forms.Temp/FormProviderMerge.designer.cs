@@ -255,7 +255,7 @@ namespace OpenDental{
 			this.butMerge.Size = new System.Drawing.Size(75, 24);
 			this.butMerge.TabIndex = 3;
 			this.butMerge.Text = "Merge";
-			this.butMerge.Click += new System.EventHandler(this.butMerge_Click);
+			this.butMerge.Click += new System.EventHandler(this.ButtonMerge_Click);
 			// 
 			// FormProviderMerge
 			// 

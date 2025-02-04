@@ -1,13 +1,8 @@
 using System;
-using System.Drawing;
-using System.Collections;
-using System.ComponentModel;
 using System.IO;
 using System.Windows.Forms;
 using OpenDentBusiness;
 using CodeBase;
-using System.Collections.Generic;
-using System.Linq;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Data;
 using Imedisoft.Core.Entities;
@@ -39,7 +34,7 @@ public partial class FormShowFeatures : FormODBase {
 		RestoreClinicCheckBox();
 		checkRepeatCharges.Checked=!PrefC.GetBool(PrefName.EasyHideRepeatCharges);
 		checkMedicalIns.Checked=PrefC.GetBool(PrefName.ShowFeatureMedicalInsurance);
-		checkEhr.Checked=PrefC.GetBool(PrefName.ShowFeatureEhr);
+		checkEhr.Checked=false;
 		checkSuperFam.Checked=PrefC.GetBool(PrefName.ShowFeatureSuperfamilies);
 		checkPatClone.Checked=PrefC.GetBool(PrefName.ShowFeaturePatientClone);
 		checkShowEnterprise.Checked=PrefC.GetBool(PrefName.ShowFeatureEnterprise);
@@ -127,17 +122,8 @@ public partial class FormShowFeatures : FormODBase {
 			ODMessageBox.Show(ex.Message);
 			return false;
 		}	
-		//Create an alert for the user to know they may need to restart the eConnector if they are subscribed to eServices
-		var alertItem=new AlertItem();
-		alertItem.Description=Lan.g(this,"Clinic Feature Changed, you may need to restart the eConnector if you are subscribed to eServices");
-		alertItem.Type=AlertType.ClinicsChanged;
-		alertItem.Severity=SeverityType.Low;
-		alertItem.Actions=ActionType.OpenForm | ActionType.MarkAsRead | ActionType.Delete;
-		alertItem.FormToOpen=FormType.FormEServicesEConnector;
-		alertItem.ItemValue="Clinics turned "+(checkEnableClinics.Checked ? "On":"Off");
-		AlertItems.Insert(alertItem);
 		//Create an alert for the eConnector to perform the clinic conversion as needed.
-		alertItem=new AlertItem();
+		var alertItem=new AlertItem();
 		alertItem.Description="Clinics Changed";
 		alertItem.Type=AlertType.ClinicsChangedInternal;
 		alertItem.Severity=SeverityType.Normal;

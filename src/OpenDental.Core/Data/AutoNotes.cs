@@ -26,7 +26,7 @@ public static class AutoNotes
         }
 
         var autoNotes = new List<AutoNote>();
-        
+
         foreach (var serializableAutoNote in serializableAutoNotes)
         {
             var newNote = new AutoNote
@@ -66,7 +66,7 @@ public static class AutoNotes
     {
         var result = "";
         var brackets = new Stack<int>();
-        
+
         for (var pos = 0; pos < promptResponse.Length; pos++)
         {
             if (promptResponse[pos] == '{')
@@ -79,16 +79,16 @@ public static class AutoNotes
             {
                 continue;
             }
-            
+
             var posOpenBracket = brackets.Peek();
-            
+
             var length = pos - posOpenBracket;
             if (length < 1)
             {
                 brackets.Pop();
                 continue;
             }
-            
+
             var autoNoteName = promptResponse.Substring(posOpenBracket + 1, length - 1);
             if (!string.IsNullOrEmpty(autoNoteName) && IsValidAutoNote(autoNoteName))
             {
@@ -150,24 +150,24 @@ public static class AutoNotes
 
     private static readonly AutoNoteCache Cache = new();
 
-    public static List<AutoNote> GetDeepCopy(bool isShort = false)
+    public static List<AutoNote> GetDeepCopy(bool shortList = false)
     {
-        return Cache.GetDeepCopy(isShort);
+        return Cache.GetDeepCopy(shortList);
     }
 
-    public static List<AutoNote> GetWhere(Predicate<AutoNote> match, bool isShort = false)
+    public static List<AutoNote> GetWhere(Predicate<AutoNote> predicate, bool shortList = false)
     {
-        return Cache.GetWhere(match, isShort);
+        return Cache.GetWhere(predicate, shortList);
     }
 
-    public static bool GetExists(Predicate<AutoNote> match, bool isShort = false)
+    public static bool GetExists(Predicate<AutoNote> predicate, bool shortList = false)
     {
-        return Cache.GetExists(match, isShort);
+        return Cache.GetExists(predicate, shortList);
     }
 
-    private static AutoNote GetFirstOrDefault(Func<AutoNote, bool> match, bool isShort = false)
+    private static AutoNote GetFirstOrDefault(Func<AutoNote, bool> predicate, bool shortList = false)
     {
-        return Cache.GetFirstOrDefault(match, isShort);
+        return Cache.GetFirstOrDefault(predicate, shortList);
     }
 
     public static void RefreshCache()
@@ -175,9 +175,9 @@ public static class AutoNotes
         GetTableFromCache(true);
     }
 
-    public static DataTable GetTableFromCache(bool doRefreshCache)
+    public static DataTable GetTableFromCache(bool refreshCache)
     {
-        return Cache.GetTableFromCache(doRefreshCache);
+        return Cache.GetTableFromCache(refreshCache);
     }
 
     public static void ClearCache()

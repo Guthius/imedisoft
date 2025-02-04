@@ -1,21 +1,15 @@
 using System;
-using System.ComponentModel;
-using System.Data;
 using System.Drawing;
-using System.Collections;
-using System.Globalization;
-using System.Drawing.Printing;
 using System.Windows.Forms;
 using OpenDental.ReportingComplex;
-using OpenDental.UI;
 using OpenDentBusiness;
-using CodeBase;
 using System.Collections.Generic;
 using System.Linq;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Entities;
 using Imedisoft.Core.Features.Clinics;
 using Imedisoft.Core.Features.Clinics.Dtos;
+using Imedisoft.Features.Providers.Dtos;
 
 namespace OpenDental;
 
@@ -30,7 +24,7 @@ public partial class FormRpPayPlans:FormODBase {
 	//private int patientsPrinted;
 	//private PrintDocument pd;
 	//private OpenDental.UI.PrintPreview printPreview;
-	private List<Provider> _listProviders;
+	private List<ProviderDto> _listProviders;
 
 		
 	public FormRpPayPlans()
@@ -46,30 +40,23 @@ public partial class FormRpPayPlans:FormODBase {
 		dateEnd.Value=DateTime.Today;
 		checkHideCompletePlans.Checked=true;
 		_listProviders=Providers.GetListReports();
-		listProv.Items.AddList(_listProviders,x => x.GetLongDesc());
+		listProv.Items.AddList(_listProviders,x => x.Description);
 		listProv.SetAll(true);
 		checkAllProv.Checked=true;
-		if(!true) {
-			listClin.Visible=false;
-			labelClin.Visible=false;
-			checkAllClin.Visible=false;
+		_listClinics=Clinics.GetForUserod(Security.CurUser);
+		if(!Security.CurUser.ClinicIsRestricted) {
+			listClin.Items.Add(Lan.g(this,"Unassigned"));
+			listClin.SetSelected(0);
 		}
-		else {
-			_listClinics=Clinics.GetForUserod(Security.CurUser);
-			if(!Security.CurUser.ClinicIsRestricted) {
-				listClin.Items.Add(Lan.g(this,"Unassigned"));
-				listClin.SetSelected(0);
+		for(var i=0;i<_listClinics.Count;i++) {
+			listClin.Items.Add(_listClinics[i].Abbr);
+			if(Clinics.ClinicNum==0) {
+				listClin.SetSelected(listClin.Items.Count-1);
+				checkAllClin.Checked=true;
 			}
-			for(var i=0;i<_listClinics.Count;i++) {
-				listClin.Items.Add(_listClinics[i].Abbr);
-				if(Clinics.ClinicNum==0) {
-					listClin.SetSelected(listClin.Items.Count-1);
-					checkAllClin.Checked=true;
-				}
-				if(_listClinics[i].Id==Clinics.ClinicNum) {
-					listClin.SelectedIndices.Clear();
-					listClin.SetSelected(listClin.Items.Count-1);
-				}
+			if(_listClinics[i].Id==Clinics.ClinicNum) {
+				listClin.SelectedIndices.Clear();
+				listClin.SetSelected(listClin.Items.Count-1);
 			}
 		}
 	}
@@ -134,11 +121,11 @@ public partial class FormRpPayPlans:FormODBase {
 		var listProvNums=new List<long>();
 		var listClinicNums=new List<long>();
 		for(var i=0;i<listProv.SelectedIndices.Count;i++) {
-			listProvNums.Add(_listProviders[listProv.SelectedIndices[i]].ProvNum);
+			listProvNums.Add(_listProviders[listProv.SelectedIndices[i]].Id);
 		}
 		if(checkAllProv.Checked) {
 			for(var i=0;i<_listProviders.Count;i++) {
-				listProvNums.Add(_listProviders[i].ProvNum);
+				listProvNums.Add(_listProviders[i].Id);
 			}
 		}
 		if(true) {
@@ -187,12 +174,7 @@ public partial class FormRpPayPlans:FormODBase {
 			report.AddSubTitle("Date SubTitle",DateTime.Today.ToShortDateString(),fontSubTitle);
 		}
 		QueryObject query;
-		if(true) {
-			query=report.AddQuery(table,"","clinicName",SplitByKind.Value,1,true);
-		}
-		else {
-			query=report.AddQuery(table,"","",SplitByKind.None,1,true);
-		}
+		query=report.AddQuery(table,"","clinicName",SplitByKind.Value,1,true);
 		query.AddColumn("Provider",160,FieldValueType.String,font);
 		query.AddColumn("Guarantor",160,FieldValueType.String,font);
 		query.AddColumn("Ins",40,FieldValueType.String,font);

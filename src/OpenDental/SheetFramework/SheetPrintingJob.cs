@@ -18,7 +18,6 @@ class SheetPrintingJob
     private int _idxPreClaimPaidPrinted;
     private bool _isPrinting;
     private List<Sheet> _listSheets;
-    private MedLab _medLab;
 
 #if DEBUG
     private readonly bool _printCalibration = false;
@@ -35,7 +34,7 @@ class SheetPrintingJob
 
     public int PagesPrinted { get; private set; }
 
-    public void Print(Sheet sheet, int copies = 1, bool isRxControlled = false, Statement stmt = null, MedLab medLab = null, bool isPrintDocument = true, bool isPreviewMode = false)
+    public void Print(Sheet sheet, int copies = 1, Statement stmt = null, bool isPreviewMode = false)
     {
         if (sheet.SheetType == SheetTypeEnum.Statement && stmt != null)
         {
@@ -49,14 +48,14 @@ class SheetPrintingJob
             }
         }
 
-        Print(sheet, _dataSet, copies, isRxControlled, stmt, medLab, isPrintDocument, isPreviewMode);
+        Print(sheet, _dataSet, copies, stmt, isPreviewMode);
     }
 
-    public void Print(Sheet sheet, DataSet dataSet, int copies = 1, bool isRxControlled = false, Statement stmt = null, MedLab medLab = null, bool isPrintDocument = true, bool isPreviewMode = false)
+    public void Print(Sheet sheet, DataSet dataSet, int copies = 1, Statement stmt = null, bool isPreviewMode = false)
     {
         try
         {
-            TryPrint(sheet, dataSet, copies, isRxControlled, stmt, medLab, isPreviewMode);
+            TryPrint(sheet, dataSet, copies, stmt, isPreviewMode);
         }
         catch (InvalidPrinterException)
         {
@@ -76,7 +75,6 @@ class SheetPrintingJob
         {
             SheetTypeEnum.LabelPatient or SheetTypeEnum.LabelCarrier or SheetTypeEnum.LabelReferral => PrintSituation.LabelSingle,
             SheetTypeEnum.ReferralSlip => PrintSituation.Default,
-            SheetTypeEnum.RxMulti => PrintSituation.RxMulti,
             _ => PrintSituation.Default
         };
 
@@ -106,92 +104,17 @@ class SheetPrintingJob
         );
     }
 
-    public void PrintMultiRx(List<RxPat> listRxs)
-    {
-        var sheetDef = SheetDefs.GetInternalOrCustom(SheetInternalType.RxMulti);
-        var rxSheetCountList = GetSheetRxCount(sheetDef); //gets the number of rx available in the sheet
-        if (sheetDef.Parameters.Count == 0)
-        {
-            //adds parameters if internal sheet
-            sheetDef.Parameters.Add(new SheetParameter(true, "ListRxNums"));
-            sheetDef.Parameters.Add(new SheetParameter(true, "ListRxSheet"));
-        }
-
-        var batchRxList = new List<Sheet>(); //list of sheets to be batch printed
-        if (rxSheetCountList.Count == 0)
-        {
-            ODMessageBox.Show("MuitiRx sheet is invalid. Please visit the manual to see what output fields must be added to the MultiRx Sheet.");
-            return;
-        }
-
-        //Sort RxPats into batches. rxSheetCount is most rx's we can print on one sheet.
-        var batchSize = rxSheetCountList.Count;
-        var batchIdx = 0;
-        var batches = new List<List<RxPat>>();
-        for (var i = 0; i < listRxs.Count; i++)
-        {
-            if (SheetPrinting.ValidateRxForSheet(listRxs[i]) != "")
-            {
-                MsgBox.Show("Sheets", "One or more of the selected prescriptions is missing information.\r\nPlease fix and try again.");
-                return;
-            }
-
-            if (i > 0 && i % batchSize == 0)
-            {
-                batchIdx++;
-            }
-
-            if (i % batchSize == 0)
-            {
-                batches.Add([]);
-            }
-
-            batches[batchIdx].Add(listRxs[i]);
-        }
-
-        //Fill and add sheets to batchRxList to be printed
-        foreach (var listBatch in batches)
-        {
-            var sheet = SheetUtil.CreateSheet(sheetDef, listRxs[0].PatNum);
-            SheetParameter.SetParameter(sheet, "ListRxNums", listBatch);
-            SheetParameter.SetParameter(sheet, "ListRxSheet", rxSheetCountList);
-            SheetFiller.FillFields(sheet);
-            batchRxList.Add(sheet);
-        }
-
-        PrintBatch(batchRxList);
-    }
-
-    public bool PrintRx(Sheet sheet, RxPat rx)
-    {
-        var validationErrors = SheetPrinting.ValidateRxForSheet(rx);
-        if (validationErrors != "" && IsRemotePrintingJob)
-        {
-            return false;
-        }
-
-        if (validationErrors != "")
-        {
-            ODMessageBox.Show("Cannot print until missing info is fixed: " + validationErrors);
-            return false;
-        }
-
-        Print(sheet, 1, rx.IsControlled);
-        return true;
-    }
-
     public void DrawSheetFirstPage(Graphics g, Sheet sheet)
     {
         pd_DrawFieldsHelper(sheet, g, null);
 
-        SheetDrawingJob.DrawFooter(sheet, g, null, PagesPrinted, _yPosPrint, _medLab);
+        SheetDrawingJob.DrawFooter(sheet, g, null, PagesPrinted, _yPosPrint);
     }
 
-    public void TryPrint(Sheet sheet, DataSet dataSet, int copies = 1, bool isRxControlled = false, Statement stmt = null, MedLab medLab = null, bool isPreviewMode = false)
+    public void TryPrint(Sheet sheet, DataSet dataSet, int copies = 1, Statement stmt = null, bool isPreviewMode = false)
     {
         _dataSet = dataSet;
         _stmt = stmt;
-        _medLab = medLab;
         _isPrinting = true;
         _sheetsPrinted = 0;
         _yPosPrint = 0;
@@ -210,7 +133,6 @@ class SheetPrintingJob
         {
             SheetTypeEnum.LabelPatient or SheetTypeEnum.LabelCarrier or SheetTypeEnum.LabelReferral or SheetTypeEnum.LabelAppointment => PrintSituation.LabelSingle,
             SheetTypeEnum.ReferralSlip => PrintSituation.Default,
-            SheetTypeEnum.Rx => isRxControlled ? PrintSituation.RxControlled : PrintSituation.Rx,
             SheetTypeEnum.Statement => PrintSituation.Statement,
             SheetTypeEnum.TreatmentPlan => PrintSituation.TPPerio,
             _ => PrintSituation.Default
@@ -233,7 +155,7 @@ class SheetPrintingJob
             SheetUtil.SetDefaultValueForComboBoxes(sheet);
         }
 
-        SheetUtil.CalculateHeights(sheet, _dataSet, _stmt, _isPrinting, PrintMargin.Top, PrintMargin.Bottom, _medLab);
+        SheetUtil.CalculateHeights(sheet, _dataSet, _stmt, _isPrinting, PrintMargin.Top, PrintMargin.Bottom);
         _listSheets = [];
         for (var i = 0; i < copies; i++)
         {
@@ -254,166 +176,22 @@ class SheetPrintingJob
 
         PrinterL.TryPrintOrDebugClassicPreview(pd_PrintPage,
             sheet.Description + " sheet from " + sheet.DateTimeSheet.ToShortDateString() + " printed",
-            printSituation: sit,
             margins: new Margins(0, 0, 0, 0),
+            totalPages: pageCount,
+            printSituation: sit,
             printoutOrigin: PrintoutOrigin.AtMargin,
             printoutOrientation: sheet.IsLandscape ? PrintoutOrientation.Landscape : PrintoutOrientation.Portrait,
-            totalPages: pageCount,
             isForcedPreview: isPreviewMode,
-            auditPatNum: sheet.PatNum,
-            paperSize: paperSize,
-            isRemotePrint: IsRemotePrintingJob,
-            printerNumOverride: PrinterNumOverride
-        );
+            auditPatNum: sheet.PatNum, paperSize: paperSize, isRemotePrint: IsRemotePrintingJob, printerNumOverride: PrinterNumOverride);
 
         _isPrinting = false;
 
         GC.Collect();
     }
 
-    private static List<int> GetSheetRxCount(SheetDef sheetDef)
-    {
-        var rxFieldList = new List<int>();
-        var hasProvNameFL = false;
-        var hasProvNameFL2 = false;
-        var hasProvNameFL3 = false;
-        var hasProvNameFL4 = false;
-        var hasProvNameFL5 = false;
-        var hasProvNameFL6 = false;
-        var hasPatNameFL = false;
-        var hasPatNameFL2 = false;
-        var hasPatNameFL3 = false;
-        var hasPatNameFL4 = false;
-        var hasPatNameFL5 = false;
-        var hasPatNameFL6 = false;
-        var hasPatBirthdate = false;
-        var hasPatBirthdate2 = false;
-        var hasPatBirthdate3 = false;
-        var hasPatBirthdate4 = false;
-        var hasPatBirthdate5 = false;
-        var hasPatBirthdate6 = false;
-        var hasDrug = false;
-        var hasDrug2 = false;
-        var hasDrug3 = false;
-        var hasDrug4 = false;
-        var hasDrug5 = false;
-        var hasDrug6 = false;
-
-        foreach (var field in sheetDef.SheetFieldDefs)
-        {
-            switch (field.FieldName)
-            {
-                case "prov.nameFL":
-                    hasProvNameFL = true;
-                    break;
-                case "prov.nameFL2":
-                    hasProvNameFL2 = true;
-                    break;
-                case "prov.nameFL3":
-                    hasProvNameFL3 = true;
-                    break;
-                case "prov.nameFL4":
-                    hasProvNameFL4 = true;
-                    break;
-                case "prov.nameFL5":
-                    hasProvNameFL5 = true;
-                    break;
-                case "prov.nameFL6":
-                    hasProvNameFL6 = true;
-                    break;
-                case "pat.nameFL":
-                    hasPatNameFL = true;
-                    break;
-                case "pat.nameFL2":
-                    hasPatNameFL2 = true;
-                    break;
-                case "pat.nameFL3":
-                    hasPatNameFL3 = true;
-                    break;
-                case "pat.nameFL4":
-                    hasPatNameFL4 = true;
-                    break;
-                case "pat.nameFL5":
-                    hasPatNameFL5 = true;
-                    break;
-                case "pat.nameFL6":
-                    hasPatNameFL6 = true;
-                    break;
-                case "pat.Birthdate":
-                    hasPatBirthdate = true;
-                    break;
-                case "pat.Birthdate2":
-                    hasPatBirthdate2 = true;
-                    break;
-                case "pat.Birthdate3":
-                    hasPatBirthdate3 = true;
-                    break;
-                case "pat.Birthdate4":
-                    hasPatBirthdate4 = true;
-                    break;
-                case "pat.Birthdate5":
-                    hasPatBirthdate5 = true;
-                    break;
-                case "pat.Birthdate6":
-                    hasPatBirthdate6 = true;
-                    break;
-                case "Drug":
-                    hasDrug = true;
-                    break;
-                case "Drug2":
-                    hasDrug2 = true;
-                    break;
-                case "Drug3":
-                    hasDrug3 = true;
-                    break;
-                case "Drug4":
-                    hasDrug4 = true;
-                    break;
-                case "Drug5":
-                    hasDrug5 = true;
-                    break;
-                case "Drug6":
-                    hasDrug6 = true;
-                    break;
-            }
-        }
-
-        if (hasProvNameFL && hasPatNameFL && hasPatBirthdate && hasDrug)
-        {
-            rxFieldList.Add(1);
-        }
-
-        if (hasProvNameFL2 && hasPatNameFL2 && hasPatBirthdate2 && hasDrug2)
-        {
-            rxFieldList.Add(2);
-        }
-
-        if (hasProvNameFL3 && hasPatNameFL3 && hasPatBirthdate3 && hasDrug3)
-        {
-            rxFieldList.Add(3);
-        }
-
-        if (hasProvNameFL4 && hasPatNameFL4 && hasPatBirthdate4 && hasDrug4)
-        {
-            rxFieldList.Add(4);
-        }
-
-        if (hasProvNameFL5 && hasPatNameFL5 && hasPatBirthdate5 && hasDrug5)
-        {
-            rxFieldList.Add(5);
-        }
-
-        if (hasProvNameFL6 && hasPatNameFL6 && hasPatBirthdate6 && hasDrug6)
-        {
-            rxFieldList.Add(6);
-        }
-
-        return rxFieldList;
-    }
-
     private void pd_DrawFieldsHelper(Sheet sheet, Graphics g, XGraphics gx, Sheet parentSheet = null)
     {
-        var sheetDrawingJob = new SheetDrawingJob(_dataSet, _medLab, PagesPrinted, _yPosPrint, _yPosPrevious, _idxPreClaimPaidPrinted);
+        var sheetDrawingJob = new SheetDrawingJob(_dataSet, PagesPrinted, _yPosPrint, _yPosPrevious, _idxPreClaimPaidPrinted);
 
         foreach (var field in sheet.SheetFields)
         {
@@ -451,7 +229,7 @@ class SheetPrintingJob
                     break;
 
                 case SheetFieldType.Grid:
-                    sheetDrawingJob.DrawFieldGrid(field, sheet, g, gx, _dataSet, _stmt, _medLab, true);
+                    sheetDrawingJob.DrawFieldGrid(field, sheet, g, gx, _dataSet, _stmt, true);
                     _yPosPrevious = sheetDrawingJob.YPosPrevious;
                     _idxPreClaimPaidPrinted = sheetDrawingJob.IdxPreClaimPaidPrinted;
                     break;
@@ -468,10 +246,6 @@ class SheetPrintingJob
 
                 case SheetFieldType.ComboBox:
                     sheetDrawingJob.DrawFieldComboBox(field, sheet, g, gx);
-                    break;
-
-                case SheetFieldType.ScreenChart:
-                    sheetDrawingJob.DrawFieldScreenChart(field, sheet, g, gx);
                     break;
 
                 case SheetFieldType.SigBox:
@@ -508,7 +282,7 @@ class SheetPrintingJob
         }
 
         SheetDrawingJob.DrawHeader(sheet, g, null, PagesPrinted, _yPosPrint);
-        SheetDrawingJob.DrawFooter(sheet, g, null, PagesPrinted, _yPosPrint, _medLab);
+        SheetDrawingJob.DrawFooter(sheet, g, null, PagesPrinted, _yPosPrint);
 #if DEBUG
         if (_printCalibration)
         {

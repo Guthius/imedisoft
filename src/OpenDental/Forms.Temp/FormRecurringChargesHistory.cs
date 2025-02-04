@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Data;
 using System.Linq;
 using System.Windows.Forms;
 using CodeBase;
@@ -78,30 +77,17 @@ public partial class FormRecurringChargesHistory:FormODBase {
 			GridSortingStrategy.DateParse));
 		gridMain.Columns.Add(new GridColumn(Lan.g(this,"Charge Status"),90));
 		gridMain.Columns.Add(new GridColumn(Lan.g(this,"User"),90));
-		if(true){
-			gridMain.Columns.Add(new GridColumn(Lan.g(this,"Family Bal"),70,HorizontalAlignment.Right,
-				GridSortingStrategy.AmountParse));
-			gridMain.Columns.Add(new GridColumn(Lan.g(this,"PayPlan Due"),80,HorizontalAlignment.Right,
-				GridSortingStrategy.AmountParse));
-			gridMain.Columns.Add(new GridColumn(Lan.g(this,"Total Due"),65,HorizontalAlignment.Right,
-				GridSortingStrategy.AmountParse));
-			gridMain.Columns.Add(new GridColumn(Lan.g(this,"Repeat Amt"),75,HorizontalAlignment.Right,
-				GridSortingStrategy.AmountParse));
-			gridMain.Columns.Add(new GridColumn(Lan.g(this,"Charge Amt"),85,HorizontalAlignment.Right,
-				GridSortingStrategy.AmountParse));
-		}
-		else {
-			gridMain.Columns.Add(new GridColumn(Lan.g(this,"Family Bal"),85,HorizontalAlignment.Right,
-				GridSortingStrategy.AmountParse));
-			gridMain.Columns.Add(new GridColumn(Lan.g(this,"PayPlan Due"),90,HorizontalAlignment.Right,
-				GridSortingStrategy.AmountParse));
-			gridMain.Columns.Add(new GridColumn(Lan.g(this,"Total Due"),80,HorizontalAlignment.Right,
-				GridSortingStrategy.AmountParse));
-			gridMain.Columns.Add(new GridColumn(Lan.g(this,"Repeat Amt"),90,HorizontalAlignment.Right,
-				GridSortingStrategy.AmountParse));
-			gridMain.Columns.Add(new GridColumn(Lan.g(this,"Charge Amt"),95,HorizontalAlignment.Right,
-				GridSortingStrategy.AmountParse));
-		}
+		gridMain.Columns.Add(new GridColumn(Lan.g(this,"Family Bal"),70,HorizontalAlignment.Right,
+			GridSortingStrategy.AmountParse));
+		gridMain.Columns.Add(new GridColumn(Lan.g(this,"PayPlan Due"),80,HorizontalAlignment.Right,
+			GridSortingStrategy.AmountParse));
+		gridMain.Columns.Add(new GridColumn(Lan.g(this,"Total Due"),65,HorizontalAlignment.Right,
+			GridSortingStrategy.AmountParse));
+		gridMain.Columns.Add(new GridColumn(Lan.g(this,"Repeat Amt"),75,HorizontalAlignment.Right,
+			GridSortingStrategy.AmountParse));
+		gridMain.Columns.Add(new GridColumn(Lan.g(this,"Charge Amt"),85,HorizontalAlignment.Right,
+			GridSortingStrategy.AmountParse));
+
 		gridMain.ListGridRows.Clear();
 		var listRecurringCharges=_listRecurringCharges.OrderBy(x => x.DateTimeCharge).ToList();
 		for(var i=0;i<listRecurringCharges.Count;i++) {

@@ -18,44 +18,13 @@ public class ProcedureCodes
 {
     public const string GroupProcCode = "~GRP~";
 
-    public static readonly List<EServiceCodeProcCode> ListEServiceProcCodes =
-    [
-        new() {EServiceCode = eServiceCode.Bundle, ProcCode = "042"},
-        new() {EServiceCode = eServiceCode.ConfirmationOwn, ProcCode = "045"},
-        new() {EServiceCode = eServiceCode.ConfirmationRequest, ProcCode = "040"},
-        new() {EServiceCode = eServiceCode.EClipboard, ProcCode = "047"},
-        new() {EServiceCode = eServiceCode.MobileWeb, ProcCode = "027"},
-        new() {EServiceCode = eServiceCode.PatientPortal, ProcCode = "033"},
-        new() {EServiceCode = eServiceCode.ResellerSoftwareOnly, ProcCode = "043"},
-        new() {EServiceCode = eServiceCode.SoftwareOnly, ProcCode = "030"},
-        new() {EServiceCode = eServiceCode.IntegratedTexting, ProcCode = "038"},
-        new() {EServiceCode = eServiceCode.IntegratedTextingOwn, ProcCode = "046"},
-        new() {EServiceCode = eServiceCode.IntegratedTextingUsage, ProcCode = "039"},
-        new() {EServiceCode = eServiceCode.WebForms, ProcCode = "036"},
-        new() {EServiceCode = eServiceCode.WebSched, ProcCode = "037"},
-        new() {EServiceCode = eServiceCode.WebSchedNewPatAppt, ProcCode = "041"},
-        new() {EServiceCode = eServiceCode.WebSchedASAP, ProcCode = "044"},
-        new() {EServiceCode = eServiceCode.EmailMassUsage, ProcCode = "050"},
-        new() {EServiceCode = eServiceCode.EmailSecureUsage, ProcCode = "051"},
-        new() {EServiceCode = eServiceCode.EmailSecureAccess, ProcCode = "052"},
-        new() {EServiceCode = eServiceCode.ODTouch, ProcCode = "055"},
-        new() {EServiceCode = eServiceCode.ODTSurplus, ProcCode = "056"},
-        new() {EServiceCode = eServiceCode.OCR, ProcCode = "057"},
-        new() {EServiceCode = eServiceCode.FHIR, ProcCode = "048"}
-    ];
-
-    public static string GetProcCodeForEService(eServiceCode eService)
-    {
-        return ListEServiceProcCodes.FirstOrDefault(x => x.EServiceCode == eService).ProcCode;
-    }
-
     public static List<ProcedureCode> GetForClaim(long claimNum)
     {
         var command = "SELECT pc.* " +
                       "FROM claimproc c " +
                       "INNER JOIN procedurelog p ON c.ProcNum=p.ProcNum " +
                       "INNER JOIN procedurecode pc ON p.CodeNum=pc.CodeNum " +
-                      "WHERE c.ClaimNum=" + SOut.Long(claimNum);
+                      "WHERE c.ClaimNum=" + (claimNum);
         return ProcedureCodeCrud.SelectMany(command);
     }
 
@@ -75,12 +44,6 @@ public class ProcedureCodes
         return ProcedureCodeCrud.Update(procCode, procCodeOld);
     }
 
-    public static long GetCodeCount()
-    {
-        var command = "SELECT COUNT(*) FROM procedurecode";
-        return SIn.Long(Db.GetCount(command));
-    }
-
     public static ProcedureCode GetProcCode(string myCode)
     {
         var procedureCode = new ProcedureCode();
@@ -90,7 +53,7 @@ public class ProcedureCodes
 
     public static List<ProcedureCode> GetProcCodes(List<string> listCodes)
     {
-        if (listCodes == null || listCodes.Count < 1) return new List<ProcedureCode>();
+        if (listCodes == null || listCodes.Count < 1) return [];
         return Cache.GetWhereForKey(x => listCodes.Contains(x));
     }
 
@@ -188,7 +151,7 @@ public class ProcedureCodes
     public static List<long> GetCodeNumsForCodeGroupFixed(EnumCodeGroupFixed codeGroupFixed)
     {
         var codeGroup = CodeGroups.GetOneForCodeGroupFixed(codeGroupFixed);
-        if (codeGroup == null) return new List<long>();
+        if (codeGroup == null) return [];
         return GetCodeNumsForProcCodes(codeGroup.ProcCodes);
     }
 
@@ -274,10 +237,10 @@ public class ProcedureCodes
 
     private static List<long> GetInsHistCodeNumsForBenefit(Benefit benefit, PrefName prefNameInsHist, ProcedureCode procedureCode)
     {
-        if (benefit == null) return new List<long>();
+        if (benefit == null) return [];
         var listCodeNums = GetCodeNumsForPref(prefNameInsHist);
         if (procedureCode == null || listCodeNums.Contains(procedureCode.CodeNum)) return listCodeNums; //The proc is not included or is part of the group
-        return new List<long>();
+        return [];
     }
 
     public static bool CanBypassLockDate(long codeNum, double procFee)
@@ -390,7 +353,7 @@ public class ProcedureCodes
         var table = DataCore.GetTable(command);
         var listCodeNums = new List<long>();
         var listRecallCodes = RecallTypes.GetDeepCopy()
-            .SelectMany(x => x.Procedures.Split(new[] {','}, StringSplitOptions.RemoveEmptyEntries))
+            .SelectMany(x => x.Procedures.Split([','], StringSplitOptions.RemoveEmptyEntries))
             .ToList();
         for (var i = 0; i < table.Rows.Count; i++)
             if (!listRecallCodes.Contains(SIn.String(table.Rows[i]["ProcCode"].ToString())))
@@ -450,7 +413,7 @@ public class ProcedureCodes
 
         for (var i = 0; i < table.Rows.Count; i++)
         {
-            command = "UPDATE procedurecode SET ProcCat=" + SOut.Long(catNum)
+            command = "UPDATE procedurecode SET ProcCat=" + (catNum)
                                                           + " WHERE ProcCat=" + table.Rows[i][0]
                                                           + " AND procedurecode.ProcCode LIKE 'T%'";
             Db.NonQ(command);
@@ -594,8 +557,8 @@ public class ProcedureCodes
     {
         var listProcedureCodes = new List<ProcedureCode>();
         //Split raw data into non-empty lines of text in the file.
-        var arrayAdaCodeLines = Class1.GetADAcodes().Split(new[] {'\r', '\n'}, StringSplitOptions.RemoveEmptyEntries);
-        var arrayProcedureCodeSettingLines = Class1.GetProcedureCodeSettings().Split(new[] {'\r', '\n'}, StringSplitOptions.RemoveEmptyEntries);
+        var arrayAdaCodeLines = Class1.GetADAcodes().Split(['\r', '\n'], StringSplitOptions.RemoveEmptyEntries);
+        var arrayProcedureCodeSettingLines = Class1.GetProcedureCodeSettings().Split(['\r', '\n'], StringSplitOptions.RemoveEmptyEntries);
         string[] arrayAdaDictionaryCode;
         //load our codes into a hashtable
         var hashTable = new Hashtable(); //key=adacode, value=entire row string
@@ -656,7 +619,7 @@ public class ProcedureCodes
     {
         var listProcedureCodes = GetAllCodes(); //Ordered by D-code.
         var arrayProcedureCodeTreatAreasLines = Class1.GetProcedureCodeTreatAreas() //~850 rows
-            .Split(new[] {'\r', '\n'}, StringSplitOptions.RemoveEmptyEntries);
+            .Split(['\r', '\n'], StringSplitOptions.RemoveEmptyEntries);
         string[] arrayProcCodeTreatArea;
         var countProcCodesUpdated = 0;
         for (var i = 0; i < arrayProcedureCodeTreatAreasLines.Length; i++)
@@ -779,33 +742,15 @@ public class ProcedureCodes
 
         return GetWhereFromList(x => x.ProcCode.ToUpper().StartsWith("D8")).Select(x => x.CodeNum).ToList();
     }
-
-    public class EServiceCodeProcCode
-    {
-        public eServiceCode EServiceCode;
-        public string ProcCode;
-    }
-
-    #region Get Methods
-
+    
     public static List<ProcedureCode> GetMandibularCodes()
     {
         var listMandibularCodes = new List<ProcedureCode>();
         ODException.SwallowAnyException(() => { listMandibularCodes = JsonConvert.DeserializeObject<List<ProcedureCode>>(Class1.GetMandibularCodes()); });
         //The list of mandibular proc codes can be null, due to DeserializeObject interrupting an empty string as null
-        return listMandibularCodes ?? new List<ProcedureCode>();
+        return listMandibularCodes ?? [];
     }
-
-    public static List<ProcedureCode> GetMaxillaryCodes()
-    {
-        var listMaxillaryCodes = new List<ProcedureCode>();
-        ODException.SwallowAnyException(() => { listMaxillaryCodes = JsonConvert.DeserializeObject<List<ProcedureCode>>(Class1.GetMaxillaryCodes()); });
-        //The list of maxillary proc codes can be null, due to DeserializeObject interrupting an empty string as null
-        return listMaxillaryCodes ?? new List<ProcedureCode>();
-    }
-
-    #endregion
-
+    
     private class ProcedureCodeCache : CacheDictNonPkAbs<ProcedureCode, string, ProcedureCode>
     {
         protected override List<ProcedureCode> GetCacheFromDb()

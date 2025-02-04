@@ -1,16 +1,12 @@
 using System;
-using System.Data;
 using System.Drawing;
-using System.Drawing.Printing;
 using System.Collections;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Globalization;
 using System.IO;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Windows.Forms;
-using System.Xml;
 using Microsoft.Win32;
 using OpenDental.Bridges;
 using OpenDental.UI;
@@ -120,7 +116,7 @@ public partial class FormInsPlan : FormODBase {
 		_listBoxEmps.DoubleClick += new System.EventHandler(listBoxEmps_DoubleClick);
 		_listBoxEmps.MouseEnter += new System.EventHandler(listBoxEmps_MouseEnter);
 		_listBoxEmps.MouseLeave += new System.EventHandler(listBoxEmps_MouseLeave);
-		LayoutManagerForms.Add(_listBoxEmps,this);
+		Controls.Add(_listBoxEmps);
 		_listBoxEmps.BringToFront();
 		_listBoxCarriers=new UI.ListBox();//Instead of UI.ListBox, for horiz scroll on a dropdown.
 		_listBoxCarriers.Location=new Point(
@@ -133,7 +129,7 @@ public partial class FormInsPlan : FormODBase {
 		_listBoxCarriers.DoubleClick += new System.EventHandler(listBoxCarriers_DoubleClick);
 		_listBoxCarriers.MouseEnter += new System.EventHandler(listBoxCarriers_MouseEnter);
 		_listBoxCarriers.MouseLeave += new System.EventHandler(listBoxCarriers_MouseLeave);
-		LayoutManagerForms.Add(_listBoxCarriers,this);
+		Controls.Add(_listBoxCarriers);
 		_listBoxCarriers.BringToFront();
 		//tbPercentPlan.CellClicked += new OpenDental.ContrTable.CellEventHandler(tbPercentPlan_CellClicked);
 		//tbPercentPat.CellClicked += new OpenDental.ContrTable.CellEventHandler(tbPercentPat_CellClicked);
@@ -194,7 +190,7 @@ public partial class FormInsPlan : FormODBase {
 			labelNoPermission.Location=new Point(groupChanges.Location.X,groupChanges.Location.Y+10);
 			labelNoPermission.Size=new Size(groupChanges.Size.Width+0,groupChanges.Size.Height);
 			labelNoPermission.Visible=true;
-			LayoutManagerForms.Add(labelNoPermission,this);
+			Controls.Add(labelNoPermission);
 			groupChanges.Visible=false;
 			//It was decided by Nathan that restricting users from pressing the "Pick From List" button 
 			//was an oversight and doesn't actually modify insurance information.
@@ -513,13 +509,8 @@ public partial class FormInsPlan : FormODBase {
 		_employerNameCur=textEmployer.Text;
 		textGroupName.Text=_insPlan.GroupName;
 		textGroupNum.Text=_insPlan.GroupNum;
-		if(PrefC.GetBool(PrefName.ShowFeatureEhr)) {
-			textBIN.Text=_insPlan.RxBIN;
-		}
-		else{
-			labelBIN.Visible=false;
-			textBIN.Visible=false;
-		}
+		labelBIN.Visible=false;
+		textBIN.Visible=false;
 		textDivisionNo.Text=_insPlan.DivisionNo;//only visible in Canada
 		textTrojanID.Text=_insPlan.TrojanID;
 		comboPlanType.Items.Clear();
@@ -688,7 +679,7 @@ public partial class FormInsPlan : FormODBase {
 		if(countSubs>10000) {//10,000 per Nathan.
 			comboLinked.Visible=false;
 			butOtherSubscribers.Visible=true;
-			LayoutManagerForms.MoveLocation(butOtherSubscribers,comboLinked.Location);
+			butOtherSubscribers.Location = comboLinked.Location;
 			return;
 		}
 		comboLinked.Visible=true;
@@ -1363,10 +1354,6 @@ public partial class FormInsPlan : FormODBase {
 	}
 
 	private void butImportTrojan_Click(object sender,System.EventArgs e) {
-		if(/* ODEnvironment.IsCloudServer */ false) {
-			MsgBox.Show(this,"Bridge is not available while using Open Dental Cloud.");
-			return;//bridge is not yet available for web users.
-		}
 		//If SubCur is null, this button is not visible to click.
 		if(CovCats.GetForEbenCat(EbenefitCategory.Diagnostic)==null
 		   || CovCats.GetForEbenCat(EbenefitCategory.RoutinePreventive)==null
@@ -1382,22 +1369,17 @@ public partial class FormInsPlan : FormODBase {
 			return;
 		}
 		var file="";
-		if(/* ODBuild.IsDebug() */ false) {
-			file=@"C:\Trojan\ETW\Planout.txt";
+		var registryKey=Registry.LocalMachine.OpenSubKey("Software\\TROJAN BENEFIT SERVICE");
+		if(registryKey==null) {//dmg Unix OS will exit here.
+			ODMessageBox.Show("Trojan not installed properly.");
+			return;
 		}
-		else {
-			var registryKey=Registry.LocalMachine.OpenSubKey("Software\\TROJAN BENEFIT SERVICE");
-			if(registryKey==null) {//dmg Unix OS will exit here.
-				ODMessageBox.Show("Trojan not installed properly.");
-				return;
-			}
-			//C:\ETW
-			if(registryKey.GetValue("INSTALLDIR")==null) {
-				ODMessageBox.Show(@"Registry entry is missing and should be added manually.  LocalMachine\Software\TROJAN BENEFIT SERVICE. StringValue.  Name='INSTALLDIR',	value= path where the Trojan program is located.  Full path to directory, without trailing slash.");
-				return;
-			}
-			file=ODFileUtils.CombinePaths(registryKey.GetValue("INSTALLDIR").ToString(),"Planout.txt");
+		//C:\ETW
+		if(registryKey.GetValue("INSTALLDIR")==null) {
+			ODMessageBox.Show(@"Registry entry is missing and should be added manually.  LocalMachine\Software\TROJAN BENEFIT SERVICE. StringValue.  Name='INSTALLDIR',	value= path where the Trojan program is located.  Full path to directory, without trailing slash.");
+			return;
 		}
+		file=ODFileUtils.CombinePaths(registryKey.GetValue("INSTALLDIR").ToString(),"Planout.txt");
 		if(!File.Exists(file)) {
 			ODMessageBox.Show(file+" not found.  You should export from Trojan first.");
 			return;
@@ -1451,12 +1433,10 @@ public partial class FormInsPlan : FormODBase {
 			trojanObject.BenefitList[i].PlanNum=_insPlan.PlanNum;
 			_listBenefits.Add(trojanObject.BenefitList[i].Copy());
 		}
-		if(!/* ODBuild.IsDebug() */ false) {
-			try {
-				File.Delete(file);
-			}
-			catch(Exception ex) {
-			}
+		try {
+			File.Delete(file);
+		}
+		catch {
 		}
 		butBenefitNotes.Enabled=true;
 		FillBenefits();
@@ -1495,10 +1475,6 @@ public partial class FormInsPlan : FormODBase {
 	}
 
 	private void butIapFind_Click(object sender,System.EventArgs e) {
-		if(/* ODEnvironment.IsCloudServer */ false) {
-			MsgBox.Show(this,"Bridge is not available while using Open Dental Cloud.");
-			return;
-		}
 		//If SubCur is null, this button is not visible to click.
 		using var formIap=new FormIap();
 		formIap.ShowDialog();
@@ -2314,11 +2290,6 @@ public partial class FormInsPlan : FormODBase {
 			DialogResult=DialogResult.Cancel;
 			return;
 		}
-		//button not visible if SubCur is null
-		if(PrefC.GetBool(PrefName.CustomizedForPracticeWeb)) {
-			EligibilityCheckDentalXchange();
-			return;
-		}
 		//Visible for everyone.
 		var clearinghouseHq=Clearinghouses.GetDefaultEligibility();
 		if(clearinghouseHq==null) {
@@ -2368,7 +2339,7 @@ public partial class FormInsPlan : FormODBase {
 					var dateTimePlanEnd=DateTime.MinValue;
 					var listDTP271Dates=formEtrans270Edit.ListDTP271s;
 					for(var i=0;i<listDTP271Dates.Count;i++) {
-						var dtpDateStr=DTP271.GetDateStr(listDTP271Dates[i].Segment.Get(2),listDTP271Dates[i].Segment.Get(3));
+						var dtpDateStr=DTP271.GetDate(listDTP271Dates[i].Segment.Get(2),listDTP271Dates[i].Segment.Get(3));
 						if(listDTP271Dates[i].Segment.Get(1)=="347") {//347 => Plan End
 							dateTimePlanEnd=X12Parse.ToDate(listDTP271Dates[i].Segment.Get(3));
 							if(!isDependentRequest) {
@@ -2376,7 +2347,7 @@ public partial class FormInsPlan : FormODBase {
 							}
 						}
 						if(isDependentRequest || listDTP271Dates[i].Segment.Get(1)!="347") {
-							var dtpDescript=DTP271.GetQualifierDescript(listDTP271Dates[i].Segment.Get(1));
+							var dtpDescript=DTP271.GetQualifierDescription(listDTP271Dates[i].Segment.Get(1));
 							var note="As of "+DateTime.Today.ToShortDateString()+" - "+patName+": "+Lan.g(this,dtpDescript)+", "+dtpDateStr+"\n";
 							textSubscNote.Text=textSubscNote.Text.Insert(0,note);
 						}
@@ -2444,411 +2415,6 @@ public partial class FormInsPlan : FormODBase {
 		}
 		FillBenefits();
 	}
-
-	#region EligibilityCheckDentalXchange
-	//This is not our code.   Added SPK/AAD 10/06 for eligibility check.-------------------------------------------------------------------------
-	private void EligibilityCheckDentalXchange() {
-		Cursor = Cursors.WaitCursor;
-		var DCIService 
-			= new OpenDentBusiness.com.dentalxchange.webservices.WebServiceService();
-		var DCICredential 
-			= new OpenDentBusiness.com.dentalxchange.webservices.Credentials();
-		var DCIRequest = new OpenDentBusiness.com.dentalxchange.webservices.Request();
-		var DCIResponse = new OpenDentBusiness.com.dentalxchange.webservices.Response();
-		string loginID;
-		string passWord;
-		// Get Login / Password
-		var clearinghouseHq=Clearinghouses.GetDefaultDental();
-		var clearinghouseClin=Clearinghouses.OverrideFields(clearinghouseHq,Clinics.ClinicNum);
-		if(clearinghouseClin!=null) {
-			loginID=clearinghouseClin.LoginID;
-			passWord=clearinghouseClin.Password;
-		}
-		else {
-			loginID = "";
-			passWord = "";
-		}
-		if(loginID == "") {
-			ODMessageBox.Show("ClaimConnect login ID and password are required to check eligibility.");
-			Cursor = Cursors.Default;
-			return;
-		}
-		// Set Credentials
-		DCICredential.serviceID = "DCI Web Service ID: 001513";
-		DCICredential.username = loginID;   // ABCuser
-		DCICredential.password = passWord;  // testing1
-		DCICredential.client = "Practice-Web";
-		DCICredential.version = "1";
-		// Set Request Document
-		//textAddress.Text = PrepareEligibilityRequest();
-		DCIRequest.content = PrepareEligibilityRequestDentalXchange(loginID,passWord);
-		try {
-			DCIResponse = DCIService.lookupEligibility(DCICredential,DCIRequest);
-			//DisplayEligibilityStatus();
-			ProcessEligibilityResponseDentalXchange(DCIResponse.content);
-		}
-		catch{//Exception ex) {
-			// SPK /AAD 8/16/08 Display more user friendly error message
-			ODMessageBox.Show("Error : Inadequate data for response. Payer site may be unavailable.");
-		}
-		Cursor = Cursors.Default;
-	}
-
-	private string PrepareEligibilityRequestDentalXchange(string loginID,string passWord) {
-		DataTable table;
-		string infoReceiverLastName;
-		string infoReceiverFirstName;
-		string practiceAddress1;
-		string practiceAddress2;
-		string practicePhone;
-		string practiceCity;
-		string practiceState;
-		string practiceZip;
-		string renderingProviderLastName;
-		string renderingProviderFirstName;
-		string GenderCode;
-		string TaxoCode;
-		string RelationShip;
-		var xmlDocument = new XmlDocument();
-		var xmlNodeElig = xmlDocument.CreateNode(XmlNodeType.Element,"EligRequest","");
-		xmlDocument.AppendChild(xmlNodeElig);
-		// Prepare Namespace Attribute
-		var xmlAttributeNameSpace = xmlDocument.CreateAttribute("xmlns","xsi","http://www.w3.org/2000/xmlns/");
-		xmlAttributeNameSpace.Value = "http://www.w3.org/2001/XMLSchema-instance";
-		xmlDocument.DocumentElement.SetAttributeNode(xmlAttributeNameSpace);
-		// Prepare noNamespace Schema Location Attribute
-		var xmlAttributeNoNameSpaceSchemaLocation = xmlDocument.CreateAttribute("xsi","noNamespaceSchemaLocation","http://www.w3.org/2001/XMLSchema-instance");
-		//dmg Not sure what this is for. This path will not exist on Unix and will fail. In fact, this path
-		//will either not exist or be read-only on most Windows boxes, so this path specification is probably
-		//a bug, but has not caused any user complaints thus far.
-		xmlAttributeNoNameSpaceSchemaLocation.Value = @"D:\eligreq.xsd";
-		xmlDocument.DocumentElement.SetAttributeNode(xmlAttributeNoNameSpaceSchemaLocation);
-		//  Prepare AuthInfo Node
-		var xmlNodeAuthInfo = xmlDocument.CreateNode(XmlNodeType.Element,"AuthInfo","");
-		//  Create UserName / Password ChildNode for AuthInfoNode
-		var xmlNodeUserName = xmlDocument.CreateNode(XmlNodeType.Element,"UserName","");
-		var xmlNodePassword = xmlDocument.CreateNode(XmlNodeType.Element,"Password","");
-		//  Set Value of UserID / Password
-		xmlNodeUserName.InnerText = loginID;
-		xmlNodePassword.InnerText = passWord;
-		//  Append UserName / Password to AuthInfoNode
-		xmlNodeAuthInfo.AppendChild(xmlNodeUserName);
-		xmlNodeAuthInfo.AppendChild(xmlNodePassword);
-		//  Append AuthInfoNode To EligNode
-		xmlNodeElig.AppendChild(xmlNodeAuthInfo);
-		//  Prepare Information Receiver Node
-		var xmlNodeInfoReceiver = xmlDocument.CreateNode(XmlNodeType.Element,"InformationReceiver","");
-		var xmlNodeInfoAddress = xmlDocument.CreateNode(XmlNodeType.Element,"Address","");
-		var xmlNodeInfoAddressName = xmlDocument.CreateNode(XmlNodeType.Element,"Name","");
-		var xmlNodeInfoAddressFirstName = xmlDocument.CreateNode(XmlNodeType.Element,"FirstName","");
-		var xmlNodeInfoAddressLastName = xmlDocument.CreateNode(XmlNodeType.Element,"LastName","");
-		// Get Provider Information
-		table = Providers.GetDefaultPracticeProvider2();
-		if(table.Rows.Count == 0) {
-			infoReceiverFirstName = "Unknown";
-			infoReceiverLastName = "Unknown";
-			TaxoCode = "Unknown";
-		}
-		else {
-			infoReceiverFirstName = SIn.String(table.Rows[0][0].ToString());
-			infoReceiverLastName = SIn.String(table.Rows[0][1].ToString());
-			// Case statement for TaxoCode
-			switch(SIn.Long(table.Rows[0][2].ToString())) {
-				case 1:
-					TaxoCode = "124Q00000X";
-					break;
-				case 2:
-					TaxoCode = "1223D0001X";
-					break;
-				case 3:
-					TaxoCode = "1223E0200X";
-					break;
-				case 4:
-					TaxoCode = "1223P0106X";
-					break;
-				case 5:
-					TaxoCode = "1223D0008X";
-					break;
-				case 6:
-					TaxoCode = "1223S0112X";
-					break;
-				case 7:
-					TaxoCode = "1223X0400X";
-					break;
-				case 8:
-					TaxoCode = "1223P0221X";
-					break;
-				case 9:
-					TaxoCode = "1223P0300X";
-					break;
-				case 10:
-					TaxoCode = "1223P0700X";
-					break;
-				default:
-					TaxoCode = "1223G0001X";
-					break;
-			}
-		};
-		xmlNodeInfoAddressFirstName.InnerText = infoReceiverLastName;
-		xmlNodeInfoAddressLastName.InnerText = infoReceiverFirstName;
-		xmlNodeInfoAddressName.AppendChild(xmlNodeInfoAddressFirstName);
-		xmlNodeInfoAddressName.AppendChild(xmlNodeInfoAddressLastName);
-		var xmlNodeInfoAddressLine1 = xmlDocument.CreateNode(XmlNodeType.Element,"AddressLine1","");
-		var xmlNodeInfoAddressLine2 = xmlDocument.CreateNode(XmlNodeType.Element,"AddressLine2","");
-		var xmlNodeInfoPhone = xmlDocument.CreateNode(XmlNodeType.Element,"Phone","");
-		var xmlNodeInfoCity = xmlDocument.CreateNode(XmlNodeType.Element,"City","");
-		var xmlNodeInfoState = xmlDocument.CreateNode(XmlNodeType.Element,"State","");
-		var xmlNodeInfoZip = xmlDocument.CreateNode(XmlNodeType.Element,"Zip","");
-		//  Populate Practioner demographic from hash table
-		practiceAddress1 = PrefC.GetString(PrefName.PracticeAddress);
-		practiceAddress2 = PrefC.GetString(PrefName.PracticeAddress2);
-		// Format Phone
-		if(PrefC.GetString(PrefName.PracticePhone).Length == 10 && TelephoneNumbers.IsFormattingAllowed()) {
-			practicePhone = PrefC.GetString(PrefName.PracticePhone).Substring(0,3)
-			                + "-" + PrefC.GetString(PrefName.PracticePhone).Substring(3,3)
-			                + "-" + PrefC.GetString(PrefName.PracticePhone).Substring(6);
-		}
-		else {
-			practicePhone = PrefC.GetString(PrefName.PracticePhone);
-		}
-		practiceCity = PrefC.GetString(PrefName.PracticeCity);
-		practiceState = PrefC.GetString(PrefName.PracticeST);
-		practiceZip = PrefC.GetString(PrefName.PracticeZip);
-		xmlNodeInfoAddressLine1.InnerText = practiceAddress1;
-		xmlNodeInfoAddressLine2.InnerText = practiceAddress2;
-		xmlNodeInfoPhone.InnerText = practicePhone;
-		xmlNodeInfoCity.InnerText = practiceCity;
-		xmlNodeInfoState.InnerText = practiceState;
-		xmlNodeInfoZip.InnerText = practiceZip;
-		xmlNodeInfoAddress.AppendChild(xmlNodeInfoAddressName);
-		xmlNodeInfoAddress.AppendChild(xmlNodeInfoAddressLine1);
-		xmlNodeInfoAddress.AppendChild(xmlNodeInfoAddressLine2);
-		xmlNodeInfoAddress.AppendChild(xmlNodeInfoPhone);
-		xmlNodeInfoAddress.AppendChild(xmlNodeInfoCity);
-		xmlNodeInfoAddress.AppendChild(xmlNodeInfoState);
-		xmlNodeInfoAddress.AppendChild(xmlNodeInfoZip);
-		xmlNodeInfoReceiver.AppendChild(xmlNodeInfoAddress);
-		//SPK / AAD 8/13/08 Add NPI -- Begin
-		var xmlNodeInfoReceiverProviderNPI = xmlDocument.CreateNode(XmlNodeType.Element,"NPI","");
-		//Get Provider NPI #
-		table = Providers.GetDefaultPracticeProvider3();
-		if(table.Rows.Count != 0) {
-			xmlNodeInfoReceiverProviderNPI.InnerText = SIn.String(table.Rows[0][0].ToString());
-		};
-		xmlNodeInfoReceiver.AppendChild(xmlNodeInfoReceiverProviderNPI);
-		//SPK / AAD 8/13/08 Add NPI -- End
-		var xmlNodeInfoCredential = xmlDocument.CreateNode(XmlNodeType.Element,"Credential","");
-		var xmlNodeInfoCredentialType = xmlDocument.CreateNode(XmlNodeType.Element,"Type","");
-		var xmlNodeInfoCredentialValue = xmlDocument.CreateNode(XmlNodeType.Element,"Value","");
-		xmlNodeInfoCredentialType.InnerText = "TJ";
-		xmlNodeInfoCredentialValue.InnerText = "123456789";
-		xmlNodeInfoCredential.AppendChild(xmlNodeInfoCredentialType);
-		xmlNodeInfoCredential.AppendChild(xmlNodeInfoCredentialValue);
-		xmlNodeInfoReceiver.AppendChild(xmlNodeInfoCredential);
-		var xmlNodeInfoTaxonomyCode = xmlDocument.CreateNode(XmlNodeType.Element,"TaxonomyCode","");
-		xmlNodeInfoTaxonomyCode.InnerText = TaxoCode;
-		xmlNodeInfoReceiver.AppendChild(xmlNodeInfoTaxonomyCode);
-		//  Append InfoReceiver To EligNode
-		xmlNodeElig.AppendChild(xmlNodeInfoReceiver);
-		//  Payer Info
-		var xmlNodeInfoPayer = xmlDocument.CreateNode(XmlNodeType.Element,"Payer","");
-		var xmlNodeInfoPayerNEIC = xmlDocument.CreateNode(XmlNodeType.Element,"PayerNEIC","");
-		xmlNodeInfoPayerNEIC.InnerText = textElectID.Text;
-		xmlNodeInfoPayer.AppendChild(xmlNodeInfoPayerNEIC);
-		xmlNodeElig.AppendChild(xmlNodeInfoPayer);
-		//  Patient
-		var xmlNodePatient = xmlDocument.CreateNode(XmlNodeType.Element,"Patient","");
-		var xmlNodePatientName = xmlDocument.CreateNode(XmlNodeType.Element,"Name","");
-		var xmlNodePatientFirstName = xmlDocument.CreateNode(XmlNodeType.Element,"FirstName","");
-		var xmlNodePatientLastName = xmlDocument.CreateNode(XmlNodeType.Element,"LastName","");
-		var xmlNodePatientDOB = xmlDocument.CreateNode(XmlNodeType.Element,"DOB","");
-		var xmlNodePatientSubscriber = xmlDocument.CreateNode(XmlNodeType.Element,"SubscriberID","");
-		var xmlNodePatientRelationship = xmlDocument.CreateNode(XmlNodeType.Element,"RelationshipCode","");
-		var xmlNodePatientGender = xmlDocument.CreateNode(XmlNodeType.Element,"Gender","");
-		// Read Patient FName,LName,DOB, and Gender from Patient Table
-		table = Patients.GetPartialPatientData(_patPlan.PatNum);
-		if(table.Rows.Count == 0) {
-			xmlNodePatientFirstName.InnerText = "Unknown";
-			xmlNodePatientLastName.InnerText = "Unknown";
-			xmlNodePatientDOB.InnerText = "99/99/9999";
-			RelationShip = "??";
-			GenderCode = "?";
-		}
-		else {
-			xmlNodePatientFirstName.InnerText = SIn.String(table.Rows[0][0].ToString());
-			xmlNodePatientLastName.InnerText = SIn.String(table.Rows[0][1].ToString());
-			xmlNodePatientDOB.InnerText = SIn.String(table.Rows[0][2].ToString());
-			switch(comboRelationship.Text) {
-				case "Self":
-					RelationShip = "18";
-					break;
-				case "Spouse":
-					RelationShip = "01";
-					break;
-				case "Child":
-					RelationShip = "19";
-					break;
-				default:
-					RelationShip = "34";
-					break;
-			}
-			switch(SIn.String(table.Rows[0][3].ToString())) {
-				case "1":
-					GenderCode = "F";
-					break;
-				default:
-					GenderCode = "M";
-					break;
-			}
-		}
-		xmlNodePatientName.AppendChild(xmlNodePatientFirstName);
-		xmlNodePatientName.AppendChild(xmlNodePatientLastName);
-		xmlNodePatientSubscriber.InnerText = textSubscriberID.Text;
-		xmlNodePatientRelationship.InnerText = RelationShip;
-		xmlNodePatientGender.InnerText = GenderCode;
-		xmlNodePatient.AppendChild(xmlNodePatientName);
-		xmlNodePatient.AppendChild(xmlNodePatientDOB);
-		xmlNodePatient.AppendChild(xmlNodePatientSubscriber);
-		xmlNodePatient.AppendChild(xmlNodePatientRelationship);
-		xmlNodePatient.AppendChild(xmlNodePatientGender);
-		xmlNodeElig.AppendChild(xmlNodePatient);
-		//  Subscriber
-		var xmlNodeSubscriber = xmlDocument.CreateNode(XmlNodeType.Element,"Subscriber","");
-		var xmlNodeSubscriberName = xmlDocument.CreateNode(XmlNodeType.Element,"Name","");
-		var xmlNodeSubscriberFirstName = xmlDocument.CreateNode(XmlNodeType.Element,"FirstName","");
-		var xmlNodeSubscriberLastName = xmlDocument.CreateNode(XmlNodeType.Element,"LastName","");
-		var xmlNodeSubscriberDOB = xmlDocument.CreateNode(XmlNodeType.Element,"DOB","");
-		var xmlNodeSubscriberSubscriber = xmlDocument.CreateNode(XmlNodeType.Element,"SubscriberID","");
-		var xmlNodeSubscriberRelationship = xmlDocument.CreateNode(XmlNodeType.Element,"RelationshipCode","");
-		var xmlNodeSubscriberGender = xmlDocument.CreateNode(XmlNodeType.Element,"Gender","");
-		// Read Subscriber FName,LName,DOB, and Gender from Patient Table
-		table=Patients.GetPartialPatientData2(_patPlan.PatNum);
-		if(table.Rows.Count == 0) {
-			xmlNodeSubscriberFirstName.InnerText = "Unknown";
-			xmlNodeSubscriberLastName.InnerText = "Unknown";
-			xmlNodeSubscriberDOB.InnerText = "99/99/9999";
-			GenderCode = "?";
-		}
-		else {
-			xmlNodeSubscriberFirstName.InnerText = SIn.String(table.Rows[0][0].ToString());
-			xmlNodeSubscriberLastName.InnerText = SIn.String(table.Rows[0][1].ToString());
-			xmlNodeSubscriberDOB.InnerText = SIn.String(table.Rows[0][2].ToString());
-			switch(SIn.String(table.Rows[0][3].ToString())) {
-				case "1":
-					GenderCode = "F";
-					break;
-				default:
-					GenderCode = "M";
-					break;
-			}
-		}
-		xmlNodeSubscriberName.AppendChild(xmlNodeSubscriberFirstName);
-		xmlNodeSubscriberName.AppendChild(xmlNodeSubscriberLastName);
-		xmlNodeSubscriberSubscriber.InnerText = textSubscriberID.Text;
-		xmlNodeSubscriberRelationship.InnerText = RelationShip;
-		xmlNodeSubscriberGender.InnerText = GenderCode;
-		xmlNodeSubscriber.AppendChild(xmlNodeSubscriberName);
-		xmlNodeSubscriber.AppendChild(xmlNodeSubscriberDOB);
-		xmlNodeSubscriber.AppendChild(xmlNodeSubscriberSubscriber);
-		xmlNodeSubscriber.AppendChild(xmlNodeSubscriberRelationship);
-		xmlNodeSubscriber.AppendChild(xmlNodeSubscriberGender);
-		xmlNodeElig.AppendChild(xmlNodeSubscriber);
-		//  Prepare Information Receiver Node
-		var xmlNodeRenderingProvider = xmlDocument.CreateNode(XmlNodeType.Element,"RenderingProvider","");
-		// SPK / AAD 8/13/08 Add Rendering Provider NPI It is same as Info Receiver NPI -- Start
-		var xmlNodeRenderingProviderNPI = xmlDocument.CreateNode(XmlNodeType.Element,"NPI","");
-		// SPK / AAD 8/13/08 Add Rendering Provider NPI It is same as Info Receiver NPI -- End
-		var xmlNodeRenderingAddress = xmlDocument.CreateNode(XmlNodeType.Element,"Address","");
-		var xmlNodeRenderingAddressName = xmlDocument.CreateNode(XmlNodeType.Element,"Name","");
-		var xmlNodeRenderingAddressFirstName = xmlDocument.CreateNode(XmlNodeType.Element,"FirstName","");
-		var xmlNodeRenderingAddressLastName = xmlDocument.CreateNode(XmlNodeType.Element,"LastName","");
-		// Get Rendering Provider first and lastname
-		// Read Patient FName,LName,DOB, and Gender from Patient Table
-		table=Providers.GetPrimaryProviders(_patPlan.PatNum);
-		if(table.Rows.Count != 0) {
-			renderingProviderFirstName = SIn.String(table.Rows[0][0].ToString());
-			renderingProviderLastName = SIn.String(table.Rows[0][1].ToString());
-		}
-		else {
-			renderingProviderFirstName = infoReceiverFirstName;
-			renderingProviderLastName = infoReceiverLastName;
-		};
-		xmlNodeRenderingAddressFirstName.InnerText = renderingProviderFirstName;
-		xmlNodeRenderingAddressLastName.InnerText = renderingProviderLastName;
-		xmlNodeRenderingAddressName.AppendChild(xmlNodeRenderingAddressFirstName);
-		xmlNodeRenderingAddressName.AppendChild(xmlNodeRenderingAddressLastName);
-		var xmlNodeRenderingAddressLine1 = xmlDocument.CreateNode(XmlNodeType.Element,"AddressLine1","");
-		var xmlNodeRenderingAddressLine2 = xmlDocument.CreateNode(XmlNodeType.Element,"AddressLine2","");
-		var xmlNodeRenderingPhone = xmlDocument.CreateNode(XmlNodeType.Element,"Phone","");
-		var xmlNodeRenderingCity = xmlDocument.CreateNode(XmlNodeType.Element,"City","");
-		var xmlNodeRenderingState = xmlDocument.CreateNode(XmlNodeType.Element,"State","");
-		var xmlNodeRenderingZip = xmlDocument.CreateNode(XmlNodeType.Element,"Zip","");
-		xmlNodeRenderingProviderNPI.InnerText = xmlNodeInfoReceiverProviderNPI.InnerText;
-		xmlNodeRenderingAddressLine1.InnerText = practiceAddress1;
-		xmlNodeRenderingAddressLine2.InnerText = practiceAddress2;
-		xmlNodeRenderingPhone.InnerText = practicePhone;
-		xmlNodeRenderingCity.InnerText = practiceCity;
-		xmlNodeRenderingState.InnerText = practiceState;
-		xmlNodeRenderingZip.InnerText = practiceZip;
-		xmlNodeRenderingAddress.AppendChild(xmlNodeRenderingAddressName);
-		xmlNodeRenderingAddress.AppendChild(xmlNodeRenderingAddressLine1);
-		xmlNodeRenderingAddress.AppendChild(xmlNodeRenderingAddressLine2);
-		xmlNodeRenderingAddress.AppendChild(xmlNodeRenderingPhone);
-		xmlNodeRenderingAddress.AppendChild(xmlNodeRenderingCity);
-		xmlNodeRenderingAddress.AppendChild(xmlNodeRenderingState);
-		xmlNodeRenderingAddress.AppendChild(xmlNodeRenderingZip);
-		var xmlNodeRenderingCredential = xmlDocument.CreateNode(XmlNodeType.Element,"Credential","");
-		var xmlNodeRenderingCredentialType = xmlDocument.CreateNode(XmlNodeType.Element,"Type","");
-		var xmlNodeRenderingCredentialValue = xmlDocument.CreateNode(XmlNodeType.Element,"Value","");
-		xmlNodeRenderingCredentialType.InnerText = "TJ";
-		xmlNodeRenderingCredentialValue.InnerText = "123456789";
-		xmlNodeRenderingCredential.AppendChild(xmlNodeRenderingCredentialType);
-		xmlNodeRenderingCredential.AppendChild(xmlNodeRenderingCredentialValue);
-		var xmlNodeRenderingTaxonomyCode = xmlDocument.CreateNode(XmlNodeType.Element,"TaxonomyCode","");
-		xmlNodeRenderingTaxonomyCode.InnerText = TaxoCode;
-		xmlNodeRenderingProvider.AppendChild(xmlNodeRenderingAddress);
-		// SPK / AAD 8/13/08 Add Rendering Provider NPI It is same as Info Receiver NPI -- Start
-		xmlNodeRenderingProvider.AppendChild(xmlNodeRenderingProviderNPI);
-		// SPK / AAD 8/13/08 Add NPI -- End
-		xmlNodeRenderingProvider.AppendChild(xmlNodeRenderingCredential);
-		xmlNodeRenderingProvider.AppendChild(xmlNodeRenderingTaxonomyCode);
-		//  Append RenderingProvider To EligNode
-		xmlNodeElig.AppendChild(xmlNodeRenderingProvider);
-		return xmlDocument.OuterXml;
-	}
-
-	private void ProcessEligibilityResponseDentalXchange(string DCIResponse) {
-		var xmlDocument = new XmlDocument();
-		XmlNode xmlNodeIsEligible;
-		string IsEligibleStatus;
-		xmlDocument.LoadXml(DCIResponse);
-		xmlNodeIsEligible = xmlDocument.SelectSingleNode("EligBenefitResponse/isEligible");
-		switch(xmlNodeIsEligible.InnerText) {
-			case "0": // SPK
-				// HINA Added 9/2. 
-				// Open new form to display complete response Detail
-				using(Form formDisplayEligibilityResponse = new FormEligibilityResponseDisplay(xmlDocument,_patPlan.PatNum)) {
-					formDisplayEligibilityResponse.ShowDialog();
-				}
-				break;
-			case "1": // SPK
-				// Process Error code and Message Node AAD
-				XmlNode xmlNodeErrorCode;
-				XmlNode xmlNodeErrorMessage;
-				xmlNodeErrorCode = xmlDocument.SelectSingleNode("EligBenefitResponse/Response/ErrorCode");
-				xmlNodeErrorMessage = xmlDocument.SelectSingleNode("EligBenefitResponse/Response/ErrorMsg");
-				IsEligibleStatus = textSubscriber.Text + " is Not Eligible. Error Code:";
-				IsEligibleStatus += xmlNodeErrorCode.InnerText + " Error Description:" + xmlNodeErrorMessage.InnerText;
-				ODMessageBox.Show(IsEligibleStatus);
-				break;
-			default:
-				IsEligibleStatus = textSubscriber.Text + " Eligibility status is Unknown";
-				ODMessageBox.Show(IsEligibleStatus);
-				break;
-		}
-	}
-
-	#endregion
 
 	private bool IsEmployerValid() {
 		var patPlanDB=PatPlans.GetByPatPlanNum(_patPlan.PatPlanNum);

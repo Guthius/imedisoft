@@ -8,10 +8,11 @@ using System.Windows.Forms;
 using CodeBase;
 using DataConnectionBase;
 using Imedisoft.Core.Caching;
+using Imedisoft.Core.Data;
 using Imedisoft.Core.Entities;
 using Imedisoft.Core.Features.Clinics;
 using Imedisoft.Core.Features.Clinics.Dtos;
-using MigraDoc.DocumentObjectModel.Shapes;
+using Imedisoft.Features.Providers.Dtos;
 using MigraDoc.Rendering;
 using OpenDental.Logic;
 using OpenDentBusiness;
@@ -73,8 +74,8 @@ public partial class FormCCDPrint:FormODBase {
 	private Carrier _carrier;
 	private Carrier _carrierOther;
 	private Claim _claim;
-	private Provider _providerTreat;
-	private Provider _providerBill;
+	private ProviderDto _providerTreat;
+	private ProviderDto _providerBill;
 	private InsPlan _insplan;
 	private InsPlan _insplan2;
 	private InsSub _insSub;
@@ -162,8 +163,8 @@ public partial class FormCCDPrint:FormODBase {
 					_carrierOther=Carriers.GetCarrier(_insplan2.CarrierNum);
 				}
 				//Provider info
-				_providerTreat=Providers.GetProv(_claim.ProvTreat);
-				_providerBill=Providers.GetProv(_claim.ProvBill);
+				_providerTreat=Providers.GetById(_claim.ProvTreat);
+				_providerBill=Providers.GetById(_claim.ProvBill);
 				//Claim related info
 				_listClaimProcs=ClaimProcs.RefreshForClaim(_claim.ClaimNum);
 				long clinicNum=0;
@@ -181,10 +182,10 @@ public partial class FormCCDPrint:FormODBase {
 				}
 			}
 			if(_providerTreat==null) {
-				_providerTreat=Providers.GetProv(Patients.GetProvNum(_patient));
+				_providerTreat=Providers.GetById(Patients.GetProvNum(_patient));
 			}
 			if(_providerBill==null) {
-				_providerBill=Providers.GetProv(Patients.GetProvNum(_patient));
+				_providerBill=Providers.GetById(Patients.GetProvNum(_patient));
 			}
 			var listProcedures=Procedures.Refresh(_etrans.PatNum);
 			_listProcedureExtracted=Procedures.GetCanadianExtractedTeeth(listProcedures);
@@ -196,34 +197,34 @@ public partial class FormCCDPrint:FormODBase {
 		}
 		_ccdReceived=new CCDFieldInputter(_messageText);//Input the fields of the given message.
 		var fieldA02=_ccdReceived.GetFieldById("A02");
-		if(fieldA02?.valuestr!=null) {
-			var etransSent=Etranss.GetForSequenceNumberCanada(fieldA02.valuestr);
+		if(fieldA02?.Valuestr!=null) {
+			var etransSent=Etranss.GetForSequenceNumberCanada(fieldA02.Valuestr);
 			if(etransSent!=null && etransSent.EtransMessageTextNum!=0) {
 				try {
 					var messageSent=EtransMessageTexts.GetMessageText(etransSent.EtransMessageTextNum);
 					_ccdSent=new CCDFieldInputter(messageSent);
 				}
-				catch(Exception ex) {
+				catch {
 				}
 			}
 		}
 		var ccdFieldLanguageOfInsured=_ccdReceived.GetFieldById("G27");
 		if(ccdFieldLanguageOfInsured!=null) {
-			if(ccdFieldLanguageOfInsured.valuestr=="F") {
+			if(ccdFieldLanguageOfInsured.Valuestr=="F") {
 				_isFrench=true;
 			}
 		}
 		else if(_patientSubscriber!=null && _patientSubscriber.Language=="fr") {
 			_isFrench=true;
 		}
-		_formatVersionNumber=_ccdReceived.GetFieldById("A03").valuestr;//Must always exist so no error checking here.
-		_transactionCode=_ccdReceived.GetFieldById("A04").valuestr;//Must always exist so no error checking here.
+		_formatVersionNumber=_ccdReceived.GetFieldById("A03").Valuestr;//Must always exist so no error checking here.
+		_transactionCode=_ccdReceived.GetFieldById("A04").Valuestr;//Must always exist so no error checking here.
 		if(_formatVersionNumber=="04") {//FormId field does not exist in version 02 in any of the message texts.
 			var ccdFieldFormId=_ccdReceived.GetFieldById("G42");//Usually exists in version 04 response messages.
 			//Only a few response transactions don't define field G42. So far, those are transactions 15 (Summary Reconciliation), 16 (Payment Reconciliation) and 24 (Email).
 			//In these cases, we simply do not use the formId field later on in the display code.
 			if(ccdFieldFormId!=null) {
-				_formId=ccdFieldFormId.valuestr;
+				_formId=ccdFieldFormId.Valuestr;
 			}
 		}
 		else {//Version 02
@@ -237,7 +238,7 @@ public partial class FormCCDPrint:FormODBase {
 			else if(_transactionCode=="21") {//EOB
 				_formId="01";//EOB Form
 				var ccdFieldG02=_ccdReceived.GetFieldById("G02");
-				if(ccdFieldG02!=null && ccdFieldG02.valuestr=="Y") {
+				if(ccdFieldG02!=null && ccdFieldG02.Valuestr=="Y") {
 					_formId="04";//Employer Certified.
 				}
 			}
@@ -254,16 +255,16 @@ public partial class FormCCDPrint:FormODBase {
 			}
 		}
 		var ccdFieldStatus=_ccdReceived.GetFieldById("G05");
-		if(ccdFieldStatus!=null && ccdFieldStatus.valuestr!=null) {
-			_responseStatus=ccdFieldStatus.valuestr.ToUpper();
+		if(ccdFieldStatus!=null && ccdFieldStatus.Valuestr!=null) {
+			_responseStatus=ccdFieldStatus.Valuestr.ToUpper();
 		}
-		_transactionCode=_ccdReceived.GetFieldById("A04").valuestr;
+		_transactionCode=_ccdReceived.GetFieldById("A04").Valuestr;
 		_hasPredetermination=(_transactionCode=="23"||_transactionCode=="13");//Be sure to list all predetermination response types here!
 		if(_copiesToPrint<=0) { //Show the form on screen if there are no copies to print.
 			ShowDisplayMessages();
 			var ccdFieldPayTo=_ccdReceived.GetFieldById("F01");
 			if(ccdFieldPayTo!=null) {
-				var doPaySubscriber=(ccdFieldPayTo.valuestr=="1");//same for version 02 and version 04
+				var doPaySubscriber=(ccdFieldPayTo.Valuestr=="1");//same for version 02 and version 04
 				//Typically, insurance companies in Canada prefer to pay the subscriber instead of the dentist.
 				if(AssignmentOfBenefits()) {//The insurance plan is set to pay the dentist
 					if(doPaySubscriber) {//The carrier has decided to pay the subscriber.
@@ -278,8 +279,8 @@ public partial class FormCCDPrint:FormODBase {
 			}
 			var ccdFieldPaymentAdjustmentAmount=_ccdReceived.GetFieldById("G33");
 			if(ccdFieldPaymentAdjustmentAmount!=null) {
-				if(ccdFieldPaymentAdjustmentAmount.valuestr.Substring(1)!="000000") {
-					ODMessageBox.Show(Lan.g(this,"Payment adjustment amount")+": "+RawMoneyStrToDisplayMoney(ccdFieldPaymentAdjustmentAmount.valuestr));
+				if(ccdFieldPaymentAdjustmentAmount.Valuestr.Substring(1)!="000000") {
+					ODMessageBox.Show(Lan.g(this,"Payment adjustment amount")+": "+RawMoneyStrToDisplayMoney(ccdFieldPaymentAdjustmentAmount.Valuestr));
 				}
 			}
 			if(_isAutoPrint) {
@@ -303,47 +304,44 @@ public partial class FormCCDPrint:FormODBase {
 				//In debug mode, show the form on screen to save paper. Do not print to printer.
 				PrintClaimForm(isPreview:/* ODBuild.IsDebug() */ false);
 			}
-			else { //All other Canadian forms
-				if(/* ODBuild.IsDebug() */ false) {
-					new FormCCDPrint(_etrans.Copy(),_messageText,0,false,_doPrintPatientCopy);//In debug mode, show the form on screen to save paper. Do not print to printer.
+			else
+			{
+				//All other Canadian forms
+				//Print to the printer in Release mode.
+				var strAuditDesc="";
+				switch(_formId) {
+					default:
+						strAuditDesc="Default form printed";
+						break;
+					case "01"://CDA EOB Form
+						strAuditDesc="EOB form printed";
+						break;
+					case "02"://Dentaide Form
+						strAuditDesc="Dentaide form printed";
+						break;
+					case "03"://Claim Acknowledgement Form
+						strAuditDesc="Claim acknowledgement form printed";
+						break;
+					case "04"://Employer Certified Form
+						strAuditDesc="Employer certified form printed";
+						break;
+					case "05"://Plan Paper Claim Form (CDA form)
+						//Printed in an earlier step. This line should never be hit.
+						strAuditDesc="CDA claim form printed";
+						break;
+					case "06"://Predetermination Acknowledgement Form
+						strAuditDesc="Predetermination acknowledgement form printed";
+						break;
+					case "07"://Predetermination EOB Form
+						strAuditDesc="Predetermination EOB form printed";
+						break;
+					case "08"://Eligibility Form
+						strAuditDesc="Eligibility form printed";
+						break;
 				}
-				else {
-					//Print to the printer in Release mode.
-					var strAuditDesc="";
-					switch(_formId) {
-						default:
-							strAuditDesc="Default form printed";
-							break;
-						case "01"://CDA EOB Form
-							strAuditDesc="EOB form printed";
-							break;
-						case "02"://Dentaide Form
-							strAuditDesc="Dentaide form printed";
-							break;
-						case "03"://Claim Acknowledgement Form
-							strAuditDesc="Claim acknowledgement form printed";
-							break;
-						case "04"://Employer Certified Form
-							strAuditDesc="Employer certified form printed";
-							break;
-						case "05"://Plan Paper Claim Form (CDA form)
-							//Printed in an earlier step. This line should never be hit.
-							strAuditDesc="CDA claim form printed";
-							break;
-						case "06"://Predetermination Acknowledgement Form
-							strAuditDesc="Predetermination acknowledgement form printed";
-							break;
-						case "07"://Predetermination EOB Form
-							strAuditDesc="Predetermination EOB form printed";
-							break;
-						case "08"://Eligibility Form
-							strAuditDesc="Eligibility form printed";
-							break;
-					}
-					//Tries to print to the printer chosen by the user in File | Printers | Claim.
-					PrinterL.TryPrint(pd_PrintPage,strAuditDesc,_etrans.PatNum,PrintSituation.Claim,new Margins(50,50,50,50)/*Half-inch all around*/,
-						duplex: Duplex.Horizontal/*Print double sided when possible, since forms are usually 1-2 pages.*/);
-				}
+				//Tries to print to the printer chosen by the user in File | Printers | Claim.
+				PrinterL.TryPrint(pd_PrintPage,strAuditDesc,_etrans.PatNum,PrintSituation.Claim,new Margins(50,50,50,50)/*Half-inch all around*/,
+					duplex: Duplex.Horizontal/*Print double sided when possible, since forms are usually 1-2 pages.*/);
 			}
 			//Print the remaining copies recursively.
 			if(_copiesToPrint>=2) {
@@ -352,7 +350,7 @@ public partial class FormCCDPrint:FormODBase {
 		}
 		var ccdFieldEmbeddedTransaction=_ccdReceived.GetFieldById("G40");
 		if(ccdFieldEmbeddedTransaction!=null) {
-			new FormCCDPrint(_etrans.Copy(),ccdFieldEmbeddedTransaction.valuestr,_copiesToPrint,_isAutoPrint,_doPrintPatientCopy);
+			new FormCCDPrint(_etrans.Copy(),ccdFieldEmbeddedTransaction.Valuestr,_copiesToPrint,_isAutoPrint,_doPrintPatientCopy);
 		}
 	}
 
@@ -371,9 +369,9 @@ public partial class FormCCDPrint:FormODBase {
 	}
 
 	private void FormCCDPrint_Resize(object sender,EventArgs e) {
-		LayoutManagerForms.MoveLocation(labelPage,new Point((Width-butPrint.Width-labelPage.Width)/2,labelPage.Location.Y));
-		LayoutManagerForms.MoveLocation(butBack,new Point(labelPage.Left-butBack.Width-6,butBack.Location.Y));
-		LayoutManagerForms.MoveLocation(butForward,new Point(labelPage.Right+6,butForward.Location.Y));
+		labelPage.Location = labelPage.Location with {X = (Width-butPrint.Width-labelPage.Width)/2};
+		butBack.Location = butBack.Location with {X = labelPage.Left-butBack.Width-6};
+		butForward.Location = butForward.Location with {X = labelPage.Right+6};
 	}
 		
 	private void butOverride_Click(object sender,EventArgs e) {
@@ -451,7 +449,7 @@ public partial class FormCCDPrint:FormODBase {
 			if(stringBuilderMessage.Length>0){
 				stringBuilderMessage.Append(Environment.NewLine);
 			}
-			stringBuilderMessage.Append(ccdFieldArrayDisplayMessage[i].valuestr);
+			stringBuilderMessage.Append(ccdFieldArrayDisplayMessage[i].Valuestr);
 		}
 		var ccdFieldArrayNoteOutputFlags=_ccdReceived.GetFieldsById("G41");
 		var ccdFieldArrayNoteNumbers=_ccdReceived.GetFieldsById("G45");
@@ -460,12 +458,12 @@ public partial class FormCCDPrint:FormODBase {
 		var listDisplayMessageNumbers=new List<int>();
 		for(var i=0;i<ccdFieldArrayNoteOutputFlags.Length;i++) {
 			//We display notes on screen only if they are marked with output flag 1 (display notes on screen). Output flag 0 (prompt) is ignored here because such notes are printed on the physical printout.
-			if(SIn.Int(ccdFieldArrayNoteOutputFlags[i].valuestr)!=1) { 
+			if(SIn.Int(ccdFieldArrayNoteOutputFlags[i].Valuestr)!=1) { 
 				continue;
 			}
-			listStringDisplayMessages.Add(ccdFieldArrayNoteTexts[i].valuestr);
+			listStringDisplayMessages.Add(ccdFieldArrayNoteTexts[i].Valuestr);
 			if(i<ccdFieldArrayNoteNumbers.Length) {
-				listDisplayMessageNumbers.Add(SIn.Int(ccdFieldArrayNoteNumbers[i].valuestr));
+				listDisplayMessageNumbers.Add(SIn.Int(ccdFieldArrayNoteNumbers[i].Valuestr));
 			}
 			else {
 				listDisplayMessageNumbers.Add(i+1);
@@ -681,16 +679,16 @@ public partial class FormCCDPrint:FormODBase {
 		PrintTransactionDate(g,_x,0);
 		PrintTreatmentProviderOfficeNumber(g,_x+250,0);
 		var ccdField=_ccdReceived.GetFieldById("G54");
-		_documentGenerator.DrawField(g,ccdField.GetFieldName(_isFrench),ccdField.valuestr,true,_x+500,0);//REFERENCE
+		_documentGenerator.DrawField(g,ccdField.GetFieldName(_isFrench),ccdField.Valuestr,true,_x+500,0);//REFERENCE
 		_x=_documentGenerator.StartElement(_verticalLine);
 		ccdField=_ccdReceived.GetFieldById("G49");
-		_documentGenerator.DrawField(g,ccdField.GetFieldName(_isFrench),ccdField.valuestr,true,_x,0);//TO
+		_documentGenerator.DrawField(g,ccdField.GetFieldName(_isFrench),ccdField.Valuestr,true,_x,0);//TO
 		_x=_documentGenerator.StartElement();
 		ccdField=_ccdReceived.GetFieldById("G50");
-		_documentGenerator.DrawField(g,ccdField.GetFieldName(_isFrench),ccdField.valuestr,true,_x,0);//FROM
+		_documentGenerator.DrawField(g,ccdField.GetFieldName(_isFrench),ccdField.Valuestr,true,_x,0);//FROM
 		_x=_documentGenerator.StartElement();
 		ccdField=_ccdReceived.GetFieldById("G51");
-		_documentGenerator.DrawField(g,ccdField.GetFieldName(_isFrench),ccdField.valuestr,true,_x,0);//SUBJECT
+		_documentGenerator.DrawField(g,ccdField.GetFieldName(_isFrench),ccdField.Valuestr,true,_x,0);//SUBJECT
 		_x=_documentGenerator.StartElement(_verticalLine);
 		_documentGenerator.HorizontalLine(g,_penBreakLine,_documentGenerator.bounds.Left,_documentGenerator.bounds.Right,0);
 		_x=_documentGenerator.StartElement();
@@ -704,8 +702,8 @@ public partial class FormCCDPrint:FormODBase {
 			for(var i=0;i<ccdFieldArrayNoteLines.Length;i++){
 				_x=_documentGenerator.StartElement();
 				_documentGenerator.DrawString(g,(i+1).ToString().PadLeft(2,'0'),_x,0);
-				if(ccdFieldArrayNoteLines[i]!=null && ccdFieldArrayNoteLines[i].valuestr!=null) {
-					_documentGenerator.DrawString(g,ccdFieldArrayNoteLines[i].valuestr,lineCol,0,_documentGenerator.standardFont);
+				if(ccdFieldArrayNoteLines[i]!=null && ccdFieldArrayNoteLines[i].Valuestr!=null) {
+					_documentGenerator.DrawString(g,ccdFieldArrayNoteLines[i].Valuestr,lineCol,0,_documentGenerator.standardFont);
 				}
 			}
 		}
@@ -727,22 +725,22 @@ public partial class FormCCDPrint:FormODBase {
 		_documentGenerator.StartElement();
 		var ccdField=_ccdReceived.GetFieldById("G34");//Payment reference
 		if(ccdField!=null) {
-			_documentGenerator.DrawField(g,ccdField.GetFieldName(_isFrench),ccdField.valuestr,true,_x,0);
+			_documentGenerator.DrawField(g,ccdField.GetFieldName(_isFrench),ccdField.Valuestr,true,_x,0);
 		}
 		_documentGenerator.StartElement();
 		ccdField=_ccdReceived.GetFieldById("G35");//Payment date
 		if(ccdField!=null) {
-			_documentGenerator.DrawField(g,ccdField.GetFieldName(_isFrench),DateNumToPrintDate(ccdField.valuestr),true,_x,0);
+			_documentGenerator.DrawField(g,ccdField.GetFieldName(_isFrench),DateNumToPrintDate(ccdField.Valuestr),true,_x,0);
 		}
 		_documentGenerator.StartElement();
 		ccdField=_ccdReceived.GetFieldById("G36");//Payment amount
-		if(ccdField!=null && ccdField.valuestr!=null) {
-			_documentGenerator.DrawString(g,ccdField.GetFieldName(_isFrench)+": "+RawMoneyStrToDisplayMoney(ccdField.valuestr),_x,0,_fontHeading);
+		if(ccdField!=null && ccdField.Valuestr!=null) {
+			_documentGenerator.DrawString(g,ccdField.GetFieldName(_isFrench)+": "+RawMoneyStrToDisplayMoney(ccdField.Valuestr),_x,0,_fontHeading);
 		}
 		_documentGenerator.StartElement();
 		ccdField=_ccdReceived.GetFieldById("G33");//Payment adjustment amount
 		if(ccdField!=null) {
-			_documentGenerator.DrawField(g,ccdField.GetFieldName(_isFrench),RawMoneyStrToDisplayMoney(ccdField.valuestr),true,_x,0);
+			_documentGenerator.DrawField(g,ccdField.GetFieldName(_isFrench),RawMoneyStrToDisplayMoney(ccdField.Valuestr),true,_x,0);
 		}
 		_documentGenerator.StartElement();
 		_documentGenerator.HorizontalLine(g,_penBreakLine,_documentGenerator.bounds.Left,_documentGenerator.bounds.Right,0);
@@ -780,11 +778,11 @@ public partial class FormCCDPrint:FormODBase {
 		_documentGenerator.standardFont=_fontStandardSmall;
 		for(var i=0;i<ccdFieldArrayCdaProviderNumbers.Length;i++) {
 			_documentGenerator.StartElement();
-			_documentGenerator.DrawString(g,ccdFieldArrayCdaProviderNumbers[i].valuestr,cdaProviderNumCol,0);
-			_documentGenerator.DrawString(g,ccdFieldArrayCarrierIdentificationNumbers[i].valuestr,carrierIdentificationNumCol,0);
-			_documentGenerator.DrawString(g,ccdFieldArrayOfficeSequenceNumbers[i+1].valuestr,officeSequenceNumCol,0);
-			_documentGenerator.DrawString(g,ccdFieldArrayTransactionReferenceNumbers[i+1].valuestr,transactionReferenceNumCol,0);
-			_documentGenerator.DrawString(g,RawMoneyStrToDisplayMoney(ccdFieldArrayTransactionPayments[i].valuestr),transactionPaymentCol,0);
+			_documentGenerator.DrawString(g,ccdFieldArrayCdaProviderNumbers[i].Valuestr,cdaProviderNumCol,0);
+			_documentGenerator.DrawString(g,ccdFieldArrayCarrierIdentificationNumbers[i].Valuestr,carrierIdentificationNumCol,0);
+			_documentGenerator.DrawString(g,ccdFieldArrayOfficeSequenceNumbers[i+1].Valuestr,officeSequenceNumCol,0);
+			_documentGenerator.DrawString(g,ccdFieldArrayTransactionReferenceNumbers[i+1].Valuestr,transactionReferenceNumCol,0);
+			_documentGenerator.DrawString(g,RawMoneyStrToDisplayMoney(ccdFieldArrayTransactionPayments[i].Valuestr),transactionPaymentCol,0);
 		}
 		_documentGenerator.standardFont=font;
 		_documentGenerator.StartElement();
@@ -809,29 +807,29 @@ public partial class FormCCDPrint:FormODBase {
 		_documentGenerator.StartElement();
 		var ccdField=_ccdReceived.GetFieldById("B04");
 		if(ccdField!=null){
-			_documentGenerator.DrawField(g,ccdField.GetFieldName(_isFrench),ccdField.valuestr,true,_x,0);
+			_documentGenerator.DrawField(g,ccdField.GetFieldName(_isFrench),ccdField.Valuestr,true,_x,0);
 		}
 		_documentGenerator.StartElement();
 		PrintTransactionReferenceNumber(g,_x,0);
 		_documentGenerator.StartElement();
 		ccdField=_ccdReceived.GetFieldById("G34");//Payment reference
 		if(ccdField!=null) {
-			_documentGenerator.DrawField(g,ccdField.GetFieldName(_isFrench),ccdField.valuestr,true,_x,0);
+			_documentGenerator.DrawField(g,ccdField.GetFieldName(_isFrench),ccdField.Valuestr,true,_x,0);
 		}
 		_documentGenerator.StartElement();
 		ccdField=_ccdReceived.GetFieldById("G35");//Payment date
 		if(ccdField!=null) {
-			_documentGenerator.DrawField(g,ccdField.GetFieldName(_isFrench),DateNumToPrintDate(ccdField.valuestr),true,_x,0);
+			_documentGenerator.DrawField(g,ccdField.GetFieldName(_isFrench),DateNumToPrintDate(ccdField.Valuestr),true,_x,0);
 		}
 		_documentGenerator.StartElement();
 		ccdField=_ccdReceived.GetFieldById("G36");//Payment amount
-		if(ccdField!=null && ccdField.valuestr!=null) {
-			_documentGenerator.DrawString(g,ccdField.GetFieldName(_isFrench)+": "+RawMoneyStrToDisplayMoney(ccdField.valuestr),_x,0,_fontHeading);
+		if(ccdField!=null && ccdField.Valuestr!=null) {
+			_documentGenerator.DrawString(g,ccdField.GetFieldName(_isFrench)+": "+RawMoneyStrToDisplayMoney(ccdField.Valuestr),_x,0,_fontHeading);
 		}
 		_documentGenerator.StartElement();
 		ccdField=_ccdReceived.GetFieldById("G33");//Payment adjustment amount
 		if(ccdField!=null) {
-			_documentGenerator.DrawField(g,ccdField.GetFieldName(_isFrench),RawMoneyStrToDisplayMoney(ccdField.valuestr),true,_x,0);
+			_documentGenerator.DrawField(g,ccdField.GetFieldName(_isFrench),RawMoneyStrToDisplayMoney(ccdField.Valuestr),true,_x,0);
 		}
 		_documentGenerator.StartElement();
 		_documentGenerator.HorizontalLine(g,_penBreakLine,_documentGenerator.bounds.Left,_documentGenerator.bounds.Right,0);
@@ -879,13 +877,13 @@ public partial class FormCCDPrint:FormODBase {
 		_documentGenerator.standardFont=_fontStandardSmall;
 		for(var i=0;i<ccdFieldArraycdaProviderNumbers.Length;i++){
 			_documentGenerator.StartElement();
-			_documentGenerator.DrawString(g,ccdFieldArraycdaProviderNumbers[i].valuestr,cdaProviderNumCol,0);
-			_documentGenerator.DrawString(g,ccdFieldArrayProviderOfficeNumbers[i].valuestr,providerOfficeNumCol,0);
-			_documentGenerator.DrawString(g,ccdFieldArrayBillingProviderNumbers[i].valuestr,billingProviderNumCol,0);
-			_documentGenerator.DrawString(g,ccdFieldArrayCarrierIdentificationNumbers[i].valuestr,carrierIdentificationNumCol,0);
-			_documentGenerator.DrawString(g,ccdFieldArrayOfficeSequenceNumbers[i+1].valuestr,officeSequenceNumCol,0);
-			_documentGenerator.DrawString(g,ccdFieldArrayTransactionReferenceNumbers[i+1].valuestr,transactionReferenceNumCol,0);
-			_documentGenerator.DrawString(g,RawMoneyStrToDisplayMoney(ccdFieldArrayTransactionPayments[i].valuestr),transactionPaymentCol,0);
+			_documentGenerator.DrawString(g,ccdFieldArraycdaProviderNumbers[i].Valuestr,cdaProviderNumCol,0);
+			_documentGenerator.DrawString(g,ccdFieldArrayProviderOfficeNumbers[i].Valuestr,providerOfficeNumCol,0);
+			_documentGenerator.DrawString(g,ccdFieldArrayBillingProviderNumbers[i].Valuestr,billingProviderNumCol,0);
+			_documentGenerator.DrawString(g,ccdFieldArrayCarrierIdentificationNumbers[i].Valuestr,carrierIdentificationNumCol,0);
+			_documentGenerator.DrawString(g,ccdFieldArrayOfficeSequenceNumbers[i+1].Valuestr,officeSequenceNumCol,0);
+			_documentGenerator.DrawString(g,ccdFieldArrayTransactionReferenceNumbers[i+1].Valuestr,transactionReferenceNumCol,0);
+			_documentGenerator.DrawString(g,RawMoneyStrToDisplayMoney(ccdFieldArrayTransactionPayments[i].Valuestr),transactionPaymentCol,0);
 		}
 		_documentGenerator.standardFont=font;
 		_documentGenerator.StartElement();
@@ -954,12 +952,12 @@ public partial class FormCCDPrint:FormODBase {
 			for(var i=0;i<ccdFieldArrayLoadedFields.Length;i++){
 				if(ccdFieldArrayLoadedFields[i]!=null){
 					_x=_documentGenerator.StartElement();
-					if(ccdFieldArrayLoadedFields[i].fieldId!=null && ccdFieldArrayLoadedFields[i].fieldId.Length>0){
-						_text=ccdFieldArrayLoadedFields[i].fieldId;
+					if(ccdFieldArrayLoadedFields[i].FieldId!=null && ccdFieldArrayLoadedFields[i].FieldId.Length>0){
+						_text=ccdFieldArrayLoadedFields[i].FieldId;
 						_documentGenerator.DrawString(g,_text,_x,0);
 					}
 					var ccdField=ccdFieldArrayLoadedFields[i];
-					_documentGenerator.DrawField(g,ccdField.GetFieldName(_isFrench),ccdField.valuestr,true,_x+30,0);
+					_documentGenerator.DrawField(g,ccdField.GetFieldName(_isFrench),ccdField.Valuestr,true,_x+30,0);
 				}
 			}
 		}
@@ -996,7 +994,7 @@ public partial class FormCCDPrint:FormODBase {
 		_text="";
 		var ccdFieldG01=_ccdReceived.GetFieldById("G01");
 		if(ccdFieldG01!=null) {
-			_text=ccdFieldG01.valuestr;
+			_text=ccdFieldG01.Valuestr;
 		}
 		var rightMidCol=400.0f;
 		if(_isFrench) {
@@ -1036,7 +1034,7 @@ public partial class FormCCDPrint:FormODBase {
 				var ccdFieldInputterPredetermResponseFields=new CCDFieldInputter(predetermResponseMessage);
 				var predetermFieldG01=ccdFieldInputterPredetermResponseFields.GetFieldById("G01");
 				if(predetermFieldG01!=null) {
-					_text=predetermFieldG01.valuestr;//finally retreive the predetermination number.
+					_text=predetermFieldG01.Valuestr;//finally retreive the predetermination number.
 				}
 			}
 		}
@@ -1366,7 +1364,7 @@ public partial class FormCCDPrint:FormODBase {
 			_documentGenerator.DrawString(g,_isFrench?"Non":"No",_x+sizeF1.Width,0);
 		}
 		var ccdFieldOrthodonticRecordFlag=_ccdReceived.GetFieldById("F25");
-		if(_hasPredetermination && ccdFieldOrthodonticRecordFlag!=null && ccdFieldOrthodonticRecordFlag.valuestr=="1"){
+		if(_hasPredetermination && ccdFieldOrthodonticRecordFlag!=null && ccdFieldOrthodonticRecordFlag.Valuestr=="1"){
 			_x=_documentGenerator.StartElement();
 			_x+=_documentGenerator.DrawString(g,_bullet+". ",_x,0).Width;
 			_bullet++;
@@ -1378,7 +1376,7 @@ public partial class FormCCDPrint:FormODBase {
 				_documentGenerator.DrawString(g,"For orthodontic treatment plan, please indicate:",_x,0);			
 			}
 			_x=_documentGenerator.StartElement();
-			_text=_ccdReceived.GetFieldById("F30").valuestr;//Duration of treatment in months.
+			_text=_ccdReceived.GetFieldById("F30").Valuestr;//Duration of treatment in months.
 			if(_text!="00"){
 				_text=_text.TrimStart('0');
 				if(_isFrench) {
@@ -1388,7 +1386,7 @@ public partial class FormCCDPrint:FormODBase {
 					_documentGenerator.DrawField(g,"Duration of treatment: ",_text,true,_x,0);
 				}
 			}
-			_text=_ccdReceived.GetFieldById("F26").valuestr;//First examination fee in raw form.
+			_text=_ccdReceived.GetFieldById("F26").Valuestr;//First examination fee in raw form.
 			if(_text!="000000"){
 				_text=RawMoneyStrToDisplayMoney(_text);
 				if(_isFrench) {
@@ -1398,7 +1396,7 @@ public partial class FormCCDPrint:FormODBase {
 					_documentGenerator.DrawField(g,"First examination fee: ",_text,true,_x,0);
 				}
 			}
-			_text=_ccdReceived.GetFieldById("F27").valuestr;//Diagnostic Phase Fee in raw form.
+			_text=_ccdReceived.GetFieldById("F27").Valuestr;//Diagnostic Phase Fee in raw form.
 			if(_text!="000000"){
 				_text=RawMoneyStrToDisplayMoney(_text);
 				if(_isFrench) {
@@ -1408,7 +1406,7 @@ public partial class FormCCDPrint:FormODBase {
 					_documentGenerator.DrawField(g,"Diagnostic phase fee: ",_text,true,_x,0);
 				}
 			}
-			_text=_ccdReceived.GetFieldById("F28").valuestr;//Initial fee in raw form.
+			_text=_ccdReceived.GetFieldById("F28").Valuestr;//Initial fee in raw form.
 			if(_text!="000000"){
 				_text=RawMoneyStrToDisplayMoney(_text);
 				if(_isFrench) {
@@ -1418,7 +1416,7 @@ public partial class FormCCDPrint:FormODBase {
 					_documentGenerator.DrawField(g,"Initial fee: ",_text,true,_x,0);
 				}
 			}
-			_text=_ccdReceived.GetFieldById("F29").valuestr;//Payment mode or expected payment cycle as an enumeration value.
+			_text=_ccdReceived.GetFieldById("F29").Valuestr;//Payment mode or expected payment cycle as an enumeration value.
 			if(_text!="0"){
 				if(_text=="1"){
 					_text=_isFrench?"Mensuel":"Monthly";
@@ -1444,7 +1442,7 @@ public partial class FormCCDPrint:FormODBase {
 					_documentGenerator.DrawField(g,"Payment mode: ",_text,true,_x,0);
 				}
 			}
-			_text=_ccdReceived.GetFieldById("F31").valuestr;//Number of anticipated payments
+			_text=_ccdReceived.GetFieldById("F31").Valuestr;//Number of anticipated payments
 			if(_text!="00"){
 				_text=_text.TrimStart('0');
 				if(_isFrench) {
@@ -1454,7 +1452,7 @@ public partial class FormCCDPrint:FormODBase {
 					_documentGenerator.DrawField(g,"Number of anticipated payments: ",_text,true,_x,0);
 				}
 			}
-			_text=_ccdReceived.GetFieldById("F32").valuestr;
+			_text=_ccdReceived.GetFieldById("F32").Valuestr;
 			if(_text!="000000"){
 				_text=RawMoneyStrToDisplayMoney(_text);
 				if(_isFrench) {
@@ -1665,25 +1663,25 @@ public partial class FormCCDPrint:FormODBase {
 				if(isEOB) {
 					var listProceduresLab=Procedures.GetCanadianLabFees(procedure.ProcNum,listProcedures);
 					for(var j=0;j<ccdFieldsArrayProcedureLineNumbers.Length;j++) {
-						if(Convert.ToInt32(ccdFieldsArrayProcedureLineNumbers[j].valuestr)==procLineNum) {
+						if(Convert.ToInt32(ccdFieldsArrayProcedureLineNumbers[j].Valuestr)==procLineNum) {
 							//Display the procedure information on its own line.
 							//For any procLineNum>0, there will only be one matching carrier procedure, by definition.
 							sizeF1=new SizeF(0,0);
-							var noteIndex=Convert.ToInt32(ccdFieldsArrayExplainationNoteNumbers1[j].valuestr);
+							var noteIndex=Convert.ToInt32(ccdFieldsArrayExplainationNoteNumbers1[j].Valuestr);
 							if(noteIndex>0) {
-								sizeF1=_documentGenerator.DrawString(g,ccdFieldArrayNoteNumbers[noteIndex].valuestr,noteColumn,0);
+								sizeF1=_documentGenerator.DrawString(g,ccdFieldArrayNoteNumbers[noteIndex].Valuestr,noteColumn,0);
 							}
-							noteIndex=Convert.ToInt32(ccdFieldsArrayExplainationNoteNumbers2[j].valuestr);
+							noteIndex=Convert.ToInt32(ccdFieldsArrayExplainationNoteNumbers2[j].Valuestr);
 							if(noteIndex>0) {
-								_documentGenerator.DrawString(g,Environment.NewLine+ccdFieldArrayNoteNumbers[noteIndex].valuestr,noteColumn+sizeF1.Width,0);
+								_documentGenerator.DrawString(g,Environment.NewLine+ccdFieldArrayNoteNumbers[noteIndex].Valuestr,noteColumn+sizeF1.Width,0);
 							}
-							_text=RawMoneyStrToDisplayMoney(ccdFieldsArrayEligibleAmounts[j].valuestr);
+							_text=RawMoneyStrToDisplayMoney(ccdFieldsArrayEligibleAmounts[j].Valuestr);
 							_documentGenerator.DrawString(g,_text,eligibleFeeColumn+amountWidth-g.MeasureString(_text,_documentGenerator.standardFont).Width,0);
-							_text=RawMoneyStrToDisplayMoney(ccdFieldsArrayDeductibleAmounts[j].valuestr);
+							_text=RawMoneyStrToDisplayMoney(ccdFieldsArrayDeductibleAmounts[j].Valuestr);
 							_documentGenerator.DrawString(g,_text,deductibleColumn+amountWidth-g.MeasureString(_text,_documentGenerator.standardFont).Width,0);
-							_text=RawPercentToDisplayPercent(ccdFieldsArrayEligiblePercentages[j].valuestr);
+							_text=RawPercentToDisplayPercent(ccdFieldsArrayEligiblePercentages[j].Valuestr);
 							_documentGenerator.DrawString(g,_text,percentCoveredColumn,0);
-							_text=RawMoneyStrToDisplayMoney(ccdFieldsArrayDentaidePayAmounts[j].valuestr);
+							_text=RawMoneyStrToDisplayMoney(ccdFieldsArrayDentaidePayAmounts[j].Valuestr);
 							_documentGenerator.DrawString(g,_text,dentaidePaysColumn+amountWidth-g.MeasureString(_text,_documentGenerator.standardFont).Width,0);
 							totalPaid+=Convert.ToDouble(_text);
 							if(listProceduresLab.Count>0) {
@@ -1694,13 +1692,13 @@ public partial class FormCCDPrint:FormODBase {
 								_text=listProceduresLab[0].ProcFee.ToString("F");
 								totalLab+=listProceduresLab[0].ProcFee;
 								_documentGenerator.DrawString(g,_text,labColumn+amountWidth-g.MeasureString(_text,_documentGenerator.standardFont).Width,0);
-								_text=RawMoneyStrToDisplayMoney(ccdFieldsArrayEligibleLabAmounts1[j].valuestr);
+								_text=RawMoneyStrToDisplayMoney(ccdFieldsArrayEligibleLabAmounts1[j].Valuestr);
 								_documentGenerator.DrawString(g,_text,eligibleLabColumn+amountWidth-g.MeasureString(_text,_documentGenerator.standardFont).Width,0);
-								_text=RawMoneyStrToDisplayMoney(ccdFieldsArrayDeductibleLabAmounts1[j].valuestr);
+								_text=RawMoneyStrToDisplayMoney(ccdFieldsArrayDeductibleLabAmounts1[j].Valuestr);
 								_documentGenerator.DrawString(g,_text,deductibleColumn+amountWidth-g.MeasureString(_text,_documentGenerator.standardFont).Width,0);
-								_text=RawPercentToDisplayPercent(ccdFieldsArrayEligibleLabPercentage1[j].valuestr);
+								_text=RawPercentToDisplayPercent(ccdFieldsArrayEligibleLabPercentage1[j].Valuestr);
 								_documentGenerator.DrawString(g,_text,percentCoveredColumn,0);
-								_text=RawMoneyStrToDisplayMoney(ccdFieldsArrayBenefitLabAmount1[j].valuestr);
+								_text=RawMoneyStrToDisplayMoney(ccdFieldsArrayBenefitLabAmount1[j].Valuestr);
 								_documentGenerator.DrawString(g,_text,dentaidePaysColumn+amountWidth-g.MeasureString(_text,_documentGenerator.standardFont).Width,0);
 							}
 							if(listProceduresLab.Count>1) {
@@ -1711,13 +1709,13 @@ public partial class FormCCDPrint:FormODBase {
 								_text=listProceduresLab[1].ProcFee.ToString("F");
 								totalLab+=listProceduresLab[1].ProcFee;
 								_documentGenerator.DrawString(g,_text,labColumn+amountWidth-g.MeasureString(_text,_documentGenerator.standardFont).Width,0);
-								_text=RawMoneyStrToDisplayMoney(ccdFieldsArrayEligibleLabAmounts2[j].valuestr);
+								_text=RawMoneyStrToDisplayMoney(ccdFieldsArrayEligibleLabAmounts2[j].Valuestr);
 								_documentGenerator.DrawString(g,_text,eligibleLabColumn+amountWidth-g.MeasureString(_text,_documentGenerator.standardFont).Width,0);
-								_text=RawMoneyStrToDisplayMoney(ccdFieldsArrayDeductibleLabAmounts2[j].valuestr);
+								_text=RawMoneyStrToDisplayMoney(ccdFieldsArrayDeductibleLabAmounts2[j].Valuestr);
 								_documentGenerator.DrawString(g,_text,deductibleColumn+amountWidth-g.MeasureString(_text,_documentGenerator.standardFont).Width,0);
-								_text=RawPercentToDisplayPercent(ccdFieldsArrayEligibleLabPercentage2[j].valuestr);
+								_text=RawPercentToDisplayPercent(ccdFieldsArrayEligibleLabPercentage2[j].Valuestr);
 								_documentGenerator.DrawString(g,_text,percentCoveredColumn,0);
-								_text=RawMoneyStrToDisplayMoney(ccdFieldsArrayBenefitLabAmount2[j].valuestr);
+								_text=RawMoneyStrToDisplayMoney(ccdFieldsArrayBenefitLabAmount2[j].Valuestr);
 								_documentGenerator.DrawString(g,_text,dentaidePaysColumn+amountWidth-g.MeasureString(_text,_documentGenerator.standardFont).Width,0);
 							}
 						}
@@ -1737,34 +1735,34 @@ public partial class FormCCDPrint:FormODBase {
 				for(var p=0;p<ccdFieldsArrayProcs.Length;p++) {
 					//Display the eligible proc info.
 					_x=_documentGenerator.StartElement();
-					_text=ccdFieldsArrayProcs[p].valuestr.PadLeft(6,' ');//Field G19
+					_text=ccdFieldsArrayProcs[p].Valuestr.PadLeft(6,' ');//Field G19
 					_documentGenerator.DrawString(g,_text,procedureColumn,0);
 					_text=ProcedureCodes.GetProcCode(ProcedureCodes.GetCodeNum(_text)).Descript;
 					_documentGenerator.DrawString(g,_text,procedureColumn+procedureColumnWidth,0,_documentGenerator.standardFont,(int)(toothColumn-procedureColumn-procedureColumnWidth-10));
-					_text=RawMoneyStrToDisplayMoney(ccdFieldsArrayCarrierEligibleAmts[p].valuestr);//Field G20
+					_text=RawMoneyStrToDisplayMoney(ccdFieldsArrayCarrierEligibleAmts[p].Valuestr);//Field G20
 					_documentGenerator.DrawString(g,_text,eligibleFeeColumn+amountWidth-g.MeasureString(_text,_documentGenerator.standardFont).Width,0);
-					_text=RawMoneyStrToDisplayMoney(ccdFieldsArrayCarrierDeductAmts[p].valuestr);//Field G21
+					_text=RawMoneyStrToDisplayMoney(ccdFieldsArrayCarrierDeductAmts[p].Valuestr);//Field G21
 					_documentGenerator.DrawString(g,_text,deductibleColumn+amountWidth-g.MeasureString(_text,_documentGenerator.standardFont).Width,0);
-					_text=RawPercentToDisplayPercent(ccdFieldsArrayCarrierAts[p].valuestr);//Field G22
+					_text=RawPercentToDisplayPercent(ccdFieldsArrayCarrierAts[p].Valuestr);//Field G22
 					_documentGenerator.DrawString(g,_text,percentCoveredColumn,0);
-					_text=RawMoneyStrToDisplayMoney(ccdFieldsArrayCarrierBenefitAmts[p].valuestr);//Field G23
+					_text=RawMoneyStrToDisplayMoney(ccdFieldsArrayCarrierBenefitAmts[p].Valuestr);//Field G23
 					_documentGenerator.DrawString(g,_text,dentaidePaysColumn+amountWidth-g.MeasureString(_text,_documentGenerator.standardFont).Width,0);
 					_text="";
-					if(ccdFieldsArrayCarrierNotes1[p].valuestr!="00") {
-						_text+=ccdFieldsArrayCarrierNotes1[p].valuestr;
+					if(ccdFieldsArrayCarrierNotes1[p].Valuestr!="00") {
+						_text+=ccdFieldsArrayCarrierNotes1[p].Valuestr;
 					}
-					if(ccdFieldsArrayCarrierNotes2[p].valuestr!="00") {
+					if(ccdFieldsArrayCarrierNotes2[p].Valuestr!="00") {
 						if(_text.Length>0) {
 							_text+=",";
 						}
-						_text+=ccdFieldsArrayCarrierNotes2[p].valuestr;
+						_text+=ccdFieldsArrayCarrierNotes2[p].Valuestr;
 					}
 					_documentGenerator.DrawString(g,_text,endNoteColumn,0);
 					//Display the eligible lab info for the proc but on a separate line.
 					_x=_documentGenerator.StartElement();
 					_text="LAB(S)";
 					_documentGenerator.DrawString(g,_text,procedureColumn,0);
-					_text=RawMoneyStrToDisplayMoney(ccdFieldsArrayCarrierEligibleLabAmts[p].valuestr);
+					_text=RawMoneyStrToDisplayMoney(ccdFieldsArrayCarrierEligibleLabAmts[p].Valuestr);
 					_documentGenerator.DrawString(g,_text,eligibleLabColumn+amountWidth-g.MeasureString(_text,_documentGenerator.standardFont).Width,0);
 				}
 			}
@@ -1774,7 +1772,7 @@ public partial class FormCCDPrint:FormODBase {
 			if(isEOB) {
 				var ccdFieldTotalPayable=_ccdReceived.GetFieldById("G55");
 				if(ccdFieldTotalPayable!=null) {
-					totalPaid=SIn.Double(RawMoneyStrToDisplayMoney(ccdFieldTotalPayable.valuestr));
+					totalPaid=SIn.Double(RawMoneyStrToDisplayMoney(ccdFieldTotalPayable.Valuestr));
 				}
 				_documentGenerator.DrawString(g,totalPaid.ToString("F"),dentaidePaysColumn,0);
 			}
@@ -2278,7 +2276,7 @@ public partial class FormCCDPrint:FormODBase {
 		var amountWidth=g.MeasureString("****.**",_documentGenerator.standardFont).Width;
 		var procCodeWidth=g.MeasureString("*******",_documentGenerator.standardFont).Width;
 		for(var p=0;p<ccdFieldsArrayProcedureLineNumbers.Length;p++){
-			var procedureLineNumber=Convert.ToInt32(ccdFieldsArrayProcedureLineNumbers[p].valuestr);
+			var procedureLineNumber=Convert.ToInt32(ccdFieldsArrayProcedureLineNumbers[p].Valuestr);
 			var i=0;
 			while(i<_listClaimProcs.Count && _listClaimProcs[i].LineNumber!=procedureLineNumber){
 				i++;
@@ -2299,23 +2297,23 @@ public partial class FormCCDPrint:FormODBase {
 			}
 			_text=claimproc.FeeBilled.ToString("F");
 			_documentGenerator.DrawString(g,_text,procedureChargeColumn+amountWidth-g.MeasureString(_text,_documentGenerator.standardFont).Width,0);
-			_text=RawMoneyStrToDisplayMoney(ccdFieldsArrayEligibleAmounts[p].valuestr);//Field G12
+			_text=RawMoneyStrToDisplayMoney(ccdFieldsArrayEligibleAmounts[p].Valuestr);//Field G12
 			_documentGenerator.DrawString(g,_text,procedureEligibleColumn+amountWidth-g.MeasureString(_text,_documentGenerator.standardFont).Width,0);
-			_text=RawMoneyStrToDisplayMoney(ccdFieldsArrayDeductibleAmounts[p].valuestr);//Field G13
+			_text=RawMoneyStrToDisplayMoney(ccdFieldsArrayDeductibleAmounts[p].Valuestr);//Field G13
 			_documentGenerator.DrawString(g,_text,procedureDeductColumn+amountWidth-g.MeasureString(_text,_documentGenerator.standardFont).Width,0);
-			_text=RawPercentToDisplayPercent(ccdFieldsArrayEligiblePercentage[p].valuestr);//Field G14
+			_text=RawPercentToDisplayPercent(ccdFieldsArrayEligiblePercentage[p].Valuestr);//Field G14
 			_documentGenerator.DrawString(g,_text,procedureAtColumn,0);
-			_text=RawMoneyStrToDisplayMoney(ccdFieldsArrayBenefitAmountForTheProcedures[p].valuestr);//Field G15
+			_text=RawMoneyStrToDisplayMoney(ccdFieldsArrayBenefitAmountForTheProcedures[p].Valuestr);//Field G15
 			_documentGenerator.DrawString(g,_text,procedureBenefitColumn+amountWidth-g.MeasureString(_text,_documentGenerator.standardFont).Width,0);
 			_text="";
-			if(ccdFieldsArrayExplainationNotes1[p].valuestr!="00"){
-				_text+=ccdFieldsArrayExplainationNotes1[p].valuestr;
+			if(ccdFieldsArrayExplainationNotes1[p].Valuestr!="00"){
+				_text+=ccdFieldsArrayExplainationNotes1[p].Valuestr;
 			}
-			if(ccdFieldsArrayExplainationNotes2[p].valuestr!="00"){
+			if(ccdFieldsArrayExplainationNotes2[p].Valuestr!="00"){
 				if(_text.Length>0){
 					_text+=",";
 				}
-				_text+=ccdFieldsArrayExplainationNotes2[p].valuestr;
+				_text+=ccdFieldsArrayExplainationNotes2[p].Valuestr;
 			}
 			_documentGenerator.DrawString(g,_text,procedureNotesColumn,0,_documentGenerator.standardFont,(int)(_documentGenerator.bounds.Right-procedureNotesColumn));
 			var listProceduresLab=Procedures.GetCanadianLabFees(procedure.ProcNum,listProcedures);
@@ -2326,13 +2324,13 @@ public partial class FormCCDPrint:FormODBase {
 				_documentGenerator.DrawString(g,_text,procedureCodeColumn,0);//proc code
 				_text=listProceduresLab[0].ProcFee.ToString("F");
 				_documentGenerator.DrawString(g,_text,procedureChargeColumn+amountWidth-g.MeasureString(_text,_documentGenerator.standardFont).Width,0);//proc fee
-				_text=RawMoneyStrToDisplayMoney(ccdFieldsArrayEligibleLabAmounts1[i].valuestr);//G43
+				_text=RawMoneyStrToDisplayMoney(ccdFieldsArrayEligibleLabAmounts1[i].Valuestr);//G43
 				_documentGenerator.DrawString(g,_text,procedureEligibleColumn+amountWidth-g.MeasureString(_text,_documentGenerator.standardFont).Width,0);
-				_text=RawMoneyStrToDisplayMoney(ccdFieldsArrayDeductibleLabAmounts1[i].valuestr);//G56
+				_text=RawMoneyStrToDisplayMoney(ccdFieldsArrayDeductibleLabAmounts1[i].Valuestr);//G56
 				_documentGenerator.DrawString(g,_text,procedureDeductColumn+amountWidth-g.MeasureString(_text,_documentGenerator.standardFont).Width,0);
-				_text=RawPercentToDisplayPercent(ccdFieldsArrayEligibleLabPercentage1[i].valuestr);//G57
+				_text=RawPercentToDisplayPercent(ccdFieldsArrayEligibleLabPercentage1[i].Valuestr);//G57
 				_documentGenerator.DrawString(g,_text,procedureAtColumn,0);
-				_text=RawMoneyStrToDisplayMoney(ccdFieldsArrayBenefitLabAmount1[i].valuestr);//G58
+				_text=RawMoneyStrToDisplayMoney(ccdFieldsArrayBenefitLabAmount1[i].Valuestr);//G58
 				_documentGenerator.DrawString(g,_text,procedureBenefitColumn+amountWidth-g.MeasureString(_text,_documentGenerator.standardFont).Width,0);
 			}
 			if(listProceduresLab.Count > 1 && ccdFieldsArrayEligibleLabAmounts2.Length > 0) {//In version 2 the lab fee is rolled into the procedure amount and so there is no lab section.
@@ -2342,13 +2340,13 @@ public partial class FormCCDPrint:FormODBase {
 				_documentGenerator.DrawString(g,_text,procedureCodeColumn,0);//proc code
 				_text=listProceduresLab[1].ProcFee.ToString("F");
 				_documentGenerator.DrawString(g,_text,procedureChargeColumn+amountWidth-g.MeasureString(_text,_documentGenerator.standardFont).Width,0);//proc fee
-				_text=RawMoneyStrToDisplayMoney(ccdFieldsArrayEligibleLabAmounts2[i].valuestr);//G02
+				_text=RawMoneyStrToDisplayMoney(ccdFieldsArrayEligibleLabAmounts2[i].Valuestr);//G02
 				_documentGenerator.DrawString(g,_text,procedureEligibleColumn+amountWidth-g.MeasureString(_text,_documentGenerator.standardFont).Width,0);
-				_text=RawMoneyStrToDisplayMoney(ccdFieldsArrayDeductibleLabAmounts2[i].valuestr);//G59
+				_text=RawMoneyStrToDisplayMoney(ccdFieldsArrayDeductibleLabAmounts2[i].Valuestr);//G59
 				_documentGenerator.DrawString(g,_text,procedureDeductColumn+amountWidth-g.MeasureString(_text,_documentGenerator.standardFont).Width,0);
-				_text=RawPercentToDisplayPercent(ccdFieldsArrayEligibleLabPercentage2[i].valuestr);//G60
+				_text=RawPercentToDisplayPercent(ccdFieldsArrayEligibleLabPercentage2[i].Valuestr);//G60
 				_documentGenerator.DrawString(g,_text,procedureAtColumn,0);
-				_text=RawMoneyStrToDisplayMoney(ccdFieldsArrayBenefitLabAmount2[i].valuestr);//G61
+				_text=RawMoneyStrToDisplayMoney(ccdFieldsArrayBenefitLabAmount2[i].Valuestr);//G61
 				_documentGenerator.DrawString(g,_text,procedureBenefitColumn+amountWidth-g.MeasureString(_text,_documentGenerator.standardFont).Width,0);
 			}
 		}
@@ -2364,27 +2362,27 @@ public partial class FormCCDPrint:FormODBase {
 		for(var p=0;p<ccdFieldsArrayCarrierProcs.Length;p++){
 			//Display the eligible proc info.
 			_x=_documentGenerator.StartElement();
-			_text=ccdFieldsArrayCarrierProcs[p].valuestr.PadLeft(6,' ');//Field G19
+			_text=ccdFieldsArrayCarrierProcs[p].Valuestr.PadLeft(6,' ');//Field G19
 			_documentGenerator.DrawString(g,_text,_x,0);
 			_text=ProcedureCodes.GetProcCode(ProcedureCodes.GetCodeNum(_text)).Descript;
 			_documentGenerator.DrawString(g,_text,procedureCodeColumn+procCodeWidth,0,_documentGenerator.standardFont,(int)(procedureToothColumn-procedureCodeColumn-procCodeWidth-10));
-			_text=RawMoneyStrToDisplayMoney(ccdFieldsArrayCarrierEligibleAmts[p].valuestr);//Field G20
+			_text=RawMoneyStrToDisplayMoney(ccdFieldsArrayCarrierEligibleAmts[p].Valuestr);//Field G20
 			_documentGenerator.DrawString(g,_text,procedureEligibleColumn+amountWidth-g.MeasureString(_text,_documentGenerator.standardFont).Width,0);
-			_text=RawMoneyStrToDisplayMoney(ccdFieldsArrayCarrierDeductAmts[p].valuestr);//Field G21
+			_text=RawMoneyStrToDisplayMoney(ccdFieldsArrayCarrierDeductAmts[p].Valuestr);//Field G21
 			_documentGenerator.DrawString(g,_text,procedureDeductColumn+amountWidth-g.MeasureString(_text,_documentGenerator.standardFont).Width,0);
-			_text=RawPercentToDisplayPercent(ccdFieldsArrayCarrierAts[p].valuestr);//Field G22
+			_text=RawPercentToDisplayPercent(ccdFieldsArrayCarrierAts[p].Valuestr);//Field G22
 			_documentGenerator.DrawString(g,_text,procedureAtColumn,0);
-			_text=RawMoneyStrToDisplayMoney(ccdFieldsArrayCarrierBenefitAmts[p].valuestr);//Field G23
+			_text=RawMoneyStrToDisplayMoney(ccdFieldsArrayCarrierBenefitAmts[p].Valuestr);//Field G23
 			_documentGenerator.DrawString(g,_text,procedureBenefitColumn+amountWidth-g.MeasureString(_text,_documentGenerator.standardFont).Width,0);
 			_text="";
-			if(ccdFieldsArrayCarrierNotes1[p].valuestr!="00"){
-				_text+=ccdFieldsArrayCarrierNotes1[p].valuestr;
+			if(ccdFieldsArrayCarrierNotes1[p].Valuestr!="00"){
+				_text+=ccdFieldsArrayCarrierNotes1[p].Valuestr;
 			}
-			if(ccdFieldsArrayCarrierNotes2[p].valuestr!="00"){
+			if(ccdFieldsArrayCarrierNotes2[p].Valuestr!="00"){
 				if(_text.Length>0){
 					_text+=",";
 				}
-				_text+=ccdFieldsArrayCarrierNotes2[p].valuestr;
+				_text+=ccdFieldsArrayCarrierNotes2[p].Valuestr;
 			}
 			_documentGenerator.DrawString(g,_text,procedureNotesColumn,0);
 			//Display the eligible lab info for the proc but on a separate line.
@@ -2392,13 +2390,13 @@ public partial class FormCCDPrint:FormODBase {
 			if(ccdFieldsArrayCarrierEligibleLabAmts.Length>0) {
 				_text="LAB(S)";
 				_documentGenerator.DrawString(g,_text,procedureCodeColumn,0);
-				_text=RawMoneyStrToDisplayMoney(ccdFieldsArrayCarrierEligibleLabAmts[p].valuestr);
+				_text=RawMoneyStrToDisplayMoney(ccdFieldsArrayCarrierEligibleLabAmts[p].Valuestr);
 				_documentGenerator.DrawString(g,_text,procedureEligibleColumn+amountWidth-g.MeasureString(_text,_documentGenerator.standardFont).Width,0);
 			}
 		}
 		//Handle the unallocated deductible amount if it exists. 
 		//This happens when a carrier will not supply deductibles on a procedural basis.
-		var unallocatedDeductible=_ccdReceived.GetFieldById("G29").valuestr;
+		var unallocatedDeductible=_ccdReceived.GetFieldById("G29").Valuestr;
 		if(unallocatedDeductible!="000000") {
 			_x=_documentGenerator.StartElement();
 			_text=_isFrench?"Total Franchise":"Total Deductible";
@@ -2425,7 +2423,7 @@ public partial class FormCCDPrint:FormODBase {
 		_x=_documentGenerator.StartElement();
 		_text=_isFrench?"MONTANT TOTAL DE SERVICE: ":"TOTAL AMOUNT OF SERVICE: ";
 		_x+=_documentGenerator.DrawString(g,_text,_x,0).Width+10;
-		_text=RawMoneyStrToDisplayMoney(_ccdReceived.GetFieldById("G04").valuestr);
+		_text=RawMoneyStrToDisplayMoney(_ccdReceived.GetFieldById("G04").Valuestr);
 		_documentGenerator.DrawString(g,_text,_x,0);
 		_x=_documentGenerator.StartElement();
 		float rightColumn=450;
@@ -2452,7 +2450,7 @@ public partial class FormCCDPrint:FormODBase {
 	///<summary>For EOBs only.</summary>
 	private SizeF PrintVertificationNo(Graphics g,float X,float Y){
 		var ccdFieldVertificationNo=_ccdReceived.GetFieldById("G30");//Present in EOBs.
-		return _documentGenerator.DrawField(g,ccdFieldVertificationNo.GetFieldName(_isFrench),ccdFieldVertificationNo.valuestr,false,X,Y);
+		return _documentGenerator.DrawField(g,ccdFieldVertificationNo.GetFieldName(_isFrench),ccdFieldVertificationNo.Valuestr,false,X,Y);
 	}
 
 	private SizeF PrintTransactionDate(Graphics g,float X,float Y){
@@ -2466,12 +2464,12 @@ public partial class FormCCDPrint:FormODBase {
 		if(ccdFieldCarrierClaimNos==null || ccdFieldCarrierClaimNos.Length==0){
 			throw new Exception("Field G01 does not exist in transaction, cannot print carrier claim number.");
 		}
-		return _documentGenerator.DrawField(g,_isFrench?"NO DE RÉFÉRENCE DE TRANSACTION":"CARRIER CLAIM NO",ccdFieldCarrierClaimNos[0].valuestr,false,X,Y);
+		return _documentGenerator.DrawField(g,_isFrench?"NO DE RÉFÉRENCE DE TRANSACTION":"CARRIER CLAIM NO",ccdFieldCarrierClaimNos[0].Valuestr,false,X,Y);
 	}
 
 	private SizeF PrintDisposition(Graphics g,float X,float Y) {
 		var ccdFieldDisposition=_ccdReceived.GetFieldById("G07");
-		return _documentGenerator.DrawField(g,ccdFieldDisposition.GetFieldName(_isFrench),ccdFieldDisposition.valuestr,false,X,Y);
+		return _documentGenerator.DrawField(g,ccdFieldDisposition.GetFieldName(_isFrench),ccdFieldDisposition.Valuestr,false,X,Y);
 	}
 
 	private SizeF PrintStatus(Graphics g,float X,float Y) {
@@ -2479,7 +2477,7 @@ public partial class FormCCDPrint:FormODBase {
 		var statusStr="";
 		if(ccdFieldStatus!=null) {
 			if(_isFrench) {
-				switch(ccdFieldStatus.valuestr) {
+				switch(ccdFieldStatus.Valuestr) {
 					default:
 						statusStr="";
 						break;
@@ -2513,7 +2511,7 @@ public partial class FormCCDPrint:FormODBase {
 				}
 			}
 			else {
-				switch(ccdFieldStatus.valuestr) {
+				switch(ccdFieldStatus.Valuestr) {
 					default:
 						statusStr="";
 						break;
@@ -2554,14 +2552,14 @@ public partial class FormCCDPrint:FormODBase {
 		var comment="";
 		var ccdFieldComment=_ccdReceived.GetFieldById("G07");
 		if(ccdFieldComment!=null){//The disposition message is not always present.
-			comment=ccdFieldComment.valuestr;
+			comment=ccdFieldComment.Valuestr;
 		}
 		return _documentGenerator.DrawField(g,_isFrench?"COMMENTAIRES":"COMMENT",comment,false,X,Y);
 	}
 
 	private SizeF PrintDentistName(Graphics g,float X,float Y) {
 		//Treatment provider should match that retrieved from the CDA provider number in field B01.
-		_text=_providerTreat.LName+", "+_providerTreat.FName+" "+_providerTreat.MI+" "+_providerTreat.Suffix;
+		_text=_providerTreat.LastName+", "+_providerTreat.FirstName+" "+_providerTreat.MiddleName+" "+_providerTreat.Suffix;
 		return _documentGenerator.DrawField(g,_isFrench?"DENTISTE":"DENTIST",_text,false,X,Y);
 	}
 
@@ -2584,13 +2582,13 @@ public partial class FormCCDPrint:FormODBase {
 	///<summary>Corresponds to field B01.</summary>
 	private SizeF PrintTreatmentProviderID(Graphics g,float X,float Y) {
 		var ccdFieldTreatmentProviderID=_ccdReceived.GetFieldById("B01");
-		return _documentGenerator.DrawField(g,ccdFieldTreatmentProviderID.GetFieldName(_isFrench),ccdFieldTreatmentProviderID.valuestr,false,X,Y);
+		return _documentGenerator.DrawField(g,ccdFieldTreatmentProviderID.GetFieldName(_isFrench),ccdFieldTreatmentProviderID.Valuestr,false,X,Y);
 	}
 
 	///<summary>Corresponds to field B02.</summary>
 	private SizeF PrintTreatmentProviderOfficeNumber(Graphics g,float X,float Y) {
 		var ccdFieldCdaOfficeNumber=_ccdReceived.GetFieldById("B02");
-		return _documentGenerator.DrawField(g,ccdFieldCdaOfficeNumber.GetFieldName(_isFrench),ccdFieldCdaOfficeNumber.valuestr,false,X,Y);
+		return _documentGenerator.DrawField(g,ccdFieldCdaOfficeNumber.GetFieldName(_isFrench),ccdFieldCdaOfficeNumber.Valuestr,false,X,Y);
 	}
 
 	///<summary>Corresponds to field A02.</summary>
@@ -2600,7 +2598,7 @@ public partial class FormCCDPrint:FormODBase {
 			throw new Exception("There are no instances of field A02 to read, cannot print dental office claim reference number.");
 		}
 		return _documentGenerator.DrawField(g,ccdFieldOfficeSequenceNumbers[0].GetFieldName(_isFrench),
-			ccdFieldOfficeSequenceNumbers[0].valuestr,false,X,Y);
+			ccdFieldOfficeSequenceNumbers[0].Valuestr,false,X,Y);
 	}
 
 	private SizeF PrintPatientName(Graphics g,float X,float Y) {
@@ -2653,8 +2651,8 @@ public partial class FormCCDPrint:FormODBase {
 		//NIHB stands for "Non-Insured Health Benefits" as defined at http://www.hc-sc.gc.ca/fniah-spnia/nihb-ssna/index-eng.php. Government based program.
 		//For NIHB claims, print the Band (Field C13) and Family (Field C14) numbers as required.
 		//If they have NIHB, then it is probably their primary and they probably don't have any other plan.
-		if(ccdFieldC12!=null && ccdFieldC12.valuestr=="N" && ccdFieldC13!=null && ccdFieldC13.valuestr.Trim()!="" && ccdFieldC14!=null && ccdFieldC14.valuestr.Trim()!="") {
-			return _documentGenerator.DrawString(g,_isFrench?("BANDE: "+ccdFieldC13.valuestr+"  FAMILLE: "+ccdFieldC14.valuestr):("BAND: "+ccdFieldC13.valuestr+"  FAMILY: "+ccdFieldC14.valuestr),X,Y);
+		if(ccdFieldC12!=null && ccdFieldC12.Valuestr=="N" && ccdFieldC13!=null && ccdFieldC13.Valuestr.Trim()!="" && ccdFieldC14!=null && ccdFieldC14.Valuestr.Trim()!="") {
+			return _documentGenerator.DrawString(g,_isFrench?("BANDE: "+ccdFieldC13.Valuestr+"  FAMILLE: "+ccdFieldC14.Valuestr):("BAND: "+ccdFieldC13.Valuestr+"  FAMILY: "+ccdFieldC14.Valuestr),X,Y);
 		}
 		return _documentGenerator.DrawField(g,_isFrench?"NO DE CERTIFICAT":"CERTIFICATE NO",_text,true,X,Y);
 	}
@@ -2953,18 +2951,18 @@ public partial class FormCCDPrint:FormODBase {
 		var valuesBlockOffset=_x+566;
 		_text=(_isFrench?"TOTAL DEMANDÉ:":"TOTAL DENTIST CHARGES:");
 		_documentGenerator.DrawString(g,_text,valuesBlockOffset-g.MeasureString(_text,_documentGenerator.standardFont).Width-5,0);
-		_text=RawMoneyStrToDisplayMoney(_ccdReceived.GetFieldById("G04").valuestr);
+		_text=RawMoneyStrToDisplayMoney(_ccdReceived.GetFieldById("G04").Valuestr);
 		_documentGenerator.DrawString(g,_text,valuesBlockOffset+amountWidth-g.MeasureString(_text,_documentGenerator.standardFont).Width,0);
 		_x=_documentGenerator.StartElement();
 		_text=_isFrench?"TOTAL DEDUCTIBLES NON-ALLOCER:":"DEDUCTIBLE NOT ALLOCATED:";
 		_documentGenerator.DrawString(g,_text,valuesBlockOffset-g.MeasureString(_text,_documentGenerator.standardFont).Width-5,0);
-		_text=RawMoneyStrToDisplayMoney(_ccdReceived.GetFieldById("G29").valuestr);
+		_text=RawMoneyStrToDisplayMoney(_ccdReceived.GetFieldById("G29").Valuestr);
 		_documentGenerator.DrawString(g,_text,valuesBlockOffset+amountWidth-g.MeasureString(_text,_documentGenerator.standardFont).Width,0);
 		_x=_documentGenerator.StartElement();
 		var expPayDateStr="";
 		var ccdFieldG03=_ccdReceived.GetFieldById("G03");
-		if(ccdFieldG03!=null && ccdFieldG03.valuestr!="00000000") {
-			expPayDateStr=DateNumToPrintDate(ccdFieldG03.valuestr);
+		if(ccdFieldG03!=null && ccdFieldG03.Valuestr!="00000000") {
+			expPayDateStr=DateNumToPrintDate(ccdFieldG03.Valuestr);
 			_documentGenerator.DrawField(g,_isFrench?"DATE PRÉVUE DU PAIEMENT":"EXPECTED PAYMENT DATE",expPayDateStr,true,_x,0);
 		}
 		var ccdFieldF01=_ccdReceived.GetFieldById("F01");
@@ -2976,11 +2974,11 @@ public partial class FormCCDPrint:FormODBase {
 		//For cases when field f01 is not present, we are supposed to grab the value determining who the payment is for from the original claim, 
 		//but we must instead rely on the assignment of benefits flag associated with the primary insurance subscriber because there is no such field
 		//in the claim object itself.
-		var payableTo=(ccdFieldF01==null)?(AssignmentOfBenefits()?"4":"1"):ccdFieldF01.valuestr;
+		var payableTo=(ccdFieldF01==null)?(AssignmentOfBenefits()?"4":"1"):ccdFieldF01.Valuestr;
 		if(payableTo=="1") {//Pay the subscriber.
 			_text=_isFrench?"TOTAL REMBOURSABLE AU TITULAIRE:":"TOTAL PAYABLE TO INSURED:";
 			_documentGenerator.DrawString(g,_text,valuesBlockOffset-g.MeasureString(_text,_documentGenerator.standardFont).Width-5,0);
-			_text=RawMoneyStrToDisplayMoney(ccdFieldTotalPayable.valuestr);
+			_text=RawMoneyStrToDisplayMoney(ccdFieldTotalPayable.Valuestr);
 			_documentGenerator.DrawString(g,_text,valuesBlockOffset+amountWidth-g.MeasureString(_text,_documentGenerator.standardFont).Width,0);
 			_x=_documentGenerator.StartElement();
 			_text=_isFrench?"ADRESSE DU DESTINATAIRE DU PAIEMENT:":"PAYEE'S ADDRESS:";
@@ -2991,7 +2989,7 @@ public partial class FormCCDPrint:FormODBase {
 		else if(payableTo=="2") {//Pay other party.
 			_text=_isFrench?"TOTAL REMBOURSABLE AU AUTRES:":"TOTAL PAYABLE TO OTHER:";
 			_documentGenerator.DrawString(g,_text,valuesBlockOffset-g.MeasureString(_text,_documentGenerator.standardFont).Width-5,0);
-			_text=RawMoneyStrToDisplayMoney(ccdFieldTotalPayable.valuestr);
+			_text=RawMoneyStrToDisplayMoney(ccdFieldTotalPayable.Valuestr);
 			_documentGenerator.DrawString(g,_text,valuesBlockOffset+amountWidth-g.MeasureString(_text,_documentGenerator.standardFont).Width,0);
 			_x=_documentGenerator.StartElement();
 		}
@@ -3000,7 +2998,7 @@ public partial class FormCCDPrint:FormODBase {
 		else if(payableTo=="4" || payableTo=="0") {//Dentist
 			_text=_isFrench?"TOTAL REMBOURSABLE AU DENTISTE:":"TOTAL PAYABLE TO DENTIST:";
 			_documentGenerator.DrawString(g,_text,valuesBlockOffset-g.MeasureString(_text,_documentGenerator.standardFont).Width-5,0);
-			_text=RawMoneyStrToDisplayMoney(ccdFieldTotalPayable.valuestr);
+			_text=RawMoneyStrToDisplayMoney(ccdFieldTotalPayable.Valuestr);
 			_documentGenerator.DrawString(g,_text,valuesBlockOffset+amountWidth-g.MeasureString(_text,_documentGenerator.standardFont).Width,0);
 			_x=_documentGenerator.StartElement();
 			_text=_isFrench?"ADRESSE DU DESTINATAIRE DU PAIEMENT:":"PAYEE'S ADDRESS:";
@@ -3062,17 +3060,17 @@ public partial class FormCCDPrint:FormODBase {
 		_documentGenerator.StartElement(_verticalLine);
 		for(var i=0;i<ccdFieldsArrayNoteTexts.Length;i++) {//noteTexts.Length<=32
 			if(i<ccdFieldsArrayNoteOutputFlags.Length) {//Sometimes G26 exists without the output flags or the note numbers.
-				if(SIn.Int(ccdFieldsArrayNoteOutputFlags[i].valuestr)==1) {
+				if(SIn.Int(ccdFieldsArrayNoteOutputFlags[i].Valuestr)==1) {
 					continue;//We will print the notes if either the output flag is 2 (print) or 0 (prompt), but will not print notes with output flag 1 (display notes on screen).
 				}
 			}
 			if(i<ccdFieldsArrayNoteNumbers.Length) {
-				listDisplayMessageNumbers.Add(SIn.Int(ccdFieldsArrayNoteNumbers[i].valuestr));
+				listDisplayMessageNumbers.Add(SIn.Int(ccdFieldsArrayNoteNumbers[i].Valuestr));
 			}
 			else {
 				listDisplayMessageNumbers.Add(i+1);
 			}
-			listStringsDisplayMessages.Add(ccdFieldsArrayNoteTexts[i].valuestr);
+			listStringsDisplayMessages.Add(ccdFieldsArrayNoteTexts[i].Valuestr);
 		}
 		while(listStringsDisplayMessages.Count>0) {
 			var indexOfMinVal=0;
@@ -3098,8 +3096,8 @@ public partial class FormCCDPrint:FormODBase {
 		_documentGenerator.DrawString(g,(_isFrench?"ERREURS (":"ERRORS (")+ccdFieldArrayErrors.Length+")",_x,0,_fontHeading);
 		for(var i=0;i<ccdFieldArrayErrors.Length;i++){
 			_x=_documentGenerator.StartElement();
-			_documentGenerator.DrawString(g,ccdFieldArrayErrors[i].valuestr.PadLeft(3,'0'),_x,0);
-			_documentGenerator.DrawString(g,CCDerror.Message(Convert.ToInt32(ccdFieldArrayErrors[i].valuestr),_isFrench),_x+80,0);
+			_documentGenerator.DrawString(g,ccdFieldArrayErrors[i].Valuestr.PadLeft(3,'0'),_x,0);
+			_documentGenerator.DrawString(g,CCDerror.Message(Convert.ToInt32(ccdFieldArrayErrors[i].Valuestr),_isFrench),_x+80,0);
 		}
 		return ccdFieldArrayErrors.Length;
 	}
@@ -3123,7 +3121,7 @@ public partial class FormCCDPrint:FormODBase {
 	#region Printing Information Translators
 
 	private bool ThisIsPrimary(){
-		var strCarrierIdentificationNumber=_ccdReceived.GetFieldById("A05").valuestr;//Exists in all formats but 24-Email, and 16-Payment Reconciliation Response
+		var strCarrierIdentificationNumber=_ccdReceived.GetFieldById("A05").Valuestr;//Exists in all formats but 24-Email, and 16-Payment Reconciliation Response
 		return _carrier!=null && _carrier.ElectID==strCarrierIdentificationNumber;
 	}
 
@@ -3256,12 +3254,12 @@ public partial class FormCCDPrint:FormODBase {
 		var text="";
 		var ccdFieldProcedureTypeCodes=_ccdReceived.GetFieldById("F16");
 		if(ccdFieldProcedureTypeCodes!=null){
-			for(var c=0;c<ccdFieldProcedureTypeCodes.valuestr.Length;c++){
-				if(ccdFieldProcedureTypeCodes.valuestr[c]!=' '){
+			for(var c=0;c<ccdFieldProcedureTypeCodes.Valuestr.Length;c++){
+				if(ccdFieldProcedureTypeCodes.Valuestr[c]!=' '){
 					if(text!=""){
 						text+=Environment.NewLine;
 					}
-					text+=GetProcedureTypeCodeDescription(ccdFieldProcedureTypeCodes.valuestr[c]);
+					text+=GetProcedureTypeCodeDescription(ccdFieldProcedureTypeCodes.Valuestr[c]);
 				}
 			}
 		}
@@ -3271,9 +3269,9 @@ public partial class FormCCDPrint:FormODBase {
 	///<summary>Returns string from most preferred raw data source to least preferred in this order: received raw, sent raw, default.
 	///Can return null if the data could not be found anywhere in the database.</summary>
 	private string GetDbDataStr(string fieldId,string strDefault) {
-		var result=_ccdReceived?.GetFieldById(fieldId)?.valuestr;
+		var result=_ccdReceived?.GetFieldById(fieldId)?.Valuestr;
 		if(result==null) {
-			result=_ccdSent?.GetFieldById(fieldId)?.valuestr;
+			result=_ccdSent?.GetFieldById(fieldId)?.Valuestr;
 		}
 		if(result==null) {
 			result=strDefault;

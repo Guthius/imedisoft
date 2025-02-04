@@ -19,12 +19,13 @@ public class ClaimTrackingCrud
     public static List<ClaimTracking> TableToList(DataTable table)
     {
         var retVal = new List<ClaimTracking>();
-        ClaimTracking claimTracking;
         foreach (DataRow row in table.Rows)
         {
-            claimTracking = new ClaimTracking();
-            claimTracking.ClaimTrackingNum = SIn.Long(row["ClaimTrackingNum"].ToString());
-            claimTracking.ClaimNum = SIn.Long(row["ClaimNum"].ToString());
+            var claimTracking = new ClaimTracking
+            {
+                ClaimTrackingNum = SIn.Long(row["ClaimTrackingNum"].ToString()),
+                ClaimNum = SIn.Long(row["ClaimNum"].ToString())
+            };
             var trackingType = row["TrackingType"].ToString();
             if (trackingType == "")
                 claimTracking.TrackingType = 0;
@@ -49,7 +50,7 @@ public class ClaimTrackingCrud
         return retVal;
     }
 
-    public static long Insert(ClaimTracking claimTracking)
+    public static void Insert(ClaimTracking claimTracking)
     {
         var command = "INSERT INTO claimtracking (";
 
@@ -68,7 +69,6 @@ public class ClaimTrackingCrud
         {
             claimTracking.ClaimTrackingNum = Db.NonQ(command, true, "ClaimTrackingNum", "claimTracking", paramNote);
         }
-        return claimTracking.ClaimTrackingNum;
     }
 
     public static void Update(ClaimTracking claimTracking)
@@ -136,13 +136,6 @@ public class ClaimTrackingCrud
         return true;
     }
 
-    public static void Delete(long claimTrackingNum)
-    {
-        var command = "DELETE FROM claimtracking "
-                      + "WHERE ClaimTrackingNum = " + SOut.Long(claimTrackingNum);
-        Db.NonQ(command);
-    }
-
     public static void DeleteMany(List<long> listClaimTrackingNums)
     {
         if (listClaimTrackingNums == null || listClaimTrackingNums.Count == 0) return;
@@ -151,7 +144,7 @@ public class ClaimTrackingCrud
         Db.NonQ(command);
     }
 
-    public static bool Sync(List<ClaimTracking> listNew, List<ClaimTracking> listDB)
+    public static void Sync(List<ClaimTracking> listNew, List<ClaimTracking> listDB)
     {
         //Adding items to lists changes the order of operation. All inserts are completed first, then updates, then deletes.
         var listIns = new List<ClaimTracking>();
@@ -163,15 +156,13 @@ public class ClaimTrackingCrud
         var idxNew = 0;
         var idxDB = 0;
         var rowsUpdatedCount = 0;
-        ClaimTracking fieldNew;
-        ClaimTracking fieldDB;
         //Because both lists have been sorted using the same criteria, we can now walk each list to determine which list contians the next element.  The next element is determined by Primary Key.
         //If the New list contains the next item it will be inserted.  If the DB contains the next item, it will be deleted.  If both lists contain the next item, the item will be updated.
         while (idxNew < listNew.Count || idxDB < listDB.Count)
         {
-            fieldNew = null;
+            ClaimTracking fieldNew = null;
             if (idxNew < listNew.Count) fieldNew = listNew[idxNew];
-            fieldDB = null;
+            ClaimTracking fieldDB = null;
             if (idxDB < listDB.Count) fieldDB = listDB[idxDB];
             //begin compare
             if (fieldNew != null && fieldDB == null)
@@ -220,7 +211,6 @@ public class ClaimTrackingCrud
                 rowsUpdatedCount++;
 
         DeleteMany(listDel.Select(x => x.ClaimTrackingNum).ToList());
-        if (rowsUpdatedCount > 0 || listIns.Count > 0 || listDel.Count > 0) return true;
-        return false;
+        if (rowsUpdatedCount > 0 || listIns.Count > 0 || listDel.Count > 0) return;
     }
 }

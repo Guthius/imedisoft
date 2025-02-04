@@ -375,10 +375,7 @@ public class OpenGLWinFormsControl : Control
                 }
             }
 
-            if (TaoRenderScene != null)
-            {
-                TaoRenderScene(this, null);
-            }
+            TaoRenderScene?.Invoke(this, null);
 
             if (AutoFinish)
             {

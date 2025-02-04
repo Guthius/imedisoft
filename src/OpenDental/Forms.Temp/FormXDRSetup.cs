@@ -1,14 +1,12 @@
 using System;
 using System.Collections.Generic;
-using System.Data;
 using System.Drawing;
-using System.Text;
 using System.Windows.Forms;
 using OpenDentBusiness;
 using OpenDental.Bridges;
-using System.Linq;
 using CodeBase;
 using DataConnectionBase;
+using Imedisoft.Core.Data;
 using Imedisoft.Core.Entities;
 using Imedisoft.Core.Features.Clinics;
 
@@ -33,33 +31,26 @@ public partial class FormXDRSetup:FormODBase {
 	}
 
 	private void FormXDRSetup_Load(object sender,EventArgs e) {
-		if(true) {//Using clinics
-			_listClinicNumsUser= [];
-			comboClinic.Items.Clear();
-			comboClinic.Items.Add(Lan.g(this,"Headquarters"));
-			//This way both lists have the same number of items in it and if 'Headquarters' is selected the programproperty.ClinicNum will be set to 0
-			_listClinicNumsUser.Add(0);
-			comboClinic.SelectedIndex=0;
-			_clinicNum=0;
-			var listClinics=Clinics.GetForUserod(Security.CurUser);
-			for(var i=0;i<listClinics.Count;i++) {
-				comboClinic.Items.Add(listClinics[i].Abbr);
-				_listClinicNumsUser.Add(listClinics[i].Id);
-				if(Clinics.ClinicNum==listClinics[i].Id) {
-					comboClinic.SelectedIndex=i;
-					if(!Security.CurUser.ClinicIsRestricted) {
-						comboClinic.SelectedIndex++;//increment the SelectedIndex to account for 'Headquarters' in the list at position 0 if the user is not restricted.
-					}
-					_clinicNum=_listClinicNumsUser[comboClinic.SelectedIndex];
+		_listClinicNumsUser= [];
+		comboClinic.Items.Clear();
+		comboClinic.Items.Add(Lan.g(this,"Headquarters"));
+		//This way both lists have the same number of items in it and if 'Headquarters' is selected the programproperty.ClinicNum will be set to 0
+		_listClinicNumsUser.Add(0);
+		comboClinic.SelectedIndex=0;
+		_clinicNum=0;
+		var listClinics=Clinics.GetForUserod(Security.CurUser);
+		for(var i=0;i<listClinics.Count;i++) {
+			comboClinic.Items.Add(listClinics[i].Abbr);
+			_listClinicNumsUser.Add(listClinics[i].Id);
+			if(Clinics.ClinicNum==listClinics[i].Id) {
+				comboClinic.SelectedIndex=i;
+				if(!Security.CurUser.ClinicIsRestricted) {
+					comboClinic.SelectedIndex++;//increment the SelectedIndex to account for 'Headquarters' in the list at position 0 if the user is not restricted.
 				}
+				_clinicNum=_listClinicNumsUser[comboClinic.SelectedIndex];
 			}
 		}
-		else {//clinics are not enabled, use ClinicNum 0 to indicate 'Headquarters' or practice level program properties
-			comboClinic.Visible=false;
-			labelClinic.Visible=false;
-			_listClinicNumsUser= [0];//if clinics are disabled, programproperty.ClinicNum will be set to 0
-			_clinicNum=0;
-		}
+
 		_program=Programs.GetCur(ProgramName.XDR);
 		if(_program==null) {
 			MsgBox.Show(this,"The XDR bridge is missing from the database.");//should never happen

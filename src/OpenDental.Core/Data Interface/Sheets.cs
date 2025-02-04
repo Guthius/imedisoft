@@ -31,19 +31,10 @@ public class Sheets
 
     public static List<Sheet> GetSheets(List<long> listSheetNums)
     {
-        if (listSheetNums.IsNullOrEmpty()) return new List<Sheet>();
+        if (listSheetNums.IsNullOrEmpty()) return [];
 
-        var command = "SELECT * FROM sheet WHERE SheetNum IN (" + string.Join(",", listSheetNums.Select(x => SOut.Long(x))) + ")";
+        var command = "SELECT * FROM sheet WHERE SheetNum IN (" + string.Join(",", listSheetNums.Select(x => (x))) + ")";
         return SheetCrud.SelectMany(command);
-    }
-
-    public static bool HasWebFormSheetID(long webFormSheetID)
-    {
-        var command = "SELECT COUNT(*) FROM sheet WHERE WebFormSheetID = " + SOut.Long(webFormSheetID);
-        if (Db.GetCount(command) == "0") return false;
-        var note = "Duplicate SheetID detected. This web form will not be inserted into the sheet table since a row with this SheetID is already present.";
-        EServiceLogs.MakeLogEntryWebForms(eServiceAction.WFError, FKey: webFormSheetID, note: note);
-        return true;
     }
 
     public static void SaveNewSheet(Sheet sheet)
@@ -80,20 +71,6 @@ public class Sheets
         }
     }
 
-    public static List<Sheet> GetTransferSheets()
-    {
-        //Sheets with patnum=0 and the sheet has a sheetfield. 
-        var command = "SELECT * FROM sheet "
-                      + "INNER JOIN sheetfield ON sheetfield.SheetNum=sheet.SheetNum "
-                      + "WHERE PatNum=0 AND IsDeleted=0 "
-                      + "AND sheetfield.FieldName='isTransfer' "
-                      + $"AND SheetType={SOut.Int((int) SheetTypeEnum.PatientForm)}";
-        var listSheets = SheetCrud.SelectMany(command);
-        //Get the Sheetfields and parameters for each of the CEMT sheets
-        for (var i = 0; i < listSheets.Count; i++) SheetFields.GetFieldsAndParameters(listSheets[i]);
-        return listSheets;
-    }
-
     public static void SaveNewSheetList(List<Sheet> listSheets)
     {
         for (var i = 0; i < listSheets.Count; i++)
@@ -108,13 +85,13 @@ public class Sheets
 
     public static List<Sheet> GetReferralSlips(long patNum, long referralNum)
     {
-        var command = "SELECT * FROM sheet WHERE PatNum=" + SOut.Long(patNum)
+        var command = "SELECT * FROM sheet WHERE PatNum=" + (patNum)
                                                           + " AND sheet.SheetType=" + SOut.Int((int) SheetTypeEnum.ReferralSlip)
                                                           + " AND EXISTS(SELECT * FROM sheetfield "
                                                           + "WHERE sheet.SheetNum=sheetfield.SheetNum "
-                                                          + "AND sheetfield.FieldType=" + SOut.Long((int) SheetFieldType.Parameter)
+                                                          + "AND sheetfield.FieldType=" + ((int) SheetFieldType.Parameter)
                                                           + " AND sheetfield.FieldName='ReferralNum' "
-                                                          + "AND sheetfield.FieldValue='" + SOut.Long(referralNum) + "') "
+                                                          + "AND sheetfield.FieldValue='" + (referralNum) + "') "
                                                           + "AND IsDeleted=0 "
                                                           + "ORDER BY DateTimeSheet";
         return SheetCrud.SelectMany(command);
@@ -124,30 +101,18 @@ public class Sheets
     {
         var command = "SELECT sheet.* FROM sheet,sheetfield "
                       + "WHERE sheet.SheetNum=sheetfield.SheetNum"
-                      + " AND sheet.PatNum=" + SOut.Long(patNum)
-                      + " AND sheet.SheetType=" + SOut.Long((int) SheetTypeEnum.LabSlip)
-                      + " AND sheetfield.FieldType=" + SOut.Long((int) SheetFieldType.Parameter)
+                      + " AND sheet.PatNum=" + (patNum)
+                      + " AND sheet.SheetType=" + ((int) SheetTypeEnum.LabSlip)
+                      + " AND sheetfield.FieldType=" + ((int) SheetFieldType.Parameter)
                       + " AND sheetfield.FieldName='LabCaseNum' "
-                      + "AND sheetfield.FieldValue='" + SOut.Long(labCaseNum) + "' "
-                      + "AND IsDeleted=0";
-        return SheetCrud.SelectOne(command);
-    }
-
-    public static Sheet GetRx(long patNum, long rxNum)
-    {
-        var command = "SELECT sheet.* FROM sheet,sheetfield "
-                      + "WHERE sheet.PatNum=" + SOut.Long(patNum)
-                      + " AND sheet.SheetType=" + SOut.Long((int) SheetTypeEnum.Rx)
-                      + " AND sheetfield.FieldType=" + SOut.Long((int) SheetFieldType.Parameter)
-                      + " AND sheetfield.FieldName='RxNum' "
-                      + "AND sheetfield.FieldValue='" + SOut.Long(rxNum) + "' "
+                      + "AND sheetfield.FieldValue='" + (labCaseNum) + "' "
                       + "AND IsDeleted=0";
         return SheetCrud.SelectOne(command);
     }
 
     public static List<Sheet> GetForTerminal(long patNum)
     {
-        var command = "SELECT * FROM sheet WHERE PatNum=" + SOut.Long(patNum)
+        var command = "SELECT * FROM sheet WHERE PatNum=" + (patNum)
                                                           + " AND ShowInTerminal > 0 AND IsDeleted=0"
                                                           + " ORDER BY ShowInTerminal,DateTimeSheet";
         return SheetCrud.SelectMany(command);
@@ -155,75 +120,15 @@ public class Sheets
 
     public static int GetMaxTerminalNum(long patNum)
     {
-        var command = "SELECT MAX(ShowInTerminal) FROM sheet WHERE PatNum=" + SOut.Long(patNum)
+        var command = "SELECT MAX(ShowInTerminal) FROM sheet WHERE PatNum=" + (patNum)
                                                                             + " AND IsDeleted=0";
         return (int) Db.GetLong(command);
-    }
-
-    public static void ParseTransferSheet(Sheet sheet, out string lName, out string fName, out DateTime dateBirth, out List<string> listPhoneNumbers, out string email)
-    {
-        lName = "";
-        fName = "";
-        dateBirth = new DateTime();
-        listPhoneNumbers = new List<string>();
-        email = "";
-        var listSheetFields = sheet.SheetFields;
-        for (var i = 0; i < listSheetFields.Count; i++)
-            switch (listSheetFields[i].FieldName.ToLower())
-            {
-                case "lname":
-                case "lastname":
-                    lName = listSheetFields[i].FieldValue;
-                    break;
-                case "fname":
-                case "firstname":
-                    fName = listSheetFields[i].FieldValue;
-                    break;
-                case "bdate":
-                case "birthdate":
-                    dateBirth = SIn.Date(listSheetFields[i].FieldValue);
-                    break;
-                case "hmphone":
-                case "wkphone":
-                case "wirelessphone":
-                    if (listSheetFields[i].FieldValue != "") listPhoneNumbers.Add(listSheetFields[i].FieldValue);
-                    break;
-                case "email":
-                    email = listSheetFields[i].FieldValue;
-                    break;
-            }
-    }
-
-    public static List<long> FindSheetsForPat(Sheet sheetToMatch, List<Sheet> listSheets)
-    {
-        string lName;
-        string fName;
-        DateTime dateBirth;
-        List<string> listPhoneNumbers;
-        string email;
-        ParseTransferSheet(sheetToMatch, out lName, out fName, out dateBirth, out listPhoneNumbers, out email);
-        var listSheetNumsIdMatch = new List<long>();
-        for (var i = 0; i < listSheets.Count; i++)
-        {
-            var lNameSheet = "";
-            var fNameSheet = "";
-            var dateBirthSheet = new DateTime();
-            var listPhoneNumbersSheet = new List<string>();
-            var emailSheet = "";
-            ParseTransferSheet(listSheets[i], out lNameSheet, out fNameSheet, out dateBirthSheet, out listPhoneNumbersSheet, out emailSheet);
-            if (lName == lNameSheet && fName == fNameSheet && dateBirth == dateBirthSheet && email == emailSheet
-                //All phone numbers must match in both.
-                && listPhoneNumbers.Except(listPhoneNumbersSheet).Count() == 0 && listPhoneNumbersSheet.Except(listPhoneNumbers).Count() == 0)
-                listSheetNumsIdMatch.Add(listSheets[i].SheetNum);
-        }
-
-        return listSheetNumsIdMatch;
     }
 
     public static List<Sheet> GetForPatientForToday(long patNum)
     {
         var dateSQL = "CURDATE()";
-        var command = "SELECT * FROM sheet WHERE PatNum=" + SOut.Long(patNum) + " "
+        var command = "SELECT * FROM sheet WHERE PatNum=" + (patNum) + " "
                       + "AND DATE(DateTimeSheet) = " + dateSQL + " "
                       + "AND IsDeleted=0";
         return SheetCrud.SelectMany(command);
@@ -231,7 +136,7 @@ public class Sheets
 
     public static List<Sheet> GetForPatient(long patNum)
     {
-        var command = "SELECT * FROM sheet WHERE IsDeleted=0 AND PatNum=" + SOut.Long(patNum);
+        var command = "SELECT * FROM sheet WHERE IsDeleted=0 AND PatNum=" + (patNum);
         return SheetCrud.SelectMany(command);
     }
 
@@ -242,104 +147,27 @@ public class Sheets
                   + "LEFT JOIN sheet ON sheet.SheetNum = sheetfield.SheetNum "
                   + "WHERE IsDeleted=0 "
                   + "AND FieldType = 10 " //PatImage
-                  + "AND FieldValue = '" + SOut.Long(docNum) + "' " //FieldName == DocCategory, which we do not care about here.
+                  + "AND FieldValue = '" + (docNum) + "' " //FieldName == DocCategory, which we do not care about here.
                   + "GROUP BY sheet.SheetNum "
                   + "UNION "
                   + "SELECT sheet.* "
                   + "FROM sheet "
                   + "WHERE sheet.SheetType=" + SOut.Int((int) SheetTypeEnum.ReferralLetter) + " "
                   + "AND sheet.IsDeleted=0 "
-                  + "AND sheet.DocNum=" + SOut.Long(docNum);
+                  + "AND sheet.DocNum=" + (docNum);
         return SheetCrud.SelectMany(command);
     }
 
     public static Sheet GetMostRecentExamSheet(long patNum, string examDescript)
     {
         var command = "SELECT * FROM sheet WHERE DateTimeSheet="
-                      + "(SELECT MAX(DateTimeSheet) FROM sheet WHERE PatNum=" + SOut.Long(patNum) + " "
+                      + "(SELECT MAX(DateTimeSheet) FROM sheet WHERE PatNum=" + (patNum) + " "
                       + "AND Description='" + SOut.String(examDescript) + "' AND IsDeleted=0) "
-                      + "AND PatNum=" + SOut.Long(patNum) + " "
+                      + "AND PatNum=" + (patNum) + " "
                       + "AND Description='" + SOut.String(examDescript) + "' "
                       + "AND IsDeleted=0 "
                       + "LIMIT 1";
         return SheetCrud.SelectOne(command);
-    }
-
-    public static void CreateSheetsForCheckIn(Appointment appointment)
-    {
-        if (!MobileAppDevices.IsClinicSignedUpForEClipboard(true ? appointment.ClinicNum : 0)) //this clinic isn't signed up for this feature
-            return;
-        if (!ClinicPrefs.GetBool(PrefName.EClipboardCreateMissingFormsOnCheckIn, appointment.ClinicNum)) //This feature is turned off
-            return;
-        var useDefault = ClinicPrefs.GetBool(PrefName.EClipboardUseDefaults, appointment.ClinicNum);
-        var listEClipboardSheetDefsToCreate = EClipboardSheetDefs.GetForClinic(useDefault ? 0 : appointment.ClinicNum);
-        //This list can hold sheets and eForms. Lets remove all forms that are not sheets since this method is only for creating sheets.
-        listEClipboardSheetDefsToCreate.RemoveAll(x => x.SheetDefNum == 0);
-        if (listEClipboardSheetDefsToCreate.Count == 0) //There aren't any sheets to create here
-            return;
-        var listSheetsAlreadyCompleted = GetForPatient(appointment.PatNum);
-        var listSheetsAlreadyInTerminal = GetForTerminal(appointment.PatNum);
-        //if we already have sheets queued for the patient don't add duplicates
-        if (listSheetsAlreadyInTerminal.Count > 0)
-        {
-            listSheetsAlreadyCompleted.RemoveAll(x => listSheetsAlreadyInTerminal.Select(y => y.SheetNum).Contains(x.SheetNum));
-            listEClipboardSheetDefsToCreate.RemoveAll(x => listSheetsAlreadyInTerminal.Select(y => y.SheetDefNum).Contains(x.SheetDefNum));
-        }
-
-        var patient = Patients.GetPat(appointment.PatNum);
-        //Remove any sheets that the patient shouldn't see based on age. A value of -1 means ignore.
-        listEClipboardSheetDefsToCreate.RemoveAll(x => x.MinAge != -1 && patient.Age < x.MinAge);
-        listEClipboardSheetDefsToCreate.RemoveAll(x => x.MaxAge != -1 && patient.Age > x.MaxAge);
-        listEClipboardSheetDefsToCreate = EClipboardSheetDefs.FilterPrefillStatuses(listEClipboardSheetDefsToCreate, listSheetsAlreadyCompleted, appointment.ClinicNum, listSheetsAlreadyInTerminal)
-            .OrderBy(x => x.ItemOrder).ToList();
-        var showInTerminal = GetBiggestShowInTerminal(appointment.PatNum);
-        var listSheetsNew = new List<Sheet>();
-        for (var i = 0; i < listEClipboardSheetDefsToCreate.Count; i++)
-        {
-            //First check if we've already completed this form against our resubmission interval rules
-            var sheetLastCompleted = listSheetsAlreadyCompleted
-                .Where(x => x.SheetDefNum == listEClipboardSheetDefsToCreate[i].SheetDefNum)
-                .OrderBy(x => x.DateTimeSheet)
-                .LastOrDefault() ?? new Sheet();
-            if (sheetLastCompleted.DateTimeSheet > DateTime.MinValue)
-            {
-                //If the patient has submitted this sheetDef before.
-                if (listEClipboardSheetDefsToCreate[i].Frequency == EnumEClipFreq.Once && sheetLastCompleted.RevID >= listEClipboardSheetDefsToCreate[i].PrefillStatusOverride) continue; //If this frequency is set to once and they've already completed this form once, we never want to create it automatically again.
-
-                if (listEClipboardSheetDefsToCreate[i].Frequency == EnumEClipFreq.TimeSpan)
-                {
-                    var daysElapsed = (DateTime.Today - sheetLastCompleted.DateTimeSheet.Date).Days;
-                    if (daysElapsed < listEClipboardSheetDefsToCreate[i].ResubmitInterval.Days) continue; //The interval hasn't elapsed yet so we don't want to create this sheet
-                }
-                //else if(listEClipboardSheetDefsToCreate[i].Frequency==EnumEClipFreq.EachTime), then we do not care about time elapsed and will populate the form each time.
-            }
-
-            var sheetDef = SheetDefs.GetSheetDef(listEClipboardSheetDefsToCreate[i].SheetDefNum);
-            var sheetNew = new Sheet();
-            //Look up the most recent sheet filledout by this patients wth this def num
-            var sheet = GetForPatient(appointment.PatNum).Where(x => x.SheetDefNum == sheetDef.SheetDefNum).OrderByDescending(x => x.DateTimeSheet).FirstOrDefault();
-            if (listEClipboardSheetDefsToCreate[i].PrefillStatus == PrefillStatuses.PreFill && sheet != null && sheet.RevID == sheetDef.RevID)
-            {
-                //do the pre-fill thing from  the other method here.
-                sheetNew = PreFillSheetFromPreviousAndDatabase(sheetDef, sheet);
-                sheetNew.IsNew = true; //Setting this to true because we want to insert this new sheet not update an old one
-                sheetNew.DateTimeSheet = DateTime.Now;
-            }
-            else
-            {
-                sheetNew = CreateSheetFromSheetDef(sheetDef, appointment.PatNum);
-                SheetParameter.SetParameter(sheetNew, "PatNum", appointment.PatNum); //must come before sheet filler
-                SheetFiller.FillFields(sheetNew);
-            }
-
-            //Counting starts at 1 in this case and we don't want to ovewrite the previous number so increment first
-            sheetNew.ShowInTerminal = ++showInTerminal;
-            listSheetsNew.Add(sheetNew);
-            SecurityLogs.MakeLogEntry(EnumPermType.FormAdded, sheetNew.PatNum, $"{sheetNew.Description} Created in EClipboard");
-            EServiceLogs.MakeLogEntry(eServiceAction.ECAddedForm, eServiceType.EClipboard, FKeyType.SheetNum, sheetNew.PatNum, FKey: sheetNew.SheetNum, clinicNum: appointment.ClinicNum);
-        }
-
-        SaveNewSheetList(listSheetsNew);
     }
 
     public static Sheet PreFillSheetFromPreviousAndDatabase(SheetDef sheetDefOriginal, Sheet sheet)
@@ -487,18 +315,16 @@ public class Sheets
 
     public static void Delete(long sheetNum, long patNum = 0, byte showInTerminal = 0)
     {
-        var command = "UPDATE sheet SET IsDeleted=1,ShowInTerminal=0 WHERE SheetNum=" + SOut.Long(sheetNum);
+        var command = "UPDATE sheet SET IsDeleted=1,ShowInTerminal=0 WHERE SheetNum=" + (sheetNum);
         Db.NonQ(command);
         if (patNum > 0 && showInTerminal > 0)
         {
             //showInTerminal must be at least 1, so decrementing those that are at least 2
             command = "UPDATE sheet SET ShowInTerminal=ShowInTerminal-1 "
-                      + "WHERE PatNum=" + SOut.Long(patNum) + " "
+                      + "WHERE PatNum=" + (patNum) + " "
                       + "AND IsDeleted=0 "
                       + "AND ShowInTerminal>" + SOut.Byte(showInTerminal); //decrement ShowInTerminal for all sheets with a bigger ShowInTerminal than the one deleted
             Db.NonQ(command);
-            //Create mobile notification for deleted sheet to eClipboard.
-            MobileNotifications.CI_RemoveSheet(patNum, sheetNum);
         }
     }
 
@@ -577,9 +403,9 @@ public class Sheets
         //sheet---------------------------------------------------------------------------------------
         var command = "SELECT DateTimeSheet,SheetNum,Description,ShowInTerminal,DateTSheetEdited "
                       + "FROM sheet WHERE IsDeleted=0 "
-                      + "AND PatNum =" + SOut.Long(patNum) + " "
-                      + "AND (SheetType=" + SOut.Long((int) SheetTypeEnum.PatientForm) + " OR SheetType=" + SOut.Long((int) SheetTypeEnum.MedicalHistory);
-        if (PrefC.GetBool(PrefName.PatientFormsShowConsent)) command += " OR SheetType=" + SOut.Long((int) SheetTypeEnum.Consent); //Show consent forms if pref is true.
+                      + "AND PatNum =" + (patNum) + " "
+                      + "AND (SheetType=" + ((int) SheetTypeEnum.PatientForm) + " OR SheetType=" + ((int) SheetTypeEnum.MedicalHistory);
+        if (PrefC.GetBool(PrefName.PatientFormsShowConsent)) command += " OR SheetType=" + ((int) SheetTypeEnum.Consent); //Show consent forms if pref is true.
         command += ")";
         //+"ORDER BY ShowInTerminal";//DATE(DateTimeSheet),ShowInTerminal,TIME(DateTimeSheet)";
         var tableRawSheet = DataCore.GetTable(command);
@@ -610,7 +436,7 @@ public class Sheets
         command = "SELECT DateCreated,DocCategory,DocNum,Description,document.DateTStamp "
                   + "FROM document,definition "
                   + "WHERE document.DocCategory=definition.DefNum"
-                  + " AND PatNum =" + SOut.Long(patNum)
+                  + " AND PatNum =" + (patNum)
                   + " AND definition.ItemValue LIKE '%F%'";
         //+" ORDER BY DateCreated";
         var tableRawDoc = DataCore.GetTable(command);
@@ -638,7 +464,7 @@ public class Sheets
         //eForms---------------------------------------------------------------------------------------
         command = "SELECT EFormNum,DateTimeShown,Description,DateTEdited "
                   + "FROM eform "
-                  + "WHERE PatNum =" + SOut.Long(patNum);
+                  + "WHERE PatNum =" + (patNum);
         var tableRawEForm = DataCore.GetTable(command);
         for (var i = 0; i < tableRawEForm.Rows.Count; i++)
         {
@@ -671,86 +497,23 @@ public class Sheets
     {
         var command = "SELECT * "
                       + "FROM sheet WHERE IsDeleted=0 "
-                      + "AND PatNum=" + SOut.Long(patNum) + " "
+                      + "AND PatNum=" + (patNum) + " "
                       + "AND SheetType=" + SOut.Int((int) SheetTypeEnum.ExamSheet) + " ";
-        if (sheetDefNum != -1) command += "AND SheetDefNum = " + SOut.Long(sheetDefNum) + " ";
+        if (sheetDefNum != -1) command += "AND SheetDefNum = " + (sheetDefNum) + " ";
         command += "AND DATE(DateTimeSheet)>=" + SOut.Date(dateStart) + " AND DATE(DateTimeSheet)<=" + SOut.Date(dateEnd) + " "
                    + "ORDER BY DateTimeSheet";
         return SheetCrud.SelectMany(command);
     }
 
-    public static List<Sheet> GetUnmatchedWebFormSheets(List<long> listClinicNums)
-    {
-        var command = "SELECT * "
-                      + "FROM sheet WHERE IsDeleted=0 "
-                      + "AND PatNum=0 "
-                      + "AND IsWebForm = " + SOut.Bool(true) + " "
-                      + "AND (SheetType=" + SOut.Long((int) SheetTypeEnum.PatientForm) + " OR SheetType=" + SOut.Long((int) SheetTypeEnum.MedicalHistory) + ") "
-                      + (true ? "AND ClinicNum IN (" + string.Join(",", listClinicNums) + ") " : "");
-        var listSheets = SheetCrud.SelectMany(command);
-        //Get the Sheetfields and parameters for each of the auto downloaded sheets
-        for (var i = 0; i < listSheets.Count; i++) SheetFields.GetFieldsAndParameters(listSheets[i]);
-        return listSheets;
-    }
-
-    public static DataTable GetWebFormSheetsTable(DateTime dateFrom, DateTime dateTo, List<long> listClinicNums)
-    {
-        if (listClinicNums == null || listClinicNums.Count == 0) listClinicNums = new List<long> {0}; //To ensure we filter on at least one clinic (HQ).
-        var table = new DataTable("");
-        DataRow dataRow;
-        //columns that start with lowercase are altered for display rather than being raw data.
-        table.Columns.Add("date");
-        table.Columns.Add("dateOnly", typeof(DateTime)); //to help with sorting
-        table.Columns.Add("dateTime", typeof(DateTime));
-        table.Columns.Add("description");
-        table.Columns.Add("time");
-        table.Columns.Add("timeOnly", typeof(TimeSpan)); //to help with sorting
-        table.Columns.Add("PatNum");
-        table.Columns.Add("SheetNum");
-        table.Columns.Add("IsDeleted");
-        table.Columns.Add("ClinicNum");
-        var listDataRows = new List<DataRow>();
-        var command = "SELECT DateTimeSheet,Description,PatNum,SheetNum,IsDeleted,ClinicNum "
-                      + "FROM sheet WHERE "
-                      + "DateTimeSheet >= " + SOut.Date(dateFrom) + " AND DateTimeSheet <= " + SOut.Date(dateTo.AddDays(1)) + " "
-                      + "AND IsWebForm = " + SOut.Bool(true) + " "
-                      + "AND (SheetType=" + SOut.Long((int) SheetTypeEnum.PatientForm) + " OR SheetType=" + SOut.Long((int) SheetTypeEnum.MedicalHistory) + ") "
-                      + (true ? "AND ClinicNum IN (" + string.Join(",", listClinicNums) + ") " : "");
-        var tableRawSheet = DataCore.GetTable(command);
-        DateTime dateT;
-        for (var i = 0; i < tableRawSheet.Rows.Count; i++)
-        {
-            dataRow = table.NewRow();
-            dateT = SIn.DateTime(tableRawSheet.Rows[i]["DateTimeSheet"].ToString());
-            dataRow["date"] = dateT.ToShortDateString();
-            dataRow["dateOnly"] = dateT.Date;
-            dataRow["dateTime"] = dateT;
-            dataRow["description"] = tableRawSheet.Rows[i]["Description"].ToString();
-            dataRow["PatNum"] = tableRawSheet.Rows[i]["PatNum"].ToString();
-            dataRow["SheetNum"] = tableRawSheet.Rows[i]["SheetNum"].ToString();
-            if (dateT.TimeOfDay != TimeSpan.Zero) dataRow["time"] = dateT.ToString("h:mm") + dateT.ToString("%t").ToLower();
-            dataRow["timeOnly"] = dateT.TimeOfDay;
-            dataRow["IsDeleted"] = tableRawSheet.Rows[i]["IsDeleted"].ToString();
-            dataRow["ClinicNum"] = SIn.Long(tableRawSheet.Rows[i]["ClinicNum"].ToString());
-            listDataRows.Add(dataRow);
-        }
-
-        for (var i = 0; i < listDataRows.Count; i++) table.Rows.Add(listDataRows[i]);
-        var dataView = table.DefaultView;
-        dataView.Sort = "dateOnly,timeOnly";
-        table = dataView.ToTable();
-        return table;
-    }
-
     public static byte GetBiggestShowInTerminal(long patNum)
     {
-        var command = "SELECT MAX(ShowInTerminal) FROM sheet WHERE IsDeleted=0 AND PatNum=" + SOut.Long(patNum);
+        var command = "SELECT MAX(ShowInTerminal) FROM sheet WHERE IsDeleted=0 AND PatNum=" + (patNum);
         return SIn.Byte(DataCore.GetScalar(command));
     }
-    
+
     public static void ClearFromTerminal(long patNum)
     {
-        var command = "UPDATE sheet SET ShowInTerminal=0 WHERE PatNum=" + SOut.Long(patNum);
+        var command = "UPDATE sheet SET ShowInTerminal=0 WHERE PatNum=" + (patNum);
         Db.NonQ(command);
     }
 
@@ -813,19 +576,8 @@ public class Sheets
             case SheetTypeEnum.LabelPatient:
             case SheetTypeEnum.LabelCarrier:
             case SheetTypeEnum.LabelReferral:
-            //case SheetTypeEnum.ReferralSlip:
             case SheetTypeEnum.LabelAppointment:
-            case SheetTypeEnum.Rx:
-            //case SheetTypeEnum.Consent:
-            //case SheetTypeEnum.PatientLetter:
-            //case SheetTypeEnum.ReferralLetter:
-            //case SheetTypeEnum.PatientForm:
-            //case SheetTypeEnum.RoutingSlip:
-            //case SheetTypeEnum.MedicalHistory:
-            //case SheetTypeEnum.LabSlip:
-            //case SheetTypeEnum.ExamSheet:
             case SheetTypeEnum.DepositSlip:
-            //case SheetTypeEnum.Statement:
             case SheetTypeEnum.PatientDashboardWidget:
                 return true;
         }

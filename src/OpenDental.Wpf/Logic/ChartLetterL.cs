@@ -1,15 +1,9 @@
-﻿using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
+﻿using System.Collections.Concurrent;
 using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading;
-using System.Windows.Forms;
 using Word=Microsoft.Office.Interop.Word;
 using OpenDentBusiness;
-using CodeBase;
 using Imedisoft.Core.Entities;
 
 /*

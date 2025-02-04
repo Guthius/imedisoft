@@ -23,12 +23,12 @@ public class SecurityLogs
                       + "AND DateTPrevious <= " + SOut.Date(datePreviousTo.AddDays(1));
         if (patNum != 0)
             command += " AND securitylog.PatNum IN (" + string.Join(",",
-                PatientLinks.GetPatNumsLinkedToRecursive(patNum, PatientLinkType.Merge).Select(x => SOut.Long(x))) + ")";
-        if (permType != EnumPermType.None) command += " AND PermType=" + SOut.Long((int) permType);
+                PatientLinks.GetPatNumsLinkedToRecursive(patNum, PatientLinkType.Merge).Select(x => (x))) + ")";
+        if (permType != EnumPermType.None) command += " AND PermType=" + ((int) permType);
         if (userNum >= 0) //Greater than or equal to 0, since 0 is no/unknown user, and we want to be able to filter by that option in some cases.
-            command += " AND UserNum=" + SOut.Long(userNum);
+            command += " AND UserNum=" + (userNum);
         if (logSource >= 0) //Greater than or equal to 0, since 0 is Automation/unknown, and we want to be able to filter by that option in some cases.
-            command += " AND LogSource=" + SOut.Long(logSource);
+            command += " AND LogSource=" + (logSource);
         command += " ORDER BY LogDateTime DESC"; //Using DESC so that the most recent ones appear in the list
         if (limit > 0) command = DbHelper.LimitOrderBy(command, limit);
         var table = DataCore.GetTable(command);
@@ -56,7 +56,7 @@ public class SecurityLogs
 
     public static SecurityLog[] Refresh(long patNum, List<EnumPermType> listPermissionsEnums, long fKey)
     {
-        return Refresh(patNum, listPermissionsEnums, new List<long> {fKey});
+        return Refresh(patNum, listPermissionsEnums, [fKey]);
     }
 
     public static SecurityLog[] Refresh(long patNum, List<EnumPermType> listPermissionsEnums, List<long> listFKeys)
@@ -65,7 +65,7 @@ public class SecurityLogs
         for (var i = 0; i < listPermissionsEnums.Count; i++)
         {
             if (i > 0) types += " OR";
-            types += " PermType=" + SOut.Long((int) listPermissionsEnums[i]);
+            types += " PermType=" + ((int) listPermissionsEnums[i]);
         }
 
         var command = "SELECT * FROM securitylog "
@@ -73,7 +73,7 @@ public class SecurityLogs
         if (listFKeys != null && listFKeys.Count > 0) command += "AND FKey IN (" + string.Join(",", listFKeys) + ") ";
         if (patNum != 0) //appointments
             command += " AND PatNum IN (" + string.Join(",",
-                PatientLinks.GetPatNumsLinkedToRecursive(patNum, PatientLinkType.Merge).Select(x => SOut.Long(x))) + ")";
+                PatientLinks.GetPatNumsLinkedToRecursive(patNum, PatientLinkType.Merge).Select(x => (x))) + ")";
         command += "ORDER BY LogDateTime";
         var listSecurityLogs = SecurityLogCrud.SelectMany(command);
         return listSecurityLogs.OrderBy(x => x.LogDateTime).ToArray();
@@ -81,7 +81,7 @@ public class SecurityLogs
 
     public static List<SecurityLog> GetFromFKeysAndType(List<long> listFKeys, List<EnumPermType> listPermissionsEnums)
     {
-        if (listFKeys == null || listFKeys.FindAll(x => x != 0).Count == 0) return new List<SecurityLog>();
+        if (listFKeys == null || listFKeys.FindAll(x => x != 0).Count == 0) return [];
 
         var command = "SELECT * FROM securitylog WHERE FKey IN(" + string.Join(",", listFKeys.FindAll(x => x != 0)) + ") AND PermType IN" +
                       "(" + string.Join(",", listPermissionsEnums.Select(x => SOut.Int((int) x))) + ")";
@@ -124,12 +124,6 @@ public class SecurityLogs
     public static void MakeLogEntry(EnumPermType permType, long patNum, string logText, long fKey, LogSources logSource, long defNum, long defNumError, DateTime DateTPrevious)
     {
         var securityLog = MakeLogEntryNoInsert(permType, patNum, logText, fKey, logSource, defNum, defNumError, DateTPrevious);
-        MakeLogEntry(securityLog);
-    }
-
-    public static void MakeLogEntry(EnumPermType permType, long patNum, string logText, long fKey, LogSources logSource, long defNum, long defNumError, DateTime DateTPrevious, string deviceName)
-    {
-        var securityLog = MakeLogEntryNoInsert(permType, patNum, logText, fKey, logSource, deviceName, defNum, defNumError, DateTPrevious);
         MakeLogEntry(securityLog);
     }
 
@@ -206,25 +200,6 @@ public class SecurityLogs
         securityLog.DefNumError = defNumError;
         securityLog.DateTPrevious = DateTPrevious;
         return securityLog;
-    }
-
-    public static void MakeLogEntryNoCache(EnumPermType permType, long patnum, string logText, long userNum, LogSources source)
-    {
-        var securityLog = new SecurityLog();
-        securityLog.PermType = permType;
-        securityLog.UserNum = userNum;
-        securityLog.LogText = logText;
-        securityLog.CompName = Security.GetComplexComputerName();
-        securityLog.PatNum = patnum;
-        securityLog.FKey = 0;
-        securityLog.LogSource = source;
-        securityLog.SecurityLogNum = InsertNoCache(securityLog);
-        SecurityLogHashes.InsertSecurityLogHashNoCache(securityLog.SecurityLogNum);
-    }
-
-    public static long InsertNoCache(SecurityLog securityLog)
-    {
-        return SecurityLogCrud.InsertNoCache(securityLog);
     }
 
     public static string AppendProcCompleteEditSecurityLog(Procedure procNew, Procedure procOld)

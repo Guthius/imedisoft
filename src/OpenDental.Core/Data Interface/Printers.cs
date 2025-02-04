@@ -15,8 +15,8 @@ public class Printers
     public static Printer GetOnePrinter(PrintSituation sit, long compNum)
     {
         var command = "SELECT * FROM printer WHERE "
-                      + "PrintSit = '" + SOut.Long((int) sit) + "' "
-                      + "AND ComputerNum ='" + SOut.Long(compNum) + "'";
+                      + "PrintSit = '" + ((int) sit) + "' "
+                      + "AND ComputerNum ='" + (compNum) + "'";
         return PrinterCrud.SelectOne(command);
     }
     
@@ -33,7 +33,7 @@ public class Printers
     private static void Delete(Printer cur)
     {
         var command = "DELETE FROM printer "
-                      + "WHERE PrinterNum = " + SOut.Long(cur.PrinterNum);
+                      + "WHERE PrinterNum = " + (cur.PrinterNum);
         Db.NonQ(command);
     }
 

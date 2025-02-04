@@ -65,14 +65,14 @@ public static class HL7DefFields
 
     private static readonly HL7DefFieldCache Cache = new();
 
-    public static List<HL7DefField> GetWhere(Predicate<HL7DefField> match, bool isShort = false)
+    public static List<HL7DefField> GetWhere(Predicate<HL7DefField> predicate, bool shortList = false)
     {
-        return Cache.GetWhere(match, isShort);
+        return Cache.GetWhere(predicate, shortList);
     }
 
-    public static DataTable GetTableFromCache(bool doRefreshCache)
+    public static DataTable GetTableFromCache(bool refreshCache)
     {
-        return Cache.GetTableFromCache(doRefreshCache);
+        return Cache.GetTableFromCache(refreshCache);
     }
 
     public static void ClearCache()

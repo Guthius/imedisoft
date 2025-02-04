@@ -1,11 +1,8 @@
-﻿using CodeBase;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Linq;
-using System.Reflection;
-using System.Text;
 using DataConnectionBase;
 using Imedisoft.Core.Entities;
 using Imedisoft.Core.Features.Clinics;
@@ -15,7 +12,7 @@ namespace OpenDentBusiness {
 	public class RpUnfinalizedInsPay {
 		///<summary>Gets a list of unfinalized insurance payments.</summary>
 		public static List<UnfinalizedInsPay> GetUnfinalizedInsPay(string carrierName) {
-			string command=@"
+			var command=@"
 				SELECT partialpay.PayType,partialpay.PatNum,partialpay.ClaimPaymentNum,partialpay.ClinicNum,partialpay.CarrierName,partialpay.Date,
 				partialpay.DOS,partialpay.Amount,partialpay.ClaimNum,partialpay.CountPats
 				FROM (	
@@ -35,20 +32,20 @@ namespace OpenDentBusiness {
 						INNER JOIN insplan ON insplan.PlanNum=claimproc.PlanNum
 						INNER JOIN carrier ON carrier.CarrierNum=insplan.CarrierNum	
 							AND carrier.CarrierName LIKE '%"+SOut.String(carrierName.Trim())+"%' "
-						//Filter logic here mimics batch payments in ClaimProcs.AttachAllOutstandingToPayment().
-						+@"WHERE claimproc.ClaimPaymentNum = 0 AND claimproc.InsPayAmt != 0 
+			            //Filter logic here mimics batch payments in ClaimProcs.AttachAllOutstandingToPayment().
+			            +@"WHERE claimproc.ClaimPaymentNum = 0 AND claimproc.InsPayAmt != 0 
 							AND claimproc.Status IN("+SOut.Int((int)ClaimProcStatus.Received)+","
-							+SOut.Int((int)ClaimProcStatus.Supplemental)+","+SOut.Int((int)ClaimProcStatus.CapClaim)+@") 
+			            +SOut.Int((int)ClaimProcStatus.Supplemental)+","+SOut.Int((int)ClaimProcStatus.CapClaim)+@") 
 							AND claimproc.IsTransfer=0 
 						GROUP BY claimproc.ClaimNum	
 			) partialpay";
-			DataTable table=DataCore.GetTable(command);
-			List<Patient> listPats=Patients.GetMultPats(table.Select().Select(x => SIn.Long(x["PatNum"].ToString())).ToList()).ToList();
-			List<Claim> listClaims=Claims.GetClaimsFromClaimNums(table.Select().Select(x => SIn.Long(x["ClaimNum"].ToString())).ToList());
-			List<ClaimPayment> listPayments=ClaimPayments.GetByClaimPaymentNums(table.Select().Select(x => SIn.Long(x["ClaimPaymentNum"].ToString()))
+			var table=DataCore.GetTable(command);
+			var listPats=Patients.GetMultPats(table.Select().Select(x => SIn.Long(x["PatNum"].ToString())).ToList()).ToList();
+			var listClaims=Claims.GetClaimsFromClaimNums(table.Select().Select(x => SIn.Long(x["ClaimNum"].ToString())).ToList());
+			var listPayments=ClaimPayments.GetByClaimPaymentNums(table.Select().Select(x => SIn.Long(x["ClaimPaymentNum"].ToString()))
 				.ToList());
-			List<UnfinalizedInsPay> listUnfinalizedInsPay=new List<UnfinalizedInsPay>();
-			for(int i=0;i<table.Rows.Count;i++) {
+			var listUnfinalizedInsPay=new List<UnfinalizedInsPay>();
+			for(var i=0;i<table.Rows.Count;i++) {
 				listUnfinalizedInsPay.Add(new UnfinalizedInsPay(table.Rows[i]["PayType"].ToString(),
 					listPats.FirstOrDefault(x => x.PatNum==SIn.Long(table.Rows[i]["PatNum"].ToString())),
 					SIn.Long(table.Rows[i]["ClinicNum"].ToString()),

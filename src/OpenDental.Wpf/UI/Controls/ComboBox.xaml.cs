@@ -4,20 +4,13 @@ using System.ComponentModel;
 using System.Globalization;
 using System.Linq;
 using System.Reflection;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
 using System.Windows.Forms.Integration;
 using System.Windows.Input;
 using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 using Imedisoft.Core.Entities;
+using Imedisoft.Features.Providers.Dtos;
 using OpenDentBusiness;
 
 namespace WpfControls.UI{
@@ -945,13 +938,13 @@ adj.ObjNum=comboObj.GetSelectedKey<ObjType>(x=>x.ObjNum);
 			}
 
 			///<summary>Adds a list of Providers to the items. Does not Clear first.  Providers will show as Abbr with (hidden) if applicable.</summary>
-			public void AddProvsAbbr(List<Provider> listProviders){
-				AddList(listProviders,x=>x.GetAbbr(),x=>x.GetAbbr());
+			public void AddProvsAbbr(List<ProviderDto> listProviders){
+				AddList(listProviders,x=>x.Abbr,x=>x.Abbr);
 			}
 
 				///<summary>Adds a list of Providers to the items. Does not Clear first.  Providers will show with Long Descriptions.</summary>
-			public void AddProvsFull(List<Provider> listProviders){
-				AddList(listProviders,x=>x.GetLongDesc(),x=>x.GetAbbr());
+			public void AddProvsFull(List<ProviderDto> listProviders){
+				AddList(listProviders,x=>x.Description,x=>x.Abbr);
 			}
 
 			public void Clear(){

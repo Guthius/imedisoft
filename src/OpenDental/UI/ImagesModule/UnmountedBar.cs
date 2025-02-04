@@ -1,11 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Data;
 using System.Drawing;
 using System.Drawing.Drawing2D;
-using System.Linq;
-using System.Text;
 using System.Windows.Forms;
 using OpenDentBusiness;
 using CodeBase;
@@ -15,7 +12,7 @@ using Imedisoft.Core.Entities;
 namespace OpenDental.UI;
 
 public partial class UnmountedBar:Control {
-	public LayoutManagerForms LayoutManager=new LayoutManagerForms();
+	
 	///<summary>Changes when dpi changes. Disposed</summary>
 	private LinearGradientBrush _linearGradientBrush;
 	///<summary>20 at 96 dpi</summary>
@@ -43,28 +40,28 @@ public partial class UnmountedBar:Control {
 		butRemount.Text=Lan.g(this,"Remount");
 		butRemount.Size=new Size(60,20);
 		butRemount.Click += butRemount_Click;
-		LayoutManagerForms.Add(butRemount,this);
+		Controls.Add(butRemount);
 		butDelete=new Button();
 		butDelete.Name="butDelete";
 		butDelete.Text=Lan.g(this,"Delete");
 		butDelete.Location=new Point(61,0);
 		butDelete.Size=new Size(60,20);
 		butDelete.Click += butDelete_Click;
-		LayoutManagerForms.Add(butDelete,this);
+		Controls.Add(butDelete);
 		butRetake=new Button();
 		butRetake.Name="butRetake";
 		butRetake.Text=Lan.g(this,"Retake");
 		butRetake.Location=new Point(122,0);
 		butRetake.Size=new Size(60,20);
 		butRetake.Click += butRetake_Click;
-		LayoutManagerForms.Add(butRetake,this);
+		Controls.Add(butRetake);
 		butClose=new Button();
 		butClose.Name="butClose";
 		butClose.Text=Lan.g(this,"Close");
 		butClose.Location=new Point(183,0);
 		butClose.Size=new Size(60,20);
 		butClose.Click += butClose_Click;
-		LayoutManagerForms.Add(butClose,this);
+		Controls.Add(butClose);
 	}
 	#endregion Constructor
 

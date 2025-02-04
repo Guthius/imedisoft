@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Drawing;
 using System.Linq;
 using System.Windows.Forms;
@@ -13,6 +12,7 @@ using Imedisoft.Core.Crud;
 using Imedisoft.Core.Data;
 using Imedisoft.Core.Entities;
 using Imedisoft.Core.Features.Clinics;
+using Imedisoft.Features.Providers.Dtos;
 using OpenDental.Forms;
 using OpenDentBusiness.Eclaims;
 
@@ -52,7 +52,7 @@ public partial class FormClaimProc : FormODBase {
 	private bool _doSaveToDb;
 	private List<InsSub> _listInsSub;
 	private List<Def> _listDefsPayTracks;
-	private List<Provider> _listProviders;
+	private List<ProviderDto> _listProviders;
 	///<summary>Holds all data needed to calculate a blue book allowed amount.</summary>
 	public BlueBookEstimateData BlueBookEstimateData_=null;
 	///<summary>Set to true if this claimProc is accessed from within a claim or from within FormClaimPayTotal. This changes the behavior of the form, allowing more freedom with fields that are also totalled for entire claim.  This freedom is normally restricted so that claim totals will stay synchronized with individual claimprocs.  If true, it will still save changes to db, even though this is duplicated effort in FormClaimPayTotal.</summary>
@@ -98,7 +98,6 @@ public partial class FormClaimProc : FormODBase {
 		if(_claimProc.IsTransfer) {
 			this.DisableAllExcept(butDelete);
 		}
-		warningIntegrity.SetTypeAndVisibility(EnumWarningIntegrityType.ClaimProc,ClaimProcs.IsClaimProcHashValid(_claimProc));
 		if(_claimProc.IsOverpay) {
 			if(Claims.GetClaim(_claimProc.ClaimNum)==null) {
 				MsgBox.Show(this,"Claim has been deleted by another user.");
@@ -367,7 +366,7 @@ public partial class FormClaimProc : FormODBase {
 		_listProviders=Providers.GetProvsForClinic(_claimProc.ClinicNum);
 		for(var i=0;i<_listProviders.Count;i++) {
 			comboProvider.Items.Add(_listProviders[i].Abbr,_listProviders[i]);
-			if(_claimProc.ProvNum==_listProviders[i].ProvNum) {
+			if(_claimProc.ProvNum==_listProviders[i].Id) {
 				comboProvider.SelectedIndex=i;
 			}
 		}
@@ -375,13 +374,7 @@ public partial class FormClaimProc : FormODBase {
 		//if(listProv.SelectedIndex==-1){
 		//	listProv.SelectedIndex=0;//there should always be a provider
 		//}
-		if(!true) {
-			labelClinic.Visible=false;
-			textClinic.Visible=false;
-		}
-		else {
-			textClinic.Text=Clinics.GetAbbr(_claimProc.ClinicNum);
-		}
+		textClinic.Text=Clinics.GetAbbr(_claimProc.ClinicNum);
 		textDateEntry.Text=_claimProc.DateEntry.ToShortDateString();
 		if(_claimProc.ProcDate.Year<1880) {
 			textProcDate.Text="";
@@ -531,7 +524,7 @@ public partial class FormClaimProc : FormODBase {
 			textFeeSched.Text=FeeScheds.GetDescription(insFeeSchedNum);//show ins fee sched, unless PPO plan and standard fee is greater, checked below
 			if(insPlan.PlanType=="p") {//if ppo
 				var insFee=Fees.GetAmount0(_procedure.CodeNum,insFeeSchedNum,_procedure.ClinicNum,_procedure.ProvNum);
-				var standFeeSchedNum=Providers.GetProv(Patients.GetProvNum(_patient)).FeeSched;
+				var standFeeSchedNum=Providers.GetById(Patients.GetProvNum(_patient)).FeeScheduleId??0;
 				if(_procedure.ProcFee!=insFee) {
 					textFeeSched.Text=FeeScheds.GetDescription(standFeeSchedNum);
 				}
@@ -828,7 +821,7 @@ public partial class FormClaimProc : FormODBase {
 	private void butPickProv_Click(object sender,EventArgs e) {
 		var frmProviderPick=new FrmProviderPick(_listProviders);
 		if(comboProvider.SelectedIndex > -1) {
-			frmProviderPick.ProvNumSelected=_listProviders[comboProvider.SelectedIndex].ProvNum;
+			frmProviderPick.ProvNumSelected=_listProviders[comboProvider.SelectedIndex].Id;
 		}
 		frmProviderPick.ShowDialog();
 		if(!frmProviderPick.IsDialogOK) {
@@ -1270,7 +1263,7 @@ public partial class FormClaimProc : FormODBase {
 		if(comboProvider.SelectedIndex!=-1) {//if no prov selected, then that prov must simply be hidden,
 			//because all claimprocs are initially created with a prov(except preauth).
 			//So, in this case, don't change.
-			_claimProc.ProvNum=_listProviders[comboProvider.SelectedIndex].ProvNum;
+			_claimProc.ProvNum=_listProviders[comboProvider.SelectedIndex].Id;
 		}
 		_claimProc.ProcDate=SIn.Date(textProcDate.Text);
 		if(!textDateCP.ReadOnly){

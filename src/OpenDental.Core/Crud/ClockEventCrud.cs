@@ -8,15 +8,6 @@ namespace Imedisoft.Core.Crud;
 
 public class ClockEventCrud
 {
-    public static ClockEvent SelectOne(long clockEventNum)
-    {
-        var command = "SELECT * FROM clockevent "
-                      + "WHERE ClockEventNum = " + SOut.Long(clockEventNum);
-        var list = TableToList(DataCore.GetTable(command));
-        if (list.Count == 0) return null;
-        return list[0];
-    }
-
     public static ClockEvent SelectOne(string command)
     {
         var list = TableToList(DataCore.GetTable(command));
@@ -33,29 +24,30 @@ public class ClockEventCrud
     public static List<ClockEvent> TableToList(DataTable table)
     {
         var retVal = new List<ClockEvent>();
-        ClockEvent clockEvent;
         foreach (DataRow row in table.Rows)
         {
-            clockEvent = new ClockEvent();
-            clockEvent.ClockEventNum = SIn.Long(row["ClockEventNum"].ToString());
-            clockEvent.EmployeeNum = SIn.Long(row["EmployeeNum"].ToString());
-            clockEvent.TimeEntered1 = SIn.DateTime(row["TimeEntered1"].ToString());
-            clockEvent.TimeDisplayed1 = SIn.DateTime(row["TimeDisplayed1"].ToString());
-            clockEvent.ClockStatus = (TimeClockStatus) SIn.Int(row["ClockStatus"].ToString());
-            clockEvent.Note = SIn.String(row["Note"].ToString());
-            clockEvent.TimeEntered2 = SIn.DateTime(row["TimeEntered2"].ToString());
-            clockEvent.TimeDisplayed2 = SIn.DateTime(row["TimeDisplayed2"].ToString());
-            clockEvent.OTimeHours = SIn.TimeSpan(row["OTimeHours"].ToString());
-            clockEvent.OTimeAuto = SIn.TimeSpan(row["OTimeAuto"].ToString());
-            clockEvent.Adjust = SIn.TimeSpan(row["Adjust"].ToString());
-            clockEvent.AdjustAuto = SIn.TimeSpan(row["AdjustAuto"].ToString());
-            clockEvent.AdjustIsOverridden = SIn.Bool(row["AdjustIsOverridden"].ToString());
-            clockEvent.Rate2Hours = SIn.TimeSpan(row["Rate2Hours"].ToString());
-            clockEvent.Rate2Auto = SIn.TimeSpan(row["Rate2Auto"].ToString());
-            clockEvent.ClinicNum = SIn.Long(row["ClinicNum"].ToString());
-            clockEvent.Rate3Hours = SIn.TimeSpan(row["Rate3Hours"].ToString());
-            clockEvent.Rate3Auto = SIn.TimeSpan(row["Rate3Auto"].ToString());
-            clockEvent.IsWorkingHome = SIn.Bool(row["IsWorkingHome"].ToString());
+            var clockEvent = new ClockEvent
+            {
+                ClockEventNum = SIn.Long(row["ClockEventNum"].ToString()),
+                EmployeeNum = SIn.Long(row["EmployeeNum"].ToString()),
+                TimeEntered1 = SIn.DateTime(row["TimeEntered1"].ToString()),
+                TimeDisplayed1 = SIn.DateTime(row["TimeDisplayed1"].ToString()),
+                ClockStatus = (TimeClockStatus) SIn.Int(row["ClockStatus"].ToString()),
+                Note = SIn.String(row["Note"].ToString()),
+                TimeEntered2 = SIn.DateTime(row["TimeEntered2"].ToString()),
+                TimeDisplayed2 = SIn.DateTime(row["TimeDisplayed2"].ToString()),
+                OTimeHours = SIn.TimeSpan(row["OTimeHours"].ToString()),
+                OTimeAuto = SIn.TimeSpan(row["OTimeAuto"].ToString()),
+                Adjust = SIn.TimeSpan(row["Adjust"].ToString()),
+                AdjustAuto = SIn.TimeSpan(row["AdjustAuto"].ToString()),
+                AdjustIsOverridden = SIn.Bool(row["AdjustIsOverridden"].ToString()),
+                Rate2Hours = SIn.TimeSpan(row["Rate2Hours"].ToString()),
+                Rate2Auto = SIn.TimeSpan(row["Rate2Auto"].ToString()),
+                ClinicNum = SIn.Long(row["ClinicNum"].ToString()),
+                Rate3Hours = SIn.TimeSpan(row["Rate3Hours"].ToString()),
+                Rate3Auto = SIn.TimeSpan(row["Rate3Auto"].ToString()),
+                IsWorkingHome = SIn.Bool(row["IsWorkingHome"].ToString())
+            };
             retVal.Add(clockEvent);
         }
 

@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using Imedisoft.Core.Crud;
 using Imedisoft.Core.Entities;
 using OpenDentBusiness;
@@ -10,11 +9,6 @@ public static class PayConnectResponseWebs
     public static void Insert(PayConnectResponseWeb payConnectResponseWeb)
     {
         PayConnectResponseWebCrud.Insert(payConnectResponseWeb);
-    }
-    
-    public static void Update(PayConnectResponseWeb payConnectResponseWeb)
-    {
-        PayConnectResponseWebCrud.Update(payConnectResponseWeb);
     }
 
     public static void HandleResponseError(PayConnectResponseWeb responseWeb, string resStr)
@@ -37,10 +31,5 @@ public static class PayConnectResponseWebs
     public static PayConnectResponseWeb GetOneByPayNum(long payNum)
     {
         return PayConnectResponseWebCrud.SelectOne($"SELECT * FROM payconnectresponseweb WHERE PayNum={payNum}");
-    }
-
-    public static List<PayConnectResponseWeb> GetAllPending()
-    {
-        return PayConnectResponseWebCrud.SelectMany("SELECT * FROM payconnectresponseweb WHERE ProcessingStatus='" + PayConnectWebStatus.Pending + "'");
     }
 }

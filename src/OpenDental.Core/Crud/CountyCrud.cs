@@ -17,20 +17,21 @@ public class CountyCrud
     public static List<County> TableToList(DataTable table)
     {
         var retVal = new List<County>();
-        County county;
         foreach (DataRow row in table.Rows)
         {
-            county = new County();
-            county.CountyNum = SIn.Long(row["CountyNum"].ToString());
-            county.CountyName = SIn.String(row["CountyName"].ToString());
-            county.CountyCode = SIn.String(row["CountyCode"].ToString());
+            var county = new County
+            {
+                CountyNum = SIn.Long(row["CountyNum"].ToString()),
+                CountyName = SIn.String(row["CountyName"].ToString()),
+                CountyCode = SIn.String(row["CountyCode"].ToString())
+            };
             retVal.Add(county);
         }
 
         return retVal;
     }
 
-    public static long Insert(County county)
+    public static void Insert(County county)
     {
         var command = "INSERT INTO county (";
 
@@ -42,6 +43,5 @@ public class CountyCrud
         {
             county.CountyNum = Db.NonQ(command, true, "CountyNum", "county");
         }
-        return county.CountyNum;
     }
 }

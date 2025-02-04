@@ -18,17 +18,18 @@ public class CodeGroupCrud
     public static List<CodeGroup> TableToList(DataTable table)
     {
         var retVal = new List<CodeGroup>();
-        CodeGroup codeGroup;
         foreach (DataRow row in table.Rows)
         {
-            codeGroup = new CodeGroup();
-            codeGroup.CodeGroupNum = SIn.Long(row["CodeGroupNum"].ToString());
-            codeGroup.GroupName = SIn.String(row["GroupName"].ToString());
-            codeGroup.ProcCodes = SIn.String(row["ProcCodes"].ToString());
-            codeGroup.ItemOrder = SIn.Int(row["ItemOrder"].ToString());
-            codeGroup.CodeGroupFixed = (EnumCodeGroupFixed) SIn.Int(row["CodeGroupFixed"].ToString());
-            codeGroup.IsHidden = SIn.Bool(row["IsHidden"].ToString());
-            codeGroup.ShowInAgeLimit = SIn.Bool(row["ShowInAgeLimit"].ToString());
+            var codeGroup = new CodeGroup
+            {
+                CodeGroupNum = SIn.Long(row["CodeGroupNum"].ToString()),
+                GroupName = SIn.String(row["GroupName"].ToString()),
+                ProcCodes = SIn.String(row["ProcCodes"].ToString()),
+                ItemOrder = SIn.Int(row["ItemOrder"].ToString()),
+                CodeGroupFixed = (EnumCodeGroupFixed) SIn.Int(row["CodeGroupFixed"].ToString()),
+                IsHidden = SIn.Bool(row["IsHidden"].ToString()),
+                ShowInAgeLimit = SIn.Bool(row["ShowInAgeLimit"].ToString())
+            };
             retVal.Add(codeGroup);
         }
 
@@ -139,15 +140,13 @@ public class CodeGroupCrud
         var idxNew = 0;
         var idxDB = 0;
         var rowsUpdatedCount = 0;
-        CodeGroup fieldNew;
-        CodeGroup fieldDB;
         //Because both lists have been sorted using the same criteria, we can now walk each list to determine which list contians the next element.  The next element is determined by Primary Key.
         //If the New list contains the next item it will be inserted.  If the DB contains the next item, it will be deleted.  If both lists contain the next item, the item will be updated.
         while (idxNew < listNew.Count || idxDB < listDB.Count)
         {
-            fieldNew = null;
+            CodeGroup fieldNew = null;
             if (idxNew < listNew.Count) fieldNew = listNew[idxNew];
-            fieldDB = null;
+            CodeGroup fieldDB = null;
             if (idxDB < listDB.Count) fieldDB = listDB[idxDB];
             //begin compare
             if (fieldNew != null && fieldDB == null)

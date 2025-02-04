@@ -11,7 +11,7 @@ public delegate void ODButtonPanelEventHandler(object sender,ODButtonPanelEventA
 
 ///<summary>Allows for a button panel that is customizable and generated from data in the DB.</summary>
 public partial class ODButtonPanel:UserControl {
-	public LayoutManagerForms LayoutManager=new LayoutManagerForms();
+	
 	///<summary>Fixed 18 at 96dpi</summary>
 	private int _heightRow=18;
 	private Point _pointMouseClick;
@@ -119,7 +119,7 @@ public partial class ODButtonPanel:UserControl {
 			DrawItems(e.Graphics);
 			DrawOutline(e.Graphics);
 		}
-		catch(Exception ex) {
+		catch {
 			//We had one customer who was receiving overflow exceptions because the ClientRetangle provided by the system was invalid,
 			//due to a graphics device hardware state change when loading the Dexis client application via our Dexis bridge.
 			//If we receive an invalid ClientRectangle, then we will simply not draw the button for a frame or two until the system has initialized.

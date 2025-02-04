@@ -65,11 +65,11 @@ public static class CovSpans
         return GetWhere(x => x.CovCatNum == covCatNum);
     }
     
-    public static bool IsCodeInSpans(string strProcCode, List<CovSpan> listCovSpans)
+    public static bool IsCodeInSpans(string procCode, List<CovSpan> covSpans)
     {
-        foreach (var t in listCovSpans)
+        foreach (var t in covSpans)
         {
-            if (string.CompareOrdinal(strProcCode, t.FromCode) >= 0 && string.CompareOrdinal(strProcCode, t.ToCode) <= 0)
+            if (string.CompareOrdinal(procCode, t.FromCode) >= 0 && string.CompareOrdinal(procCode, t.ToCode) <= 0)
             {
                 return true;
             }
@@ -108,9 +108,9 @@ public static class CovSpans
 
     private static readonly CovSpanCache Cache = new();
 
-    public static List<CovSpan> GetWhere(Predicate<CovSpan> match, bool isShort = false)
+    public static List<CovSpan> GetWhere(Predicate<CovSpan> predicate, bool shortList = false)
     {
-        return Cache.GetWhere(match, isShort);
+        return Cache.GetWhere(predicate, shortList);
     }
     
     public static void RefreshCache()
@@ -118,9 +118,9 @@ public static class CovSpans
         GetTableFromCache(true);
     }
 
-    public static DataTable GetTableFromCache(bool doRefreshCache)
+    public static DataTable GetTableFromCache(bool refreshCache)
     {
-        return Cache.GetTableFromCache(doRefreshCache);
+        return Cache.GetTableFromCache(refreshCache);
     }
 
     public static void ClearCache()

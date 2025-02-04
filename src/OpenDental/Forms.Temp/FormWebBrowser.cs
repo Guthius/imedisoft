@@ -1,4 +1,3 @@
-using CodeBase;
 using OpenDental.UI;
 using System;
 using System.ComponentModel;
@@ -32,11 +31,11 @@ public partial class FormWebBrowser:FormODBase {
 	public FormWebBrowser(){
 		InitializeComponent();
 
-		var webBrowser=(SHDocVw.WebBrowser)browser.ActiveXInstance;
-		if(webBrowser!=null) {//This was null once during testing.  Not sure when null can happen.  Not sure if we should allow the user to continue.
-			webBrowser.NewWindow2+=axBrowser_NewWindow2;
-			webBrowser.NewWindow3+=axBrowser_NewWindow3;
-		}
+		// var webBrowser=(SHDocVw.WebBrowser)browser.ActiveXInstance;
+		// if(webBrowser!=null) {//This was null once during testing.  Not sure when null can happen.  Not sure if we should allow the user to continue.
+		// 	webBrowser.NewWindow2+=axBrowser_NewWindow2;
+		// 	webBrowser.NewWindow3+=axBrowser_NewWindow3;
+		// }
 		browser.DocumentTitleChanged+=browser_DocumentTitleChanged;
 	}
 
@@ -138,7 +137,7 @@ public partial class FormWebBrowser:FormODBase {
 		}
 		var formWebBrowser=new FormWebBrowser(url);//Open the page in a new window, but stay inside of OD.
 		formWebBrowser.WindowState=FormWindowState.Normal;
-		LayoutManagerForms.Add(formWebBrowser.PanelBorders,this);
+		Controls.Add(formWebBrowser.PanelBorders);
 		formWebBrowser.Show();//Non-modal, so that we get the effect of opening in an independent window.
 	}
 

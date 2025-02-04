@@ -1,5 +1,3 @@
-#region
-
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
@@ -8,21 +6,10 @@ using DataConnectionBase;
 using Imedisoft.Core.Entities;
 using OpenDentBusiness;
 
-#endregion
-
 namespace Imedisoft.Core.Crud;
 
 public class FeeCrud
 {
-    public static Fee SelectOne(long feeNum)
-    {
-        var command = "SELECT * FROM fee "
-                      + "WHERE FeeNum = " + SOut.Long(feeNum);
-        var list = TableToList(DataCore.GetTable(command));
-        if (list.Count == 0) return null;
-        return list[0];
-    }
-
     public static Fee SelectOne(string command)
     {
         var list = TableToList(DataCore.GetTable(command));
@@ -39,57 +26,31 @@ public class FeeCrud
     public static List<Fee> TableToList(DataTable table)
     {
         var retVal = new List<Fee>();
-        Fee fee;
         foreach (DataRow row in table.Rows)
         {
-            fee = new Fee();
-            fee.FeeNum = SIn.Long(row["FeeNum"].ToString());
-            fee.Amount = SIn.Double(row["Amount"].ToString());
-            fee.OldCode = SIn.String(row["OldCode"].ToString());
-            fee.FeeSched = SIn.Long(row["FeeSched"].ToString());
-            fee.UseDefaultFee = SIn.Bool(row["UseDefaultFee"].ToString());
-            fee.UseDefaultCov = SIn.Bool(row["UseDefaultCov"].ToString());
-            fee.CodeNum = SIn.Long(row["CodeNum"].ToString());
-            fee.ClinicNum = SIn.Long(row["ClinicNum"].ToString());
-            fee.ProvNum = SIn.Long(row["ProvNum"].ToString());
-            fee.SecUserNumEntry = SIn.Long(row["SecUserNumEntry"].ToString());
-            fee.SecDateEntry = SIn.Date(row["SecDateEntry"].ToString());
-            fee.SecDateTEdit = SIn.DateTime(row["SecDateTEdit"].ToString());
-            fee.DateEffective = SIn.Date(row["DateEffective"].ToString());
+            var fee = new Fee
+            {
+                FeeNum = SIn.Long(row["FeeNum"].ToString()),
+                Amount = SIn.Double(row["Amount"].ToString()),
+                OldCode = SIn.String(row["OldCode"].ToString()),
+                FeeSched = SIn.Long(row["FeeSched"].ToString()),
+                UseDefaultFee = SIn.Bool(row["UseDefaultFee"].ToString()),
+                UseDefaultCov = SIn.Bool(row["UseDefaultCov"].ToString()),
+                CodeNum = SIn.Long(row["CodeNum"].ToString()),
+                ClinicNum = SIn.Long(row["ClinicNum"].ToString()),
+                ProvNum = SIn.Long(row["ProvNum"].ToString()),
+                SecUserNumEntry = SIn.Long(row["SecUserNumEntry"].ToString()),
+                SecDateEntry = SIn.Date(row["SecDateEntry"].ToString()),
+                SecDateTEdit = SIn.DateTime(row["SecDateTEdit"].ToString()),
+                DateEffective = SIn.Date(row["DateEffective"].ToString())
+            };
             retVal.Add(fee);
         }
 
         return retVal;
     }
 
-    public static DataTable ListToTable(List<Fee> listFees, string tableName = "")
-    {
-        if (string.IsNullOrEmpty(tableName)) tableName = "Fee";
-        var table = new DataTable(tableName);
-        table.Columns.Add("FeeNum");
-        table.Columns.Add("Amount");
-        table.Columns.Add("OldCode");
-        table.Columns.Add("FeeSched");
-        table.Columns.Add("UseDefaultFee");
-        table.Columns.Add("UseDefaultCov");
-        table.Columns.Add("CodeNum");
-        table.Columns.Add("ClinicNum");
-        table.Columns.Add("ProvNum");
-        table.Columns.Add("SecUserNumEntry");
-        table.Columns.Add("SecDateEntry");
-        table.Columns.Add("SecDateTEdit");
-        table.Columns.Add("DateEffective");
-        foreach (var fee in listFees)
-            table.Rows.Add(SOut.Long(fee.FeeNum), SOut.Double(fee.Amount), fee.OldCode, SOut.Long(fee.FeeSched), SOut.Bool(fee.UseDefaultFee), SOut.Bool(fee.UseDefaultCov), SOut.Long(fee.CodeNum), SOut.Long(fee.ClinicNum), SOut.Long(fee.ProvNum), SOut.Long(fee.SecUserNumEntry), SOut.DateTime(fee.SecDateEntry, false), SOut.DateTime(fee.SecDateTEdit, false), SOut.DateTime(fee.DateEffective, false));
-        return table;
-    }
-
-    public static long Insert(Fee fee)
-    {
-        return Insert(fee, false);
-    }
-
-    public static long Insert(Fee fee, bool useExistingPK)
+    public static void Insert(Fee fee)
     {
         var command = "INSERT INTO fee (";
 
@@ -111,7 +72,6 @@ public class FeeCrud
         {
             fee.FeeNum = Db.NonQ(command, true, "FeeNum", "fee");
         }
-        return fee.FeeNum;
     }
 
     public static void InsertMany(List<Fee> listFees)
@@ -185,38 +145,6 @@ public class FeeCrud
                 index++;
             }
         }
-    }
-
-    public static long InsertNoCache(Fee fee)
-    {
-        return InsertNoCache(fee, false);
-    }
-
-    public static long InsertNoCache(Fee fee, bool useExistingPK)
-    {
-        const bool isRandomKeys = false;
-        var command = "INSERT INTO fee (";
-        if (isRandomKeys || useExistingPK) command += "FeeNum,";
-        command += "Amount,OldCode,FeeSched,UseDefaultFee,UseDefaultCov,CodeNum,ClinicNum,ProvNum,SecUserNumEntry,SecDateEntry,DateEffective) VALUES(";
-        if (isRandomKeys || useExistingPK) command += SOut.Long(fee.FeeNum) + ",";
-        command +=
-            SOut.Double(fee.Amount) + ","
-                                    + "'" + SOut.String(fee.OldCode) + "',"
-                                    + SOut.Long(fee.FeeSched) + ","
-                                    + SOut.Bool(fee.UseDefaultFee) + ","
-                                    + SOut.Bool(fee.UseDefaultCov) + ","
-                                    + SOut.Long(fee.CodeNum) + ","
-                                    + SOut.Long(fee.ClinicNum) + ","
-                                    + SOut.Long(fee.ProvNum) + ","
-                                    + SOut.Long(fee.SecUserNumEntry) + ","
-                                    + "NOW()" + ","
-                                    //SecDateTEdit can only be set by MySQL
-                                    + SOut.Date(fee.DateEffective) + ")";
-        if (useExistingPK || isRandomKeys)
-            Db.NonQ(command);
-        else
-            fee.FeeNum = Db.NonQ(command, true, "FeeNum", "fee");
-        return fee.FeeNum;
     }
 
     public static void Update(Fee fee)
@@ -322,14 +250,6 @@ public class FeeCrud
         return false;
     }
 
-    public static void Delete(long feeNum)
-    {
-        ClearFkey(feeNum);
-        var command = "DELETE FROM fee "
-                      + "WHERE FeeNum = " + SOut.Long(feeNum);
-        Db.NonQ(command);
-    }
-
     public static void DeleteMany(List<long> listFeeNums)
     {
         if (listFeeNums == null || listFeeNums.Count == 0) return;
@@ -339,7 +259,7 @@ public class FeeCrud
         Db.NonQ(command);
     }
 
-    public static bool Sync(List<Fee> listNew, List<Fee> listDB, long userNum)
+    public static void Sync(List<Fee> listNew, List<Fee> listDB, long userNum)
     {
         //Adding items to lists changes the order of operation. All inserts are completed first, then updates, then deletes.
         var listIns = new List<Fee>();
@@ -351,15 +271,13 @@ public class FeeCrud
         var idxNew = 0;
         var idxDB = 0;
         var rowsUpdatedCount = 0;
-        Fee fieldNew;
-        Fee fieldDB;
         //Because both lists have been sorted using the same criteria, we can now walk each list to determine which list contians the next element.  The next element is determined by Primary Key.
         //If the New list contains the next item it will be inserted.  If the DB contains the next item, it will be deleted.  If both lists contain the next item, the item will be updated.
         while (idxNew < listNew.Count || idxDB < listDB.Count)
         {
-            fieldNew = null;
+            Fee fieldNew = null;
             if (idxNew < listNew.Count) fieldNew = listNew[idxNew];
-            fieldDB = null;
+            Fee fieldDB = null;
             if (idxDB < listDB.Count) fieldDB = listDB[idxDB];
             //begin compare
             if (fieldNew != null && fieldDB == null)
@@ -409,18 +327,15 @@ public class FeeCrud
                 rowsUpdatedCount++;
 
         DeleteMany(listDel.Select(x => x.FeeNum).ToList());
-        if (rowsUpdatedCount > 0 || listIns.Count > 0 || listDel.Count > 0) return true;
-        return false;
+        if (rowsUpdatedCount > 0 || listIns.Count > 0 || listDel.Count > 0) return;
     }
-
-
+    
     public static void ClearFkey(long feeNum)
     {
         if (feeNum == 0) return;
         var command = "UPDATE securitylog SET FKey=0 WHERE FKey=" + SOut.Long(feeNum) + " AND PermType IN (154)";
         Db.NonQ(command);
     }
-
 
     public static void ClearFkey(List<long> listFeeNums)
     {

@@ -1,14 +1,10 @@
 using System;
-using System.Drawing;
-using System.Collections;
-using System.ComponentModel;
 using System.Windows.Forms;
 using OpenDentBusiness;
 using System.Collections.Generic;
-using System.Linq;
-using CodeBase;
 using Imedisoft.Core.Entities;
 using Imedisoft.Core.Features.Clinics;
+using Imedisoft.Features.Providers.Dtos;
 
 namespace OpenDental;
 
@@ -18,9 +14,6 @@ public partial class FormOperatoryEdit : FormODBase {
 	public bool IsNew;
 	private Operatory _operatory;
 	public List<Operatory> ListOperatories;
-	///<summary>All of the Web Sched New Pat Appt appointment type defs that this operatory is associated to.</summary>
-	private List<Def> _listDefsWSNPAOperatory= [];
-	private List<Def> _listDefsWSEPOperatory= [];
 
 	///<summary>This reference is passed in because it's needed for the "Update Provs on Future Appts" tool.</summary>
 	public ControlAppt ControlApptRef;
@@ -40,18 +33,8 @@ public partial class FormOperatoryEdit : FormODBase {
 		FillCombosProv();
 		comboProv.SetSelectedProvNum(_operatory.ProvDentist);
 		comboHyg.SetSelectedProvNum(_operatory.ProvHygienist);
-		if(_operatory.ListWSNPAOperatoryDefNums!=null) {
-			//This is an existing operatory with WSNPA appointment types associated.  Go get them in order to display to the user.
-			_listDefsWSNPAOperatory=Defs.GetDefs(DefCat.WebSchedNewPatApptTypes,_operatory.ListWSNPAOperatoryDefNums);
-		}
-		if(_operatory.ListWSEPOperatoryDefNums!=null) {
-			_listDefsWSEPOperatory=Defs.GetDefs(DefCat.WebSchedExistingApptTypes,_operatory.ListWSEPOperatoryDefNums);
-		}
-		textWSNPAApptTypes.Text=string.Join(", ",_listDefsWSNPAOperatory.Select(x => x.ItemName));//WSNPA
-		textWSEPApptTypes.Text=string.Join(", ",_listDefsWSEPOperatory.Select(x => x.ItemName));//WSEP
 		checkIsHygiene.Checked=_operatory.IsHygiene;
 		checkSetProspective.Checked=_operatory.SetProspective;
-		checkIsWebSched.Checked=_operatory.IsWebSched;
 		if(ControlApptRef==null) {
 			butUpdateProvs.Visible=false;
 			label5.Visible=false;
@@ -63,7 +46,7 @@ public partial class FormOperatoryEdit : FormODBase {
 	}
 
 	private void butPickProv_Click(object sender,EventArgs e) {
-		var frmProviderPick=new FrmProviderPick(comboProv.Items.GetAll<Provider>());
+		var frmProviderPick=new FrmProviderPick(comboProv.Items.GetAll<ProviderDto>());
 		frmProviderPick.ProvNumSelected=comboProv.GetSelectedProvNum();
 		frmProviderPick.ShowDialog();
 		if(!frmProviderPick.IsDialogOK) {
@@ -73,7 +56,7 @@ public partial class FormOperatoryEdit : FormODBase {
 	}
 
 	private void butPickHyg_Click(object sender,EventArgs e) {
-		var frmProviderPick=new FrmProviderPick(comboHyg.Items.GetAll<Provider>());
+		var frmProviderPick=new FrmProviderPick(comboHyg.Items.GetAll<ProviderDto>());
 		frmProviderPick.ProvNumSelected=comboHyg.GetSelectedProvNum();
 		frmProviderPick.ShowDialog();
 		if(!frmProviderPick.IsDialogOK) {
@@ -84,24 +67,6 @@ public partial class FormOperatoryEdit : FormODBase {
 
 	private void ComboClinic_SelectionChangeCommitted(object sender, EventArgs e){
 		FillCombosProv();
-	}
-
-	private void butWSNPAPickApptTypes_Click(object sender,EventArgs e) {
-		using var formDefinitionPicker=new FormDefinitionPicker(DefCat.WebSchedNewPatApptTypes,_listDefsWSNPAOperatory);
-		formDefinitionPicker.IsMultiSelectionMode=true;
-		if(formDefinitionPicker.ShowDialog()==DialogResult.OK) {
-			_listDefsWSNPAOperatory=formDefinitionPicker.ListDefsSelected.Select(x => x.Copy()).ToList();
-			textWSNPAApptTypes.Text=string.Join(", ",_listDefsWSNPAOperatory.Select(x => x.ItemName));
-		}
-	}
-
-	private void butWSEPPickApptTypes_Click(object sender,EventArgs e) {
-		using var formDefinitionPicker=new FormDefinitionPicker(DefCat.WebSchedExistingApptTypes,_listDefsWSEPOperatory);
-		formDefinitionPicker.IsMultiSelectionMode=true;
-		if(formDefinitionPicker.ShowDialog()==DialogResult.OK) {
-			_listDefsWSEPOperatory=formDefinitionPicker.ListDefsSelected.Select(x => x.Copy()).ToList();
-			textWSEPApptTypes.Text=string.Join(", ",_listDefsWSEPOperatory.Select(x => x.ItemName));
-		}
 	}
 
 	///<summary>Fills combo provider based on which clinic is selected and attempts to preserve provider selection if any.</summary>
@@ -132,8 +97,7 @@ public partial class FormOperatoryEdit : FormODBase {
 		   || operatory.ProvDentist!=comboProv.GetSelectedProvNum()
 		   || operatory.ProvHygienist!=comboHyg.GetSelectedProvNum()
 		   || operatory.IsHygiene!=checkIsHygiene.Checked
-		   || operatory.SetProspective!=checkSetProspective.Checked
-		   || operatory.IsWebSched!=checkIsWebSched.Checked)
+		   || operatory.SetProspective!=checkSetProspective.Checked)
 		{
 			MsgBox.Show(this,"Changes were detected above.  Save all changes, get completely out of the operatories window, and then re-enter.");
 			return;
@@ -186,9 +150,6 @@ public partial class FormOperatoryEdit : FormODBase {
 		_operatory.ProvHygienist=comboHyg.GetSelectedProvNum();
 		_operatory.IsHygiene=checkIsHygiene.Checked;
 		_operatory.SetProspective=checkSetProspective.Checked;
-		_operatory.IsWebSched=checkIsWebSched.Checked;
-		_operatory.ListWSNPAOperatoryDefNums=_listDefsWSNPAOperatory.Select(x => x.DefNum).ToList();
-		_operatory.ListWSEPOperatoryDefNums=_listDefsWSEPOperatory.Select(x => x.DefNum).ToList();
 		if(IsNew) {
 			ListOperatories.Insert(_operatory.ItemOrder,_operatory);//Insert into list at appropriate spot
 			for(var i=0;i<ListOperatories.Count;i++) {

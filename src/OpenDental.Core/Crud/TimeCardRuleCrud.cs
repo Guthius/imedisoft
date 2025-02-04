@@ -1,35 +1,14 @@
-#region
-
 using System.Collections.Generic;
 using System.Data;
-using System.Linq;
 using System.Text;
 using DataConnectionBase;
 using Imedisoft.Core.Entities;
 using OpenDentBusiness;
 
-#endregion
-
 namespace Imedisoft.Core.Crud;
 
 public class TimeCardRuleCrud
 {
-    public static TimeCardRule SelectOne(long timeCardRuleNum)
-    {
-        var command = "SELECT * FROM timecardrule "
-                      + "WHERE TimeCardRuleNum = " + SOut.Long(timeCardRuleNum);
-        var list = TableToList(DataCore.GetTable(command));
-        if (list.Count == 0) return null;
-        return list[0];
-    }
-
-    public static TimeCardRule SelectOne(string command)
-    {
-        var list = TableToList(DataCore.GetTable(command));
-        if (list.Count == 0) return null;
-        return list[0];
-    }
-
     public static List<TimeCardRule> SelectMany(string command)
     {
         var list = TableToList(DataCore.GetTable(command));
@@ -39,18 +18,19 @@ public class TimeCardRuleCrud
     public static List<TimeCardRule> TableToList(DataTable table)
     {
         var retVal = new List<TimeCardRule>();
-        TimeCardRule timeCardRule;
         foreach (DataRow row in table.Rows)
         {
-            timeCardRule = new TimeCardRule();
-            timeCardRule.TimeCardRuleNum = SIn.Long(row["TimeCardRuleNum"].ToString());
-            timeCardRule.EmployeeNum = SIn.Long(row["EmployeeNum"].ToString());
-            timeCardRule.OverHoursPerDay = SIn.TimeSpan(row["OverHoursPerDay"].ToString());
-            timeCardRule.AfterTimeOfDay = SIn.TimeSpan(row["AfterTimeOfDay"].ToString());
-            timeCardRule.BeforeTimeOfDay = SIn.TimeSpan(row["BeforeTimeOfDay"].ToString());
-            timeCardRule.IsOvertimeExempt = SIn.Bool(row["IsOvertimeExempt"].ToString());
-            timeCardRule.MinClockInTime = SIn.TimeSpan(row["MinClockInTime"].ToString());
-            timeCardRule.HasWeekendRate3 = SIn.Bool(row["HasWeekendRate3"].ToString());
+            var timeCardRule = new TimeCardRule
+            {
+                TimeCardRuleNum = SIn.Long(row["TimeCardRuleNum"].ToString()),
+                EmployeeNum = SIn.Long(row["EmployeeNum"].ToString()),
+                OverHoursPerDay = SIn.TimeSpan(row["OverHoursPerDay"].ToString()),
+                AfterTimeOfDay = SIn.TimeSpan(row["AfterTimeOfDay"].ToString()),
+                BeforeTimeOfDay = SIn.TimeSpan(row["BeforeTimeOfDay"].ToString()),
+                IsOvertimeExempt = SIn.Bool(row["IsOvertimeExempt"].ToString()),
+                MinClockInTime = SIn.TimeSpan(row["MinClockInTime"].ToString()),
+                HasWeekendRate3 = SIn.Bool(row["HasWeekendRate3"].ToString())
+            };
             retVal.Add(timeCardRule);
         }
 
@@ -74,37 +54,7 @@ public class TimeCardRuleCrud
         return table;
     }
 
-    public static long Insert(TimeCardRule timeCardRule)
-    {
-        return Insert(timeCardRule, false);
-    }
-
-    public static long Insert(TimeCardRule timeCardRule, bool useExistingPK)
-    {
-        var command = "INSERT INTO timecardrule (";
-
-        command += "EmployeeNum,OverHoursPerDay,AfterTimeOfDay,BeforeTimeOfDay,IsOvertimeExempt,MinClockInTime,HasWeekendRate3) VALUES(";
-
-        command +=
-            SOut.Long(timeCardRule.EmployeeNum) + ","
-                                                + SOut.Time(timeCardRule.OverHoursPerDay) + ","
-                                                + SOut.Time(timeCardRule.AfterTimeOfDay) + ","
-                                                + SOut.Time(timeCardRule.BeforeTimeOfDay) + ","
-                                                + SOut.Bool(timeCardRule.IsOvertimeExempt) + ","
-                                                + SOut.Time(timeCardRule.MinClockInTime) + ","
-                                                + SOut.Bool(timeCardRule.HasWeekendRate3) + ")";
-        {
-            timeCardRule.TimeCardRuleNum = Db.NonQ(command, true, "TimeCardRuleNum", "timeCardRule");
-        }
-        return timeCardRule.TimeCardRuleNum;
-    }
-
-    public static void InsertMany(List<TimeCardRule> listTimeCardRules)
-    {
-        InsertMany(listTimeCardRules, false);
-    }
-
-    public static void InsertMany(List<TimeCardRule> listTimeCardRules, bool useExistingPK)
+    public static void InsertMany(List<TimeCardRule> listTimeCardRules, bool useExistingPK = false)
     {
         StringBuilder sbCommands = null;
         var index = 0;
@@ -163,33 +113,6 @@ public class TimeCardRuleCrud
         }
     }
 
-    public static long InsertNoCache(TimeCardRule timeCardRule)
-    {
-        return InsertNoCache(timeCardRule, false);
-    }
-
-    public static long InsertNoCache(TimeCardRule timeCardRule, bool useExistingPK)
-    {
-        const bool isRandomKeys = false;
-        var command = "INSERT INTO timecardrule (";
-        if (isRandomKeys || useExistingPK) command += "TimeCardRuleNum,";
-        command += "EmployeeNum,OverHoursPerDay,AfterTimeOfDay,BeforeTimeOfDay,IsOvertimeExempt,MinClockInTime,HasWeekendRate3) VALUES(";
-        if (isRandomKeys || useExistingPK) command += SOut.Long(timeCardRule.TimeCardRuleNum) + ",";
-        command +=
-            SOut.Long(timeCardRule.EmployeeNum) + ","
-                                                + SOut.Time(timeCardRule.OverHoursPerDay) + ","
-                                                + SOut.Time(timeCardRule.AfterTimeOfDay) + ","
-                                                + SOut.Time(timeCardRule.BeforeTimeOfDay) + ","
-                                                + SOut.Bool(timeCardRule.IsOvertimeExempt) + ","
-                                                + SOut.Time(timeCardRule.MinClockInTime) + ","
-                                                + SOut.Bool(timeCardRule.HasWeekendRate3) + ")";
-        if (useExistingPK || isRandomKeys)
-            Db.NonQ(command);
-        else
-            timeCardRule.TimeCardRuleNum = Db.NonQ(command, true, "TimeCardRuleNum", "timeCardRule");
-        return timeCardRule.TimeCardRuleNum;
-    }
-
     public static void Update(TimeCardRule timeCardRule)
     {
         var command = "UPDATE timecardrule SET "
@@ -201,85 +124,6 @@ public class TimeCardRuleCrud
                       + "MinClockInTime  =  " + SOut.Time(timeCardRule.MinClockInTime) + ", "
                       + "HasWeekendRate3 =  " + SOut.Bool(timeCardRule.HasWeekendRate3) + " "
                       + "WHERE TimeCardRuleNum = " + SOut.Long(timeCardRule.TimeCardRuleNum);
-        Db.NonQ(command);
-    }
-
-    public static bool Update(TimeCardRule timeCardRule, TimeCardRule oldTimeCardRule)
-    {
-        var command = "";
-        if (timeCardRule.EmployeeNum != oldTimeCardRule.EmployeeNum)
-        {
-            if (command != "") command += ",";
-            command += "EmployeeNum = " + SOut.Long(timeCardRule.EmployeeNum) + "";
-        }
-
-        if (timeCardRule.OverHoursPerDay != oldTimeCardRule.OverHoursPerDay)
-        {
-            if (command != "") command += ",";
-            command += "OverHoursPerDay = " + SOut.Time(timeCardRule.OverHoursPerDay) + "";
-        }
-
-        if (timeCardRule.AfterTimeOfDay != oldTimeCardRule.AfterTimeOfDay)
-        {
-            if (command != "") command += ",";
-            command += "AfterTimeOfDay = " + SOut.Time(timeCardRule.AfterTimeOfDay) + "";
-        }
-
-        if (timeCardRule.BeforeTimeOfDay != oldTimeCardRule.BeforeTimeOfDay)
-        {
-            if (command != "") command += ",";
-            command += "BeforeTimeOfDay = " + SOut.Time(timeCardRule.BeforeTimeOfDay) + "";
-        }
-
-        if (timeCardRule.IsOvertimeExempt != oldTimeCardRule.IsOvertimeExempt)
-        {
-            if (command != "") command += ",";
-            command += "IsOvertimeExempt = " + SOut.Bool(timeCardRule.IsOvertimeExempt) + "";
-        }
-
-        if (timeCardRule.MinClockInTime != oldTimeCardRule.MinClockInTime)
-        {
-            if (command != "") command += ",";
-            command += "MinClockInTime = " + SOut.Time(timeCardRule.MinClockInTime) + "";
-        }
-
-        if (timeCardRule.HasWeekendRate3 != oldTimeCardRule.HasWeekendRate3)
-        {
-            if (command != "") command += ",";
-            command += "HasWeekendRate3 = " + SOut.Bool(timeCardRule.HasWeekendRate3) + "";
-        }
-
-        if (command == "") return false;
-        command = "UPDATE timecardrule SET " + command
-                                             + " WHERE TimeCardRuleNum = " + SOut.Long(timeCardRule.TimeCardRuleNum);
-        Db.NonQ(command);
-        return true;
-    }
-
-    public static bool UpdateComparison(TimeCardRule timeCardRule, TimeCardRule oldTimeCardRule)
-    {
-        if (timeCardRule.EmployeeNum != oldTimeCardRule.EmployeeNum) return true;
-        if (timeCardRule.OverHoursPerDay != oldTimeCardRule.OverHoursPerDay) return true;
-        if (timeCardRule.AfterTimeOfDay != oldTimeCardRule.AfterTimeOfDay) return true;
-        if (timeCardRule.BeforeTimeOfDay != oldTimeCardRule.BeforeTimeOfDay) return true;
-        if (timeCardRule.IsOvertimeExempt != oldTimeCardRule.IsOvertimeExempt) return true;
-        if (timeCardRule.MinClockInTime != oldTimeCardRule.MinClockInTime) return true;
-        if (timeCardRule.HasWeekendRate3 != oldTimeCardRule.HasWeekendRate3) return true;
-        return false;
-    }
-
-    public static void Delete(long timeCardRuleNum)
-    {
-        var command = "DELETE FROM timecardrule "
-                      + "WHERE TimeCardRuleNum = " + SOut.Long(timeCardRuleNum);
-        Db.NonQ(command);
-    }
-
-    public static void DeleteMany(List<long> listTimeCardRuleNums)
-    {
-        if (listTimeCardRuleNums == null || listTimeCardRuleNums.Count == 0) return;
-        var command = "DELETE FROM timecardrule "
-                      + "WHERE TimeCardRuleNum IN(" + string.Join(",", listTimeCardRuleNums.Select(x => SOut.Long(x))) + ")";
         Db.NonQ(command);
     }
 }

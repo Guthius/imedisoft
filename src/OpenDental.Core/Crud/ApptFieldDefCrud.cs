@@ -18,15 +18,16 @@ public class ApptFieldDefCrud
     public static List<ApptFieldDef> TableToList(DataTable table)
     {
         var retVal = new List<ApptFieldDef>();
-        ApptFieldDef apptFieldDef;
         foreach (DataRow row in table.Rows)
         {
-            apptFieldDef = new ApptFieldDef();
-            apptFieldDef.ApptFieldDefNum = SIn.Long(row["ApptFieldDefNum"].ToString());
-            apptFieldDef.FieldName = SIn.String(row["FieldName"].ToString());
-            apptFieldDef.FieldType = (ApptFieldType) SIn.Int(row["FieldType"].ToString());
-            apptFieldDef.PickList = SIn.String(row["PickList"].ToString());
-            apptFieldDef.ItemOrder = SIn.Int(row["ItemOrder"].ToString());
+            var apptFieldDef = new ApptFieldDef
+            {
+                ApptFieldDefNum = SIn.Long(row["ApptFieldDefNum"].ToString()),
+                FieldName = SIn.String(row["FieldName"].ToString()),
+                FieldType = (ApptFieldType) SIn.Int(row["FieldType"].ToString()),
+                PickList = SIn.String(row["PickList"].ToString()),
+                ItemOrder = SIn.Int(row["ItemOrder"].ToString())
+            };
             retVal.Add(apptFieldDef);
         }
 
@@ -47,7 +48,7 @@ public class ApptFieldDefCrud
         return table;
     }
 
-    public static long Insert(ApptFieldDef apptFieldDef)
+    public static void Insert(ApptFieldDef apptFieldDef)
     {
         var command = "INSERT INTO apptfielddef (";
 
@@ -63,7 +64,6 @@ public class ApptFieldDefCrud
         {
             apptFieldDef.ApptFieldDefNum = Db.NonQ(command, true, "ApptFieldDefNum", "apptFieldDef", paramPickList);
         }
-        return apptFieldDef.ApptFieldDefNum;
     }
 
     public static void Update(ApptFieldDef apptFieldDef)
@@ -123,7 +123,7 @@ public class ApptFieldDefCrud
         Db.NonQ(command);
     }
 
-    public static bool Sync(List<ApptFieldDef> listNew, List<ApptFieldDef> listDB)
+    public static void Sync(List<ApptFieldDef> listNew, List<ApptFieldDef> listDB)
     {
         //Adding items to lists changes the order of operation. All inserts are completed first, then updates, then deletes.
         var listIns = new List<ApptFieldDef>();
@@ -135,15 +135,13 @@ public class ApptFieldDefCrud
         var idxNew = 0;
         var idxDB = 0;
         var rowsUpdatedCount = 0;
-        ApptFieldDef fieldNew;
-        ApptFieldDef fieldDB;
         //Because both lists have been sorted using the same criteria, we can now walk each list to determine which list contians the next element.  The next element is determined by Primary Key.
         //If the New list contains the next item it will be inserted.  If the DB contains the next item, it will be deleted.  If both lists contain the next item, the item will be updated.
         while (idxNew < listNew.Count || idxDB < listDB.Count)
         {
-            fieldNew = null;
+            ApptFieldDef fieldNew = null;
             if (idxNew < listNew.Count) fieldNew = listNew[idxNew];
-            fieldDB = null;
+            ApptFieldDef fieldDB = null;
             if (idxDB < listDB.Count) fieldDB = listDB[idxDB];
             //begin compare
             if (fieldNew != null && fieldDB == null)
@@ -192,7 +190,6 @@ public class ApptFieldDefCrud
                 rowsUpdatedCount++;
 
         DeleteMany(listDel.Select(x => x.ApptFieldDefNum).ToList());
-        if (rowsUpdatedCount > 0 || listIns.Count > 0 || listDel.Count > 0) return true;
-        return false;
+        if (rowsUpdatedCount > 0 || listIns.Count > 0 || listDel.Count > 0) return;
     }
 }

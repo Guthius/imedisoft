@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Data;
 using System.Drawing;
 using System.Globalization;
 using System.Linq;
@@ -30,14 +29,10 @@ public partial class FormTsiHistory:FormODBase {
 		SetFilterControlsAndAction(() => FillGrid(),datePicker,checkShowPatNums);
 		#region Fill Clinics
 		_listClinics= [];
-		if(true) {
-			_listClinics.AddRange(
-				Clinics.GetForUserod(Security.CurUser,true).OrderBy(x => x.Id!=0)
-			);
-		}
-		else {//clinics disabled
-			_listClinics.Add(Clinics.GetPracticeAsClinicZero(Lan.g(this,"Unassigned")));
-		}
+		_listClinics.AddRange(
+			Clinics.GetForUserod(Security.CurUser,true).OrderBy(x => x.Id!=0)
+		);
+
 		#endregion Fill Clinics
 		#region Fill Client IDs
 		comboClientIDs.IncludeAll=true;

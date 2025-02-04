@@ -1,15 +1,8 @@
 using System;
 using System.Collections.Generic;
-using System.Data;
-using System.Drawing;
-using System.Text;
 using System.Windows.Forms;
 using OpenDentBusiness;
-using OpenDental.UI;
-using System.Reflection;
 using System.Linq;
-using System.ComponentModel;
-using OpenDental.User_Controls.SetupWizard;
 using CodeBase;
 using Imedisoft.Core.Entities;
 
@@ -94,7 +87,7 @@ public partial class FormSetupWizardProgress:FormODBase {
 				}
 				endCat++;
 			}
-			_listSetupWizClasses.Insert(endCat++,new SetupWizard.SetupIntro(clinicSetup.Name,clinicSetup.GetDescript));
+			_listSetupWizClasses.Insert(endCat++,new SetupWizard.SetupIntro(clinicSetup.Name,clinicSetup.Description));
 			_listSetupWizClasses.Insert(endCat++,clinicSetup);
 			_listSetupWizClasses.Insert(endCat,new SetupWizard.SetupComplete(clinicSetup.Name));
 		}

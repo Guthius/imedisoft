@@ -17,17 +17,18 @@ public class ContactCrud
     public static List<Contact> TableToList(DataTable table)
     {
         var retVal = new List<Contact>();
-        Contact contact;
         foreach (DataRow row in table.Rows)
         {
-            contact = new Contact();
-            contact.ContactNum = SIn.Long(row["ContactNum"].ToString());
-            contact.LName = SIn.String(row["LName"].ToString());
-            contact.FName = SIn.String(row["FName"].ToString());
-            contact.WkPhone = SIn.String(row["WkPhone"].ToString());
-            contact.Fax = SIn.String(row["Fax"].ToString());
-            contact.Category = SIn.Long(row["Category"].ToString());
-            contact.Notes = SIn.String(row["Notes"].ToString());
+            var contact = new Contact
+            {
+                ContactNum = SIn.Long(row["ContactNum"].ToString()),
+                LName = SIn.String(row["LName"].ToString()),
+                FName = SIn.String(row["FName"].ToString()),
+                WkPhone = SIn.String(row["WkPhone"].ToString()),
+                Fax = SIn.String(row["Fax"].ToString()),
+                Category = SIn.Long(row["Category"].ToString()),
+                Notes = SIn.String(row["Notes"].ToString())
+            };
             retVal.Add(contact);
         }
 

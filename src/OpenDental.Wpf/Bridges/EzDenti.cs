@@ -1,5 +1,4 @@
 using System;
-using System.Collections;
 using System.IO;
 using System.Text;
 using System.Windows.Forms;
@@ -74,7 +73,7 @@ namespace OpenDental.Bridges{
 				writer.Flush();
 				writer.Close();
 				try {
-					ODFileUtils.WriteAllTextThenStart(linkage,strb.ToString(),path,doStartWithoutExtraFile: true);
+					ODFileUtils.WriteAllTextThenStart(linkage,strb.ToString(),path);
 					return;
 				}
 				catch(Exception e) {

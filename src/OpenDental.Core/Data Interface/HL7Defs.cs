@@ -98,7 +98,7 @@ public class HL7Defs
 
     public static bool IsExistingHL7Enabled(long hL7DefNumExclude, bool isMedLabHL7)
     {
-        var command = "SELECT COUNT(*) FROM hl7def WHERE IsEnabled=1 AND HL7DefNum != " + SOut.Long(hL7DefNumExclude);
+        var command = "SELECT COUNT(*) FROM hl7def WHERE IsEnabled=1 AND HL7DefNum != " + (hL7DefNumExclude);
         if (isMedLabHL7)
             command += " AND InternalType='" + SOut.String(HL7InternalType.MedLabv2_3.ToString()) + "'";
         else
@@ -137,7 +137,7 @@ public class HL7Defs
     
     public static void Delete(long hL7DefNum)
     {
-        var command = "DELETE FROM hl7def WHERE HL7DefNum = " + SOut.Long(hL7DefNum);
+        var command = "DELETE FROM hl7def WHERE HL7DefNum = " + (hL7DefNum);
         Db.NonQ(command);
     }
     

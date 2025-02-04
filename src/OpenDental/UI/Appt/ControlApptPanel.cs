@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Drawing;
@@ -7,10 +6,10 @@ using System.Drawing.Drawing2D;
 using System.Drawing.Text;
 using System.Data;
 using System.Globalization;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 using OpenDentBusiness;
 using CodeBase;
@@ -19,6 +18,7 @@ using Imedisoft.Core.Caching;
 using Imedisoft.Core.Data;
 using Imedisoft.Core.Entities;
 using Imedisoft.Core.Features.Clinics;
+using Imedisoft.Features.Providers.Dtos;
 using OpenDental.Logic;
 
 namespace OpenDental.UI;
@@ -26,7 +26,7 @@ namespace OpenDental.UI;
 /// <summary>This class has replaced ApptDrawing, ApptSingleDrawing, ContrApptSheet, ContrApptSingle, and ApptOverlapOrdering.  Encapsulates both Data and Drawing for the main area of Appt module and the operatories header.  The Appt module gathers the data and stores it here.  This class does its drawing based mostly on the information passed in, although it does use the standard cache sometimes. It has defaults so that we will always be able to draw something reasonable, even if we're missing data. This class contains extra data that it doesn't actually need.  Appt module uses this data for other things besides drawing appointments.  This class intentionally supports a single thread only.</summary>
 public partial class ControlApptPanel:UserControl {
 	#region Fields - Public
-	public LayoutManagerForms LayoutManager=new LayoutManagerForms();
+	
 	#endregion Fields - Public
 
 	#region Fields - Public Printing
@@ -51,8 +51,7 @@ public partial class ControlApptPanel:UserControl {
 	private bool _isValidHeaders=false;		
 	///<summary>This will trigger redrawing everything in the main area, including appointments. It also triggers redraw of a second bitmap for ProvBars.</summary>
 	private bool _isValidMain=false;//start false to trigger initial draw
-	///<summary>This will trigger redrawing only L&R timebars.</summary>
-	private bool _isValidTimebars=false;
+
 	#endregion Fields - Private isValid flags
 
 	#region Fields - Private Measurements
@@ -157,7 +156,7 @@ public partial class ControlApptPanel:UserControl {
 	private List<ApptViewItem> _listApptViewItems=null;
 	private List<ApptViewItem> _listApptViewItemRowElements=null;
 	private static List<Operatory> _listOpsVisible= [];
-	private List<Provider> _listProvsVisible= [];
+	private List<ProviderDto> _listProvsVisible= [];
 	private List<Schedule> _listSchedules= [];
 	private DataTable _tableAppointments=new DataTable();
 	private DataTable _tableApptFields=new DataTable();
@@ -240,7 +239,7 @@ public partial class ControlApptPanel:UserControl {
 		ListOpsVisible.Add(new Operatory());
 		ListOpsVisible.Add(new Operatory());
 		ListOpsVisible.Add(new Operatory());
-		ListProvsVisible.Add(new Provider());
+		ListProvsVisible.Add(new ProviderDto());
 		timerBubble=new Timer();
 		timerBubble.Interval = 300;
 		timerBubble.Tick += new System.EventHandler(this.timerInfoBubble_Tick);
@@ -374,11 +373,11 @@ public partial class ControlApptPanel:UserControl {
 	///<summary>Was VisProvs.  Visible provider bars in appt module.  Subset of all provs.  Can't include a hidden prov in this list.</summary>
 	[Browsable(false)]
 	[DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)] 
-	public List<Provider> ListProvsVisible {
+	public List<ProviderDto> ListProvsVisible {
 		get{ return _listProvsVisible; }
 		set{
 			_listProvsVisible=value;
-			_dictProvNumToColumnNum=_listProvsVisible.ToDictionary(x => x.ProvNum,x => _listProvsVisible.FindIndex(y => y.ProvNum==x.ProvNum));
+			_dictProvNumToColumnNum=_listProvsVisible.ToDictionary(x => x.Id,x => _listProvsVisible.FindIndex(y => y.Id==x.Id));
 			if(_showProvBars){//this is also present in IsWeeklyView.set and LayoutRecalcAfterResize()
 				_widthMainVisible=this.Width-(int)_widthTime*2-(int)(_widthProv*_listProvsVisible.Count)-vScrollBar1.Width-1;
 				hScrollBar1.Left=(int)(_widthTime+_widthProv*_listProvsVisible.Count)+1;
@@ -630,7 +629,6 @@ public partial class ControlApptPanel:UserControl {
 			ComputeHeight();//needed to calc new scroll val
 			SetScrollByTime(timeScrollOriginal);
 			_isValidMain=false;
-			_isValidTimebars=false;
 			RedrawAsNeeded();
 		}
 	}
@@ -665,7 +663,6 @@ public partial class ControlApptPanel:UserControl {
 			ComputeHeight();//needed to calc new scroll val
 			SetScrollByTime(timeScrollOriginal);
 			_isValidMain=false;//will harmlessley recompute height
-			_isValidTimebars=false;
 			RedrawAsNeeded();
 		}
 	}
@@ -718,7 +715,6 @@ public partial class ControlApptPanel:UserControl {
 			ComputeHeight();//needed to calc new scroll val
 			SetScrollByTime(timeScrollOriginal);
 			_isValidMain=false;//will harmlessley recompute height
-			_isValidTimebars=false;
 			RedrawAsNeeded();
 		}
 	}
@@ -751,7 +747,7 @@ public partial class ControlApptPanel:UserControl {
 		contrTempAppt.Size=new Size(100,100);
 		contrTempAppt.Paint+=TempApptSingle_Paint;
 		if(!DesignMode){
-			LayoutManagerForms.Add(contrTempAppt,Parent);
+			Parent.Controls.Add(contrTempAppt);
 		}
 	}
 
@@ -907,33 +903,31 @@ public partial class ControlApptPanel:UserControl {
 					//found op where we clicked
 					txt=ListOpsVisible[i].OpName;
 					//_opNumHeaderTipLast=ListOpsVisible[i].OperatoryNum;//not needed here.  Handled in mouseMove
-					var prov=Providers.GetProv(ListOpsVisible[i].ProvDentist);//We can enhance this later to show Hygienist.
+					var prov=Providers.GetById(ListOpsVisible[i].ProvDentist);//We can enhance this later to show Hygienist.
 					if(prov==null){
 						txt+="\r\n"+Lan.g(this,"There is no provider associated with this operatory.");
 					}
 					else{
-						var defProvSpecialty=Defs.GetDef(DefCat.ProviderSpecialties,prov.Specialty);
-						if(defProvSpecialty!=null) {
-							txt+="\r\n"+Lan.g(this,"Default: ")+prov.FName+" "+prov.LName+", "+defProvSpecialty.ItemName;
+						if(!string.IsNullOrEmpty(prov.Specialty.Description)) {
+							txt+="\r\n"+Lan.g(this,"Default: ")+prov.FirstName+" "+prov.LastName+", "+prov.Specialty.Description;
 						}
 					}
 					//Get the subset of schedules from ListSchedules that is linked to this op
 					var listScheds=Schedules.GetProvSchedsForOp(ListSchedules,ListOpsVisible[i]);
-					Provider providerScheduled;
+					ProviderDto providerScheduled;
 					//Get the provider for each Schedule and show that provider's info.
 					foreach(var schedule in listScheds) {
-						providerScheduled=Providers.GetProv(schedule.ProvNum);
+						providerScheduled=Providers.GetById(schedule.ProvNum);
 						if(providerScheduled==null) {
 							return;
 						}
-						var defScheduledProv=Defs.GetDef(DefCat.ProviderSpecialties,providerScheduled.Specialty);
 						var schedProcDef="";
-						if(defScheduledProv!=null) {
-							schedProcDef=", "+defScheduledProv.ItemName;
+						if(!string.IsNullOrEmpty(providerScheduled.Specialty.Description)) {
+							schedProcDef=", "+providerScheduled.Specialty.Description;
 						}
 						txt+="\r\n"+Lan.g(this,"Scheduled ")+schedule.StartTime.ToShortTimeString()+"-"+schedule.StopTime.ToShortTimeString()+": "
-						     +providerScheduled.GetFormalName()+schedProcDef;
-						txt+=string.IsNullOrWhiteSpace(providerScheduled.SchedNote) ? "": "\r\n\t("+providerScheduled.SchedNote+")";
+						     +providerScheduled.FormalName+schedProcDef;
+						txt+=string.IsNullOrWhiteSpace(providerScheduled.SchedulerNote) ? "": "\r\n\t("+providerScheduled.SchedulerNote+")";
 					}
 					if(true && Clinics.ClinicNum!=0) {//HQ cannot have clinic specialties.
 						var clinic=Clinics.GetClinic(Clinics.ClinicNum);
@@ -1088,9 +1082,9 @@ public partial class ControlApptPanel:UserControl {
 		}
 		_boolApptMoved=true;
 		//since this usercontrol belongs to the parent, coordinates are in ContrAppt frame.
-		LayoutManagerForms.MoveLocation(contrTempAppt,new Point(
+		contrTempAppt.Location = new Point(
 			_pointApptOrigin.X+e.X-_pointMouseOrigin.X,
-			_pointApptOrigin.Y+e.Y-_pointMouseOrigin.Y));
+			_pointApptOrigin.Y+e.Y-_pointMouseOrigin.Y);
 		contrTempAppt.Visible=true;
 	}
 
@@ -1229,7 +1223,7 @@ public partial class ControlApptPanel:UserControl {
 			if(contrTempAppt.Location.Y-this.Location.Y<_heightProvOpHeaders
 			   && contrTempAppt.Location.Y-this.Location.Y>6)
 			{//10 or less pixels into the header
-				LayoutManagerForms.MoveLocation(contrTempAppt,new Point(contrTempAppt.Left,this.Location.Y+(int)_heightProvOpHeaders+1));
+				contrTempAppt.Location = new Point(contrTempAppt.Left,this.Location.Y+(int)_heightProvOpHeaders+1);
 			}
 			var timeSpanNew=YPosToTime(contrTempAppt.Location.Y-this.Location.Y);
 			if(timeSpanNew==null){
@@ -1477,7 +1471,6 @@ public partial class ControlApptPanel:UserControl {
 		//This entire height will be split among the pages later. Automatically rounded down.
 		_isValidMain=false;
 		_isValidHeaders=false;
-		_isValidTimebars=false;
 		RedrawAsNeeded();//All redrawn with these new widths and heights. Needed for the bitmap section, below, not for actual output.
 		var heightMainOnePage=rectangleMarginBounds.Height-(int)_heightProvOpHeaders;
 		var pagesAcross=(int)Math.Ceiling((decimal)_listOpsVisible.Count/PrintingColsPerPage);//Rounds up.  We frequently fall exactly on a boudary for rounding.
@@ -1700,7 +1693,6 @@ public partial class ControlApptPanel:UserControl {
 			LayoutRecalcAfterResize();//for _widthMain
 			_isValidMain=false;
 			_isValidHeaders=false;
-			_isValidTimebars=false;
 			RedrawAsNeeded();
 		}
 	}
@@ -2811,7 +2803,7 @@ public partial class ControlApptPanel:UserControl {
 						continue;
 					}
 					var provWidthAdj=0f;//use to adjust for primary and secondary provider bars in op
-					if(Providers.GetIsSec(schedCur.ProvNum)) {
+					if(Providers.IsSecondary(schedCur.ProvNum)) {
 						provWidthAdj=WidthProvOnAppt;//drawing secondary prov bar so shift right
 					}
 					var color=Providers.GetColor(schedCur.ProvNum);
@@ -3001,9 +2993,9 @@ public partial class ControlApptPanel:UserControl {
 							g.FillRectangle(Brushes.White,rectFill);
 						}
 						else{
-							var color=ListProvsVisible[j].ProvColor;
+							var color=ColorTranslator.FromHtml(ListProvsVisible[j].Color);
 							if(_isPrinting && PrintColorBehavior==ApptPrintColorBehavior.Grayscale) {
-								color=DesaturateColor(ListProvsVisible[j].ProvColor);
+								color=DesaturateColor(color);
 							}
 							using(var solidBrushProvColor=new SolidBrush(color)) {
 								g.FillRectangle(solidBrushProvColor,rectFill);
@@ -3012,7 +3004,7 @@ public partial class ControlApptPanel:UserControl {
 						break;
 					case 2:
 						//If this changes from Color.Black, we need to account for ApptPrintColorBehavior.Grayscale.
-						using(var hatchBrushProvColor=new HatchBrush(HatchStyle.DarkUpwardDiagonal,Color.Black,ListProvsVisible[j].ProvColor)) {
+						using(var hatchBrushProvColor=new HatchBrush(HatchStyle.DarkUpwardDiagonal,Color.Black,ColorTranslator.FromHtml(ListProvsVisible[j].Color))) {
 							g.FillRectangle(hatchBrushProvColor,rectFill);
 						}
 						break;
@@ -3028,7 +3020,7 @@ public partial class ControlApptPanel:UserControl {
 	private void DrawProvScheds(Graphics g){
 		List<Schedule> listSchedulesForProv;
 		for(var j=0;j<ListProvsVisible.Count;j++) {
-			listSchedulesForProv=Schedules.GetListForType(ListSchedules,ScheduleType.Provider,ListProvsVisible[j].ProvNum);
+			listSchedulesForProv=Schedules.GetListForType(ListSchedules,ScheduleType.Provider,ListProvsVisible[j].Id);
 			for(var i=0;i<listSchedulesForProv.Count;i++) {
 				Brush brush=_brushOpen;
 				if(_isPrinting && PrintColorBehavior.In(ApptPrintColorBehavior.LessColor,ApptPrintColorBehavior.Grayscale)) {
@@ -3109,9 +3101,9 @@ public partial class ControlApptPanel:UserControl {
 	private void DrawProvBarsHeader(Graphics g){
 		g.FillRectangle(_brushBackground,0,0,_widthProv*_listProvsVisible.Count,_heightProvOpHeaders);
 		for(var i=0;i<ListProvsVisible.Count;i++){
-			var color=ListProvsVisible[i].ProvColor;
+			var color=ColorTranslator.FromHtml(ListProvsVisible[i].Color);
 			if(_isPrinting && PrintColorBehavior==ApptPrintColorBehavior.Grayscale) {
-				color=DesaturateColor(ListProvsVisible[i].ProvColor);
+				color=DesaturateColor(color);
 			}
 			using(var solidBrushProvColor=new SolidBrush(color)) {
 				g.FillRectangle(solidBrushProvColor,_widthProv*i,0,_widthProv,_heightProvOpHeaders);
@@ -4408,12 +4400,12 @@ public partial class ControlApptPanel:UserControl {
 				try {
 					var patNum=SIn.Long(dataRow["PatNum"].ToString());
 					bitmapPatPict=Documents.GetPatPict(patNum,
-						ODFileUtils.CombinePaths(ImageStore.GetDataFolder(),
+						Path.Combine(ImageStore.GetDataFolder(),
 							imageFolder.Substring(0,1).ToUpper(),
 							imageFolder,""));
 					object[] objectArray = [patNum, bitmapPatPict?.Clone()];
 				}
-				catch(Exception ex) {
+				catch {
 				}  //Folder access might be denied
 			}
 		}
@@ -5202,12 +5194,12 @@ public partial class ControlApptPanel:UserControl {
 		}
 		//location is in bitmap coordinates, so convert to parent ControlAppt coords.
 		if(_showProvBars){
-			LayoutManagerForms.MoveLocation(contrTempAppt,new Point(Round(_listApptLayoutInfos[idxAppt].RectangleBounds.X+_widthTime+_listProvsVisible.Count*_widthProv-hScrollBar1.Value),
-				Round(this.Top+_listApptLayoutInfos[idxAppt].RectangleBounds.Y+_heightProvOpHeaders-vScrollBar1.Value)));
+			contrTempAppt.Location = new Point(Round(_listApptLayoutInfos[idxAppt].RectangleBounds.X+_widthTime+_listProvsVisible.Count*_widthProv-hScrollBar1.Value),
+				Round(this.Top+_listApptLayoutInfos[idxAppt].RectangleBounds.Y+_heightProvOpHeaders-vScrollBar1.Value));
 		}
 		else{
-			LayoutManagerForms.MoveLocation(contrTempAppt,new Point(Round(_listApptLayoutInfos[idxAppt].RectangleBounds.X+_widthTime-hScrollBar1.Value),
-				Round(this.Top+_listApptLayoutInfos[idxAppt].RectangleBounds.Y+_heightProvOpHeaders-vScrollBar1.Value)));
+			contrTempAppt.Location = new Point(Round(_listApptLayoutInfos[idxAppt].RectangleBounds.X+_widthTime-hScrollBar1.Value),
+				Round(this.Top+_listApptLayoutInfos[idxAppt].RectangleBounds.Y+_heightProvOpHeaders-vScrollBar1.Value));
 		}
 		_dataRowTempAppt=dataRow;
 		SetBitmapTempAppt();

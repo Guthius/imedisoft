@@ -1,34 +1,13 @@
-#region
-
 using System.Collections.Generic;
 using System.Data;
-using System.Linq;
 using DataConnectionBase;
 using Imedisoft.Core.Entities;
 using OpenDentBusiness;
-
-#endregion
 
 namespace Imedisoft.Core.Crud;
 
 public class ElectIDCrud
 {
-    public static ElectID SelectOne(long electIDNum)
-    {
-        var command = "SELECT * FROM electid "
-                      + "WHERE ElectIDNum = " + SOut.Long(electIDNum);
-        var list = TableToList(DataCore.GetTable(command));
-        if (list.Count == 0) return null;
-        return list[0];
-    }
-
-    public static ElectID SelectOne(string command)
-    {
-        var list = TableToList(DataCore.GetTable(command));
-        if (list.Count == 0) return null;
-        return list[0];
-    }
-
     public static List<ElectID> SelectMany(string command)
     {
         var list = TableToList(DataCore.GetTable(command));
@@ -38,18 +17,19 @@ public class ElectIDCrud
     public static List<ElectID> TableToList(DataTable table)
     {
         var retVal = new List<ElectID>();
-        ElectID electID;
         foreach (DataRow row in table.Rows)
         {
-            electID = new ElectID();
-            electID.ElectIDNum = SIn.Long(row["ElectIDNum"].ToString());
-            electID.PayorID = SIn.String(row["PayorID"].ToString());
-            electID.CarrierName = SIn.String(row["CarrierName"].ToString());
-            electID.IsMedicaid = SIn.Bool(row["IsMedicaid"].ToString());
-            electID.ProviderTypes = SIn.String(row["ProviderTypes"].ToString());
-            electID.Comments = SIn.String(row["Comments"].ToString());
-            electID.CommBridge = (EclaimsCommBridge) SIn.Int(row["CommBridge"].ToString());
-            electID.Attributes = SIn.String(row["Attributes"].ToString());
+            var electID = new ElectID
+            {
+                ElectIDNum = SIn.Long(row["ElectIDNum"].ToString()),
+                PayorID = SIn.String(row["PayorID"].ToString()),
+                CarrierName = SIn.String(row["CarrierName"].ToString()),
+                IsMedicaid = SIn.Bool(row["IsMedicaid"].ToString()),
+                ProviderTypes = SIn.String(row["ProviderTypes"].ToString()),
+                Comments = SIn.String(row["Comments"].ToString()),
+                CommBridge = (EclaimsCommBridge) SIn.Int(row["CommBridge"].ToString()),
+                Attributes = SIn.String(row["Attributes"].ToString())
+            };
             retVal.Add(electID);
         }
 
@@ -73,12 +53,7 @@ public class ElectIDCrud
         return table;
     }
 
-    public static long Insert(ElectID electID)
-    {
-        return Insert(electID, false);
-    }
-
-    public static long Insert(ElectID electID, bool useExistingPK)
+    public static void Insert(ElectID electID)
     {
         var command = "INSERT INTO electid (";
 
@@ -97,36 +72,6 @@ public class ElectIDCrud
         {
             electID.ElectIDNum = Db.NonQ(command, true, "ElectIDNum", "electID", paramComments);
         }
-        return electID.ElectIDNum;
-    }
-
-    public static long InsertNoCache(ElectID electID)
-    {
-        return InsertNoCache(electID, false);
-    }
-
-    public static long InsertNoCache(ElectID electID, bool useExistingPK)
-    {
-        const bool isRandomKeys = false;
-        var command = "INSERT INTO electid (";
-        if (isRandomKeys || useExistingPK) command += "ElectIDNum,";
-        command += "PayorID,CarrierName,IsMedicaid,ProviderTypes,Comments,CommBridge,Attributes) VALUES(";
-        if (isRandomKeys || useExistingPK) command += SOut.Long(electID.ElectIDNum) + ",";
-        command +=
-            "'" + SOut.String(electID.PayorID) + "',"
-            + "'" + SOut.String(electID.CarrierName) + "',"
-            + SOut.Bool(electID.IsMedicaid) + ","
-            + "'" + SOut.String(electID.ProviderTypes) + "',"
-            + DbHelper.ParamChar + "paramComments,"
-            + SOut.Int((int) electID.CommBridge) + ","
-            + "'" + SOut.String(electID.Attributes) + "')";
-        if (electID.Comments == null) electID.Comments = "";
-        var paramComments = new OdSqlParameter("paramComments", SOut.StringParam(electID.Comments));
-        if (useExistingPK || isRandomKeys)
-            Db.NonQ(command, paramComments);
-        else
-            electID.ElectIDNum = Db.NonQ(command, true, "ElectIDNum", "electID", paramComments);
-        return electID.ElectIDNum;
     }
 
     public static void Update(ElectID electID)
@@ -197,32 +142,5 @@ public class ElectIDCrud
                                         + " WHERE ElectIDNum = " + SOut.Long(electID.ElectIDNum);
         Db.NonQ(command, paramComments);
         return true;
-    }
-
-    public static bool UpdateComparison(ElectID electID, ElectID oldElectID)
-    {
-        if (electID.PayorID != oldElectID.PayorID) return true;
-        if (electID.CarrierName != oldElectID.CarrierName) return true;
-        if (electID.IsMedicaid != oldElectID.IsMedicaid) return true;
-        if (electID.ProviderTypes != oldElectID.ProviderTypes) return true;
-        if (electID.Comments != oldElectID.Comments) return true;
-        if (electID.CommBridge != oldElectID.CommBridge) return true;
-        if (electID.Attributes != oldElectID.Attributes) return true;
-        return false;
-    }
-
-    public static void Delete(long electIDNum)
-    {
-        var command = "DELETE FROM electid "
-                      + "WHERE ElectIDNum = " + SOut.Long(electIDNum);
-        Db.NonQ(command);
-    }
-
-    public static void DeleteMany(List<long> listElectIDNums)
-    {
-        if (listElectIDNums == null || listElectIDNums.Count == 0) return;
-        var command = "DELETE FROM electid "
-                      + "WHERE ElectIDNum IN(" + string.Join(",", listElectIDNums.Select(x => SOut.Long(x))) + ")";
-        Db.NonQ(command);
     }
 }

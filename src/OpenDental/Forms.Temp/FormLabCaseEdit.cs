@@ -1,8 +1,5 @@
 using System;
-using System.Drawing;
-using System.Collections;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Windows.Forms;
 using OpenDentBusiness;
 using System.Linq;
@@ -10,6 +7,7 @@ using CodeBase;
 using DataConnectionBase;
 using Imedisoft.Core.Data;
 using Imedisoft.Core.Entities;
+using Imedisoft.Features.Providers.Dtos;
 
 namespace OpenDental;
 
@@ -22,7 +20,7 @@ public partial class FormLabCaseEdit : FormODBase {
 	private List<LabTurnaround> _listLabTurnarounds;
 	///<summary>The lab slip, if one exists.</summary>
 	private Sheet _sheet;
-	private List<Provider> _listProviders;
+	private List<ProviderDto> _listProviders;
 	public List<long> ListProcCodeNums;
 
 		
@@ -60,7 +58,7 @@ public partial class FormLabCaseEdit : FormODBase {
 			}
 		}
 		//Include the current provider, even if it is hidden.
-		_listProviders=Providers.GetWhere(x => x.ProvNum==LabCaseCur.ProvNum || !x.IsHidden);
+		_listProviders=Providers.GetWhere(x => x.Id==LabCaseCur.ProvNum || !x.IsHidden);
 		comboProv.Items.AddProvsAbbr(_listProviders);
 		comboProv.SetSelectedProvNum(LabCaseCur.ProvNum);
 		var appointment=Appointments.GetOneApt(LabCaseCur.AptNum);
@@ -305,7 +303,7 @@ public partial class FormLabCaseEdit : FormODBase {
 		LabCaseCur.LaboratoryNum=_listLaboratories[listLab.SelectedIndex].LaboratoryNum;
 		//AptNum
 		//PlannedAptNum
-		LabCaseCur.ProvNum=_listProviders[comboProv.SelectedIndex].ProvNum;
+		LabCaseCur.ProvNum=_listProviders[comboProv.SelectedIndex].Id;
 		if(textDateCreated.Text==""){
 			LabCaseCur.DateTimeCreated=DateTime.MinValue;
 		}

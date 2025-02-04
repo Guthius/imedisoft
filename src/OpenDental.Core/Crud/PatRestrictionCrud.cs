@@ -17,13 +17,14 @@ public class PatRestrictionCrud
     public static List<PatRestriction> TableToList(DataTable table)
     {
         var retVal = new List<PatRestriction>();
-        PatRestriction patRestriction;
         foreach (DataRow row in table.Rows)
         {
-            patRestriction = new PatRestriction();
-            patRestriction.PatRestrictionNum = SIn.Long(row["PatRestrictionNum"].ToString());
-            patRestriction.PatNum = SIn.Long(row["PatNum"].ToString());
-            patRestriction.PatRestrictType = (PatRestrict) SIn.Int(row["PatRestrictType"].ToString());
+            var patRestriction = new PatRestriction
+            {
+                PatRestrictionNum = SIn.Long(row["PatRestrictionNum"].ToString()),
+                PatNum = SIn.Long(row["PatNum"].ToString()),
+                PatRestrictType = (PatRestrict) SIn.Int(row["PatRestrictType"].ToString())
+            };
             retVal.Add(patRestriction);
         }
 

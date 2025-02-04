@@ -18,14 +18,15 @@ public class DefLinkCrud
     public static List<DefLink> TableToList(DataTable table)
     {
         var retVal = new List<DefLink>();
-        DefLink defLink;
         foreach (DataRow row in table.Rows)
         {
-            defLink = new DefLink();
-            defLink.DefLinkNum = SIn.Long(row["DefLinkNum"].ToString());
-            defLink.DefNum = SIn.Long(row["DefNum"].ToString());
-            defLink.FKey = SIn.Long(row["FKey"].ToString());
-            defLink.LinkType = (DefLinkType) SIn.Int(row["LinkType"].ToString());
+            var defLink = new DefLink
+            {
+                DefLinkNum = SIn.Long(row["DefLinkNum"].ToString()),
+                DefNum = SIn.Long(row["DefNum"].ToString()),
+                FKey = SIn.Long(row["FKey"].ToString()),
+                LinkType = (DefLinkType) SIn.Int(row["LinkType"].ToString())
+            };
             retVal.Add(defLink);
         }
 

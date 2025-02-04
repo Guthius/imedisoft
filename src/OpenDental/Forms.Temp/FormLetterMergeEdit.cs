@@ -1,9 +1,3 @@
-using System;
-using System.Collections;
-using System.ComponentModel;
-using System.Diagnostics;
-using System.Drawing;
-using System.Drawing.Printing;
 using System.IO;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
@@ -11,6 +5,7 @@ using OpenDentBusiness;
 using CodeBase;
 using System.Collections.Generic;
 using Imedisoft.Core.Caching;
+using Imedisoft.Core.Data;
 using Imedisoft.Core.Entities;
 using Word=Microsoft.Office.Interop.Word;
 

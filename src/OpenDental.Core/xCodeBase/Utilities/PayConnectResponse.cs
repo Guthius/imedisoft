@@ -12,9 +12,7 @@ public class PayConnectResponse
     public DateTime TokenExpiration;
     public string CardType;
     public decimal Amount;
-    public decimal OriginalAmount;
     public decimal AmountSurcharged;
-    public decimal SurchargePercent;
     public string EntryMode;
     public string CardNumber;
     public string MerchantId;
@@ -39,7 +37,6 @@ public class PayConnectResponse
         Sale = 0,
         Authorize = 1,
         Refund = 2,
-        Capture = 3,
         Void = 4,
         Unknown = 5
     }

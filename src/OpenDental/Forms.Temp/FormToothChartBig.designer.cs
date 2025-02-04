@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using Imedisoft.Core.Entities;
-using SparksToothChart;
+using OpenDental.Chart;
 
 namespace OpenDental {
 	public partial class FormToothChartingBig {
@@ -36,9 +36,9 @@ namespace OpenDental {
 		/// </summary>
 		private void InitializeComponent()
 		{
-			SparksToothChart.ToothChartData toothChartData1 = new SparksToothChart.ToothChartData();
+			ToothChartData toothChartData1 = new ToothChartData();
 			System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(FormToothChartingBig));
-			this.toothChartWrapper = new SparksToothChart.ToothChartWrapper();
+			this.toothChartWrapper = new ToothChartWrapper();
 			this.SuspendLayout();
 			// 
 			// toothChartWrapper
@@ -46,7 +46,7 @@ namespace OpenDental {
 			this.toothChartWrapper.AutoFinish = false;
 			this.toothChartWrapper.ColorBackground = System.Drawing.Color.FromArgb(((int)(((byte)(150)))), ((int)(((byte)(145)))), ((int)(((byte)(152)))));
 			this.toothChartWrapper.Cursor = System.Windows.Forms.Cursors.Default;
-			this.toothChartWrapper.CursorTool = SparksToothChart.CursorTool.Pointer;
+			this.toothChartWrapper.CursorTool = CursorTool.Pointer;
 			this.toothChartWrapper.DeviceFormat = null;
 			this.toothChartWrapper.Dock = System.Windows.Forms.DockStyle.Fill;
 			this.toothChartWrapper.DrawMode = DrawingMode.Simple2D;

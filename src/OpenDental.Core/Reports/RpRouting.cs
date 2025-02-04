@@ -1,9 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Data;
-using System.Linq;
-using System.Reflection;
-using System.Text;
 using DataConnectionBase;
 using Imedisoft.Core.Entities;
 
@@ -14,10 +10,10 @@ namespace OpenDentBusiness {
 		///if the corresponding list is null or empty.</summary>
 		public static List<long> GetRouting(DateTime date,List<long> listProvNums,List<long> listClinicNums) {
 			//Excluding PtNote and PtNoteCompleted per Nathan and Arna, see job 1064
-			string command="SELECT AptNum FROM appointment "
-				+"WHERE "+DbHelper.DateTConditionColumn("AptDateTime",ConditionOperator.Equals,date)+" "
-				+"AND AptStatus NOT IN ("+SOut.Int((int)ApptStatus.UnschedList)+","+SOut.Int((int)ApptStatus.Planned)+","+SOut.Int((int)ApptStatus.PtNote)+","
-					+SOut.Int((int)ApptStatus.PtNoteCompleted)+") ";
+			var command="SELECT AptNum FROM appointment "
+			            +"WHERE "+DbHelper.DateTConditionColumn("AptDateTime",ConditionOperator.Equals,date)+" "
+			            +"AND AptStatus NOT IN ("+SOut.Int((int)ApptStatus.UnschedList)+","+SOut.Int((int)ApptStatus.Planned)+","+SOut.Int((int)ApptStatus.PtNote)+","
+			            +SOut.Int((int)ApptStatus.PtNoteCompleted)+") ";
 			if(listProvNums!=null && listProvNums.Count>0) {
 				command+="AND (ProvNum IN ("+string.Join(",",listProvNums)+") OR ProvHyg IN ("+string.Join(",",listProvNums)+")) ";
 			}

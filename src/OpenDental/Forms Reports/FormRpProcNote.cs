@@ -1,14 +1,10 @@
 using System;
 using System.Drawing;
 using System.Drawing.Printing;
-using System.Collections;
-using System.ComponentModel;
 using System.Windows.Forms;
-using OpenDental.ReportingComplex;
 using OpenDentBusiness;
 using System.Collections.Generic;
 using System.Data;
-using System.IO;
 using OpenDental.UI;
 using CodeBase;
 using System.Linq;
@@ -16,6 +12,7 @@ using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Entities;
 using Imedisoft.Core.Features.Clinics;
+using Imedisoft.Features.Providers.Dtos;
 using OpenDental.Logic;
 
 namespace OpenDental;
@@ -44,7 +41,7 @@ public partial class FormRpProcNote:FormODBase {
 		FillGrid();
 	}
 
-	private void FillProvs(List<Provider> listProviders) {
+	private void FillProvs(List<ProviderDto> listProviders) {
 		comboProvs.Items.Clear();
 		comboProvs.IncludeAll=true;
 		comboProvs.Items.AddProvsFull(listProviders);

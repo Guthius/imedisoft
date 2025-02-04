@@ -59,7 +59,7 @@ public class Security
 
             if (_curComputerName == null)
             {
-                _curComputerName = ODEnvironment.MachineName;
+                _curComputerName = Environment.MachineName;
             }
 
             return _curComputerName;
@@ -134,7 +134,7 @@ public class Security
     {
         if (CurUser == null)
         {
-            string msg = Lans.g("Security", "Not authorized for") + "\r\n" + GroupPermissions.GetDesc(perm);
+            var msg = Lans.g("Security", "Not authorized for") + "\r\n" + GroupPermissions.GetDesc(perm);
             if (!suppressMsgBox)
             {
                 MessageBox.Show(msg);
@@ -212,7 +212,7 @@ public class Security
         }
 
         //Include CEMT users, as a CEMT user could be logged in when this is checked.
-        DateTime dateLimit = GetDateLimit(perm, curUser.GetGroups(true).Select(x => x.UserGroupNum).ToList());
+        var dateLimit = GetDateLimit(perm, curUser.GetGroups().Select(x => x.UserGroupNum).ToList());
         if (date > dateLimit)
         {
             //authorized
@@ -298,7 +298,7 @@ public class Security
             return false; //admins are never affected by global date limitation when preference is false.
         }
 
-        List<EnumPermType> listPermissionsCanBypassLockDate = new List<EnumPermType>()
+        var listPermissionsCanBypassLockDate = new List<EnumPermType>()
         {
             EnumPermType.ProcCompleteEdit, EnumPermType.ProcCompleteAddAdj, EnumPermType.ProcCompleteEditMisc, EnumPermType.ProcCompleteStatusEdit, EnumPermType.ProcCompleteNote,
             EnumPermType.ProcComplCreate, EnumPermType.ProcExistingEdit
@@ -316,7 +316,7 @@ public class Security
         //If global lock is Date based.
         if (date <= PrefC.GetDate(PrefName.SecurityLockDate))
         {
-            string msg = Lans.g("Security", "Locked by Administrator before ") + PrefC.GetDate(PrefName.SecurityLockDate).ToShortDateString();
+            var msg = Lans.g("Security", "Locked by Administrator before ") + PrefC.GetDate(PrefName.SecurityLockDate).ToShortDateString();
             if (!suppressMsgBox)
             {
                 MessageBox.Show(msg);
@@ -327,10 +327,10 @@ public class Security
         }
 
         //If global lock is days based.
-        int lockDays = PrefC.GetInt(PrefName.SecurityLockDays);
+        var lockDays = PrefC.GetInt(PrefName.SecurityLockDays);
         if (lockDays > 0 && date <= DateTime.Today.AddDays(-lockDays))
         {
-            string msg = Lans.g("Security", "Locked by Administrator before") + " " + lockDays.ToString() + " days.";
+            var msg = Lans.g("Security", "Locked by Administrator before") + " " + lockDays.ToString() + " days.";
             if (!suppressMsgBox)
             {
                 MessageBox.Show(msg);
@@ -351,7 +351,7 @@ public class Security
             return CurComputerName;
         }
 
-        string[] arrayComputerNames = new string[] {CurComputerName, ODEnvironment.MachineName, Environment.MachineName};
+        var arrayComputerNames = new string[] {CurComputerName, Environment.MachineName, Environment.MachineName};
         return string.Join(", ", arrayComputerNames.Where(x => !string.IsNullOrEmpty(x)).Distinct());
     }
 
@@ -367,7 +367,7 @@ public class Security
             return suggestI;
         }
 
-        for (int i = 0; i < 7; i++)
+        for (var i = 0; i < 7; i++)
         {
             if (IsAuthorized(PermofModule(i), DateTime.MinValue, true))
             {

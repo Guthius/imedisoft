@@ -18,13 +18,14 @@ public class AlertCategoryLinkCrud
     public static List<AlertCategoryLink> TableToList(DataTable table)
     {
         var retVal = new List<AlertCategoryLink>();
-        AlertCategoryLink alertCategoryLink;
         foreach (DataRow row in table.Rows)
         {
-            alertCategoryLink = new AlertCategoryLink();
-            alertCategoryLink.AlertCategoryLinkNum = SIn.Long(row["AlertCategoryLinkNum"].ToString());
-            alertCategoryLink.AlertCategoryNum = SIn.Long(row["AlertCategoryNum"].ToString());
-            alertCategoryLink.AlertType = (AlertType) SIn.Int(row["AlertType"].ToString());
+            var alertCategoryLink = new AlertCategoryLink
+            {
+                AlertCategoryLinkNum = SIn.Long(row["AlertCategoryLinkNum"].ToString()),
+                AlertCategoryNum = SIn.Long(row["AlertCategoryNum"].ToString()),
+                AlertType = (AlertType) SIn.Int(row["AlertType"].ToString())
+            };
             retVal.Add(alertCategoryLink);
         }
 
@@ -43,7 +44,7 @@ public class AlertCategoryLinkCrud
         return table;
     }
 
-    public static long Insert(AlertCategoryLink alertCategoryLink)
+    public static void Insert(AlertCategoryLink alertCategoryLink)
     {
         var command = "INSERT INTO alertcategorylink (";
 
@@ -55,7 +56,6 @@ public class AlertCategoryLinkCrud
         {
             alertCategoryLink.AlertCategoryLinkNum = Db.NonQ(command, true, "AlertCategoryLinkNum", "alertCategoryLink");
         }
-        return alertCategoryLink.AlertCategoryLinkNum;
     }
 
     public static bool Update(AlertCategoryLink alertCategoryLink, AlertCategoryLink oldAlertCategoryLink)
@@ -88,7 +88,7 @@ public class AlertCategoryLinkCrud
         Db.NonQ(command);
     }
 
-    public static bool Sync(List<AlertCategoryLink> listNew, List<AlertCategoryLink> listDB)
+    public static void Sync(List<AlertCategoryLink> listNew, List<AlertCategoryLink> listDB)
     {
         //Adding items to lists changes the order of operation. All inserts are completed first, then updates, then deletes.
         var listIns = new List<AlertCategoryLink>();
@@ -100,15 +100,13 @@ public class AlertCategoryLinkCrud
         var idxNew = 0;
         var idxDB = 0;
         var rowsUpdatedCount = 0;
-        AlertCategoryLink fieldNew;
-        AlertCategoryLink fieldDB;
         //Because both lists have been sorted using the same criteria, we can now walk each list to determine which list contians the next element.  The next element is determined by Primary Key.
         //If the New list contains the next item it will be inserted.  If the DB contains the next item, it will be deleted.  If both lists contain the next item, the item will be updated.
         while (idxNew < listNew.Count || idxDB < listDB.Count)
         {
-            fieldNew = null;
+            AlertCategoryLink fieldNew = null;
             if (idxNew < listNew.Count) fieldNew = listNew[idxNew];
-            fieldDB = null;
+            AlertCategoryLink fieldDB = null;
             if (idxDB < listDB.Count) fieldDB = listDB[idxDB];
             //begin compare
             if (fieldNew != null && fieldDB == null)
@@ -157,7 +155,6 @@ public class AlertCategoryLinkCrud
                 rowsUpdatedCount++;
 
         DeleteMany(listDel.Select(x => x.AlertCategoryLinkNum).ToList());
-        if (rowsUpdatedCount > 0 || listIns.Count > 0 || listDel.Count > 0) return true;
-        return false;
+        if (rowsUpdatedCount > 0 || listIns.Count > 0 || listDel.Count > 0) return;
     }
 }

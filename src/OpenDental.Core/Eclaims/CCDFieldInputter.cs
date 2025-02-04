@@ -128,10 +128,10 @@ public class CCDFieldInputter
         var lineNum = 0;
         for (var i = 0; i < listFields.Count; i++)
         {
-            if (listFields[i].fieldId == arrayFieldIds[0])
+            if (listFields[i].FieldId == arrayFieldIds[0])
             {
                 //Beginning of next procedure.  Is a line number, which we use for key.
-                lineNum = SIn.Int(listFields[i].valuestr);
+                lineNum = SIn.Int(listFields[i].Valuestr);
                 if (!dictProcData.ContainsKey(lineNum))
                 {
                     dictProcData.Add(lineNum, new List<CCDField>());
@@ -160,7 +160,7 @@ public class CCDFieldInputter
         List<CCDField> listProcFields = null;
         for (var i = 0; i < listFields.Count; i++)
         {
-            if (listFields[i].fieldId == arrayFieldIds[0])
+            if (listFields[i].FieldId == arrayFieldIds[0])
             {
                 //Beginning of next procedure.  Is a line number, which we use for key.
                 listProcFields = new List<CCDField>();
@@ -185,7 +185,7 @@ public class CCDFieldInputter
         //The following list of fields is in order.
         var arrayFieldIds = new string[] {"G45", "G26"};
         var listFields = GetFieldsByIds(arrayFieldIds);
-        if (listFields.FirstOrDefault(x => x.fieldId == "G45") == null)
+        if (listFields.FirstOrDefault(x => x.FieldId == "G45") == null)
         {
             //In version 02, the note number field G45 does not exist, so you use the order listed instead.
             for (var i = 0; i < listFields.Count; i++)
@@ -201,10 +201,10 @@ public class CCDFieldInputter
             var noteNumber = 0;
             for (var i = 0; i < listFields.Count; i++)
             {
-                if (listFields[i].fieldId == arrayFieldIds[0])
+                if (listFields[i].FieldId == arrayFieldIds[0])
                 {
                     //Beginning of next procedure.  Is a line number, which we use for key.
-                    noteNumber = SIn.Int(listFields[i].valuestr);
+                    noteNumber = SIn.Int(listFields[i].Valuestr);
                     if (!dictNoteData.ContainsKey(noteNumber))
                     {
                         dictNoteData.Add(noteNumber, "");
@@ -212,7 +212,7 @@ public class CCDFieldInputter
                 }
                 else
                 {
-                    dictNoteData[noteNumber] += listFields[i].valuestr;
+                    dictNoteData[noteNumber] += listFields[i].Valuestr;
                 }
             }
         }
@@ -267,7 +267,7 @@ public class CCDFieldInputter
         //if(!field.CheckValue(this,substr)){
         //  throw new ApplicationException("Invalid value for CCD message field '"+field.fieldName+"'"+((substr==null)?"":(": "+substr)));
         //}
-        field.valuestr = substr;
+        field.Valuestr = substr;
         fieldList.Add(field);
         return message.Substring(substr.Length, message.Length - substr.Length); //Skip text that has already been read in.
     }
@@ -304,12 +304,12 @@ public class CCDFieldInputter
                 var valueField = GetFieldById(valueFieldId);
                 if (valueField == null)
                 {
-                    throw new ApplicationException(this.ToString() + ".InputCCDFields: Internal error, could not locate value field '" + valueFieldId + "'");
+                    throw new ApplicationException(this + ".InputCCDFields: Internal error, could not locate value field '" + valueFieldId + "'");
                 }
 
-                if (valueField.format != "N")
+                if (valueField.Format != "N")
                 {
-                    throw new ApplicationException(this.ToString() + ".InputCCDFields: Internal error, value field '" + valueFieldId + "' is not an integer");
+                    throw new ApplicationException(this + ".InputCCDFields: Internal error, value field '" + valueFieldId + "' is not an integer");
                 }
 
                 var listFieldId = fieldOrderStr.Substring(i + 6, 3);
@@ -320,7 +320,7 @@ public class CCDFieldInputter
 
                 i += 6;
                 var count = 0;
-                Int32.TryParse(valueField.valuestr, out count); //Treat spaces as 0.
+                int.TryParse(valueField.Valuestr, out count); //Treat spaces as 0.
                 for (var p = 0; p < count; p++)
                 {
                     message = InputField(message, listFieldId);
@@ -348,7 +348,7 @@ public class CCDFieldInputter
         var fields = new List<CCDField>();
         foreach (var field in fieldList)
         {
-            if (field.fieldId == fieldId)
+            if (field.FieldId == fieldId)
             {
                 fields.Add(field); //(new CCDField(field,isVersion2));
             }
@@ -369,7 +369,7 @@ public class CCDFieldInputter
 
         foreach (var field in fieldList)
         {
-            if (arrayFieldIds.Contains(field.fieldId))
+            if (arrayFieldIds.Contains(field.FieldId))
             {
                 listFields.Add(field);
             }
@@ -410,7 +410,7 @@ public class CCDFieldInputter
             throw new ApplicationException("Internal error, invalid use of ambiguous CCD field id" + ((fieldId == null) ? "" : (": " + fieldId)));
         }
 
-        return fields[0].valuestr;
+        return fields[0].Valuestr;
     }
 
     ///<summary>Used to read primary eclaim data which has already been sent out to CDAnet for processing.
@@ -428,7 +428,7 @@ public class CCDFieldInputter
         var e20Val = 0;
         if (fieldE20 != null)
         {
-            e20Val = Convert.ToInt32(fieldE20.valuestr);
+            e20Val = Convert.ToInt32(fieldE20.Valuestr);
         }
 
         if (e20Val == 1)
@@ -441,7 +441,7 @@ public class CCDFieldInputter
         var f22Val = 0;
         if (fieldF22 != null)
         {
-            f22Val = Convert.ToInt32(fieldF22.valuestr);
+            f22Val = Convert.ToInt32(fieldF22.Valuestr);
         }
 
         for (var i = 0; i < f22Val; i++)
@@ -453,7 +453,7 @@ public class CCDFieldInputter
         var f06Val = 0;
         if (fieldF06 != null)
         {
-            f06Val = Convert.ToInt32(fieldF06.valuestr);
+            f06Val = Convert.ToInt32(fieldF06.Valuestr);
         }
 
         for (var i = 0; i < f06Val; i++)
@@ -465,7 +465,7 @@ public class CCDFieldInputter
         var c18Val = 0;
         if (fieldC18 != null)
         {
-            c18Val = Convert.ToInt32(fieldC18.valuestr);
+            c18Val = Convert.ToInt32(fieldC18.Valuestr);
         }
 
         if (c18Val == 1)
@@ -503,7 +503,7 @@ public class CCDFieldInputter
         var e20Val = 0;
         if (fieldE20 != null)
         {
-            e20Val = Convert.ToInt32(fieldE20.valuestr);
+            e20Val = Convert.ToInt32(fieldE20.Valuestr);
         }
 
         if (e20Val == 1)
@@ -516,7 +516,7 @@ public class CCDFieldInputter
         var f22Val = 0;
         if (fieldF22 != null)
         {
-            f22Val = Convert.ToInt32(fieldF22.valuestr);
+            f22Val = Convert.ToInt32(fieldF22.Valuestr);
         }
 
         for (var i = 0; i < f22Val; i++)
@@ -529,7 +529,7 @@ public class CCDFieldInputter
         var f25Val = 0;
         if (fieldF25 != null)
         {
-            f25Val = Convert.ToInt32(fieldF25.valuestr);
+            f25Val = Convert.ToInt32(fieldF25.Valuestr);
         }
 
         if (f25Val == 1)
@@ -541,7 +541,7 @@ public class CCDFieldInputter
         var f06Val = 0;
         if (fieldF06 != null)
         {
-            f06Val = Convert.ToInt32(fieldF06.valuestr);
+            f06Val = Convert.ToInt32(fieldF06.Valuestr);
         }
 
         for (var i = 0; i < f06Val; i++)
@@ -553,7 +553,7 @@ public class CCDFieldInputter
         var c18Val = 0;
         if (fieldC18 != null)
         {
-            c18Val = Convert.ToInt32(fieldC18.valuestr);
+            c18Val = Convert.ToInt32(fieldC18.Valuestr);
         }
 
         if (c18Val == 1)
@@ -577,7 +577,7 @@ public class CCDFieldInputter
         var e20Val = 0;
         if (fieldE20 != null)
         {
-            e20Val = Convert.ToInt32(fieldE20.valuestr);
+            e20Val = Convert.ToInt32(fieldE20.Valuestr);
         }
 
         if (e20Val == 1)
@@ -590,7 +590,7 @@ public class CCDFieldInputter
         var f22Val = 0;
         if (fieldF22 != null)
         {
-            f22Val = Convert.ToInt32(fieldF22.valuestr);
+            f22Val = Convert.ToInt32(fieldF22.Valuestr);
         }
 
         for (var i = 0; i < f22Val; i++)
@@ -602,7 +602,7 @@ public class CCDFieldInputter
         var f06Val = 0;
         if (fieldF06 != null)
         {
-            f06Val = Convert.ToInt32(fieldF06.valuestr);
+            f06Val = Convert.ToInt32(fieldF06.Valuestr);
         }
 
         for (var i = 0; i < f06Val; i++)
@@ -614,7 +614,7 @@ public class CCDFieldInputter
         var c18Val = 0;
         if (fieldC18 != null)
         {
-            c18Val = Convert.ToInt32(fieldC18.valuestr);
+            c18Val = Convert.ToInt32(fieldC18.Valuestr);
         }
 
         if (c18Val == 1)
@@ -642,13 +642,13 @@ public class CCDFieldInputter
             return; //error
         }
 
-        if (fieldG06.format != "N")
+        if (fieldG06.Format != "N")
         {
-            MessageBox.Show(this.ToString() + "PrintClaimAck_11: Internal error, field G06 is not an integer");
+            MessageBox.Show(this + "PrintClaimAck_11: Internal error, field G06 is not an integer");
             return; //error
         }
 
-        for (var i = 0; i < Convert.ToInt32(fieldG06.valuestr); i++)
+        for (var i = 0; i < Convert.ToInt32(fieldG06.Valuestr); i++)
         {
             //Input a list of sub-records.
             message = this.InputFields(message, "F07G08");
@@ -670,13 +670,13 @@ public class CCDFieldInputter
             return; //error
         }
 
-        if (fieldF06.format != "N")
+        if (fieldF06.Format != "N")
         {
-            MessageBox.Show(this.ToString() + ".PrintEOB_21: Internal error, field F06 is not of integer type!");
+            MessageBox.Show(this + ".PrintEOB_21: Internal error, field F06 is not of integer type!");
             return;
         }
 
-        for (var i = 0; i < Convert.ToInt32(fieldF06.valuestr); i++)
+        for (var i = 0; i < Convert.ToInt32(fieldF06.Valuestr); i++)
         {
             message = this.InputFields(message, "F07G12G13G14G15G43G56G57G58G02G59G60G61G16G17");
         }
@@ -687,13 +687,13 @@ public class CCDFieldInputter
             return; //error	
         }
 
-        if (fieldG10.format != "N")
+        if (fieldG10.Format != "N")
         {
-            MessageBox.Show(this.ToString() + ".PrintEOB_21: Internal error, field G10 is not of integer type!");
+            MessageBox.Show(this + ".PrintEOB_21: Internal error, field G10 is not of integer type!");
             return; //error
         }
 
-        for (var i = 0; i < Convert.ToInt32(fieldG10.valuestr); i++)
+        for (var i = 0; i < Convert.ToInt32(fieldG10.Valuestr); i++)
         {
             message = this.InputFields(message, "G18G19G20G44G21G22G23G24G25");
         }
@@ -704,13 +704,13 @@ public class CCDFieldInputter
             return; //error
         }
 
-        if (fieldG11.format != "N")
+        if (fieldG11.Format != "N")
         {
-            MessageBox.Show(this.ToString() + ".PrintEOB_21: Internal error, field G11 is not of integer type!");
+            MessageBox.Show(this + ".PrintEOB_21: Internal error, field G11 is not of integer type!");
             return; //error
         }
 
-        for (var i = 0; i < Convert.ToInt32(fieldG11.valuestr); i++)
+        for (var i = 0; i < Convert.ToInt32(fieldG11.Valuestr); i++)
         {
             message = this.InputFields(message, "G41G45G26");
         }
@@ -748,13 +748,13 @@ public class CCDFieldInputter
             return; //error
         }
 
-        if (fieldF44.format != "N")
+        if (fieldF44.Format != "N")
         {
-            MessageBox.Show(this.ToString() + ".ParseAttachmentRequest_09: Internal error, field F44 is not of integer type!");
+            MessageBox.Show(this + ".ParseAttachmentRequest_09: Internal error, field F44 is not of integer type!");
             return;
         }
 
-        for (var i = 0; i < Convert.ToInt32(fieldF44.valuestr); i++)
+        for (var i = 0; i < Convert.ToInt32(fieldF44.Valuestr); i++)
         {
             message = this.InputFields(message, "F49F45F46F48F47");
         }
@@ -790,13 +790,13 @@ public class CCDFieldInputter
             return; //error, but return as much of the form as we were able to understand.
         }
 
-        if (fieldF06.format != "N")
+        if (fieldF06.Format != "N")
         {
-            MessageBox.Show(this.ToString() + ".ParsePredeterminationEOB_23: Internal error, field F06 is not of integer type!");
+            MessageBox.Show(this + ".ParsePredeterminationEOB_23: Internal error, field F06 is not of integer type!");
             return; //error
         }
 
-        for (var i = 0; i < Convert.ToInt32(fieldF06.valuestr); i++)
+        for (var i = 0; i < Convert.ToInt32(fieldF06.Valuestr); i++)
         {
             message = this.InputFields(message, "F07G12G13G14G15G43G56G57G58G02G59G60G61G16G17");
         }
@@ -807,13 +807,13 @@ public class CCDFieldInputter
             return; //error
         }
 
-        if (fieldG10.format != "N")
+        if (fieldG10.Format != "N")
         {
-            MessageBox.Show(this.ToString() + ".ParsePredeterminationEOB_23: Internal error, field G10 is not of integer type!");
+            MessageBox.Show(this + ".ParsePredeterminationEOB_23: Internal error, field G10 is not of integer type!");
             return; //error
         }
 
-        for (var i = 0; i < Convert.ToInt32(fieldG10.valuestr); i++)
+        for (var i = 0; i < Convert.ToInt32(fieldG10.Valuestr); i++)
         {
             message = this.InputFields(message, "G18G19G20G44G21G22G23G24G25");
         }
@@ -824,13 +824,13 @@ public class CCDFieldInputter
             return; //error
         }
 
-        if (fieldG11.format != "N")
+        if (fieldG11.Format != "N")
         {
-            MessageBox.Show(this.ToString() + ".ParsePredeterminationEOB_23: Internal error, field G11 is not of integer type!");
+            MessageBox.Show(this + ".ParsePredeterminationEOB_23: Internal error, field G11 is not of integer type!");
             return; //error
         }
 
-        for (var i = 0; i < Convert.ToInt32(fieldG11.valuestr); i++)
+        for (var i = 0; i < Convert.ToInt32(fieldG11.Valuestr); i++)
         {
             message = this.InputFields(message, "G41G45G26");
         }
@@ -850,13 +850,13 @@ public class CCDFieldInputter
             return; //error
         }
 
-        if (fieldG06.format != "N")
+        if (fieldG06.Format != "N")
         {
-            MessageBox.Show(this.ToString() + ".ParsePredeterminationAck_13: Internal error, field G06 is not of integer type!");
+            MessageBox.Show(this + ".ParsePredeterminationAck_13: Internal error, field G06 is not of integer type!");
             return; //error
         }
 
-        for (var i = 0; i < Convert.ToInt32(fieldG06.valuestr); i++)
+        for (var i = 0; i < Convert.ToInt32(fieldG06.Valuestr); i++)
         {
             message = this.InputFields(message, "F07G08");
         }
@@ -874,13 +874,13 @@ public class CCDFieldInputter
             return; //error
         }
 
-        if (fieldG37.format != "N")
+        if (fieldG37.Format != "N")
         {
-            MessageBox.Show(this.ToString() + ".ParsePaymentReconciliation_16: Internal error, field G37 is not of integer type!");
+            MessageBox.Show(this + ".ParsePaymentReconciliation_16: Internal error, field G37 is not of integer type!");
             return; //error
         }
 
-        for (var i = 0; i < Convert.ToInt32(fieldG37.valuestr); i++)
+        for (var i = 0; i < Convert.ToInt32(fieldG37.Valuestr); i++)
         {
             message = this.InputFields(message, "B01B02B03A05A02G01G38");
         }
@@ -891,13 +891,13 @@ public class CCDFieldInputter
             return; //error
         }
 
-        if (fieldG11.format != "N")
+        if (fieldG11.Format != "N")
         {
-            MessageBox.Show(this.ToString() + ".ParsePaymentReconciliation_16: Internal error, field G11 is not of integer type!");
+            MessageBox.Show(this + ".ParsePaymentReconciliation_16: Internal error, field G11 is not of integer type!");
             return; //error
         }
 
-        for (var i = 0; i < Convert.ToInt32(fieldG11.valuestr); i++)
+        for (var i = 0; i < Convert.ToInt32(fieldG11.Valuestr); i++)
         {
             message = this.InputFields(message, "G41G26");
         }
@@ -915,13 +915,13 @@ public class CCDFieldInputter
             return; //error
         }
 
-        if (fieldG37.format != "N")
+        if (fieldG37.Format != "N")
         {
-            MessageBox.Show(this.ToString() + ".ParseReconciliaiton_15: Internal error, field G37 is not of integer type!");
+            MessageBox.Show(this + ".ParseReconciliaiton_15: Internal error, field G37 is not of integer type!");
             return; //error
         }
 
-        for (var i = 0; i < Convert.ToInt32(fieldG37.valuestr); i++)
+        for (var i = 0; i < Convert.ToInt32(fieldG37.Valuestr); i++)
         {
             message = this.InputFields(message, "B01A05A02G01G38");
         }
@@ -932,13 +932,13 @@ public class CCDFieldInputter
             return; //error
         }
 
-        if (fieldG11.format != "N")
+        if (fieldG11.Format != "N")
         {
-            MessageBox.Show(this.ToString() + ".ParseReconciliaiton_15: Internal error, field G11 is not of integer type!");
+            MessageBox.Show(this + ".ParseReconciliaiton_15: Internal error, field G11 is not of integer type!");
             return; //error
         }
 
-        for (var i = 0; i < Convert.ToInt32(fieldG11.valuestr); i++)
+        for (var i = 0; i < Convert.ToInt32(fieldG11.Valuestr); i++)
         {
             message = this.InputFields(message, "G41G26");
         }
@@ -960,7 +960,7 @@ public class CCDFieldInputter
         var f06Val = 0;
         if (fieldF06 != null)
         {
-            f06Val = Convert.ToInt32(fieldF06.valuestr);
+            f06Val = Convert.ToInt32(fieldF06.Valuestr);
         }
 
         for (var i = 0; i < f06Val; i++)
@@ -984,7 +984,7 @@ public class CCDFieldInputter
         var f06Val = 0;
         if (fieldF06 != null)
         {
-            f06Val = Convert.ToInt32(fieldF06.valuestr);
+            f06Val = Convert.ToInt32(fieldF06.Valuestr);
         }
 
         for (var i = 0; i < f06Val; i++)
@@ -1009,13 +1009,13 @@ public class CCDFieldInputter
             return; //error
         }
 
-        if (fieldG06.format != "N")
+        if (fieldG06.Format != "N")
         {
-            MessageBox.Show(this.ToString() + ".ParseClaimResponse_v2_11: Internal error, field G06 is not of integer type!");
+            MessageBox.Show(this + ".ParseClaimResponse_v2_11: Internal error, field G06 is not of integer type!");
             return; //error
         }
 
-        for (var i = 0; i < Convert.ToInt32(fieldG06.valuestr); i++)
+        for (var i = 0; i < Convert.ToInt32(fieldG06.Valuestr); i++)
         {
             message = this.InputFields(message, "F07G08");
         }
@@ -1030,13 +1030,13 @@ public class CCDFieldInputter
             return; //error
         }
 
-        if (fieldF06.format != "N")
+        if (fieldF06.Format != "N")
         {
-            MessageBox.Show(this.ToString() + ".ParseEOB_v2_21: Internal error, field F06 is not of integer type!");
+            MessageBox.Show(this + ".ParseEOB_v2_21: Internal error, field F06 is not of integer type!");
             return; //error
         }
 
-        for (var i = 0; i < Convert.ToInt32(fieldF06.valuestr); i++)
+        for (var i = 0; i < Convert.ToInt32(fieldF06.Valuestr); i++)
         {
             message = this.InputFields(message, "F07G12G13G14G15G16G17");
         }
@@ -1047,13 +1047,13 @@ public class CCDFieldInputter
             return; //error
         }
 
-        if (fieldG10.format != "N")
+        if (fieldG10.Format != "N")
         {
-            MessageBox.Show(this.ToString() + ".ParseEOB_v2_21: Internal error, field G10 is not of integer type!");
+            MessageBox.Show(this + ".ParseEOB_v2_21: Internal error, field G10 is not of integer type!");
             return; //error
         }
 
-        for (var i = 0; i < Convert.ToInt32(fieldG10.valuestr); i++)
+        for (var i = 0; i < Convert.ToInt32(fieldG10.Valuestr); i++)
         {
             message = this.InputFields(message, "G18G19G20G21G22G23G24G25");
         }
@@ -1075,13 +1075,13 @@ public class CCDFieldInputter
             return; //error
         }
 
-        if (fieldG06.format != "N")
+        if (fieldG06.Format != "N")
         {
-            MessageBox.Show(this.ToString() + ".ParsePredeterminationAck_v2_13: Internal error, field G06 is not of integer type!");
+            MessageBox.Show(this + ".ParsePredeterminationAck_v2_13: Internal error, field G06 is not of integer type!");
             return; //error
         }
 
-        for (var i = 0; i < Convert.ToInt32(fieldG06.valuestr); i++)
+        for (var i = 0; i < Convert.ToInt32(fieldG06.Valuestr); i++)
         {
             message = this.InputFields(message, "F07G08");
         }
@@ -1182,7 +1182,7 @@ public class CCDFieldInputter
         if (fieldG40 != null)
         {
             //An embedded transaction exists.
-            return new CCDFieldInputter(fieldG40.valuestr);
+            return new CCDFieldInputter(fieldG40.Valuestr);
         }
 
         return null;

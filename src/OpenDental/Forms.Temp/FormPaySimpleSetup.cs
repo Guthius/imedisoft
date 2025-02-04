@@ -1,8 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Data;
-using System.Drawing;
-using System.Text;
 using System.Windows.Forms;
 using OpenDentBusiness;
 using System.Linq;
@@ -41,49 +38,38 @@ public partial class FormPaySimpleSetup:FormODBase {
 			return;
 		}
 		checkEnabled.Checked=_program.Enabled;
-		if(!true) {//clinics are not enabled, use ClinicNum 0 to indicate 'Headquarters' or practice level program properties
-			checkEnabled.Text=Lan.g(this,"Enabled");
-			groupPaySettings.Text=Lan.g(this,"Payment Settings");
-			comboClinic.Visible=false;
-			labelClinic.Visible=false;
-			labelClinicEnable.Visible=false;
-			_listUserClinicNums= [0];//if clinics are disabled, programproperty.ClinicNum will be set to 0
+		//Using clinics
+		groupPaySettings.Text=Lan.g(this,"Clinic Payment Settings");
+		_listUserClinicNums= [];
+		comboClinic.Items.Clear();
+		//if PaySimple is enabled and the user is restricted to a clinic, don't allow the user to disable for all clinics
+		if(Security.CurUser.ClinicIsRestricted) {
+			if(checkEnabled.Checked) {
+				checkEnabled.Enabled=false;
+			}
 		}
-		else {//Using clinics
-			groupPaySettings.Text=Lan.g(this,"Clinic Payment Settings");
-			_listUserClinicNums= [];
-			comboClinic.Items.Clear();
-			//if PaySimple is enabled and the user is restricted to a clinic, don't allow the user to disable for all clinics
-			if(Security.CurUser.ClinicIsRestricted) {
-				if(checkEnabled.Checked) {
-					checkEnabled.Enabled=false;
+		else {
+			comboClinic.Items.Add(Lan.g(this,"Headquarters"));
+			//this way both lists have the same number of items in it and if 'Headquarters' is selected the programproperty.ClinicNum will be set to 0
+			_listUserClinicNums.Add(0);
+			comboClinic.SelectedIndex=0;
+		}
+		var listClinics=Clinics.GetForUserod(Security.CurUser);
+		for(var i=0;i<listClinics.Count;i++) {
+			comboClinic.Items.Add(listClinics[i].Abbr);
+			_listUserClinicNums.Add(listClinics[i].Id);
+			if(Clinics.ClinicNum==listClinics[i].Id) {
+				comboClinic.SelectedIndex=i;
+				if(!Security.CurUser.ClinicIsRestricted) {
+					comboClinic.SelectedIndex++;//increment the SelectedIndex to account for 'Headquarters' in the list at position 0 if the user is not restricted.
 				}
 			}
-			else {
-				comboClinic.Items.Add(Lan.g(this,"Headquarters"));
-				//this way both lists have the same number of items in it and if 'Headquarters' is selected the programproperty.ClinicNum will be set to 0
-				_listUserClinicNums.Add(0);
-				comboClinic.SelectedIndex=0;
-			}
-			var listClinics=Clinics.GetForUserod(Security.CurUser);
-			for(var i=0;i<listClinics.Count;i++) {
-				comboClinic.Items.Add(listClinics[i].Abbr);
-				_listUserClinicNums.Add(listClinics[i].Id);
-				if(Clinics.ClinicNum==listClinics[i].Id) {
-					comboClinic.SelectedIndex=i;
-					if(!Security.CurUser.ClinicIsRestricted) {
-						comboClinic.SelectedIndex++;//increment the SelectedIndex to account for 'Headquarters' in the list at position 0 if the user is not restricted.
-					}
-				}
-			}
-			_indexClinicRevert=comboClinic.SelectedIndex;
 		}
+		_indexClinicRevert=comboClinic.SelectedIndex;
 		_listProgramProperties=ProgramProperties.GetForProgram(_program.ProgramNum);
-		if(true) {
-			var listClinics=Clinics.GetForUserod(Security.CurUser);
-			for(var i=0;i<listClinics.Count;i++) {
-				AddNeededProgramProperties(listClinics[i].Id);
-			}
+		listClinics=Clinics.GetForUserod(Security.CurUser);
+		for(var i=0;i<listClinics.Count;i++) {
+			AddNeededProgramProperties(listClinics[i].Id);
 		}
 		FillFields();
 	}
@@ -445,20 +431,15 @@ public partial class FormPaySimpleSetup:FormODBase {
 		//get url for webhooks, then create the webhooks if not already present. Has to be done after validation so new user enables are able to save.
 		//for each clinic that has a username and api key, make a call to paysimple's api to see what webhooks this api account has.
 		var errorMessage="";
-		if(true) {
-			for(var i=0;i<_listUserClinicNums.Count;i++) {
-				var errorMessageForClinic=WebhookHelper(GetUsernameForClinic(_listUserClinicNums[i]),GetKeyForClinic(_listUserClinicNums[i]),_listUserClinicNums[i]);
-				if(!errorMessageForClinic.IsNullOrEmpty()) {
-					if(!errorMessage.IsNullOrEmpty()) {
-						errorMessage+="\r\n";
-					}
-					var clinicAbbr = _listUserClinicNums[i]==0 ? "Headquarters" : Clinics.GetAbbr(_listUserClinicNums[i]);
-					errorMessage+=$"-{Lan.g(this,"Error for Clinic")} '{clinicAbbr}': {errorMessageForClinic}";
+		for(var i=0;i<_listUserClinicNums.Count;i++) {
+			var errorMessageForClinic=WebhookHelper(GetUsernameForClinic(_listUserClinicNums[i]),GetKeyForClinic(_listUserClinicNums[i]),_listUserClinicNums[i]);
+			if(!errorMessageForClinic.IsNullOrEmpty()) {
+				if(!errorMessage.IsNullOrEmpty()) {
+					errorMessage+="\r\n";
 				}
+				var clinicAbbr = _listUserClinicNums[i]==0 ? "Headquarters" : Clinics.GetAbbr(_listUserClinicNums[i]);
+				errorMessage+=$"-{Lan.g(this,"Error for Clinic")} '{clinicAbbr}': {errorMessageForClinic}";
 			}
-		}
-		else {
-			errorMessage=WebhookHelper(textUsername.Text,textKey.Text,0);
 		}
 		if(!string.IsNullOrEmpty(errorMessage)) {
 			var msgBoxCopyPaste=new MsgBoxCopyPaste(errorMessage);

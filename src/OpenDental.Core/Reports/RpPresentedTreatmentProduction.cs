@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Reflection;
 using System.Linq;
 using Imedisoft.Core.Entities;
 
@@ -11,14 +10,14 @@ namespace OpenDentBusiness {
 		public static DataTable GetPresentedTreatmentProductionTable(DateTime dateStart,DateTime dateEnd,List<long> listClinicNums,
 			bool hasAllClinics,bool hasClinicsEnabled,bool isPresenter,bool isFirstPresenter,List<long> listUserNums,bool isDetailed) 
 		{
-			List<TreatPlanPresenterEntry> listTreatPlanPresenterEntries=new List<TreatPlanPresenterEntry>();
+			var listTreatPlanPresenterEntries=new List<TreatPlanPresenterEntry>();
 			listTreatPlanPresenterEntries=GetListTreatPlanPresenterEntries(listClinicNums,isFirstPresenter,isPresenter,dateStart,dateEnd);
 			//-------------------------------------------------------Run Detailed
 			if(isDetailed) {
 				listTreatPlanPresenterEntries=listTreatPlanPresenterEntries
 				.Where(x => listUserNums.Contains(x.UserNumPresenter))
 				.OrderBy(x => x.Presenter).ThenBy(x => x.DatePresented).ToList();
-				DataTable tableReport=new DataTable();
+				var tableReport=new DataTable();
 				tableReport.Columns.Add("Presenter");
 				tableReport.Columns.Add("DatePresented",typeof(DateTime));
 				tableReport.Columns.Add("DateCompleted",typeof(DateTime));
@@ -27,8 +26,8 @@ namespace OpenDentBusiness {
 				tableReport.Columns.Add("WriteOffs",typeof(double));
 				tableReport.Columns.Add("Adjustments",typeof(double));
 				tableReport.Columns.Add("NetProduction",typeof(double));
-				foreach(TreatPlanPresenterEntry presenterEntry in listTreatPlanPresenterEntries) {
-					DataRow row = tableReport.NewRow();
+				foreach(var presenterEntry in listTreatPlanPresenterEntries) {
+					var row = tableReport.NewRow();
 					row["Presenter"] = presenterEntry.Presenter=="" ? "None" : presenterEntry.Presenter;
 					row["DatePresented"] = presenterEntry.DatePresented;
 					row["DateCompleted"] = presenterEntry.DateCompleted;
@@ -49,7 +48,7 @@ namespace OpenDentBusiness {
 				listTreatPlanPresenterEntries=listTreatPlanPresenterEntries
 								.Where(x => listUserNums.Select(y => y).Contains(x.UserNumPresenter))
 								.OrderBy(x => x.Presenter).ThenBy(x => x.DatePresented).ToList();
-				DataTable table = new DataTable();
+				var table = new DataTable();
 				table.Columns.Add("Presenter");
 				table.Columns.Add("# of Procs");
 				table.Columns.Add("GrossProd",typeof(double));
@@ -58,7 +57,7 @@ namespace OpenDentBusiness {
 				table.Columns.Add("NetProduction",typeof(double));
 				listTreatPlanPresenterEntries.GroupBy(x => x.Presenter).ToList().ForEach(x =>
 				{
-					DataRow row = table.NewRow();
+					var row = table.NewRow();
 					row["Presenter"] = x.Select(y => y.Presenter).First() == "" ? "None" : x.Select(y => y.Presenter).First();
 					row["# of Procs"] = x.Count();
 					row["GrossProd"] = x.Sum(y => y.GrossProd);
@@ -75,19 +74,19 @@ namespace OpenDentBusiness {
 		private static List<TreatPlanPresenterEntry> GetListTreatPlanPresenterEntries(List<long> listClinicNums, bool isFirstPresenter,bool isPresenter
 			,DateTime dateStart,DateTime dateEnd) 
 		{
-			List<Procedure> listProcsComplete=Procedures.GetCompletedForDateRangeLimited(dateStart,dateEnd,listClinicNums);
-			List<ProcTP> listProcTPs=ProcTPs.GetForProcs(listProcsComplete.Select(x => x.ProcNum).ToList());
-			List<Procedure> listTreatPlanProcs=listProcsComplete.Where(x => listProcTPs.Select(y => y.ProcNumOrig).Contains(x.ProcNum)).ToList();
-			List<TreatPlan> listSavedTreatPlans=TreatPlans.GetFromProcTPs(listProcTPs); // attached proctps to treatment plans.
-			List<ClaimProc> listClaimProcs=ClaimProcs.GetForProcsLimited(listTreatPlanProcs.Select(x => x.ProcNum).ToList(),
+			var listProcsComplete=Procedures.GetCompletedForDateRangeLimited(dateStart,dateEnd,listClinicNums);
+			var listProcTPs=ProcTPs.GetForProcs(listProcsComplete.Select(x => x.ProcNum).ToList());
+			var listTreatPlanProcs=listProcsComplete.Where(x => listProcTPs.Select(y => y.ProcNumOrig).Contains(x.ProcNum)).ToList();
+			var listSavedTreatPlans=TreatPlans.GetFromProcTPs(listProcTPs); // attached proctps to treatment plans.
+			var listClaimProcs=ClaimProcs.GetForProcsLimited(listTreatPlanProcs.Select(x => x.ProcNum).ToList(),
 				ClaimProcStatus.Received,ClaimProcStatus.Supplemental,ClaimProcStatus.CapComplete,ClaimProcStatus.NotReceived);
-			List<Adjustment> listAdjustments=Adjustments.GetForProcs(listTreatPlanProcs.Select(x => x.ProcNum).ToList());
-			List<Userod> listUserods=Userods.GetAll();
-			List<TreatPlanPresenterEntry> listTreatPlanPresenterEntries=new List<TreatPlanPresenterEntry>();
-			List<ProcedureCode> listProcCodes=ProcedureCodes.GetCodesForCodeNums(listTreatPlanProcs.Select(x => x.CodeNum).ToList());
-			foreach(Procedure procCur in listTreatPlanProcs) {
-				double grossProd=procCur.ProcFeeTotal;
-				double writeOffs=listClaimProcs.Where(x => x.ProcNum == procCur.ProcNum)
+			var listAdjustments=Adjustments.GetForProcs(listTreatPlanProcs.Select(x => x.ProcNum).ToList());
+			var listUserods=Userods.GetAll();
+			var listTreatPlanPresenterEntries=new List<TreatPlanPresenterEntry>();
+			var listProcCodes=ProcedureCodes.GetCodesForCodeNums(listTreatPlanProcs.Select(x => x.CodeNum).ToList());
+			foreach(var procCur in listTreatPlanProcs) {
+				var grossProd=procCur.ProcFeeTotal;
+				var writeOffs=listClaimProcs.Where(x => x.ProcNum == procCur.ProcNum)
 						.Where(x => x.Status==ClaimProcStatus.CapComplete)
 						.Sum(x => x.WriteOff);
 				grossProd-=writeOffs;
@@ -96,8 +95,8 @@ namespace OpenDentBusiness {
 						|| x.Status == ClaimProcStatus.Received
 						|| x.Status == ClaimProcStatus.Supplemental)
 					.Sum(x => x.WriteOff);
-				double adjustments = listAdjustments.Where(x => x.ProcNum == procCur.ProcNum).Sum(x => x.AdjAmt);
-				double netProd = grossProd - writeOffs + adjustments;
+				var adjustments = listAdjustments.Where(x => x.ProcNum == procCur.ProcNum).Sum(x => x.AdjAmt);
+				var netProd = grossProd - writeOffs + adjustments;
 				TreatPlan treatPlanCur;
 				if(isFirstPresenter) {
 					treatPlanCur = listSavedTreatPlans.Where(x => x.ListProcTPs.Any(y => y.ProcNumOrig==procCur.ProcNum)).OrderBy(x => x.DateTP).First();
@@ -112,7 +111,7 @@ namespace OpenDentBusiness {
 				else { //radioEntryUser
 					userPresenter = listUserods.FirstOrDefault(x => x.UserNum == treatPlanCur.SecUserNumEntry);
 				}
-				ProcedureCode procCode = listProcCodes.First(x => x.CodeNum == procCur.CodeNum);
+				var procCode = listProcCodes.First(x => x.CodeNum == procCur.CodeNum);
 				listTreatPlanPresenterEntries.Add(new TreatPlanPresenterEntry()
 				{
 					Presenter=userPresenter==null?"":userPresenter.UserName,

@@ -36,8 +36,8 @@ namespace OpenDentBusiness.HL7 {
 				def.IsQuadAsToothNum=false;
 			}
 			def.hl7DefMessages=new List<HL7DefMessage>();
-			HL7DefMessage msg=new HL7DefMessage();
-			HL7DefSegment seg=new HL7DefSegment();
+			var msg=new HL7DefMessage();
+			var seg=new HL7DefSegment();
 			#region Inbound Messages
 				#region ACK - General Acknowledgment
 				def.AddMessage(msg,MessageTypeHL7.ACK,MessageStructureHL7.ADT_A01,InOutHL7.Incoming,0);

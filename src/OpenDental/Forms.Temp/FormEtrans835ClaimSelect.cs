@@ -1,13 +1,10 @@
 using System;
 using System.Collections.Generic;
-using System.Data;
 using System.Drawing;
-using System.Text;
 using System.Windows.Forms;
 using OpenDentBusiness;
 using System.Linq;
 using CodeBase;
-using System.Text.RegularExpressions;
 using DataConnectionBase;
 using Imedisoft.Core.Entities;
 using Imedisoft.Core.Features.Clinics;

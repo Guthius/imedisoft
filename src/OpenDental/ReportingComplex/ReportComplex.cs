@@ -268,11 +268,6 @@ public class ReportComplex
     {
         var hasRows = false;
         var hasReportServer = false;
-        if (hasPreferenceTable)
-        {
-            hasReportServer = !string.IsNullOrEmpty(PrefC.ReportingServer.DisplayStr);
-        }
-
         var grfx = Graphics.FromImage(new Bitmap(1, 1));
         var newReportObjects = new ReportObjectCollection();
         Sections.Add(new Section(AreaSectionType.Query, 0));

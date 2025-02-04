@@ -43,7 +43,7 @@ namespace OpenDental {
 			this.butSave.Size = new System.Drawing.Size(75, 26);
 			this.butSave.TabIndex = 36;
 			this.butSave.Text = "&Save";
-			this.butSave.Click += new System.EventHandler(this.butSave_Click);
+			this.butSave.Click += new System.EventHandler(this.ButtonSave_Click);
 			// 
 			// textName
 			// 
@@ -87,7 +87,7 @@ namespace OpenDental {
 			this.textDate.Name = "textDate";
 			this.textDate.Size = new System.Drawing.Size(100,20);
 			this.textDate.TabIndex = 50;
-			this.textDate.KeyDown += new System.Windows.Forms.KeyEventHandler(this.textDate_KeyDown);
+			this.textDate.KeyDown += new System.Windows.Forms.KeyEventHandler(this.TextBoxDate_KeyDown);
 			// 
 			// label3
 			// 
@@ -106,7 +106,7 @@ namespace OpenDental {
 			this.textDays.Name = "textDays";
 			this.textDays.Size = new System.Drawing.Size(46, 20);
 			this.textDays.TabIndex = 0;
-			this.textDays.KeyDown += new System.Windows.Forms.KeyEventHandler(this.textDays_KeyDown);
+			this.textDays.KeyDown += new System.Windows.Forms.KeyEventHandler(this.TextBoxDays_KeyDown);
 			this.textDays.ShowZero = false;
 			// 
 			// groupBox1

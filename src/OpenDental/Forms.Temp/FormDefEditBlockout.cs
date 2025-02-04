@@ -1,12 +1,7 @@
 using System;
-using System.Drawing;
-using System.Collections;
-using System.ComponentModel;
-using System.Text.RegularExpressions;
 using System.Windows.Forms;
 using OpenDentBusiness;
 using System.Collections.Generic;
-using System.Linq;
 using CodeBase;
 using Imedisoft.Core.Entities;
 

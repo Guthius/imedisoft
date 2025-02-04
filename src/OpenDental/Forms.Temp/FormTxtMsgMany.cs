@@ -1,12 +1,9 @@
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
 using System.Linq;
-using System.Text;
 using System.Windows.Forms;
 using CodeBase;
+using Imedisoft.Core.Data;
 using Imedisoft.Core.Entities;
 using Imedisoft.Core.Features.Clinics;
 using OpenDental.UI;
@@ -160,7 +157,7 @@ public partial class FormTxtMsgMany:FormODBase {
 				}
 				Cursor=Cursors.WaitCursor;
 			}
-			catch(Exception ex) {
+			catch {
 				Cursor=Cursors.Default;
 				var errorMsg=Lan.g(this,"There was an error sending to")+" "+listListsPatComms[i].First().WirelessPhone+". "
 				             +Lan.g(this,"Do you want to continue sending messages?");

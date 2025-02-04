@@ -5,6 +5,7 @@ using System.Linq;
 using Imedisoft.Core.Data;
 using Imedisoft.Core.Entities;
 using Imedisoft.Core.Features.Clinics;
+using Imedisoft.Features.Providers.Dtos;
 using OpenDentBusiness;
 
 namespace OpenDental;
@@ -23,7 +24,7 @@ public class ApptViewItemL
     }
 
     ///<summary>Fills visProvs, visOps, forCurView, apptRows, and rowsPerIncr based on the appointment view passed in and whether it is for the week view or not.  This method uses 'out' variables so that the encompassing logic doesn't ALWAYS affect the global static variables used to draw the appointment views.  We don't want the following logic to affect the global static variables in the case where we are trying to get information needed to filter the waiting room.</summary>
-    public static void FillForApptView(bool isWeekly, ApptView apptView, out List<Provider> listProvidersVis, out List<Operatory> listOperatoriesVis,
+    public static void FillForApptView(bool isWeekly, ApptView apptView, out List<ProviderDto> listProvidersVis, out List<Operatory> listOperatoriesVis,
         out List<ApptViewItem> listApptViewItemsForCurView, out List<ApptViewItem> listApptViewItemsApptRows, out int rowsPerIncr, bool isFillVisProvs = true)
     {
         listApptViewItemsForCurView = [];
@@ -42,27 +43,19 @@ public class ApptViewItemL
             );
             if (isFillVisProvs)
             {
-                if (true)
+                for (var o = 0; o < listOperatoriesVis.Count; o++)
                 {
-                    for (var o = 0; o < listOperatoriesVis.Count; o++)
+                    var providerDent = Providers.GetById(listOperatoriesVis[o].ProvDentist);
+                    var providerHyg = Providers.GetById(listOperatoriesVis[o].ProvHygienist);
+                    if (providerDent != null)
                     {
-                        var providerDent = Providers.GetProv(listOperatoriesVis[o].ProvDentist);
-                        var providerHyg = Providers.GetProv(listOperatoriesVis[o].ProvHygienist);
-                        if (providerDent != null)
-                        {
-                            listProvidersVis.Add(providerDent);
-                        }
-
-                        if (providerHyg != null)
-                        {
-                            listProvidersVis.Add(providerHyg);
-                        }
+                        listProvidersVis.Add(providerDent);
                     }
-                }
-                else
-                {
-                    //make visible provs exactly the same as the prov list (all except hidden)
-                    listProvidersVis.AddRange(Providers.GetDeepCopy(true));
+
+                    if (providerHyg != null)
+                    {
+                        listProvidersVis.Add(providerHyg);
+                    }
                 }
             }
 
@@ -105,7 +98,7 @@ public class ApptViewItemL
                         continue;
                     }
 
-                    var provider = Providers.GetFirstOrDefault(x => x.ProvNum == listApptViewItems[i].ProvNum, true);
+                    var provider = Providers.GetFirstOrDefault(x => x.Id == listApptViewItems[i].ProvNum, true);
                     if (provider != null)
                     {
                         listProvidersVis.Add(provider);
@@ -125,7 +118,7 @@ public class ApptViewItemL
         listOperatoriesVis = listOperatoriesVis.GroupBy(x => x.OperatoryNum).Select(x => x.First()).ToList();
         if (isFillVisProvs)
         {
-            listProvidersVis = listProvidersVis.GroupBy(x => x.ProvNum).Select(x => x.First()).ToList();
+            listProvidersVis = listProvidersVis.GroupBy(x => x.Id).Select(x => x.First()).ToList();
         }
     }
 
@@ -260,22 +253,6 @@ public class ApptViewItemL
         }
 
         if (operatory1.ItemOrder > operatory2.ItemOrder)
-        {
-            return 1;
-        }
-
-        return 0;
-    }
-
-    ///<summary>Sorts list of providers by ItemOrder.</summary>
-    public static int CompareProvs(Provider provider1, Provider provider2)
-    {
-        if (provider1.ItemOrder < provider2.ItemOrder)
-        {
-            return -1;
-        }
-
-        if (provider1.ItemOrder > provider2.ItemOrder)
         {
             return 1;
         }

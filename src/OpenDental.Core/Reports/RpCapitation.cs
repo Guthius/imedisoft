@@ -1,14 +1,12 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Data;
-using System.Reflection;
 using DataConnectionBase;
 
 namespace OpenDentBusiness {
 	public class RpCapitation {
 		
 		public static DataTable GetCapitationTable(DateTime dateStart,DateTime dateEnd,string textCarrier,bool isMedicalOrClinic) {
-			string queryString=@"SELECT carrier.CarrierName,CONCAT(CONCAT(patSub.LName,', '),patSub.FName) 
+			var queryString=@"SELECT carrier.CarrierName,CONCAT(CONCAT(patSub.LName,', '),patSub.FName) 
 				,patSub.SSN,CONCAT(CONCAT(patPat.LName,', '),patPat.FName)
 				,patPat.Birthdate,procedurecode.ProcCode,procedurecode.Descript";
 			if(!isMedicalOrClinic) {
@@ -32,7 +30,7 @@ namespace OpenDentBusiness {
 				+"AND procedurelog.ProcDate <= "+SOut.Date(dateEnd)+" "
 				+"AND insplan.PlanType = 'c' "
 				+"AND procedurelog.ProcStatus = "+SOut.Int((int)ProcStat.C);
-			return ReportsComplex.GetTable(queryString);
+			return DataCore.GetTable(queryString);
 		}	
 	}
 

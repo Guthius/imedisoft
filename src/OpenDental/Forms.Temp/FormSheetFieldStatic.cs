@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Text;
 using System.Linq;
@@ -9,7 +8,6 @@ using CodeBase;
 using DataConnectionBase;
 using Imedisoft.Core.Entities;
 using OpenDentBusiness;
-using OpenDentBusiness.Remoting;
 using PdfSharp.Drawing;
 
 namespace OpenDental;
@@ -253,11 +251,6 @@ public partial class FormSheetFieldStatic:FormODBase {
 		}
 		if(textFieldValue.Text==""){
 			MsgBox.Show(this,"Please set a field value first.");
-			return;
-		}
-		var listStrsInvalid=XmlConverter.XmlFindAllInvalidChars(textFieldValue.Text);
-		if(listStrsInvalid.Count>0){	
-			MsgBox.Show(this,"Invalid characters found. Please remove or replace the following: "+string.Join(", ",listStrsInvalid));
 			return;
 		}
 		if(comboFontName.GetSelected<string>()=="" || comboFontName.GetSelected<string>()==null){

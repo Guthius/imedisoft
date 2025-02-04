@@ -1,11 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Sparks3D;
 using System.Windows.Forms;
+using OpenDental.Chart;
 using PerioSequenceType = Imedisoft.Core.Entities.PerioSequenceType;
 
 //Notes about how this DLL works:  There are two DLLs and a readme.txt nested inside a subfolder called Sparks3D. 
@@ -36,10 +34,10 @@ namespace OpenDental.UI{
 		#region Events - Raise
 		private void _toothChart_SegmentDrawn(object sender, Sparks3D.StringEventArgs e){
 			//bubble the event, changing to a different type of event args
-			SegmentDrawn?.Invoke(sender,new SparksToothChart.ToothChartDrawEventArgs(e.Str));
+			SegmentDrawn?.Invoke(sender,new ToothChartDrawEventArgs(e.Str));
 		}
 
-		public event SparksToothChart.ToothChartDrawEventHandler SegmentDrawn=null;
+		public event ToothChartDrawEventHandler SegmentDrawn=null;
 
 
 		private void _toothChart_TextMoved(object sender,Sparks3D.TextMovedEventArgs e) {
@@ -55,7 +53,7 @@ namespace OpenDental.UI{
 			ToothSelectionsChanged?.Invoke(sender);
 		}
 
-		public event SparksToothChart.ToothChartSelectionEventHandler ToothSelectionsChanged=null;
+		public event ToothChartSelectionEventHandler ToothSelectionsChanged=null;
 		#endregion Events - Raise
 
 		#region Properties
@@ -95,38 +93,38 @@ namespace OpenDental.UI{
 			}
 		}
 
-		public SparksToothChart.CursorTool CursorTool{
+		public CursorTool CursorTool{
 			get{
 				switch(_toothChart.CursorTool){
 					default:
 					case EnumCursorTool.Pointer:
-						return SparksToothChart.CursorTool.Pointer;
+						return CursorTool.Pointer;
 					case EnumCursorTool.Pen:
-						return SparksToothChart.CursorTool.Pen;
+						return CursorTool.Pen;
 					case EnumCursorTool.Eraser:
-						return SparksToothChart.CursorTool.Eraser;
+						return CursorTool.Eraser;
 					case EnumCursorTool.ColorChanger:
-						return SparksToothChart.CursorTool.ColorChanger;
+						return CursorTool.ColorChanger;
 					case EnumCursorTool.MoveText:
-						return SparksToothChart.CursorTool.MoveText;
+						return CursorTool.MoveText;
 				}
 			}
 			set{
 				switch(value){
 					default:
-					case SparksToothChart.CursorTool.Pointer:
+					case CursorTool.Pointer:
 						_toothChart.CursorTool=EnumCursorTool.Pointer;
 						break;
-					case SparksToothChart.CursorTool.Pen:
+					case CursorTool.Pen:
 						_toothChart.CursorTool=EnumCursorTool.Pen;
 						break;
-					case SparksToothChart.CursorTool.Eraser:
+					case CursorTool.Eraser:
 						_toothChart.CursorTool=EnumCursorTool.Eraser;
 						break;
-					case SparksToothChart.CursorTool.ColorChanger:
+					case CursorTool.ColorChanger:
 						_toothChart.CursorTool=EnumCursorTool.ColorChanger;
 						break;
-					case SparksToothChart.CursorTool.MoveText:
+					case CursorTool.MoveText:
 						_toothChart.CursorTool=EnumCursorTool.MoveText;
 						break;
 				}

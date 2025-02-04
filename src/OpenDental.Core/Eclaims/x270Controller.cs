@@ -1,13 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Windows.Forms;
 using CodeBase;
+using Imedisoft.Core.Data;
 using Imedisoft.Core.Entities;
 using Imedisoft.Core.Features.Clinics;
-using OpenDentBusiness;
-using OpenDentBusiness.Eclaims;
 
 namespace OpenDentBusiness.Eclaims {
 	///<summary>Handles all 270/270 logic.  Contains UI elements.  Passes off the 270 to the correct clearinghouse.</summary>
@@ -19,22 +14,22 @@ namespace OpenDentBusiness.Eclaims {
 		///<returns>The Etrans created from the request. Will be null if the request failed in any way.</returns>
 		public static Etrans RequestBenefits(Clearinghouse clearinghouseClin,InsPlan plan,long patNum,Carrier carrier,InsSub insSub,out string error) {
 			error="";
-			Patient pat=Patients.GetPat(patNum);
-			Patient subsc=Patients.GetPat(insSub.Subscriber);
+			var pat=Patients.GetPat(patNum);
+			var subsc=Patients.GetPat(insSub.Subscriber);
 			var clinic=Clinics.GetClinic(pat.ClinicNum);
-			Provider billProv=Providers.GetProv(Providers.GetBillingProvNum(pat.PriProv,pat.ClinicNum));
+			var billProv=Providers.GetById(Providers.GetBillingProvNum(pat.PriProv,pat.ClinicNum));
 			//validation.  Throw exception if missing info----------------------------------------
-			string validationResult=X270.Validate(clearinghouseClin,carrier,billProv,clinic,plan,subsc,insSub,pat);
+			var validationResult=X270.Validate(clearinghouseClin,carrier,billProv,clinic,plan,subsc,insSub,pat);
 			if(validationResult != "") {
 				throw new Exception(Lans.g("FormInsPlan","Please fix the following errors first:")+"\r\n"+validationResult);
 			}
 			//create a 270 message---------------------------------------------------------------
-			string x12message=X270.GenerateMessageText(clearinghouseClin,carrier,billProv,clinic,plan,subsc,insSub,pat);
-			EtransMessageText etransMessageText=new EtransMessageText();
+			var x12message=X270.GenerateMessageText(clearinghouseClin,carrier,billProv,clinic,plan,subsc,insSub,pat);
+			var etransMessageText=new EtransMessageText();
 			etransMessageText.MessageText=x12message;
 			EtransMessageTexts.Insert(etransMessageText);
 			//attach it to an etrans-------------------------------------------------------------
-			Etrans etrans=new Etrans();
+			var etrans=new Etrans();
 			etrans.PatNum=patNum;
 			etrans.DateTimeTrans=DateTime.Now;
 			etrans.ClearingHouseNum=clearinghouseClin.HqClearinghouseNum;
@@ -44,11 +39,11 @@ namespace OpenDentBusiness.Eclaims {
 			etrans.EtransMessageTextNum=etransMessageText.EtransMessageTextNum;
 			Etranss.Insert(etrans);
 			//send the 270----------------------------------------------------------------------
-			string x12response="";
+			var x12response="";
 			Etrans etransHtml=null;
 			//a connection error here needs to bubble up
 			try {
-				if(!String.IsNullOrWhiteSpace(FakeResponseOverride271)) {
+				if(!string.IsNullOrWhiteSpace(FakeResponseOverride271)) {
 					x12response=FakeResponseOverride271;
 				}
 				else if(clearinghouseClin.CommBridge==EclaimsCommBridge.ClaimConnect) {
@@ -71,7 +66,7 @@ namespace OpenDentBusiness.Eclaims {
 			//start to process the 271----------------------------------------------------------
 			X271 x271=null;
 			if(X12object.IsX12(x12response)) {
-				X12object x12obj=new X12object(x12response);
+				var x12obj=new X12object(x12response);
 				if(x12obj.Is271()) {
 					x271=new X271(x12response);
 				}
@@ -100,14 +95,14 @@ namespace OpenDentBusiness.Eclaims {
 			etransMessageText=new EtransMessageText();
 			etransMessageText.MessageText=x12response;
 			EtransMessageTexts.Insert(etransMessageText);
-			Etrans etrans271=new Etrans();
+			var etrans271=new Etrans();
 			etrans271.PatNum=patNum;
 			etrans271.DateTimeTrans=DateTime.Now;
 			etrans271.ClearingHouseNum=clearinghouseClin.HqClearinghouseNum;
 			etrans271.Etype=EtransType.TextReport;
 			if(X12object.IsX12(x12response)) {//this shouldn't need to be tested because it was tested above.
 				if(x271==null){
-					X12object Xobj=new X12object(x12response);
+					var Xobj=new X12object(x12response);
 					if(Xobj.Is997()) {
 						etrans271.Etype=EtransType.Acknowledge_997;
 					}
@@ -139,39 +134,39 @@ namespace OpenDentBusiness.Eclaims {
 			etrans.AckEtransNum=etrans271.EtransNum;
 			etrans.AckEtrans=etrans271;//Not a DB column, used to save queries for some calling methods (OpenDentalService).
 			if(etrans271.Etype==EtransType.Acknowledge_997) {
-				X997 x997=new X997(x12response);
-				string error997=x997.GetHumanReadable();
+				var x997=new X997(x12response);
+				var error997=x997.GetHumanReadable();
 				etrans.Note="Error: "+error997;//"Malformed document sent.  997 error returned.";
 				Etranss.Update(etrans);
 				error=etrans.Note;
 				return null;
 			}
 			else if(etrans271.Etype==EtransType.Acknowledge_999) {
-				X999 x999=new X999(x12response);
-				string error999=x999.GetHumanReadable();
+				var x999=new X999(x12response);
+				var error999=x999.GetHumanReadable();
 				etrans.Note="Error: "+error999;//"Malformed document sent.  999 error returned.";
 				Etranss.Update(etrans);
 				error=etrans.Note;
 				return null;
 			}
 			else if(etrans271.Etype==EtransType.StatusNotify_277) { 
-				X277 x277=new X277(x12response);
-				string error277=x277.GetHumanReadable();
+				var x277=new X277(x12response);
+				var error277=x277.GetHumanReadable();
 				etrans.Note="Error: "+error277;//"Malformed document sent.  277 error returned.";
 				Etranss.Update(etrans);
 				error=etrans.Note;
 				return null;
 			}
 			else if(etrans271.Etype==EtransType.ERA_835) {
-				X835 x835=new X835(etrans271,x12response,"");
-				string error835=x835.GetHumanReadable();
+				var x835=new X835(etrans271,x12response,"");
+				var error835=x835.GetHumanReadable();
 				etrans.Note="Error: "+error835;//"Malformed document sent.  835 error returned.";
 				Etranss.Update(etrans);
 				error=etrans.Note;
 				return null;
 			}
 			else if(etrans271.Etype==EtransType.BenefitResponse271) { //271
-				string processingerror=x271.GetProcessingError();
+				var processingerror=x271.GetProcessingError();
 				if(processingerror != "") {
 					etrans.Note=processingerror;
 					Etranss.Update(etrans);
@@ -183,8 +178,8 @@ namespace OpenDentBusiness.Eclaims {
 				}
 			}
 			else if(etrans271.Etype==EtransType.Ack_Interchange) {//See document "X092 Elig 270-271.pdf" pages 388 and 401.
-				X12object xobj=new X12object(x12response);
-				X12Segment segTa1=xobj.GetNextSegmentById(0,"TA1");
+				var xobj=new X12object(x12response);
+				var segTa1=xobj.GetNextSegmentById(0,"TA1");
 				if(segTa1.Get(4)=="A") {
 					etrans.Note="The request was accepted, but the response is empty.";
 				}
@@ -244,7 +239,7 @@ namespace OpenDentBusiness.Eclaims {
 		public static Etrans TryInsVerifyRequest(InsVerify insVerify,InsPlan insPlan,Carrier carrier,InsSub insSub,out string error) {
 			error="";
 			Etrans etrans270Request=null;
-			Clearinghouse clearinghouseHq=Clearinghouses.GetDefaultEligibility();
+			var clearinghouseHq=Clearinghouses.GetDefaultEligibility();
 			if(clearinghouseHq==null) {
 				error="No clearinghouse is set as default.";
 				return null;
@@ -256,7 +251,7 @@ namespace OpenDentBusiness.Eclaims {
 			}
 			error=X271.ValidateSettings();
 			if(error.IsNullOrEmpty()) {
-				Clearinghouse clearinghouse=Clearinghouses.OverrideFields(clearinghouseHq,insVerify.ClinicNum);//ClinicNum pulled from appointment.
+				var clearinghouse=Clearinghouses.OverrideFields(clearinghouseHq,insVerify.ClinicNum);//ClinicNum pulled from appointment.
 				try {
 					//Can return null, can throw exceptions
 					etrans270Request=x270Controller.RequestBenefits(clearinghouse,insPlan,insVerify.PatNum,carrier,insSub,out error);

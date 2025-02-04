@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
-using System.Reflection;
 using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Entities;
@@ -15,12 +14,12 @@ namespace OpenDentBusiness {
 		{
 			//-------------------------------------------------------------------------------------//
 			// Create temperary tables for sorting data
-			List<long> listHiddenUnearnedDefNums= Defs.GetDefsNoCache(DefCat.PaySplitUnearnedType).FindAll(x => !string.IsNullOrEmpty(x.ItemValue)).Select(x => x.DefNum).ToList();
-			bool isAgingProcLifo=Prefs.GetYNNoCache(PrefName.AgingProcLifo);
-			string query="";
-			string whereProv="";//used as the provider portion of the where clauses.
+			var listHiddenUnearnedDefNums= Defs.GetDefsNoCache(DefCat.PaySplitUnearnedType).FindAll(x => !string.IsNullOrEmpty(x.ItemValue)).Select(x => x.DefNum).ToList();
+			var isAgingProcLifo=Prefs.GetYNNoCache(PrefName.AgingProcLifo);
+			var query="";
+			var whereProv="";//used as the provider portion of the where clauses.
 											//each whereProv needs to be set up separately for each query
-			PayPlanVersions payPlanVersionCur=(PayPlanVersions)PrefC.GetInt(PrefName.PayPlansVersion);
+			var payPlanVersionCur=(PayPlanVersions)PrefC.GetInt(PrefName.PayPlansVersion);
 			switch(tableName) {
 				case "TableCharge":
 					whereProv="";
@@ -262,7 +261,7 @@ namespace OpenDentBusiness {
 						+"ORDER BY TranDate;";
 					break;
 				}
-				return ReportsComplex.GetTable(query);
+				return DataCore.GetTable(query);
 		}	
 	}	
 }

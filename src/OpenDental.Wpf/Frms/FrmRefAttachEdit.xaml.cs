@@ -1,18 +1,12 @@
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
 using System.Linq;
-using System.Text;
 using System.Windows;
 using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
 using DataConnectionBase;
-using Imedisoft.Core.Caching;
+using Imedisoft.Core.Data;
 using Imedisoft.Core.Entities;
 using OpenDentBusiness;
-using WpfControls.UI;
 
 namespace OpenDental {
 	
@@ -57,7 +51,7 @@ namespace OpenDental {
 			FillData();
 			FillSheets();
 			comboProvNum.Items.Clear();
-			comboProvNum.Items.AddProvsFull(Providers.GetDeepCopy(isShort:true));
+			comboProvNum.Items.AddProvsFull(Providers.GetDeepCopy(shortList:true));
 			if(RefAttachCur.ProvNum>=0) {
 				comboProvNum.SetSelectedProvNum(RefAttachCur.ProvNum);
 			}
@@ -235,7 +229,7 @@ namespace OpenDental {
 
 		private void butSave_Click(object sender, System.EventArgs e) {
 			//We want to help EHR users meet their summary of care measure.  So all outgoing patient referrals should warn them if they didn't enter data correctly.
-			if((ReferralType)listRefType.SelectedIndex==ReferralType.RefTo && PrefC.GetBool(PrefName.ShowFeatureEhr)) {
+			if((ReferralType)listRefType.SelectedIndex==ReferralType.RefTo && false) {
 				string warning="";
 				if(comboProvNum.SelectedIndex<0) {
 					warning+=Lans.g("Selected patient referral does not have a referring provider set.");

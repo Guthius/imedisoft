@@ -25,12 +25,16 @@ public class ProgramProperties
         ProgramPropertyCrud.Update(programProp, programPropOld);
     }
 
-    public static bool UpdateProgramPropertyWithValue(ProgramProperty programProp, string newValue)
+    public static void UpdateProgramPropertyWithValue(ProgramProperty programProp, string newValue)
     {
-        if (programProp.PropertyValue == newValue) return false;
+        if (programProp.PropertyValue == newValue)
+        {
+            return;
+        }
+        
         programProp.PropertyValue = newValue;
+        
         Update(programProp);
-        return true;
     }
 
     public static void Insert(ProgramProperty programProp)
@@ -38,42 +42,59 @@ public class ProgramProperties
         ProgramPropertyCrud.Insert(programProp);
     }
 
-    public static bool InsertForClinic(long programNum, List<long> listClinicNums)
+    public static bool InsertForClinic(long programNum, List<long> clinicNums)
     {
-        if (listClinicNums == null || listClinicNums.Count == 0) return false;
-        var hasInsert = false;
-        var command = "";
-        command = "INSERT INTO programproperty (ProgramNum,PropertyDesc,PropertyValue,ComputerName,ClinicNum) ";
-        for (var i = 0; i < listClinicNums.Count; i++)
+        if (clinicNums == null || clinicNums.Count == 0)
         {
-            if (i > 0) command += " UNION ";
-            command += "SELECT ProgramNum,PropertyDesc,PropertyValue,ComputerName," + SOut.Long(listClinicNums[i]) + " "
-                       + "FROM programproperty "
-                       + "WHERE ProgramNum=" + SOut.Long(programNum) + " "
-                       + "AND ClinicNum=0";
+            return false;
         }
 
-        hasInsert = Db.NonQ(command) > 0;
-        return hasInsert;
+        var commandText = "INSERT INTO programproperty (ProgramNum,PropertyDesc,PropertyValue,ComputerName,ClinicNum) ";
+        
+        for (var i = 0; i < clinicNums.Count; i++)
+        {
+            if (i > 0)
+            {
+                commandText += " UNION ";
+            }
+            
+            commandText += 
+                "SELECT ProgramNum,PropertyDesc,PropertyValue,ComputerName," + clinicNums[i] + " " + 
+                "FROM programproperty " + 
+                "WHERE ProgramNum=" + programNum + " " + 
+                "AND ClinicNum=0";
+        }
+
+        return Db.NonQ(commandText) > 0;
     }
 
     public static bool IsAdvertisingDisabled(ProgramName progName)
     {
         var program = Programs.GetCur(progName);
+        
         return IsAdvertisingDisabled(program);
     }
 
     public static bool IsAdvertisingDisabled(Program program)
     {
-        if (program == null) return true;
-        if (program.Enabled) return false; //do not block advertising
-        return GetForProgram(program.ProgramNum).Any(x => (x.PropertyDesc == "Disable Advertising" && x.PropertyValue == "1") //Office has decided to hide the advertising
-                                                          || (x.PropertyDesc == "Disable Advertising HQ" && x.PropertyValue == "1")); //HQ has decided to hide the advertising
+        if (program == null)
+        {
+            return true;
+        }
+        
+        if (program.Enabled)
+        {
+            return false;
+        }
+        
+        return GetForProgram(program.ProgramNum).Any(x => 
+            (x.PropertyDesc == "Disable Advertising" && x.PropertyValue == "1") ||
+            (x.PropertyDesc == "Disable Advertising HQ" && x.PropertyValue == "1"));
     }
 
     public static bool IsAdvertisingBridge(long programNum)
     {
-        return GetForProgram(programNum).Any(x => x.PropertyDesc.In("Disable Advertising", "Disable Advertising HQ"));
+        return GetForProgram(programNum).Any(x => x.PropertyDesc is "Disable Advertising" or "Disable Advertising HQ");
     }
 
     public static List<ProgramProperty> GetListForProgramAndClinic(long programNum, long clinicNum)
@@ -83,18 +104,22 @@ public class ProgramProperties
 
     public static List<ProgramProperty> GetListForProgramAndClinicWithDefault(long programNum, long clinicNum)
     {
-        var listClinicProperties = GetWhere(x => x.ProgramNum == programNum && x.ClinicNum == clinicNum);
-        if (clinicNum == 0) return listClinicProperties; //return the defaults cause ClinicNum of 0 is default.
-        //Get all the defaults and return a list of defaults mixed with overrides.
-        var listClinicAndDefaultProperties = GetWhere(x => x.ProgramNum == programNum && x.ClinicNum == 0
-                                                                                      && !listClinicProperties.Any(y => y.PropertyDesc == x.PropertyDesc));
-        listClinicAndDefaultProperties.AddRange(listClinicProperties);
-        return listClinicAndDefaultProperties; //Clinic users need to have all properties, defaults with the clinic overrides.
+        var properties = GetWhere(x => x.ProgramNum == programNum && x.ClinicNum == clinicNum);
+        if (clinicNum == 0)
+        {
+            return properties;
+        }
+        
+        var clinicAndDefaultProperties = GetWhere(x => x.ProgramNum == programNum && x.ClinicNum == 0 && properties.All(y => y.PropertyDesc != x.PropertyDesc));
+        
+        clinicAndDefaultProperties.AddRange(properties);
+        
+        return clinicAndDefaultProperties;
     }
 
     public static string GetPropValForClinicOrDefault(long programNum, string desc, long clinicNum)
     {
-        return GetListForProgramAndClinicWithDefault(programNum, clinicNum).FirstOrDefault(x => x.PropertyDesc == desc).PropertyValue;
+        return GetListForProgramAndClinicWithDefault(programNum, clinicNum).First(x => x.PropertyDesc == desc).PropertyValue;
     }
 
     public static List<ProgramProperty> GetForProgram(long programNum)
@@ -104,27 +129,34 @@ public class ProgramProperties
 
     public static long SetProperty(long programNum, string desc, string propval)
     {
-        var command = $@"UPDATE programproperty SET PropertyValue='{SOut.String(propval)}'
-				WHERE ProgramNum={SOut.Long(programNum)}
-				AND PropertyDesc='{SOut.String(desc)}'";
-        return Db.NonQ(command);
+        return Db.NonQ(
+            $"""
+             UPDATE programproperty SET PropertyValue='{SOut.String(propval)}'
+             WHERE ProgramNum={programNum}
+             AND PropertyDesc='{SOut.String(desc)}'
+             """);
     }
 
-    public static ProgramProperty GetCur(List<ProgramProperty> listForProgram, string desc)
+    public static ProgramProperty GetCur(List<ProgramProperty> properties, string desc)
     {
-        return listForProgram.FirstOrDefault(x => x.PropertyDesc == desc);
+        return properties.FirstOrDefault(x => x.PropertyDesc == desc);
     }
 
     public static string GetPropVal(long programNum, string desc)
     {
         var programProperty = GetFirstOrDefault(x => x.ProgramNum == programNum && x.PropertyDesc == desc);
-        if (programProperty != null) return programProperty.PropertyValue;
+        if (programProperty is not null)
+        {
+            return programProperty.PropertyValue;
+        }
+        
         throw new ApplicationException("Property not found: " + desc);
     }
 
     public static string GetPropVal(ProgramName programName, string desc)
     {
         var programNum = Programs.GetProgramNum(programName);
+        
         return GetPropVal(programNum, desc);
     }
 
@@ -133,25 +165,11 @@ public class ProgramProperties
         return GetPropValFromList(GetWhere(x => x.ProgramNum == programNum), desc, clinicNum);
     }
 
-    public static string GetPropValFromList(List<ProgramProperty> listProps, string propertyDesc, long clinicNum = 0)
+    public static string GetPropValFromList(List<ProgramProperty> properties, string propertyDesc, long clinicNum = 0)
     {
-        var retval = "";
-        var prop = listProps.Where(x => x.ClinicNum == clinicNum).Where(x => x.PropertyDesc == propertyDesc).FirstOrDefault();
-        if (prop != null) retval = prop.PropertyValue;
-        return retval;
-    }
-
-    public static ProgramProperty GetPropByDesc(string propertyDesc, List<ProgramProperty> listProperties)
-    {
-        ProgramProperty property = null;
-        for (var i = 0; i < listProperties.Count; i++)
-            if (listProperties[i].PropertyDesc == propertyDesc)
-            {
-                property = listProperties[i];
-                break;
-            }
-
-        return property;
+        var prop = properties.Where(x => x.ClinicNum == clinicNum).FirstOrDefault(x => x.PropertyDesc == propertyDesc);
+        
+        return prop is not null ? prop.PropertyValue : string.Empty;
     }
 
     public static ProgramProperty GetPropForProgByDesc(long programNum, string propertyDesc)
@@ -159,25 +177,25 @@ public class ProgramProperties
         return GetForProgram(programNum).FirstOrDefault(x => x.PropertyDesc == propertyDesc);
     }
 
-    public static ProgramProperty GetPropForProgByDesc(long programNum, string propertyDesc, long clinicNum = 0)
+    public static ProgramProperty GetPropForProgByDesc(long programNum, string propertyDesc, long clinicNum)
     {
         return GetForProgram(programNum).FirstOrDefault(x => x.PropertyDesc == propertyDesc && x.ClinicNum == clinicNum);
     }
 
     public static string GetValFromDb(long programNum, string desc)
     {
-        var command = "SELECT PropertyValue FROM programproperty WHERE ProgramNum=" + SOut.Long(programNum)
-                                                                                    + " AND PropertyDesc='" + SOut.String(desc) + "'";
-        var table = DataCore.GetTable(command);
-        if (table.Rows.Count == 0) return "";
-        return table.Rows[0][0].ToString();
+        var table = DataCore.GetTable("SELECT PropertyValue FROM programproperty WHERE ProgramNum=" + programNum + " AND PropertyDesc='" + SOut.String(desc) + "'");
+        
+        return table.Rows.Count == 0 ? "" : table.Rows[0][0].ToString();
     }
 
     public static string GetLocalPathOverrideForProgram(long programNum)
     {
-        var programProperty = GetFirstOrDefault(x => x.ProgramNum == programNum
-                                                     && x.PropertyDesc == ""
-                                                     && x.ComputerName.ToUpper() == ODEnvironment.MachineName.ToUpper());
+        var programProperty = GetFirstOrDefault(x => 
+            x.ProgramNum == programNum && 
+            x.PropertyDesc == "" && 
+            x.ComputerName.ToUpper() == Environment.MachineName.ToUpper());
+        
         return programProperty == null ? "" : programProperty.PropertyValue;
     }
 
@@ -185,7 +203,7 @@ public class ProgramProperties
     {
         var programProperty = GetFirstOrDefault(x => x.ProgramNum == programNum
                                                      && x.PropertyDesc == ""
-                                                     && x.ComputerName.ToUpper() == ODEnvironment.MachineName.ToUpper());
+                                                     && x.ComputerName.ToUpper() == Environment.MachineName.ToUpper());
         if (programProperty != null)
         {
             programProperty.PropertyValue = newPath;
@@ -197,7 +215,7 @@ public class ProgramProperties
         var pp = new ProgramProperty();
         pp.ProgramNum = programNum;
         pp.PropertyValue = newPath;
-        pp.ComputerName = ODEnvironment.MachineName.ToUpper();
+        pp.ComputerName = Environment.MachineName.ToUpper();
         Insert(pp);
     }
 
@@ -229,22 +247,30 @@ public class ProgramProperties
         xwebProperties = new WebPaymentProperties();
         //Secure arguments are held in the db.
         var prog = Programs.GetCur(ProgramName.EdgeExpress);
-        if (prog != null && prog.Enabled)
+        if (prog is {Enabled: true})
         {
-            var listEdgeExpressProperties = GetListForProgramAndClinic(prog.ProgramNum, clinicNum);
-            xWebID = GetPropValFromList(listEdgeExpressProperties, EdgeExpressProps.XWebID, clinicNum);
-            authKey = GetPropValFromList(listEdgeExpressProperties, EdgeExpressProps.AuthKey, clinicNum);
-            terminalID = GetPropValFromList(listEdgeExpressProperties, EdgeExpressProps.TerminalID, clinicNum);
-            paymentTypeDefString = GetPropValFromList(listEdgeExpressProperties, EdgeExpressProps.PaymentType, clinicNum);
-            isPaymentsAllowed = SIn.Bool(GetPropValFromList(listEdgeExpressProperties, EdgeExpressProps.IsOnlinePaymentsEnabled, clinicNum));
+            var edgeExpressProperties = GetListForProgramAndClinic(prog.ProgramNum, clinicNum);
+            
+            xWebID = GetPropValFromList(edgeExpressProperties, EdgeExpressProps.XWebID, clinicNum);
+            authKey = GetPropValFromList(edgeExpressProperties, EdgeExpressProps.AuthKey, clinicNum);
+            terminalID = GetPropValFromList(edgeExpressProperties, EdgeExpressProps.TerminalID, clinicNum);
+            paymentTypeDefString = GetPropValFromList(edgeExpressProperties, EdgeExpressProps.PaymentType, clinicNum);
+            isPaymentsAllowed = SIn.Bool(GetPropValFromList(edgeExpressProperties, EdgeExpressProps.IsOnlinePaymentsEnabled, clinicNum));
             isXWeb = false;
         }
         else
         {
             prog = Programs.GetCur(ProgramName.Xcharge);
-            if (prog == null) throw new ODException("X-Charge program link not found.", ODException.ErrorCodes.XWebProgramProperties);
-            if (!prog.Enabled) //EdgeExpress and XCharge not turned on.
+            if (prog == null)
+            {
+                throw new ODException("X-Charge program link not found.", ODException.ErrorCodes.XWebProgramProperties);
+            }
+            
+            if (!prog.Enabled)
+            {
                 throw new ODException("EdgeExpress program link is disabled.", ODException.ErrorCodes.XWebProgramProperties);
+            }
+            
             var listXchargeProperties = GetListForProgramAndClinic(prog.ProgramNum, clinicNum);
             xWebID = GetPropValFromList(listXchargeProperties, "XWebID", clinicNum);
             authKey = GetPropValFromList(listXchargeProperties, "AuthKey", clinicNum);
@@ -268,7 +294,6 @@ public class ProgramProperties
         xwebProperties.AuthKey = authKey;
         xwebProperties.PaymentTypeDefNum = paymentTypeDefNum;
         xwebProperties.IsPaymentsAllowed = isPaymentsAllowed;
-        xwebProperties.IsXWeb = isXWeb;
     }
 
     public static void GetPayConnectPatPortalCreds(long clinicNum, out PayConnect.WebPaymentProperties payConnectProps)
@@ -332,35 +357,43 @@ public class ProgramProperties
 
     public static List<string> GetQuickBooksOnlineEntityNames(string propertyValue)
     {
-        var listNames = new List<string>();
-        if (propertyValue.IsNullOrEmpty()) return listNames;
-        var arrayEntities = propertyValue.Split('|');
-        for (var i = 0; i < arrayEntities.Length; i++) listNames.Add(arrayEntities[i].Split(',')[0]);
-        listNames.Sort();
-        return listNames;
+        var names = new List<string>();
+        if (propertyValue.IsNullOrEmpty())
+        {
+            return names;
+        }
+        
+        var entities = propertyValue.Split('|');
+        
+        names.AddRange(entities.Select(t => t.Split(',')[0]));
+        names.Sort();
+        
+        return names;
     }
 
-    public static bool CanEditProperties(List<ProgramProperty> listProperties, bool suppressMesssage = true)
+    public static bool CanEditProperties(List<ProgramProperty> properties, bool suppressMesssage = true)
     {
-        if (listProperties.Any(x => x.IsHighSecurity)) return Security.IsAuthorized(EnumPermType.ManageHighSecurityProgProperties, suppressMesssage);
-        return true;
+        return !properties.Any(x => x.IsHighSecurity) || Security.IsAuthorized(EnumPermType.ManageHighSecurityProgProperties, suppressMesssage);
     }
 
     public static void Delete(ProgramProperty prop)
     {
-        if (!GetDeletablePropertyDescriptions().Contains(prop.PropertyDesc)) throw new Exception("Not allowed to delete the ProgramProperty with a description of: " + prop.PropertyDesc);
-        var command = "DELETE FROM programproperty WHERE ProgramPropertyNum=" + SOut.Long(prop.ProgramPropertyNum);
-        Db.NonQ(command);
+        if (!GetDeletablePropertyDescriptions().Contains(prop.PropertyDesc))
+        {
+            throw new Exception("Not allowed to delete the ProgramProperty with a description of: " + prop.PropertyDesc);
+        }
+        
+        Db.NonQ("DELETE FROM programproperty WHERE ProgramPropertyNum=" + prop.ProgramPropertyNum);
     }
 
     private static List<string> GetDeletablePropertyDescriptions()
     {
-        return new List<string>
-        {
+        return
+        [
             PropertyDescs.ClinicHideButton,
             PropertyDescs.DisableAdvertising,
             PropertyDescs.DisableAdvertisingHQ
-        };
+        ];
     }
 
     public class PropertyDescs
@@ -370,10 +403,6 @@ public class ProgramProperties
         public const string ClinicHideButton = "ClinicHideButton";
         public const string DisableAdvertising = "Disable Advertising";
         public const string DisableAdvertisingHQ = "Disable Advertising HQ";
-
-        private PropertyDescs()
-        {
-        }
 
         public static class TransWorld
         {
@@ -405,8 +434,7 @@ public class ProgramProperties
     {
         protected override List<ProgramProperty> GetCacheFromDb()
         {
-            var command = "SELECT * FROM programproperty";
-            return ProgramPropertyCrud.SelectMany(command);
+            return ProgramPropertyCrud.SelectMany("SELECT * FROM programproperty");
         }
 
         protected override List<ProgramProperty> TableToList(DataTable dataTable)
@@ -432,50 +460,14 @@ public class ProgramProperties
 
     private static readonly ProgramPropertyCache Cache = new();
 
-    public static ProgramProperty GetFirstOrDefault(Func<ProgramProperty, bool> match, bool isShort = false)
+    public static ProgramProperty GetFirstOrDefault(Func<ProgramProperty, bool> predicate, bool shortList = false)
     {
-        var prop = Cache.GetFirstOrDefault(match, isShort);
-        if (prop is null) return prop;
-        prop.PropertyValue = GetHqPropertyValue(Programs.GetProgram(prop.ProgramNum), prop);
-        return prop;
+        return Cache.GetFirstOrDefault(predicate, shortList);
     }
 
-    public static List<ProgramProperty> GetWhere(Predicate<ProgramProperty> match, bool isShort = false)
+    public static List<ProgramProperty> GetWhere(Predicate<ProgramProperty> predicate, bool shortList = false)
     {
-        var listProps = Cache.GetWhere(match, isShort);
-        foreach (var prop in listProps) prop.PropertyValue = GetHqPropertyValue(Programs.GetProgram(prop.ProgramNum), prop);
-        return listProps;
-    }
-
-    private static bool DoUseCacheValues(Program prog, ProgramProperty property)
-    {
-        //Is not an OD defined program name or is not a program HQ is concerned with enabling/disabling.
-        return !HqProgram.IsInitialized()
-               || !HqProgram.GetAll().Any(x => x.ProgramNameAsString == prog.ProgName && x.ListProperties.Any(y => y.PropertyDesc == property.PropertyDesc));
-    }
-
-    private static string GetHqPropertyValue(Program prog, ProgramProperty property)
-    {
-        var retVal = "";
-        if (DoUseCacheValues(prog, property))
-        {
-            retVal = property.PropertyValue;
-        }
-        else
-        {
-            var hqProg = HqProgram.GetAll().Where(x => x.ProgramNameAsString == prog.ProgName).FirstOrDefault();
-            var hqProp = hqProg.ListProperties.FirstOrDefault(x => x.PropertyDesc == property.PropertyDesc);
-            retVal = hqProp.PropertyValue;
-        }
-
-        return retVal;
-    }
-
-    public static List<ProgramProperty> FilterProperties(Program progCur, List<ProgramProperty> listProps)
-    {
-        //If any other programs need to apply filtration, add it here.
-        var listProgramProperty = PDMP.FilterAndSortProperties(progCur, listProps);
-        return listProgramProperty;
+        return Cache.GetWhere(predicate, shortList);
     }
 
     public static void RefreshCache()
@@ -483,9 +475,9 @@ public class ProgramProperties
         GetTableFromCache(true);
     }
 
-    public static DataTable GetTableFromCache(bool doRefreshCache)
+    public static DataTable GetTableFromCache(bool refreshCache)
     {
-        return Cache.GetTableFromCache(doRefreshCache);
+        return Cache.GetTableFromCache(refreshCache);
     }
 
     public static void ClearCache()

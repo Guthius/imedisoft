@@ -36,7 +36,6 @@ namespace OpenDental.Forms{
 			this.labelDatabase = new System.Windows.Forms.Label();
 			this.labelMachineName = new System.Windows.Forms.Label();
 			this.pictureOpenDental = new OpenDental.UI.ODPictureBox();
-			this.butDiagnostics = new OpenDental.UI.Button();
 			this.labelMariaDBCopyright = new System.Windows.Forms.Label();
 			this.groupBox3.SuspendLayout();
 			this.SuspendLayout();
@@ -187,16 +186,6 @@ namespace OpenDental.Forms{
 			this.pictureOpenDental.TabIndex = 58;
 			this.pictureOpenDental.TextNullImage = null;
 			// 
-			// butDiagnostics
-			// 
-			this.butDiagnostics.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-			this.butDiagnostics.Location = new System.Drawing.Point(429, 324);
-			this.butDiagnostics.Name = "butDiagnostics";
-			this.butDiagnostics.Size = new System.Drawing.Size(88, 25);
-			this.butDiagnostics.TabIndex = 59;
-			this.butDiagnostics.Text = "Diagnostics";
-			this.butDiagnostics.Click += new System.EventHandler(this.ButtonDiagnostics_Click);
-			// 
 			// labelMariaDBCopyright
 			// 
 			this.labelMariaDBCopyright.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
@@ -210,7 +199,6 @@ namespace OpenDental.Forms{
 			// FormAbout
 			// 
 			this.ClientSize = new System.Drawing.Size(628, 370);
-			this.Controls.Add(this.butDiagnostics);
 			this.Controls.Add(this.labelMariaDBCopyright);
 			this.Controls.Add(this.pictureOpenDental);
 			this.Controls.Add(this.groupBox3);
@@ -249,7 +237,6 @@ namespace OpenDental.Forms{
 		private OpenDental.UI.GroupBox groupBox3;
 		private UI.ODPictureBox pictureOpenDental;
 		private Label labelMachineName;
-		private UI.Button butDiagnostics;
 		private Label labelDatabase;
 		private Label labelMariaDBCopyright;
 	}

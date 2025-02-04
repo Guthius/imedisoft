@@ -6,6 +6,7 @@ using System.Net;
 using CodeBase;
 using DataConnectionBase;
 using Imedisoft.Core.Caching;
+using Imedisoft.Core.Data;
 using Imedisoft.Core.Entities;
 using Newtonsoft.Json;
 using OpenDentBusiness;

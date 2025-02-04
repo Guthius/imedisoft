@@ -19,7 +19,7 @@ public class ClockEvents
     {
         var command =
             "SELECT * FROM clockevent WHERE"
-            + " EmployeeNum = '" + SOut.Long(employeeNum) + "'"
+            + " EmployeeNum = '" + (employeeNum) + "'"
             + " AND TimeDisplayed1 >= " + SOut.Date(dateTimeFrom)
             //adding a day takes it to midnight of the specified toDate
             + " AND TimeDisplayed1 < " + SOut.Date(dateTimeTo.AddDays(1));
@@ -38,7 +38,7 @@ public class ClockEvents
         //Fill list-----------------------------------------------------------------------------------------------------------------------------
         var command =
             "SELECT * FROM clockevent WHERE"
-            + " EmployeeNum = " + SOut.Long(employeeNum)
+            + " EmployeeNum = " + (employeeNum)
             + " AND TimeDisplayed1 >= " + SOut.Date(dateTimeFrom)
             //adding a day takes it to midnight of the specified toDate
             + " AND TimeDisplayed1 < " + SOut.Date(dateTimeTo.AddDays(1));
@@ -83,13 +83,13 @@ public class ClockEvents
 
     public static List<ClockEvent> GetListForTimeCardManage(List<long> listEmployeeNums, long clinicNum, DateTime dateTimeFrom, DateTime dateTimeTo, bool isAll)
     {
-        if (listEmployeeNums.IsNullOrEmpty()) return new List<ClockEvent>();
+        if (listEmployeeNums.IsNullOrEmpty()) return [];
 
         var command = "SELECT * FROM clockevent WHERE"
-                      + " EmployeeNum IN (" + string.Join(",", listEmployeeNums.Select(x => SOut.Long(x))) + ")"
+                      + " EmployeeNum IN (" + string.Join(",", listEmployeeNums.Select(x => (x))) + ")"
                       + " AND TimeDisplayed1 >= " + SOut.Date(dateTimeFrom)
                       + " AND TimeDisplayed1 < " + SOut.Date(dateTimeTo.AddDays(1)); //adding a day takes it to midnight of the specified toDate
-        if (!isAll) command += " AND ClinicNum = " + SOut.Long(clinicNum);
+        if (!isAll) command += " AND ClinicNum = " + (clinicNum);
 
         command += " AND (ClockStatus = 0 OR ClockStatus = 1)"
                    + " ORDER BY TimeDisplayed1";
@@ -120,7 +120,7 @@ public class ClockEvents
         if (PrefC.GetBool(PrefName.LocalTimeOverridesServerTime))
         {
             //Cannot call update since we manually have to update the TimeEntered1 because it is a DateEntry column
-            var command = "UPDATE clockevent SET TimeEntered1=" + SOut.DateTime(DateTime.Now) + ", TimeDisplayed1=" + SOut.DateTime(DateTime.Now) + " WHERE clockEventNum=" + SOut.Long(clockEventNum);
+            var command = "UPDATE clockevent SET TimeEntered1=" + SOut.DateTime(DateTime.Now) + ", TimeDisplayed1=" + SOut.DateTime(DateTime.Now) + " WHERE clockEventNum=" + (clockEventNum);
             Db.NonQ(command);
         }
     }
@@ -132,7 +132,7 @@ public class ClockEvents
 
     public static void Delete(long clockEventNum)
     {
-        var command = "DELETE FROM clockevent WHERE ClockEventNum = " + SOut.Long(clockEventNum);
+        var command = "DELETE FROM clockevent WHERE ClockEventNum = " + (clockEventNum);
         Db.NonQ(command);
     }
 
@@ -142,13 +142,13 @@ public class ClockEvents
             //Every clockevent should be associated to an employee.  Do not waste time looking through the entire table.
             return null;
 
-        var command = "SELECT * FROM clockevent WHERE EmployeeNum=" + SOut.Long(employeeNum)
+        var command = "SELECT * FROM clockevent WHERE EmployeeNum=" + (employeeNum)
                                                                     + " ORDER BY TimeDisplayed1 DESC";
         command = DbHelper.LimitOrderBy(command, 1);
         var clockEvent = ClockEventCrud.SelectOne(command);
         if (clockEvent == null || clockEvent.ClockStatus != TimeClockStatus.Break || clockEvent.TimeDisplayed2.Year <= 1880) return clockEvent;
 
-        command = "SELECT * FROM clockevent WHERE EmployeeNum=" + SOut.Long(employeeNum) + " "
+        command = "SELECT * FROM clockevent WHERE EmployeeNum=" + (employeeNum) + " "
                   + "AND ClockStatus != 2 " //not a break
                   + "ORDER BY TimeDisplayed1 DESC";
         command = DbHelper.LimitOrderBy(command, 1);
@@ -655,7 +655,7 @@ public class ClockEvents
         //Fill list-----------------------------------------------------------------------------------------------------------------------------
         var command =
             "SELECT * FROM clockevent WHERE"
-            + " EmployeeNum = '" + SOut.Long(employeeNum) + "'"
+            + " EmployeeNum = '" + (employeeNum) + "'"
             + " AND TimeDisplayed1 >= " + SOut.Date(dateTimeStart)
             + " AND TimeDisplayed1 < " + SOut.Date(dateTimeStop.AddDays(1)) //adding a day takes it to midnight of the specified toDate
             + " ORDER BY TimeDisplayed1";

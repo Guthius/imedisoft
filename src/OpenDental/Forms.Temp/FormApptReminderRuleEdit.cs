@@ -1,15 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
 using System.Drawing;
 using System.Linq;
-using System.Text;
 using System.Windows.Forms;
 using OpenDental.UI;
 using OpenDentBusiness;
 using CodeBase;
-using System.Globalization;
 using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Data;
@@ -116,7 +112,6 @@ public partial class FormApptReminderRuleEdit:FormODBase {
 		FillTimeSpan();
 		FillTabs();
 		checkSendAll.Checked=ApptReminderRuleCur.IsSendAll;
-		butSetWebForm.Visible=ApptReminderRuleCur.TypeCur==ApptReminderType.NewPatientThankYou;
 	}
 		
 	private void FillTabs() {
@@ -138,7 +133,7 @@ public partial class FormApptReminderRuleEdit:FormODBase {
 				tabPagelanguage.Text=cultureInfo.DisplayName;
 			}
 			tabPagelanguage.Tag=listApptReminderRulesLanguage[i];
-			LayoutManagerForms.Add(tabPagelanguage,tabControl);
+			tabControl.Controls.Add(tabPagelanguage);
 			var userControlReminderMessageLanguage=new UserControlReminderMessage(listApptReminderRulesLanguage[i]);
 			userControlReminderMessageLanguage.Anchor=_userControlReminderMessageDefault.Anchor;
 			userControlReminderMessageLanguage.Dock=DockStyle.Fill;
@@ -374,7 +369,7 @@ public partial class FormApptReminderRuleEdit:FormODBase {
 		var tabPageLanguage=new OpenDental.UI.TabPage();
 		tabPageLanguage.Tag=apptReminderRule;
 		tabPageLanguage.Text=listLanguagesDisplay[inputBoxlanguageSelect.SelectedIndex];
-		LayoutManagerForms.Add(tabPageLanguage,tabControl);
+		tabControl.Controls.Add(tabPageLanguage);
 		var userControlReminderMessageRule=new UserControlReminderMessage(apptReminderRule);
 		userControlReminderMessageRule.Anchor=tabPageDefault.Controls[0].Anchor;
 		userControlReminderMessageRule.Dock=DockStyle.Fill;
@@ -552,7 +547,7 @@ public partial class FormApptReminderRuleEdit:FormODBase {
 		var listUserControlReminderMessages=tabControl.TabPages.Select(x=>x.Controls).OfType<UserControlReminderMessage>().ToList();
 		var listMessages=listUserControlReminderMessages.Select(x => x.TemplateSms).ToList();
 		var aggMessages=string.Join(" ",listMessages);
-		var firstShortURL=PrefC.GetFirstShortURL(aggMessages);
+		var firstShortURL=PrefC.GetFirstShortUrl(aggMessages);
 		if(string.IsNullOrWhiteSpace(firstShortURL)) {
 			return false;
 		}
@@ -574,13 +569,6 @@ public partial class FormApptReminderRuleEdit:FormODBase {
 	}
 
 	private void butDelete_Click(object sender,EventArgs e) {
-		if(ApptReminderRuleCur.IsAutoReplyEnabled 
-		   && ConfirmationRequests.GetPendingForRule(ApptReminderRuleCur.ApptReminderRuleNum).Count > 0
-		   && !MsgBox.Show(this,MsgBoxButtons.OKCancel,"Outstanding confirmation text messages associated to this appointment rule were found.  " +
-		                                               "Auto reply text messages will no longer be sent.  Continue?")) 
-		{
-			return;
-		}
 		var listApptReminderRulesLanguage=GetListLanguageRules();
 		for(var i = 0; i < listApptReminderRulesLanguage.Count; i++) {
 			if(!ListApptReminderRulesNonDefaultRemoving.Contains(listApptReminderRulesLanguage[i]) && !ListApptReminderRulesNonDefaultAdded.Contains(listApptReminderRulesLanguage[i])) {
@@ -590,10 +578,5 @@ public partial class FormApptReminderRuleEdit:FormODBase {
 		ListApptReminderRulesNonDefaultAdded.Clear();
 		ApptReminderRuleCur=null;
 		DialogResult=DialogResult.OK;
-	}
-
-	private void butSetWebForm_Click(object sender,EventArgs e) {
-		using var formEServicesAutoMsgingPreferences=new FormEServicesAutoMsgingPreferences();
-		formEServicesAutoMsgingPreferences.ShowDialog();
 	}
 }

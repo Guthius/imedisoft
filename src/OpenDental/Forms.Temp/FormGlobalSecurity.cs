@@ -1,13 +1,6 @@
 using System;
-using System.Collections.Generic;
-using System.Data;
-using System.Drawing;
-using System.Text;
 using System.Windows.Forms;
 using OpenDentBusiness;
-using System.DirectoryServices;
-using System.Linq;
-using CodeBase;
 using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Data;
@@ -41,10 +34,6 @@ public partial class FormGlobalSecurity:FormODBase {
 		checkUserNameManualEntry.Checked=PrefC.GetBool(PrefName.UserNameManualEntry);
 		checkBadgeLogIn.Checked=PrefC.GetBool(PrefName.SecurityBadgesRequirePassword);
 		checkMaintainPatient.Checked=PrefC.GetBool(PrefName.PatientMaintainedOnUserChange);
-		if(!true) {
-			//This pref only matters when clinics are turned on. When clinics are off it behaves the same as if the pref were on. 
-			checkMaintainPatient.Visible=false;
-		}
 		if(PrefC.GetDate(PrefName.BackupReminderLastDateRun).ToShortDateString()==DateTime.MaxValue.AddMonths(-1).ToShortDateString()) {
 			checkDisableBackupReminder.Checked=true;
 		}
@@ -88,51 +77,13 @@ public partial class FormGlobalSecurity:FormODBase {
 		}
 	}
 
-	private void checkDomainLoginEnabled_CheckedChanged(object sender,EventArgs e) {
-		textDomainLoginPath.ReadOnly=!checkDomainLoginEnabled.Checked;
-	}
-
 	private void checkDomainLoginEnabled_MouseUp(object sender,MouseEventArgs e) {
-		if(!checkDomainLoginEnabled.Checked || !string.IsNullOrWhiteSpace(textDomainLoginPath.Text)) {
-			return;
-		}
-		if(MsgBox.Show(this,MsgBoxButtons.YesNo,"Would you like to use your current domain as the domain login path?")) {
-			var directoryEntryRoot = new DirectoryEntry("LDAP://RootDSE");
-			if(directoryEntryRoot.Properties["defaultNamingContext"].Value==null) {
-				MsgBox.Show(this,"Unable to bind to the current domain.");
-				return;
-			}
-			var defaultNamingContext=directoryEntryRoot.Properties["defaultNamingContext"].Value.ToString();
-			textDomainLoginPath.Text="LDAP://"+defaultNamingContext;
-			var directoryEntryTest=new DirectoryEntry(textDomainLoginPath.Text);
-			_domainObjectGuid=directoryEntryTest.Guid.ToString();
-		}
 	}
 
 	///<summary>Validation for the domain login path provided. 
 	///Accepted formats are those listed here: https://msdn.microsoft.com/en-us/library/aa746384(v=vs.85).aspx, excluding plain "LDAP:"
 	///Does not check if there are users on the domain object, only that the domain object exists and can be searched.</summary>
 	private void textDomainLoginPath_Leave(object sender,EventArgs e) {
-		if(!checkDomainLoginEnabled.Checked) {
-			return;
-		}
-		if(string.IsNullOrWhiteSpace(textDomainLoginPath.Text)) {
-			MsgBox.Show(this,"Warning. Domain Login is enabled, but no path has been entered. If you do not provide a domain path,"
-			                 +"you will not be able to assign domain logins to users.");
-			_domainObjectGuid="";
-		}
-		else {
-			DirectoryEntry directoryEntryTest=directoryEntryTest = new DirectoryEntry(textDomainLoginPath.Text);
-			var directorySearcher = new DirectorySearcher(directoryEntryTest);
-			try {
-				var searchResultsCollectionTestResults = directorySearcher.FindAll(); //Just do a generic search to verify the object might have users on it
-			}
-			catch(Exception ex) {
-				FriendlyException.Show(Lan.g(this,"An error occurred while attempting to access the provided Domain Login Path."),ex);
-				return;
-			}
-			_domainObjectGuid=directoryEntryTest.Guid.ToString();
-		}
 	}
 
 	private void checkPasswordsMustBeStrong_Click(object sender,EventArgs e) {

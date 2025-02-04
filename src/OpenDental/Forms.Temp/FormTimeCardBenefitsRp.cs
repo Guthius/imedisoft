@@ -1,21 +1,15 @@
 using System;
 using System.Drawing;
-using System.Drawing.Printing;
-using System.Collections;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Globalization;
 using System.Windows.Forms;
 using OpenDental.UI;
 using OpenDentBusiness;
 using System.Linq;
 using System.Text;
 using CodeBase;
-using System.IO;
 using Imedisoft.Core.Data;
 using Imedisoft.Core.Entities;
 using OpenDental.Logic;
-using OpenDental.Thinfinity;
 
 namespace OpenDental;
 
@@ -216,12 +210,6 @@ public partial class FormTimeCardBenefitRp:FormODBase {
 		stringBuilder.AppendLine(string.Join(",",gridMain.Columns.Select(x => x.Heading)));
 		gridMain.ListGridRows
 			.ForEach(row => stringBuilder.AppendLine(string.Join(",",row.Cells.Select(cell => cell.Text.Replace(',','-').Replace('\t',',')))));
-		if(false) {
-			var exportFilename="BenefitsRpt_"+_dateNow.ToString("yyyyMMdd")+"_"+DateTime.Now.ToString("hhmm")+".csv";
-			var dataString=stringBuilder.ToString();
-			ThinfinityUtils.ExportForDownload(exportFilename,dataString);
-			return;
-		}
 		using var folderBrowserDialog = new FolderBrowserDialog();
 		if(folderBrowserDialog.ShowDialog()!=DialogResult.OK || string.IsNullOrEmpty(folderBrowserDialog.SelectedPath)) {
 			MsgBox.Show(this,"Invalid directory.");
@@ -233,7 +221,7 @@ public partial class FormTimeCardBenefitRp:FormODBase {
 			try {
 				System.Diagnostics.Process.Start(filename);
 			}
-			catch(Exception ex) {
+			catch {
 			}
 		}
 	}

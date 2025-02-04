@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Reflection;
-using System.Text;
 using System.Linq;
 using DataConnectionBase;
 using Imedisoft.Core.Entities;
@@ -14,10 +12,10 @@ namespace OpenDentBusiness {
 		public static DataTable GetInsTable(DateTime dateFrom,DateTime dateTo,List<long> listProvNums,List<long> listClinicNums,
 			List<long> listInsuranceTypes,List<long> listClaimPayGroups,bool hasAllProvs,bool hasAllClinics,bool hasInsuranceTypes,bool isGroupedByPatient,
 			bool hasAllClaimPayGroups,bool doShowProvSeparate) {
-			string whereProv="";
+			var whereProv="";
 			if(!hasAllProvs) {
 				whereProv+=" AND claimproc.ProvNum IN(";
-				for(int i=0;i<listProvNums.Count;i++) {
+				for(var i=0;i<listProvNums.Count;i++) {
 					if(i>0) {
 						whereProv+=",";
 					}
@@ -25,12 +23,12 @@ namespace OpenDentBusiness {
 				}
 				whereProv+=") ";
 			}
-			string whereClin="";
+			var whereClin="";
 			//reports should no longer use the cache
 			const bool hasClinicsEnabled = true;
 			if(hasClinicsEnabled) {
 				whereClin+=" AND claimproc.ClinicNum IN(";
-				for(int i=0;i<listClinicNums.Count;i++) {
+				for(var i=0;i<listClinicNums.Count;i++) {
 					if(i>0) {
 						whereClin+=",";
 					}
@@ -38,11 +36,11 @@ namespace OpenDentBusiness {
 				}
 				whereClin+=") ";
 			}
-			string whereClaimPayGroup="";
+			var whereClaimPayGroup="";
 			if(!hasAllClaimPayGroups && listClaimPayGroups.Count>0){
-				whereClaimPayGroup=" AND PayGroup IN ("+String.Join(",",listClaimPayGroups)+") ";
+				whereClaimPayGroup=" AND PayGroup IN ("+string.Join(",",listClaimPayGroups)+") ";
 			}
-			string queryIns=
+			var queryIns=
 				@"SELECT claimproc.DateCP,carrier.CarrierName,MAX("
 					+DbHelper.Concat("patient.LName","', '","patient.FName","' '","patient.MiddleI")+@") lfname,GROUP_CONCAT(DISTINCT provider.Abbr) Provider, ";
 			if(hasClinicsEnabled) {
@@ -66,7 +64,7 @@ namespace OpenDentBusiness {
 				+"AND claimpayment.CheckDate <= "+SOut.Date(dateTo)+" ";
 			if(!hasInsuranceTypes && listInsuranceTypes.Count>0) {
 				queryIns+="AND claimpayment.PayType IN (";
-				for(int i=0;i<listInsuranceTypes.Count;i++) {
+				for(var i=0;i<listInsuranceTypes.Count;i++) {
 					if(i>0) {
 						queryIns+=",";
 					}
@@ -89,10 +87,10 @@ namespace OpenDentBusiness {
 			if(!hasInsuranceTypes && listInsuranceTypes.Count==0) {
 				queryIns=DbHelper.LimitOrderBy(queryIns,0);
 			}
-			DataTable table=DataCore.GetTable(queryIns);
+			var table=DataCore.GetTable(queryIns);
 			foreach(DataRow row in table.Rows) {
 				//If there is more than one patient attached to a check, we will append an asterisk to the end.
-				int countPats=SIn.Int(row["countPats"].ToString());
+				var countPats=SIn.Int(row["countPats"].ToString());
 				if(countPats > 1) {
 					row["lfname"]=row["lfname"].ToString().TrimEnd()+"*";
 				}
@@ -109,14 +107,14 @@ namespace OpenDentBusiness {
 		{
 			//reports should no longer use the cache
 			const bool hasClinicsEnabled = true;
-			List<long> listHiddenUnearnedDefNums=new List<long>();
+			var listHiddenUnearnedDefNums=new List<long>();
 			if(!doShowHiddenTPUnearned) {
 				listHiddenUnearnedDefNums=Defs.GetDefsNoCache(DefCat.PaySplitUnearnedType).FindAll(x => !string.IsNullOrEmpty(x.ItemValue)).Select(x => x.DefNum).ToList();
 			}
 			//patient payments-----------------------------------------------------------------------------------------
 			//the selected columns have to remain in this order due to the way the report complex populates the returned sheet
-			string queryPat="SELECT payment.PayDate DatePay,"
-				+"MAX("+DbHelper.Concat("patient.LName","', '","patient.FName","' '","patient.MiddleI")+") lfname,GROUP_CONCAT(DISTINCT provider.Abbr),";
+			var queryPat="SELECT payment.PayDate DatePay,"
+			             +"MAX("+DbHelper.Concat("patient.LName","', '","patient.FName","' '","patient.MiddleI")+") lfname,GROUP_CONCAT(DISTINCT provider.Abbr),";
 			if(hasClinicsEnabled) {
 				queryPat+="IF(clinic.IsHidden,CONCAT(clinic.Abbr,'("+SOut.String(Lans.g("FormRpPaySheet","hidden"))+")'),clinic.Abbr) clinicAbbr,";
 			}

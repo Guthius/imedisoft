@@ -10,6 +10,7 @@ using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Data;
 using Imedisoft.Core.Entities;
+using Imedisoft.Features.Providers.Dtos;
 using OpenDental.Logic;
 using OpenDental.UI;
 using OpenDentBusiness;
@@ -29,7 +30,7 @@ public partial class FormSchedule:FormODBase {
 	private int _pagesPrinted;
 	private int _heightHeadingPrint;
 	private bool _changed;
-	private List<Provider> _listProviders;
+	private List<ProviderDto> _listProviders;
 	private List<Employee> _listEmployees;
 	private DataTable _tableScheds;
 	private bool _isResizing;
@@ -75,10 +76,6 @@ public partial class FormSchedule:FormODBase {
 				butClearWeek.Visible=false;
 				groupCopy.Visible=false;
 				groupPaste.Visible=false;
-				if(false) {//if this is OD HQ
-					checkPracticeNotes.Checked=false;
-					checkPracticeNotes.Enabled=false;
-				}
 				dateFrom=DateTime.Today.AddDays(-(int)DateTime.Today.DayOfWeek);//Sunday of current week.
 				textDateFrom.Text=dateFrom.ToShortDateString();
 				textDateTo.Text=dateFrom.AddMonths(1).AddDays(-1).ToShortDateString();
@@ -90,12 +87,6 @@ public partial class FormSchedule:FormODBase {
 	}
 
 	private void RefreshClinicData() {
-		if(!true) {
-			checkShowClinicSchedules.Visible=false;
-			checkClinicNotes.Visible=false;
-			checkClinicNotes.Checked=false;
-			return;
-		}
 	}
 
 	///<summary>Fills the employee box based on what clinic is selected.  Set selectAll to true to have all employees in the list box selected by default.</summary>
@@ -105,16 +96,11 @@ public partial class FormSchedule:FormODBase {
 		//Seed emp list and prov list with a dummy emp/prov with 'none' for the field that fills the list, FName and Abbr respectively.
 		//That way we don't have to add/subtract one in order when selecting from the list based on selected indexes.
 		_listEmployees= [new Employee {EmployeeNum = 0, FName = "none"}];
-		_listProviders= [new Provider {ProvNum = 0, Abbr = "none"}];
-		if(true) {
-			//clinicNum will be 0 for unrestricted users with HQ selected in which case this will get only emps/provs not assigned to a clinic
-			_listEmployees.AddRange(Employees.GetEmpsForClinic(comboClinic.ClinicNumSelected));
-			_listProviders.AddRange(Providers.GetProvsForClinic(comboClinic.ClinicNumSelected));
-		}
-		else {//Not using clinics
-			_listEmployees.AddRange(Employees.GetDeepCopy(true));
-			_listProviders.AddRange(Providers.GetDeepCopy(true));
-		}
+		_listProviders= [new ProviderDto {Id = 0, Abbr = "none"}];
+		//clinicNum will be 0 for unrestricted users with HQ selected in which case this will get only emps/provs not assigned to a clinic
+		_listEmployees.AddRange(Employees.GetEmpsForClinic(comboClinic.ClinicNumSelected));
+		_listProviders.AddRange(Providers.GetProvsForClinic(comboClinic.ClinicNumSelected));
+
 		var listEmpNumsPreviouslySelected=listBoxEmps.GetListSelected<Employee>().Select(x => x.EmployeeNum).ToList();
 		listBoxEmps.Items.Clear();
 		_listEmployees.ForEach(x => listBoxEmps.Items.Add(x.FName,x));
@@ -137,7 +123,7 @@ public partial class FormSchedule:FormODBase {
 			if(_listProvNumsPreSelected!=null && _listProvNumsPreSelected.Count>0) {
 				//Provider Listbox
 				for(var i=1;i<listBoxProvs.Items.Count;i++) {
-					if(!_listProvNumsPreSelected.Contains(_listProviders[i].ProvNum)) {
+					if(!_listProvNumsPreSelected.Contains(_listProviders[i].Id)) {
 						continue;
 					}
 					listBoxProvs.SetSelected(i,true);
@@ -215,7 +201,7 @@ public partial class FormSchedule:FormODBase {
 		_hasProvsChanged=false;
 		var listProvNums=new List<long>();
 		for(var i=0;i<listBoxProvs.SelectedIndices.Count;i++){
-			listProvNums.Add(_listProviders[listBoxProvs.SelectedIndices[i]].ProvNum);
+			listProvNums.Add(_listProviders[listBoxProvs.SelectedIndices[i]].Id);
 		}
 		var listEmpNums=new List<long>();
 		for(var i=0;i<listBoxEmps.SelectedIndices.Count;i++){
@@ -225,15 +211,12 @@ public partial class FormSchedule:FormODBase {
 		listEmpNums.RemoveAll(x => x==0);
 		if(doRefreshData || this._tableScheds==null) {
 			var canViewNotes=true;
-			if(false) {
-				canViewNotes=Security.IsAuthorized(EnumPermType.Schedules,true);
-			}
 			_dateFromDate=SIn.Date(textDateFrom.Text);
 			_dateToDate=SIn.Date(textDateTo.Text);
-			Logger.LogToPath();
+			
 			_tableScheds=Schedules.GetPeriod(_dateFromDate,_dateToDate,listProvNums,listEmpNums,checkPracticeNotes.Checked,
 				checkClinicNotes.Checked,comboClinic.ClinicNumSelected,checkShowClinicSchedules.Checked,canViewNotes);
-			Logger.LogToPath();
+			
 		}
 		gridMain.BeginUpdate();
 		gridMain.Columns.Clear();
@@ -822,7 +805,7 @@ public partial class FormSchedule:FormODBase {
 			return;
 		}
 		var actionCloseScheduleProgress=ODProgress.Show();
-		Logger.LogToPath();
+		
 		//calculate which day or week is currently selected.
 		DateTime dateSelectedStart;
 		DateTime dateSelectedEnd;
@@ -853,7 +836,7 @@ public partial class FormSchedule:FormODBase {
 		List<long> listProvNums;
 		List<long> listEmployeeNums;
 		GetSelectedProvidersEmployeesAndClinic(out listProvNums,out listEmployeeNums);
-		Logger.LogToPath();
+		
 		var listSchedulesToCopy=Schedules.RefreshPeriod(_dateCopyStart,_dateCopyEnd,listProvNums,listEmployeeNums,checkPracticeNotes.Checked,
 			checkClinicNotes.Checked,comboClinic.ClinicNumSelected);
 		listSchedulesToCopy=FilterScheduleList(listSchedulesToCopy,true);
@@ -878,7 +861,7 @@ public partial class FormSchedule:FormODBase {
 		}
 		//Flag every schedule that we are copying as new (because conflict detection requires schedules marked as new)
 		listSchedulesToCopy.ForEach(x => x.IsNew=true);
-		Logger.LogToPath();
+		
 		var schedule=new Schedule();
 		var weekDelta=0;
 		TimeSpan timeSpan;
@@ -922,7 +905,7 @@ public partial class FormSchedule:FormODBase {
 			}
 			actionCloseScheduleProgress=ODProgress.Show();
 		}
-		Logger.LogToPath();
+		
 		var listSchedulesToInsert=new List<Schedule>();
 		var listSchedNumsToDelete=new List<long>();
 		var listSchedulesHoliday=GetHolidaySchedules(dateSelectedStart,dateEnd);
@@ -931,21 +914,21 @@ public partial class FormSchedule:FormODBase {
 			if(checkReplace.Checked) {
 				var listSchedulesToDelete=new List<Schedule>();
 				if(isWeekCopied){
-					Logger.LogToPath();
+					
 					listSchedulesToDelete=Schedules.GetSchedulesToDelete(dateSelectedStart.AddDays(r*7),dateSelectedEnd.AddDays(r*7),listProvNums,
 						listEmployeeNums,checkPracticeNotes.Checked,checkClinicNotes.Checked,comboClinic.ClinicNumSelected);
-					Logger.LogToPath();
+					
 				}
 				else{
-					Logger.LogToPath();
+					
 					listSchedulesToDelete=Schedules.GetSchedulesToDelete(dateSelectedStart.AddDays(dayCount),dateSelectedEnd.AddDays(dayCount),
 						listProvNums,listEmployeeNums,checkPracticeNotes.Checked,checkClinicNotes.Checked,comboClinic.ClinicNumSelected);
-					Logger.LogToPath();
+					
 				}
 				listSchedulesToDelete=FilterScheduleList(listSchedulesToDelete,true);
 				listSchedNumsToDelete.AddRange(listSchedulesToDelete.Select(x => x.ScheduleNum).ToList());
 			}
-			Logger.LogToPath();
+			
 			for(var i=0;i<listSchedulesToCopy.Count;i++) {//For example, if 3 weeks for one provider, then about 30 loops.
 				schedule=listSchedulesToCopy[i].Copy();
 				if(isWeekCopied) {
@@ -959,7 +942,7 @@ public partial class FormSchedule:FormODBase {
 				}
 				listSchedulesToInsert.Add(schedule);
 			}
-			Logger.LogToPath();		
+					
 			dayCount+=CalculateNextDay(dateSelectedStart.AddDays(dayCount));
 		}
 		if(listSchedulesHoliday.Count>0) {
@@ -967,7 +950,7 @@ public partial class FormSchedule:FormODBase {
 		}
 		Schedules.DeleteMany(listSchedNumsToDelete);
 		Schedules.Insert(false,true,listSchedulesToInsert);
-		Logger.LogToPath();
+		
 		var rememberDateStart=_dateCopyStart;
 		var rememberDateEnd=_dateCopyEnd;
 		_pointClickedCell=gridMain.SelectedCell;
@@ -984,7 +967,7 @@ public partial class FormSchedule:FormODBase {
 		SecurityLogs.MakeLogEntry(EnumPermType.Schedules,0,"Repeated schedule "+repeatCount+" time(s) from "+textClipboard.Text+
 		                                                   " to "+schedule.SchedDate.ToShortDateString());
 		actionCloseScheduleProgress?.Invoke();
-		Logger.LogToPath();
+		
 	}
 
 	private void butPrint_Click(object sender,EventArgs e) {

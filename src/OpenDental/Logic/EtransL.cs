@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Data;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -10,6 +9,7 @@ using CodeBase;
 using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Crud;
+using Imedisoft.Core.Data;
 using Imedisoft.Core.Entities;
 using Imedisoft.Core.Features.Clinics;
 using OpenDentBusiness;
@@ -592,7 +592,7 @@ public class EtransL
                     if (!PrefC.GetBool(PrefName.PriProvDefaultToSelectProv))
                     {
                         //Set the patients primary provider to the practice default provider.
-                        hx834_Member.Pat.PriProv = Providers.GetDefaultProvider().ProvNum;
+                        hx834_Member.Pat.PriProv = Providers.GetDefaultProvider().Id;
                     }
 
                     hx834_Member.Pat.ClinicNum = Clinics.ClinicNum;

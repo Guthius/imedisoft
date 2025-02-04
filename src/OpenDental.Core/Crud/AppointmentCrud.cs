@@ -25,45 +25,46 @@ public class AppointmentCrud
     public static List<Appointment> TableToList(DataTable table)
     {
         var retVal = new List<Appointment>();
-        Appointment appointment;
         foreach (DataRow row in table.Rows)
         {
-            appointment = new Appointment();
-            appointment.AptNum = SIn.Long(row["AptNum"].ToString());
-            appointment.PatNum = SIn.Long(row["PatNum"].ToString());
-            appointment.AptStatus = (ApptStatus) SIn.Int(row["AptStatus"].ToString());
-            appointment.Pattern = SIn.String(row["Pattern"].ToString());
-            appointment.Confirmed = SIn.Long(row["Confirmed"].ToString());
-            appointment.TimeLocked = SIn.Bool(row["TimeLocked"].ToString());
-            appointment.Op = SIn.Long(row["Op"].ToString());
-            appointment.Note = SIn.String(row["Note"].ToString());
-            appointment.ProvNum = SIn.Long(row["ProvNum"].ToString());
-            appointment.ProvHyg = SIn.Long(row["ProvHyg"].ToString());
-            appointment.AptDateTime = SIn.DateTime(row["AptDateTime"].ToString());
-            appointment.NextAptNum = SIn.Long(row["NextAptNum"].ToString());
-            appointment.UnschedStatus = SIn.Long(row["UnschedStatus"].ToString());
-            appointment.IsNewPatient = SIn.Bool(row["IsNewPatient"].ToString());
-            appointment.ProcDescript = SIn.String(row["ProcDescript"].ToString());
-            appointment.Assistant = SIn.Long(row["Assistant"].ToString());
-            appointment.ClinicNum = SIn.Long(row["ClinicNum"].ToString());
-            appointment.IsHygiene = SIn.Bool(row["IsHygiene"].ToString());
-            appointment.DateTStamp = SIn.DateTime(row["DateTStamp"].ToString());
-            appointment.DateTimeArrived = SIn.DateTime(row["DateTimeArrived"].ToString());
-            appointment.DateTimeSeated = SIn.DateTime(row["DateTimeSeated"].ToString());
-            appointment.DateTimeDismissed = SIn.DateTime(row["DateTimeDismissed"].ToString());
-            appointment.InsPlan1 = SIn.Long(row["InsPlan1"].ToString());
-            appointment.InsPlan2 = SIn.Long(row["InsPlan2"].ToString());
-            appointment.DateTimeAskedToArrive = SIn.DateTime(row["DateTimeAskedToArrive"].ToString());
-            appointment.ProcsColored = SIn.String(row["ProcsColored"].ToString());
-            appointment.ColorOverride = Color.FromArgb(SIn.Int(row["ColorOverride"].ToString()));
-            appointment.AppointmentTypeNum = SIn.Long(row["AppointmentTypeNum"].ToString());
-            appointment.SecUserNumEntry = SIn.Long(row["SecUserNumEntry"].ToString());
-            appointment.SecDateTEntry = SIn.DateTime(row["SecDateTEntry"].ToString());
-            appointment.Priority = (ApptPriority) SIn.Int(row["Priority"].ToString());
-            appointment.ProvBarText = SIn.String(row["ProvBarText"].ToString());
-            appointment.PatternSecondary = SIn.String(row["PatternSecondary"].ToString());
-            appointment.SecurityHash = SIn.String(row["SecurityHash"].ToString());
-            appointment.ItemOrderPlanned = SIn.Int(row["ItemOrderPlanned"].ToString());
+            var appointment = new Appointment
+            {
+                AptNum = SIn.Long(row["AptNum"].ToString()),
+                PatNum = SIn.Long(row["PatNum"].ToString()),
+                AptStatus = (ApptStatus) SIn.Int(row["AptStatus"].ToString()),
+                Pattern = SIn.String(row["Pattern"].ToString()),
+                Confirmed = SIn.Long(row["Confirmed"].ToString()),
+                TimeLocked = SIn.Bool(row["TimeLocked"].ToString()),
+                Op = SIn.Long(row["Op"].ToString()),
+                Note = SIn.String(row["Note"].ToString()),
+                ProvNum = SIn.Long(row["ProvNum"].ToString()),
+                ProvHyg = SIn.Long(row["ProvHyg"].ToString()),
+                AptDateTime = SIn.DateTime(row["AptDateTime"].ToString()),
+                NextAptNum = SIn.Long(row["NextAptNum"].ToString()),
+                UnschedStatus = SIn.Long(row["UnschedStatus"].ToString()),
+                IsNewPatient = SIn.Bool(row["IsNewPatient"].ToString()),
+                ProcDescript = SIn.String(row["ProcDescript"].ToString()),
+                Assistant = SIn.Long(row["Assistant"].ToString()),
+                ClinicNum = SIn.Long(row["ClinicNum"].ToString()),
+                IsHygiene = SIn.Bool(row["IsHygiene"].ToString()),
+                DateTStamp = SIn.DateTime(row["DateTStamp"].ToString()),
+                DateTimeArrived = SIn.DateTime(row["DateTimeArrived"].ToString()),
+                DateTimeSeated = SIn.DateTime(row["DateTimeSeated"].ToString()),
+                DateTimeDismissed = SIn.DateTime(row["DateTimeDismissed"].ToString()),
+                InsPlan1 = SIn.Long(row["InsPlan1"].ToString()),
+                InsPlan2 = SIn.Long(row["InsPlan2"].ToString()),
+                DateTimeAskedToArrive = SIn.DateTime(row["DateTimeAskedToArrive"].ToString()),
+                ProcsColored = SIn.String(row["ProcsColored"].ToString()),
+                ColorOverride = Color.FromArgb(SIn.Int(row["ColorOverride"].ToString())),
+                AppointmentTypeNum = SIn.Long(row["AppointmentTypeNum"].ToString()),
+                SecUserNumEntry = SIn.Long(row["SecUserNumEntry"].ToString()),
+                SecDateTEntry = SIn.DateTime(row["SecDateTEntry"].ToString()),
+                Priority = (ApptPriority) SIn.Int(row["Priority"].ToString()),
+                ProvBarText = SIn.String(row["ProvBarText"].ToString()),
+                PatternSecondary = SIn.String(row["PatternSecondary"].ToString()),
+                SecurityHash = SIn.String(row["SecurityHash"].ToString()),
+                ItemOrderPlanned = SIn.Int(row["ItemOrderPlanned"].ToString())
+            };
             retVal.Add(appointment);
         }
 
@@ -340,15 +341,13 @@ public class AppointmentCrud
         var idxNew = 0;
         var idxDB = 0;
         var rowsUpdatedCount = 0;
-        Appointment fieldNew;
-        Appointment fieldDB;
         //Because both lists have been sorted using the same criteria, we can now walk each list to determine which list contians the next element.  The next element is determined by Primary Key.
         //If the New list contains the next item it will be inserted.  If the DB contains the next item, it will be deleted.  If both lists contain the next item, the item will be updated.
         while (idxNew < listNew.Count || idxDB < listDB.Count)
         {
-            fieldNew = null;
+            Appointment fieldNew = null;
             if (idxNew < listNew.Count) fieldNew = listNew[idxNew];
-            fieldDB = null;
+            Appointment fieldDB = null;
             if (idxDB < listDB.Count) fieldDB = listDB[idxDB];
             //begin compare
             if (fieldNew != null && fieldDB == null)

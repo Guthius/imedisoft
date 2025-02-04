@@ -11,11 +11,8 @@ public class HieQueueCrud
         var command = "INSERT INTO hiequeue (";
 
         command += "PatNum) VALUES(";
+        command += SOut.Long(hieQueue.PatNum) + ")";
 
-        command +=
-            SOut.Long(hieQueue.PatNum) + ")";
-        {
-            hieQueue.HieQueueNum = Db.NonQ(command, true, "HieQueueNum", "hieQueue");
-        }
+        hieQueue.HieQueueNum = Db.NonQ(command, true, "HieQueueNum", "hieQueue");
     }
 }

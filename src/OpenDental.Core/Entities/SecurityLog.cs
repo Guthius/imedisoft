@@ -3,12 +3,8 @@ using OpenDentBusiness;
 
 namespace Imedisoft.Core.Entities;
 
-///<summary>Stores an ongoing record of database activity for security purposes.  User not allowed to edit.</summary>
-[Serializable]
-[CrudTable(IsLargeTable = true)]
 public class SecurityLog : TableBase
 {
-    ///<summary>Primary key.</summary>
     [CrudColumn(IsPriKey = true)]
     public long SecurityLogNum;
 
@@ -19,11 +15,9 @@ public class SecurityLog : TableBase
     public long UserNum;
 
     ///<summary>The date and time of the entry.  It's value is set when inserting and can never change.  Even if a user changes the date on their computer, this remains accurate because it uses server time.</summary>
-    [CrudColumn(SpecialType = CrudSpecialColType.DateTEntry)]
     public DateTime LogDateTime;
 
     ///<summary>The description of exactly what was done. Varies by permission type.</summary>
-    [CrudColumn(SpecialType = CrudSpecialColType.IsText)]
     public string LogText;
 
     ///<summary>FK to patient.PatNum.  Can be 0 if not applicable.</summary>
@@ -63,7 +57,6 @@ public class SecurityLog : TableBase
     public long DefNumError;
 
     ///<summary>Used to store the previous DateTStamp or SecDateTEdit of the object FKey refers to.</summary>
-    [CrudColumn(SpecialType = CrudSpecialColType.DateT)]
     public DateTime DateTPrevious;
 }
 

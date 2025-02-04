@@ -4,7 +4,6 @@ using System.ComponentModel;
 using System.Data;
 using System.Globalization;
 using System.Linq;
-using System.Reflection;
 using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Entities;
@@ -17,7 +16,7 @@ namespace OpenDentBusiness {
 		public static DataTable GetProcsNotBilled(List<long> listClinicNums,bool includeMedProcs,DateTime dateStart,DateTime dateEnd,
 			EnumShowProcsBeforeIns showProcsBeforeIns,bool hasMultiVisitProcs)
 		{
-			string query="SELECT ";
+			var query="SELECT ";
 			if(PrefC.GetBool(PrefName.ReportsShowPatNum)) {
 				query+=DbHelper.Concat("CAST(patient.PatNum AS CHAR)","'-'","patient.LName","', '","patient.FName","' '","patient.MiddleI");
 			}
@@ -69,11 +68,11 @@ namespace OpenDentBusiness {
 			}
 			query+=@" GROUP BY procedurelog.ProcNum";
 			query+=" ORDER BY patient.LName,patient.FName,patient.PatNum,procedurelog.ProcDate";
-			DataTable table=DataCore.GetTable(query);
-			List<DataRow> listDataRows=table.Select().ToList();
-			for(int i=0;i<listDataRows.Count;i++) {
-				DataRow dataRow = listDataRows[i];
-				ProcedureCode procedureCode=ProcedureCodes.GetFirstOrDefault(x=>x.CodeNum==SIn.Long(dataRow["CodeNum"].ToString()));//guaranteed to always work
+			var table=DataCore.GetTable(query);
+			var listDataRows=table.Select().ToList();
+			for(var i=0;i<listDataRows.Count;i++) {
+				var dataRow = listDataRows[i];
+				var procedureCode=ProcedureCodes.GetFirstOrDefault(x=>x.CodeNum==SIn.Long(dataRow["CodeNum"].ToString()));//guaranteed to always work
 				if(CultureInfo.CurrentCulture.Name.EndsWith("CA") && procedureCode.IsCanadianLab) {//ignore Canadian labs
 					table.Rows.Remove(dataRow);
 					continue;

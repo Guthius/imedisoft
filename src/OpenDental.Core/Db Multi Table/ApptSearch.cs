@@ -13,7 +13,7 @@ public class ApptSearch
     {
         List<ScheduleOpening> listOpenings = [];
         //searching for intersection of provider and blockout type. Search needs to be handled differently. 
-        List<long> listProvs = listProvNums.FindAll(x => x != 0); //list of providers (excluding the blockout provNum 0)
+        var listProvs = listProvNums.FindAll(x => x != 0); //list of providers (excluding the blockout provNum 0)
         List<ScheduleOpening> listOpeningsForProvs = [];
         List<ScheduleOpening> listOpeningForBlockout = [];
         //list of all openings for the given providers. 
@@ -24,9 +24,9 @@ public class ApptSearch
         listOpeningForBlockout = GetSearchResults(apptNum, startDate, endDate, [0], listOpNums, listClinicNums, timeBefore,
             timeAfter, listBlockoutTypes, true).OrderBy(x => x.DateTimeAvail).ToList();
         HashSet<HItem> hashSetHItems = [];
-        for (int i = 0; i < listOpeningForBlockout.Count; i++)
+        for (var i = 0; i < listOpeningForBlockout.Count; i++)
         {
-            HItem hItem = new HItem();
+            var hItem = new HItem();
             hItem.DateTimeAvailable = listOpeningForBlockout[i].DateTimeAvail;
             hItem.OpNum = listOpeningForBlockout[i].OpNum;
             hItem.ClinicNum = ScheduleOpening.ClinicNum;
@@ -34,12 +34,12 @@ public class ApptSearch
         }
 
         //Get the first DateTime,OpNum,Clinic combo that are present in both the provider and blockout openings.
-        Dictionary<DateTime, List<ScheduleOpening>> dictOpeningsByDate = listOpeningsForProvs
+        var dictOpeningsByDate = listOpeningsForProvs
             .Where(x => hashSetHItems.Contains(new HItem {DateTimeAvailable = x.DateTimeAvail, ClinicNum = ScheduleOpening.ClinicNum, OpNum = x.OpNum}))
             .GroupBy(x => x.DateTimeAvail.Date)
             .ToDictionary(x => x.Key, x => x.ToList());
         //Only return one opening per day and limit the results by resultCount that was passed in.
-        foreach (DateTime dateKey in dictOpeningsByDate.Keys)
+        foreach (var dateKey in dictOpeningsByDate.Keys)
         {
             listOpenings.Add(dictOpeningsByDate[dateKey].First());
             if (listOpenings.Count >= resultCount)
@@ -59,7 +59,7 @@ public class ApptSearch
 
         public override bool Equals(object obj)
         {
-            HItem hItem = obj as HItem;
+            var hItem = obj as HItem;
             if (hItem == null)
             {
                 return false;
@@ -70,8 +70,8 @@ public class ApptSearch
 
         public override int GetHashCode()
         {
-            int retval = 486187739; //Arbitrary prime number
-            int prime = 104743;
+            var retval = 486187739; //Arbitrary prime number
+            var prime = 104743;
             unchecked
             {
                 //Overflow is fine, just wrap around
@@ -96,7 +96,7 @@ public class ApptSearch
             beforeTime = TimeSpan.FromHours(25); //bigger than any time of day.
         }
 
-        ApptSearchData data = GetDataForSearch(aptNum, dateStart, dateEnd, listProvNums, listOpNums, listClinicNums, listBlockoutTypes, isForMakeRecall: isForMakeRecall);
+        var data = GetDataForSearch(aptNum, dateStart, dateEnd, listProvNums, listOpNums, listClinicNums, listBlockoutTypes, isForMakeRecall: isForMakeRecall);
         List<ScheduleOpening> retVal = [];
         if (data.AppointmentToAdd == null)
         {
@@ -104,17 +104,17 @@ public class ApptSearch
             return retVal;
         }
 
-        DateTime dateEvaluating = data.DateEvaluating;
-        SearchBehaviorCriteria searchType = (SearchBehaviorCriteria) PrefC.GetInt(PrefName.AppointmentSearchBehavior);
+        var dateEvaluating = data.DateEvaluating;
+        var searchType = (SearchBehaviorCriteria) PrefC.GetInt(PrefName.AppointmentSearchBehavior);
         if (hasProvAndBlockout)
         {
             //searching for intersection of providers and blockouts get as many results as possible.
             while (dateEvaluating < dateEnd)
             {
-                List<ScheduleOpening> listPotentialTimeAvailable = GetProvAndOpAvailabilityHelper(listProvNums, dateEvaluating, data, searchType, listOpNums
+                var listPotentialTimeAvailable = GetProvAndOpAvailabilityHelper(listProvNums, dateEvaluating, data, searchType, listOpNums
                     , listBlockoutTypes);
                 //At this point listPotentialTimeAvailable is already filtered and only contains appt times that match both provider time and operatory time. 
-                List<ScheduleOpening> listOpeningsForEntireDay = AddTimesToSearchResultsHelper(listPotentialTimeAvailable, beforeTime, afterTime);
+                var listOpeningsForEntireDay = AddTimesToSearchResultsHelper(listPotentialTimeAvailable, beforeTime, afterTime);
                 retVal.AddRange(listOpeningsForEntireDay);
                 dateEvaluating = dateEvaluating.AddDays(1);
             }
@@ -123,10 +123,10 @@ public class ApptSearch
         {
             while (retVal.Count < resultCount && dateEvaluating < dateEnd)
             {
-                List<ScheduleOpening> listPotentialTimeAvailable = GetProvAndOpAvailabilityHelper(listProvNums, dateEvaluating, data, searchType, listOpNums
+                var listPotentialTimeAvailable = GetProvAndOpAvailabilityHelper(listProvNums, dateEvaluating, data, searchType, listOpNums
                     , listBlockoutTypes);
                 //At this point listPotentialTimeAvailable is already filtered and only contains appt times that match both provider time and operatory time. 
-                ScheduleOpening firstOpeningForDay = AddTimeToSearchResultsHelper(listPotentialTimeAvailable, beforeTime, afterTime);
+                var firstOpeningForDay = AddTimeToSearchResultsHelper(listPotentialTimeAvailable, beforeTime, afterTime);
                 if (firstOpeningForDay != null)
                 {
                     retVal.Add(firstOpeningForDay);
@@ -168,7 +168,7 @@ public class ApptSearch
     {
         ScheduleOpening firstAvailability = null;
         listApptTimeForBehavior = listApptTimeForBehavior.OrderBy(x => x.DateTimeAvail).ToList();
-        for (int i = 0; i < listApptTimeForBehavior.Count; i++)
+        for (var i = 0; i < listApptTimeForBehavior.Count; i++)
         {
             if (listApptTimeForBehavior[i].DateTimeAvail.TimeOfDay > beforeTime || listApptTimeForBehavior[i].DateTimeAvail.TimeOfDay < afterTime)
             {
@@ -185,7 +185,7 @@ public class ApptSearch
     private static List<ScheduleOpening> AddTimesToSearchResultsHelper(List<ScheduleOpening> listApptTimeForBehavior, TimeSpan beforeTime, TimeSpan afterTime)
     {
         List<ScheduleOpening> listAvailability = [];
-        for (int i = 0; i < listApptTimeForBehavior.Count; i++)
+        for (var i = 0; i < listApptTimeForBehavior.Count; i++)
         {
             if (listApptTimeForBehavior[i].DateTimeAvail.TimeOfDay > beforeTime || listApptTimeForBehavior[i].DateTimeAvail.TimeOfDay < afterTime)
             {
@@ -200,7 +200,7 @@ public class ApptSearch
 
     public static ApptSearchData GetDataForSearch(long aptNum, DateTime dateAfter, DateTime dateBefore, List<long> listProvNums, List<long> listOpNums, List<long> listClinicNums, List<long> listBlockoutTypes, bool isForMakeRecall = false)
     {
-        ApptSearchData data = new ApptSearchData();
+        var data = new ApptSearchData();
         data.DateEvaluating = dateAfter.AddDays(1);
         data.AppointmentToAdd = Appointments.GetOneApt(aptNum);
         data.ListSchedules = Schedules.GetSchedulesForAppointmentSearch(data.DateEvaluating, dateBefore, listClinicNums, listOpNums
@@ -220,13 +220,13 @@ public class ApptSearch
             return listPotentialProvApptTime;
         }
 
-        foreach (ApptSearchProviderSchedule providerSchedule in listProvScheds)
+        foreach (var providerSchedule in listProvScheds)
         {
-            for (int j = 0; j < 288; j++)
+            for (var j = 0; j < 288; j++)
             {
                 //search every 5 minute increment per day
                 //listBlockoutTypes should always have at least one value. 0 as the sole listBlockoutTypes value means we are not searching for blockouts, so we only want provider schedules
-                bool isProviderSchedulesOnly = (providerSchedule.ProviderNum == 0 && listBlockoutTypes[0] == 0);
+                var isProviderSchedulesOnly = (providerSchedule.ProviderNum == 0 && listBlockoutTypes[0] == 0);
                 if (j + appointmentToAdd.Pattern.Length > 288)
                 {
                     //skip if appointment length spans over a 24 hour period.
@@ -238,8 +238,8 @@ public class ApptSearch
                     continue; //skip if provider isn't available in this 5 min increment
                 }
 
-                bool addDateTime = true;
-                for (int k = 0; k < appointmentToAdd.Pattern.Length; k++)
+                var addDateTime = true;
+                for (var k = 0; k < appointmentToAdd.Pattern.Length; k++)
                 {
                     if ((providerSchedule.IsProvAvailable[j + k] == false && appointmentToAdd.Pattern[k] == 'X') || providerSchedule.IsProvScheduled[j + k] == false
                                                                                                                  || isProviderSchedulesOnly)
@@ -266,7 +266,7 @@ public class ApptSearch
     private static List<ScheduleOpening> FillOperatoryTime(List<ApptSearchOperatorySchedule> listApptSearchOperatorySchedules, List<ApptSearchProviderSchedule> listApptSearchProviderSchedules, Appointment appointmentToAdd, DateTime dateEvaluating, List<long> listProvNums, List<long> listBlockoutTypes, List<ScheduleOp> listScheduleOps, List<Schedule> listSchedules)
     {
         List<ScheduleOpening> listScheduleOpenings = []; //create or clear 
-        for (int i = 0; i < 288; i++)
+        for (var i = 0; i < 288; i++)
         {
             //search every 5 minute increment per day
             if (i + appointmentToAdd.Pattern.Length > 288)
@@ -275,10 +275,10 @@ public class ApptSearch
                 break;
             }
 
-            foreach (ApptSearchOperatorySchedule apptSearchOperatorySchedule in listApptSearchOperatorySchedules)
+            foreach (var apptSearchOperatorySchedule in listApptSearchOperatorySchedules)
             {
-                bool doAddDateTime = true;
-                for (int k = 0; k < appointmentToAdd.Pattern.Length; k++)
+                var doAddDateTime = true;
+                for (var k = 0; k < appointmentToAdd.Pattern.Length; k++)
                 {
                     //check appointment against operatories
                     if (apptSearchOperatorySchedule.IsOpAvailable[i + k] == false)
@@ -294,9 +294,9 @@ public class ApptSearch
                 }
 
                 //check appointment against providers available for the given operatory
-                bool isProvAvailable = false;
+                var isProvAvailable = false;
                 long provNumAvail = 0;
-                for (int k = 0; k < listProvNums.Count; k++)
+                for (var k = 0; k < listProvNums.Count; k++)
                 {
                     if (!apptSearchOperatorySchedule.ProviderNums.Contains(listProvNums[k]))
                     {
@@ -305,7 +305,7 @@ public class ApptSearch
 
                     isProvAvailable = true;
                     provNumAvail = listApptSearchProviderSchedules[k].ProviderNum;
-                    for (int m = 0; m < appointmentToAdd.Pattern.Length; m++)
+                    for (var m = 0; m < appointmentToAdd.Pattern.Length; m++)
                     {
                         //If provider is not available, and the appointment has an "X" for provider time at this spot in the pattern
                         //OR provider is not scheduled to work
@@ -322,11 +322,11 @@ public class ApptSearch
                             //This is a blockout schedule, which we want to consider since we got to this point (provNumAvail is 0 and listBlockoutTypes contains non-zero elements). We only want to return times where blockout types are scheduled.
                             //Get a list of any blockouts that are scheduled within this 5 minute timeframe. 
                             //If none of those blockouts cover our current ApptSearchOperatorySchedule's operatory at this time, then we do not want to consider this time as available.
-                            List<Schedule> listSchedulesBlockouts = listSchedules.FindAll(x => x.ProvNum == 0
-                                                                                               && x.SchedDate.Date == dateEvaluating.Date
-                                                                                               && x.StartTime <= dateEvaluating.AddMinutes(i * 5).TimeOfDay
-                                                                                               && x.StopTime >= dateEvaluating.AddMinutes(i * 5).TimeOfDay).ToList();
-                            List<long> listOpNumsForSchedule = listScheduleOps.FindAll(x => listSchedulesBlockouts.Any(y => x.ScheduleNum == y.ScheduleNum))
+                            var listSchedulesBlockouts = listSchedules.FindAll(x => x.ProvNum == 0
+                                                                                    && x.SchedDate.Date == dateEvaluating.Date
+                                                                                    && x.StartTime <= dateEvaluating.AddMinutes(i * 5).TimeOfDay
+                                                                                    && x.StopTime >= dateEvaluating.AddMinutes(i * 5).TimeOfDay).ToList();
+                            var listOpNumsForSchedule = listScheduleOps.FindAll(x => listSchedulesBlockouts.Any(y => x.ScheduleNum == y.ScheduleNum))
                                 .Select(x => x.OperatoryNum).Distinct().ToList();
                             if (!listOpNumsForSchedule.Contains(apptSearchOperatorySchedule.OperatoryNum))
                             {
@@ -336,11 +336,11 @@ public class ApptSearch
                         else
                         {
                             //This is an open provider schedule, but they may not be scheduled at this time for this operatory. Verify the provider is open at this time, and if applicable, for this operatory.
-                            List<Schedule> listSchedulesForProviderAndOp = listSchedules.FindAll(x => x.ProvNum == provNumAvail
-                                                                                                      && (x.Ops.Count == 0 || x.Ops.Contains(apptSearchOperatorySchedule.OperatoryNum))
-                                                                                                      && x.SchedDate.Date == dateEvaluating.Date
-                                                                                                      && x.StartTime <= dateEvaluating.AddMinutes(i * 5).TimeOfDay
-                                                                                                      && x.StopTime >= dateEvaluating.AddMinutes(i * 5).TimeOfDay).ToList();
+                            var listSchedulesForProviderAndOp = listSchedules.FindAll(x => x.ProvNum == provNumAvail
+                                                                                           && (x.Ops.Count == 0 || x.Ops.Contains(apptSearchOperatorySchedule.OperatoryNum))
+                                                                                           && x.SchedDate.Date == dateEvaluating.Date
+                                                                                           && x.StartTime <= dateEvaluating.AddMinutes(i * 5).TimeOfDay
+                                                                                           && x.StopTime >= dateEvaluating.AddMinutes(i * 5).TimeOfDay).ToList();
                             if (listSchedulesForProviderAndOp.Count == 0)
                             {
                                 isProvAvailable = false;
@@ -357,7 +357,7 @@ public class ApptSearch
 
                 if (isProvAvailable)
                 {
-                    DateTime timeOpeningStart = dateEvaluating.AddMinutes(i * 5);
+                    var timeOpeningStart = dateEvaluating.AddMinutes(i * 5);
                     listScheduleOpenings.Add(new ScheduleOpening {DateTimeAvail = timeOpeningStart, ProvNum = provNumAvail, OpNum = apptSearchOperatorySchedule.OperatoryNum});
                 }
             }
@@ -369,21 +369,21 @@ public class ApptSearch
     private static List<ApptSearchOperatorySchedule> GetAllForDate(DateTime scheduleDate, List<Schedule> listSchedules, List<Appointment> listAppointments, List<ScheduleOp> listSchedOps, List<long> listOpNums, List<long> listProvNums, List<long> listBlockoutTypes)
     {
         List<ApptSearchOperatorySchedule> listOpScheds = [];
-        List<Operatory> listOps = Operatories.GetWhere(x => listOpNums.Contains(x.OperatoryNum));
+        var listOps = Operatories.GetWhere(x => listOpNums.Contains(x.OperatoryNum));
         //Remove any ScheduleOps that are not related to the operatories passed in.
         listSchedOps.RemoveAll(x => !listOpNums.Contains(x.OperatoryNum));
         //Create dictionaries that are comprised of every operatory in question and will keep track of all ProviderNums for specific scenarios.
-        Dictionary<long, List<long>> dictProvNumsInOpsBySched = listOps.ToDictionary(x => x.OperatoryNum, x => new List<long>());
-        Dictionary<long, List<long>> dictProvNumsInOpsByOp = listOps.ToDictionary(x => x.OperatoryNum,
+        var dictProvNumsInOpsBySched = listOps.ToDictionary(x => x.OperatoryNum, x => new List<long>());
+        var dictProvNumsInOpsByOp = listOps.ToDictionary(x => x.OperatoryNum,
             x => new List<long>() {x.ProvDentist, x.ProvHygienist}); //Could be a list of two 0's if no providers are associated to this op.
         scheduleDate = scheduleDate.Date; //remove time component
-        foreach (long opNum in listOpNums)
+        foreach (var opNum in listOpNums)
         {
-            ApptSearchOperatorySchedule apptSearchOpSched = new ApptSearchOperatorySchedule();
+            var apptSearchOpSched = new ApptSearchOperatorySchedule();
             apptSearchOpSched.ProviderNums = [];
             apptSearchOpSched.OperatoryNum = opNum;
             apptSearchOpSched.IsOpAvailable = new bool[288];
-            for (int j = 0; j < 288; j++)
+            for (var j = 0; j < 288; j++)
             {
                 apptSearchOpSched.IsOpAvailable[j] = true; //Set entire operatory schedule to true. True=available.
             }
@@ -394,10 +394,10 @@ public class ApptSearch
         #region Fill OpScheds with Providers allowed to work in each operatory
 
         //Make explicit entries into dictProvNumsInOpsBySched if there are any SchedOps for each schedule OR add an entry to every operatory if none found.
-        foreach (Schedule schedule in listSchedules.FindAll(x => x.SchedDate == scheduleDate))
+        foreach (var schedule in listSchedules.FindAll(x => x.SchedDate == scheduleDate))
         {
             //use this loop to fill listProvsInOpBySched
-            List<ScheduleOp> listSchedOpsForSchedule = listSchedOps.FindAll(x => x.ScheduleNum == schedule.ScheduleNum);
+            var listSchedOpsForSchedule = listSchedOps.FindAll(x => x.ScheduleNum == schedule.ScheduleNum);
             if (listSchedOpsForSchedule.Count > 0)
             {
                 AddProvNumToOps(dictProvNumsInOpsBySched,
@@ -414,8 +414,8 @@ public class ApptSearch
         }
 
         //Set each listOpScheds.ProviderNums to the corresponding providers via operatory OR schedules.
-        SearchBehaviorCriteria searchBehaviorCriteria = (SearchBehaviorCriteria) PrefC.GetInt(PrefName.AppointmentSearchBehavior);
-        foreach (Operatory op in listOps)
+        var searchBehaviorCriteria = (SearchBehaviorCriteria) PrefC.GetInt(PrefName.AppointmentSearchBehavior);
+        foreach (var op in listOps)
         {
             //If listBlockoutTypes has a non-zero entry, and 0 is only provNum in listProvNums, we are just looking for blockout schedules in ops.
             //Add zero to ProviderNums list for op if op has any blockout for the date we are searching. Unwanted blockouts are filtered out below.
@@ -439,7 +439,7 @@ public class ApptSearch
             else
             {
                 //Otherwise; only add providers that intersect between schedules and being explicitly assigned to an operatory.
-                List<long> listIntersectingProvNums = dictProvNumsInOpsBySched[op.OperatoryNum].Intersect(dictProvNumsInOpsByOp[op.OperatoryNum]).ToList();
+                var listIntersectingProvNums = dictProvNumsInOpsBySched[op.OperatoryNum].Intersect(dictProvNumsInOpsByOp[op.OperatoryNum]).ToList();
                 if (listIntersectingProvNums.Count() > 0)
                 {
                     listOpScheds.First(x => x.OperatoryNum == op.OperatoryNum).ProviderNums.AddRange(listIntersectingProvNums);
@@ -451,18 +451,18 @@ public class ApptSearch
 
         #region Remove provider availability for current appointments
 
-        List<Appointment> listAppointmentsForDate = listAppointments.FindAll(x => x.Op != 0 && x.AptDateTime.Date == scheduleDate);
-        foreach (Appointment appt in listAppointmentsForDate)
+        var listAppointmentsForDate = listAppointments.FindAll(x => x.Op != 0 && x.AptDateTime.Date == scheduleDate);
+        foreach (var appt in listAppointmentsForDate)
         {
             //Remove unavailable slots from schedule
-            ApptSearchOperatorySchedule apptSearchOperatorySchedule = listOpScheds.FirstOrDefault(x => x.OperatoryNum == appt.Op);
+            var apptSearchOperatorySchedule = listOpScheds.FirstOrDefault(x => x.OperatoryNum == appt.Op);
             if (apptSearchOperatorySchedule == null)
             {
                 continue;
             }
 
-            int apptStartIndex = (int) appt.AptDateTime.TimeOfDay.TotalMinutes / 5;
-            for (int j = 0; j < appt.Pattern.Length; j++)
+            var apptStartIndex = (int) appt.AptDateTime.TimeOfDay.TotalMinutes / 5;
+            for (var j = 0; j < appt.Pattern.Length; j++)
             {
                 //make unavailable all blocks of time during this appointment
                 apptSearchOperatorySchedule.IsOpAvailable[apptStartIndex + j] = false; //set time block to false, meaning something is scheduled here
@@ -474,8 +474,8 @@ public class ApptSearch
         #region Remove provider availiabilty for blockouts set to Do Not Schedule
 
         List<long> listBlockoutsDoNotSchedule = [];
-        List<Def> listBlockoutsAll = Defs.GetDefsForCategory(DefCat.BlockoutTypes, true);
-        foreach (Def blockout in listBlockoutsAll)
+        var listBlockoutsAll = Defs.GetDefsForCategory(DefCat.BlockoutTypes, true);
+        foreach (var blockout in listBlockoutsAll)
         {
             if (blockout.ItemValue.Contains(BlockoutType.NoSchedule.GetDescription()))
             {
@@ -491,25 +491,25 @@ public class ApptSearch
 
         if (listBlockoutsDoNotSchedule.Count > 0)
         {
-            List<Schedule> listBlockouts = listSchedules.FindAll(x => x.ProvNum == 0 && x.SchedType == ScheduleType.Blockout && x.SchedDate == scheduleDate
-                                                                      && listBlockoutsDoNotSchedule.Contains(x.BlockoutType));
-            foreach (Schedule blockout in listBlockouts)
+            var listBlockouts = listSchedules.FindAll(x => x.ProvNum == 0 && x.SchedType == ScheduleType.Blockout && x.SchedDate == scheduleDate
+                                                           && listBlockoutsDoNotSchedule.Contains(x.BlockoutType));
+            foreach (var blockout in listBlockouts)
             {
                 //get length of blockout (how many 5 minute increments does it span)
-                TimeSpan duration = blockout.StopTime.Subtract(blockout.StartTime);
-                double fiveMinuteIncrements = Math.Ceiling(duration.TotalMinutes / 5);
-                int blockoutStartIndex = (int) blockout.StartTime.TotalMinutes / 5;
+                var duration = blockout.StopTime.Subtract(blockout.StartTime);
+                var fiveMinuteIncrements = Math.Ceiling(duration.TotalMinutes / 5);
+                var blockoutStartIndex = (int) blockout.StartTime.TotalMinutes / 5;
                 //Set each operatory as unavailable that has this blockout.
-                List<ScheduleOp> listSchedOpsForBlockout = listSchedOps.FindAll(x => x.ScheduleNum == blockout.ScheduleNum);
-                foreach (ScheduleOp schedOp in listSchedOpsForBlockout)
+                var listSchedOpsForBlockout = listSchedOps.FindAll(x => x.ScheduleNum == blockout.ScheduleNum);
+                foreach (var schedOp in listSchedOpsForBlockout)
                 {
-                    ApptSearchOperatorySchedule apptSearchOperatorySchedule = listOpScheds.FirstOrDefault(x => x.OperatoryNum == schedOp.OperatoryNum);
+                    var apptSearchOperatorySchedule = listOpScheds.FirstOrDefault(x => x.OperatoryNum == schedOp.OperatoryNum);
                     if (apptSearchOperatorySchedule == null)
                     {
                         continue;
                     }
 
-                    for (int i = 0; i < fiveMinuteIncrements; i++)
+                    for (var i = 0; i < fiveMinuteIncrements; i++)
                     {
                         apptSearchOperatorySchedule.IsOpAvailable[blockoutStartIndex + i] = false;
                     }
@@ -530,7 +530,7 @@ public class ApptSearch
             return;
         }
 
-        foreach (long opNum in listOpNums)
+        foreach (var opNum in listOpNums)
         {
             List<long> listProvNums;
             if (dictProvNumsByOp.TryGetValue(opNum, out listProvNums))

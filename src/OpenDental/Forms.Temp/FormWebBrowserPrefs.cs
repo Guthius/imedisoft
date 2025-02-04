@@ -7,7 +7,7 @@ using CodeBase;
 namespace OpenDental;
 
 public partial class FormWebBrowserPrefs:FormODBase {
-	public LayoutManagerForms LayoutManager=new LayoutManagerForms();
+	
 	public string HtmlContent;
 	///<summary>Set this to the location where the window should start.  If this makes it fall outside the screen, it will be fixed automatically.</summary>
 	public Point PointStart=new Point(0,0);
@@ -43,7 +43,7 @@ public partial class FormWebBrowserPrefs:FormODBase {
 				await webView.Init();
 				webView.CoreWebView2.NewWindowRequested+=CoreWebView2_NewWindowRequested;
 			}
-			catch(Exception ex) {
+			catch {
 				DialogResult=DialogResult.Cancel;
 				Close();
 				return;
@@ -52,16 +52,10 @@ public partial class FormWebBrowserPrefs:FormODBase {
 		if(string.IsNullOrEmpty(HtmlContent)) {
 			return;
 		}
-		if(false) {//Webview2 doesn't work with cloud, use a webBrowser object as a backup until Thinfinity supports webview2
-			webBrowser.Visible=true;
-			webBrowser.DocumentText=HtmlContent;
-			return;
-		}
 		webView.Visible=true;
 		ODException.SwallowAnyException(() => {
 			webView.CoreWebView2.NavigateToString(HtmlContent);
 		});
-			
 	}
 
 	private void CoreWebView2_NewWindowRequested(object sender,Microsoft.Web.WebView2.Core.CoreWebView2NewWindowRequestedEventArgs e) {
@@ -71,7 +65,7 @@ public partial class FormWebBrowserPrefs:FormODBase {
 		try {
 			Process.Start(e.Uri);
 		}
-		catch(Exception ex) {
+		catch {
 			ODMessageBox.Show(Lan.g(this,"Could not find")+" "+e.Uri+"\r\n"+Lan.g(this,"Please set up a default web browser."));
 		}
 	}

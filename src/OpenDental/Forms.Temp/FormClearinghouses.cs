@@ -4,7 +4,6 @@ using OpenDentBusiness;
 using System.Net;
 using System.Collections.Generic;
 using OpenDental.UI;
-using System.Globalization;
 using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Entities;

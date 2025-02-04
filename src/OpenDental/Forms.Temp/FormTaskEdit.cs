@@ -1,16 +1,12 @@
 using System;
 using System.Drawing;
-using System.Collections;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Windows.Forms;
 using OpenDental.UI;
 using OpenDentBusiness;
 using System.Linq;
 using CodeBase;
-using Newtonsoft.Json;
 using System.Text.RegularExpressions;
-using System.Text;
 using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Data;
@@ -43,11 +39,8 @@ public partial class FormTaskEdit:FormODBase {
 	///<summary>Filled on load with all non-hidden task priority definitions.</summary>
 	private List<Def> _listDefsTaskPriorities;
 	private long _defNumPrioritySelected;
-	///<summary>Keeps track of the number of notes that were associated to this task on load and after refilling the task note grid.  Only used for HQ in order to keep track of task note manipulation.</summary>
-	private int _numNotes=-1;
 	private List<TaskAttachment> _listTaskAttachments;
 	private bool _isAbort=false;
-	private bool _isLoading;
 	private List<TaskReminderType> _listTaskReminderTypes;
 	///<summary>Do not allow any task or task related changes.  Only allow copy and cancel buttons, and copying of text.
 	///Used when task has been deleted from elsewhere while still open.</summary>
@@ -770,7 +763,7 @@ public partial class FormTaskEdit:FormODBase {
 		try {
 			ODClipboard.SetClipboard(CreateCopyTask());
 		}
-		catch(Exception ex) {
+		catch {
 			MsgBox.Show(this,"Could not copy contents to the clipboard.  Please try again.");
 			return;
 		}
@@ -821,11 +814,9 @@ public partial class FormTaskEdit:FormODBase {
 		if(IsNew) {
 			return;//If this task is new then no one else can edit it
 		}
-		Logger.LogToPath();
 		var taskDb=Tasks.GetOne(TaskCur.TaskNum);
 		if(taskDb==null) {//Task was deleted
 			SetFormToDeletedMode();
-			Logger.LogToPath();
 			return;
 		}
 		if(!taskDb.Equals(_taskOld)) {
@@ -836,7 +827,6 @@ public partial class FormTaskEdit:FormODBase {
 		FillGrid();
 		FillObject();
 		FillTextAttachments();
-		Logger.LogToPath();
 	}
 
 	///<summary>Does validation and then updates the _taskCur object with the current content of the TaskEdit window.</summary>

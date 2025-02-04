@@ -17,17 +17,18 @@ public class ImagingDeviceCrud
     public static List<ImagingDevice> TableToList(DataTable table)
     {
         var retVal = new List<ImagingDevice>();
-        ImagingDevice imagingDevice;
         foreach (DataRow row in table.Rows)
         {
-            imagingDevice = new ImagingDevice();
-            imagingDevice.ImagingDeviceNum = SIn.Long(row["ImagingDeviceNum"].ToString());
-            imagingDevice.Description = SIn.String(row["Description"].ToString());
-            imagingDevice.ComputerName = SIn.String(row["ComputerName"].ToString());
-            imagingDevice.DeviceType = (EnumImgDeviceType) SIn.Int(row["DeviceType"].ToString());
-            imagingDevice.TwainName = SIn.String(row["TwainName"].ToString());
-            imagingDevice.ItemOrder = SIn.Int(row["ItemOrder"].ToString());
-            imagingDevice.ShowTwainUI = SIn.Bool(row["ShowTwainUI"].ToString());
+            var imagingDevice = new ImagingDevice
+            {
+                ImagingDeviceNum = SIn.Long(row["ImagingDeviceNum"].ToString()),
+                Description = SIn.String(row["Description"].ToString()),
+                ComputerName = SIn.String(row["ComputerName"].ToString()),
+                DeviceType = (EnumImgDeviceType) SIn.Int(row["DeviceType"].ToString()),
+                TwainName = SIn.String(row["TwainName"].ToString()),
+                ItemOrder = SIn.Int(row["ItemOrder"].ToString()),
+                ShowTwainUI = SIn.Bool(row["ShowTwainUI"].ToString())
+            };
             retVal.Add(imagingDevice);
         }
 

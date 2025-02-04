@@ -1,9 +1,6 @@
 using System;
 using System.Drawing;
-using System.Drawing.Printing;
-using System.Collections;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Windows.Forms;
 using OpenDentBusiness;
 using OpenDental.UI;
@@ -12,6 +9,7 @@ using CodeBase;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Data;
 using Imedisoft.Core.Entities;
+using Imedisoft.Features.Providers.Dtos;
 using OpenDental.Logic;
 
 namespace OpenDental;
@@ -24,7 +22,7 @@ public partial class FormUnsched:FormODBase {
 	private int _heightHeadingPrint;
 	private int _pagesPrinted;
 	private List<long> _listAptNumsSelected;
-	private List<Provider> _listProviders;
+	private List<ProviderDto> _listProviders;
 	private List<Site> _listSites;
 
 	///<summary>PatientGoTo must be set before calling Show() or ShowDialog().</summary>
@@ -42,7 +40,7 @@ public partial class FormUnsched:FormODBase {
 		comboProv.SelectedIndex=0;
 		_listProviders=Providers.GetDeepCopy(true);
 		for(var i=0;i<_listProviders.Count;i++) {
-			comboProv.Items.Add(_listProviders[i].GetLongDesc());
+			comboProv.Items.Add(_listProviders[i].Description);
 		}
 		if(PrefC.GetBool(PrefName.EasyHidePublicHealth)){
 			comboSite.Visible=false;
@@ -245,7 +243,7 @@ public partial class FormUnsched:FormODBase {
 		}
 		long provNum=0;
 		if(comboProv.SelectedIndex!=0) {
-			provNum=_listProviders[comboProv.SelectedIndex-1].ProvNum;
+			provNum=_listProviders[comboProv.SelectedIndex-1].Id;
 		}
 		long siteNum=0;
 		if(!PrefC.GetBool(PrefName.EasyHidePublicHealth) && comboSite.SelectedIndex!=0) {

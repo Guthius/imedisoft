@@ -2,16 +2,13 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
-using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 using DataConnectionBase;
 using Imedisoft.Core.Entities;
 
 namespace OpenDentBusiness {
 	public class RpAging {
 		public static DataTable GetAgingTable(RpAgingParamObject rpo) {
-			string queryAg=GetQueryString(rpo);
+			var queryAg=GetQueryString(rpo);
 			return DataCore.GetTable(queryAg);
 		}
 
@@ -19,7 +16,7 @@ namespace OpenDentBusiness {
 			//patient aging---------------------------------------------------------------------------
 			//The aging report always shows historical numbers based on the date entered.
 			//the selected columns have to remain in this order due to the way the report complex populates the returned sheet
-			string queryAg = "SELECT ";
+			var queryAg = "SELECT ";
 			if(rpo.IsForInsAging) { //get patNum for insAgingReport only
 				queryAg+="patient.PatNum, ";
 			}
@@ -40,10 +37,10 @@ namespace OpenDentBusiness {
 						doAgePatPayPlanPayments:rpo.DoAgePatPayPlanPayments,doExcludeIncomeTransfers:rpo.doExcludeIncomeTransfers)
 				+") guarAging "
 				+"INNER JOIN patient ON patient.PatNum=guarAging.PatNum ";
-			List<string> listWhereAnds=new List<string>();
+			var listWhereAnds=new List<string>();
 			//InsAging will filter for age, but we need to return all in here order for the filtering to be correct
 			if(!rpo.IsForInsAging) {
-				List<string> listAgeOrs=new List<string>();
+				var listAgeOrs=new List<string>();
 				if(rpo.IsIncludeNeg || rpo.IsOnlyNeg) {
 					listAgeOrs.Add("guarAging.BalTotal <= -0.005");
 				}
@@ -131,7 +128,7 @@ namespace OpenDentBusiness {
 		public string GroupNameFilter="";
 
 		public RpAgingParamObject Copy() {
-			RpAgingParamObject retval=(RpAgingParamObject)this.MemberwiseClone();
+			var retval=(RpAgingParamObject)this.MemberwiseClone();
 			retval.ListProvNums=this.ListProvNums.ToList();
 			retval.ListClinicNums=this.ListClinicNums.ToList();
 			retval.ListBillTypes=this.ListBillTypes.ToList();

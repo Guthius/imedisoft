@@ -16,7 +16,7 @@ public partial class FormMsgBox:FormODBase {
 			_voiceController.SpeechRecognized+=_voiceController_SpeechRecognized;
 			_voiceController.StartListening();
 		}
-		catch(Exception ex) {
+		catch {
 		}
 	}
 
@@ -52,7 +52,7 @@ public partial class FormMsgBox:FormODBase {
 		}
 		if(_doJustShowOk) {
 			butCancel.Visible=false;
-			LayoutManagerForms.MoveLocation(butOK,butCancel.Location);
+			butOK.Location = butCancel.Location;
 		}
 		_voiceController?.SayResponseAsync(_messageText);
 	}

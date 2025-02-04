@@ -1,20 +1,19 @@
 using System;
 using System.Collections.Generic;
-using System.Data;
 using System.Drawing;
 using System.Linq;
 using System.Windows.Forms;
 using OpenDental.ReportingComplex;
 using OpenDentBusiness;
-using CodeBase;
 using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Entities;
+using Imedisoft.Features.Providers.Dtos;
 
 namespace OpenDental;
 
 public partial class FormRpFinanceCharge : FormODBase {
-	private List<Provider> _listProviders= [];
+	private List<ProviderDto> _listProviders= [];
 	private List<Def> _listBillingTypeDefs= [];
 
 		
@@ -31,7 +30,7 @@ public partial class FormRpFinanceCharge : FormODBase {
 		if(listBillingType.Items.Count>0) {
 			listBillingType.SelectedIndex=0;
 		}
-		listProv.Items.AddList(_listProviders,x => x.GetLongDesc(),x => x.Abbr);
+		listProv.Items.AddList(_listProviders,x => x.Description,x => x.Abbr);
 		if(listProv.Items.Count>0) {
 			listProv.SelectedIndex=0; 
 		}
@@ -63,7 +62,7 @@ public partial class FormRpFinanceCharge : FormODBase {
 		var report=new ReportComplex(true,false);
 		var listProvNums = new List<long>();
 		if(!checkAllProv.Checked) {
-			listProvNums.AddRange(listProv.SelectedIndices.Select(x => _listProviders[x].ProvNum).ToList());
+			listProvNums.AddRange(listProv.SelectedIndices.Select(x => _listProviders[x].Id).ToList());
 		}
 		var listBillingDefNums= new List<long>();
 		if(!checkAllBilling.Checked) {

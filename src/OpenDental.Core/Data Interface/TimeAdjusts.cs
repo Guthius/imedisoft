@@ -14,7 +14,7 @@ public class TimeAdjusts
     {
         var command =
             "SELECT * FROM timeadjust WHERE "
-            + "EmployeeNum = " + SOut.Long(employeeNum) + " "
+            + "EmployeeNum = " + (employeeNum) + " "
             + "AND DATE(TimeEntry) >= " + SOut.Date(dateFrom) + " "
             + "AND DATE(TimeEntry) <= " + SOut.Date(dateTo) + " "
             + "ORDER BY TimeEntry";
@@ -26,7 +26,7 @@ public class TimeAdjusts
         var listTimeAdjusts = new List<TimeAdjust>();
         var command =
             "SELECT * FROM timeadjust WHERE "
-            + "EmployeeNum = " + SOut.Long(employeeNum) + " "
+            + "EmployeeNum = " + (employeeNum) + " "
             + "AND DATE(TimeEntry) >= " + SOut.Date(dateFrom) + " "
             + "AND DATE(TimeEntry) <= " + SOut.Date(dateTo) + " "
             + "ORDER BY TimeEntry";
@@ -38,13 +38,13 @@ public class TimeAdjusts
 
     public static List<TimeAdjust> GetListForTimeCardManage(List<long> listEmployeeNums, long clinicNum, DateTime dateFrom, DateTime dateTo, bool isAll)
     {
-        if (listEmployeeNums.IsNullOrEmpty()) return new List<TimeAdjust>();
+        if (listEmployeeNums.IsNullOrEmpty()) return [];
 
         var command = "SELECT * FROM timeadjust WHERE "
-                      + "EmployeeNum IN (" + string.Join(",", listEmployeeNums.Select(x => SOut.Long(x))) + ") "
+                      + "EmployeeNum IN (" + string.Join(",", listEmployeeNums.Select(x => (x))) + ") "
                       + "AND DATE(TimeEntry) >= " + SOut.Date(dateFrom) + " "
                       + "AND DATE(TimeEntry) <= " + SOut.Date(dateTo) + " ";
-        if (!isAll) command += "AND ClinicNum = " + SOut.Long(clinicNum) + " ";
+        if (!isAll) command += "AND ClinicNum = " + (clinicNum) + " ";
         command += "ORDER BY TimeEntry";
         return TimeAdjustCrud.SelectMany(command);
     }
@@ -74,7 +74,7 @@ public class TimeAdjusts
 
     public static void Delete(TimeAdjust timeAdjust)
     {
-        var command = "DELETE FROM timeadjust WHERE TimeAdjustNum = " + SOut.Long(timeAdjust.TimeAdjustNum);
+        var command = "DELETE FROM timeadjust WHERE TimeAdjustNum = " + (timeAdjust.TimeAdjustNum);
         Db.NonQ(command);
     }
 
@@ -82,7 +82,7 @@ public class TimeAdjusts
     {
         if (listTimeAdjustNums.IsNullOrEmpty()) return;
 
-        var command = "DELETE FROM timeadjust WHERE TimeAdjustNum IN(" + string.Join(",", listTimeAdjustNums.Select(x => SOut.Long(x))) + ")";
+        var command = "DELETE FROM timeadjust WHERE TimeAdjustNum IN(" + string.Join(",", listTimeAdjustNums.Select(x => (x))) + ")";
         Db.NonQ(command);
     }
 
@@ -92,7 +92,7 @@ public class TimeAdjusts
         //List<TimeAdjust> listTimeAdjusts=new List<TimeAdjust>();
         var command =
             "SELECT * FROM timeadjust WHERE "
-            + "EmployeeNum = " + SOut.Long(employeeNum) + " "
+            + "EmployeeNum = " + (employeeNum) + " "
             + "AND " + "DATE(TimeEntry)" + " >= " + SOut.Date(dateStart) + " "
             + "AND " + "DATE(TimeEntry)" + " < " + SOut.Date(dateStop.AddDays(1)) + " " //add one day to go the end of the specified date.
             + "AND IsAuto=1";
@@ -102,7 +102,7 @@ public class TimeAdjusts
 
     public static TimeAdjust GetPayPeriodNote(long employeeNum, DateTime dateStart)
     {
-        var command = "SELECT * FROM timeadjust WHERE EmployeeNum=" + SOut.Long(employeeNum) + " AND TimeEntry=" + SOut.DateTime(dateStart) + " AND IsAuto=0 ";
+        var command = "SELECT * FROM timeadjust WHERE EmployeeNum=" + (employeeNum) + " AND TimeEntry=" + SOut.DateTime(dateStart) + " AND IsAuto=0 ";
         command += "AND RegHours='00:00:00' AND OTimeHours='00:00:00' AND PtoHours='00:00:00' ";
         return TimeAdjustCrud.SelectOne(command);
     }

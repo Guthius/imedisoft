@@ -24,33 +24,34 @@ public class ClaimPaymentCrud
     public static List<ClaimPayment> TableToList(DataTable table)
     {
         var retVal = new List<ClaimPayment>();
-        ClaimPayment claimPayment;
         foreach (DataRow row in table.Rows)
         {
-            claimPayment = new ClaimPayment();
-            claimPayment.ClaimPaymentNum = SIn.Long(row["ClaimPaymentNum"].ToString());
-            claimPayment.CheckDate = SIn.Date(row["CheckDate"].ToString());
-            claimPayment.CheckAmt = SIn.Double(row["CheckAmt"].ToString());
-            claimPayment.CheckNum = SIn.String(row["CheckNum"].ToString());
-            claimPayment.BankBranch = SIn.String(row["BankBranch"].ToString());
-            claimPayment.Note = SIn.String(row["Note"].ToString());
-            claimPayment.ClinicNum = SIn.Long(row["ClinicNum"].ToString());
-            claimPayment.DepositNum = SIn.Long(row["DepositNum"].ToString());
-            claimPayment.CarrierName = SIn.String(row["CarrierName"].ToString());
-            claimPayment.DateIssued = SIn.Date(row["DateIssued"].ToString());
-            claimPayment.IsPartial = SIn.Bool(row["IsPartial"].ToString());
-            claimPayment.PayType = SIn.Long(row["PayType"].ToString());
-            claimPayment.SecUserNumEntry = SIn.Long(row["SecUserNumEntry"].ToString());
-            claimPayment.SecDateEntry = SIn.Date(row["SecDateEntry"].ToString());
-            claimPayment.SecDateTEdit = SIn.DateTime(row["SecDateTEdit"].ToString());
-            claimPayment.PayGroup = SIn.Long(row["PayGroup"].ToString());
+            var claimPayment = new ClaimPayment
+            {
+                ClaimPaymentNum = SIn.Long(row["ClaimPaymentNum"].ToString()),
+                CheckDate = SIn.Date(row["CheckDate"].ToString()),
+                CheckAmt = SIn.Double(row["CheckAmt"].ToString()),
+                CheckNum = SIn.String(row["CheckNum"].ToString()),
+                BankBranch = SIn.String(row["BankBranch"].ToString()),
+                Note = SIn.String(row["Note"].ToString()),
+                ClinicNum = SIn.Long(row["ClinicNum"].ToString()),
+                DepositNum = SIn.Long(row["DepositNum"].ToString()),
+                CarrierName = SIn.String(row["CarrierName"].ToString()),
+                DateIssued = SIn.Date(row["DateIssued"].ToString()),
+                IsPartial = SIn.Bool(row["IsPartial"].ToString()),
+                PayType = SIn.Long(row["PayType"].ToString()),
+                SecUserNumEntry = SIn.Long(row["SecUserNumEntry"].ToString()),
+                SecDateEntry = SIn.Date(row["SecDateEntry"].ToString()),
+                SecDateTEdit = SIn.DateTime(row["SecDateTEdit"].ToString()),
+                PayGroup = SIn.Long(row["PayGroup"].ToString())
+            };
             retVal.Add(claimPayment);
         }
 
         return retVal;
     }
 
-    public static long Insert(ClaimPayment claimPayment)
+    public static void Insert(ClaimPayment claimPayment)
     {
         var command = "INSERT INTO claimpayment (";
 
@@ -75,7 +76,6 @@ public class ClaimPaymentCrud
         {
             claimPayment.ClaimPaymentNum = Db.NonQ(command, true, "ClaimPaymentNum", "claimPayment");
         }
-        return claimPayment.ClaimPaymentNum;
     }
 
     public static void Update(ClaimPayment claimPayment)

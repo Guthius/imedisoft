@@ -71,24 +71,24 @@ public static class StateAbbrs
 
     private static readonly StateAbbrCache Cache = new();
 
-    public static List<StateAbbr> GetDeepCopy(bool isShort = false)
+    public static List<StateAbbr> GetDeepCopy(bool shortList = false)
     {
-        return Cache.GetDeepCopy(isShort);
+        return Cache.GetDeepCopy(shortList);
     }
 
-    public static List<StateAbbr> GetWhere(Predicate<StateAbbr> match, bool isShort = false)
+    public static List<StateAbbr> GetWhere(Predicate<StateAbbr> predicate, bool shortList = false)
     {
-        return Cache.GetWhere(match, isShort);
+        return Cache.GetWhere(predicate, shortList);
     }
 
-    public static StateAbbr GetFirstOrDefault(Func<StateAbbr, bool> match, bool isShort = false)
+    public static StateAbbr GetFirstOrDefault(Func<StateAbbr, bool> predicate, bool shortList = false)
     {
-        return Cache.GetFirstOrDefault(match, isShort);
+        return Cache.GetFirstOrDefault(predicate, shortList);
     }
 
-    public static DataTable GetTableFromCache(bool doRefreshCache)
+    public static DataTable GetTableFromCache(bool refreshCache)
     {
-        return Cache.GetTableFromCache(doRefreshCache);
+        return Cache.GetTableFromCache(refreshCache);
     }
 
     public static void ClearCache()

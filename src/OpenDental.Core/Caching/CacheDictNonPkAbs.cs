@@ -127,7 +127,6 @@ public abstract class CacheDictNonPkAbs<TItem, TKey, TValue> : CacheDictAbs<TIte
         }
     }
 
-
     protected sealed override DataTable ToDataTable()
     {
         return ToDataTable(GetDeepCopyList());

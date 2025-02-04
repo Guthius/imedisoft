@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Printing;
 using System.Windows.Forms;
@@ -8,8 +7,8 @@ using CodeBase;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Entities;
 using Imedisoft.Core.Features.Clinics;
+using OpenDental.Chart;
 using OpenDental.Logic;
-using SparksToothChart;
 
 namespace OpenDental;
 
@@ -49,7 +48,7 @@ public partial class FormPerioGraphical:FormODBase {
 			toothChart.Size=toothChartWrapper.Size;
 			toothChart.Anchor=AnchorStyles.Top|AnchorStyles.Left;	
 			toothChart.Visible=true;
-			LayoutManagerForms.Add(toothChart,this);
+			this.Controls.Add(toothChart);
 			toothChart.BringToFront();
 		}
 		else{
@@ -249,10 +248,8 @@ public partial class FormPerioGraphical:FormODBase {
 	private void butPrint_Click(object sender,EventArgs e) {
 		PrinterL.TryPrintOrDebugClassicPreview(pd2_PrintPage,
 			Lan.g(this,"Graphical perio chart printed"),
-			auditPatNum:_patient.PatNum,
-			printSituation:PrintSituation.TPPerio,
-			margins:new Margins(50,50,50,50),
-			printoutOrigin:PrintoutOrigin.AtMargin);
+			margins: new Margins(50,50,50,50),
+			printSituation: PrintSituation.TPPerio, printoutOrigin: PrintoutOrigin.AtMargin, auditPatNum: _patient.PatNum);
 	}
 
 	private void pd2_PrintPage(object sender,PrintPageEventArgs ev) {//raised for each page to be printed.
@@ -313,11 +310,11 @@ public partial class FormPerioGraphical:FormODBase {
 	private void butSetup_Click(object sender,EventArgs e) {
 		using var formPerioGraphicalSetup=new FormPerioGraphicalSetup();
 		if(formPerioGraphicalSetup.ShowDialog()==DialogResult.OK){
-			toothChartWrapper.ColorCAL=PrefC.GetColor(PrefName.PerioColorCAL);
+			toothChartWrapper.ColorCals=PrefC.GetColor(PrefName.PerioColorCAL);
 			toothChartWrapper.ColorFurcations=PrefC.GetColor(PrefName.PerioColorFurcations);
 			toothChartWrapper.ColorFurcationsRed=PrefC.GetColor(PrefName.PerioColorFurcationsRed);
 			toothChartWrapper.ColorGingivalMargin=PrefC.GetColor(PrefName.PerioColorGM);
-			toothChartWrapper.ColorMGJ=PrefC.GetColor(PrefName.PerioColorMGJ);	
+			toothChartWrapper.ColorMgjs=PrefC.GetColor(PrefName.PerioColorMGJ);	
 			toothChartWrapper.ColorProbing=PrefC.GetColor(PrefName.PerioColorProbing);
 			toothChartWrapper.ColorProbingRed=PrefC.GetColor(PrefName.PerioColorProbingRed);
 			this.toothChartWrapper.Invalidate();

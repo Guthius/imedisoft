@@ -4,10 +4,8 @@ using System.Drawing;
 using System.Linq;
 using System.Windows.Forms;
 using OpenDentBusiness;
-using OpenDental.UI;
 using System.ComponentModel;
 using CodeBase;
-using Imedisoft.Core.Caching;
 using Imedisoft.Core.Data;
 using Imedisoft.Core.Entities;
 using Imedisoft.Core.Features.Clinics;
@@ -16,7 +14,6 @@ namespace OpenDental;
 
 ///<summary>Security Tree control so that any changes to the security tree do not have to be made in multiple places. Only used in UserControlUserGroupSecurity (which itself is implemented in FormSecurity and FormCentralSecurity).</summary>
 public partial class UserControlSecurityTree:UserControl {
-	public LayoutManagerForms LayoutManager;
 	private TreeNode _clickedPermNode;
 	///<summary>This should contain one item when editing permissions. Can contain multiple when viewing permissions for a user.</summary>
 	private List<long> _listUserGroupNums= [];
@@ -88,10 +85,6 @@ public partial class UserControlSecurityTree:UserControl {
 		node2.Nodes.Add(node3);
 		node3=SetNode(EnumPermType.AutoNoteQuickNoteEdit);
 		node2.Nodes.Add(node3);
-		if(false) {
-			node3=SetNode(EnumPermType.CloseOtherSessions);
-			node2.Nodes.Add(node3);
-		}
 		node3=SetNode("Definitions");
 		node4=SetNode(EnumPermType.DefEdit);
 		node3.Nodes.Add(node4);
@@ -704,7 +697,6 @@ public partial class UserControlSecurityTree:UserControl {
 			throw new Exception("SetNone may not be called when multiple usergroups are selected.");
 		}
 		var userGroupNum=_listUserGroupNums.First();
-		GroupPermission perm;
 		for(var i = 0;i<Enum.GetNames(typeof(EnumPermType)).Length;i++) {
 			var permType=(EnumPermType)i;
 			if(permType==EnumPermType.SecurityAdmin
@@ -956,12 +948,4 @@ public partial class UserControlSecurityTree:UserControl {
 	private void treePermissions_MouseMove(object sender,MouseEventArgs e) {
 		textXpos.Text=e.X.ToString();
 	}
-
-	private void UserControlSecurityTree_SizeChanged(object sender,EventArgs e) {
-		if(LayoutManager!=null){
-			treePermissions.ItemHeight=15;
-		}
-	}
-
-		
 }

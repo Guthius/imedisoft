@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Data;
 using System.Diagnostics;
 using System.Linq;
-using System.Threading;
 using CodeBase;
 using DataConnectionBase;
 using Imedisoft.Core.Caching;
@@ -11,31 +10,11 @@ using Imedisoft.Core.Crud;
 using Imedisoft.Core.Data;
 using Imedisoft.Core.Entities;
 using Imedisoft.Core.Features.Clinics;
-using OpenDentBusiness.AutoComm;
-using OpenDentBusiness.WebTypes.WebSched.TimeSlot;
 
 namespace OpenDentBusiness;
 
-
 public class Recalls
 {
-    private const string WEB_SCHED_SIGN_UP_URL = "http://www.patientviewer.com/WebSchedSignUp.html";
-
-    #region Test Variables
-
-    ///<summary>Should only be used for testing. Set to true to run all the actions of Web Sched Recall synchronously.</summary>
-    public static bool RunWebSchedSynchronously;
-
-    #endregion
-
-    #region Get Methods
-
-    /// <summary>
-    ///     Returns a list of PatNums of patients with conflicting Recall type.
-    ///     A conflicting recall type is when a patient is scheduled for a perio recall but their recall type is set to prophy
-    ///     and vice versa.
-    ///     Only checks for Prophy and Perio recall types.
-    /// </summary>
     public static List<long> GetConflictingPatNums(List<long> listPatNums)
     {
         var retVal = new List<long>();
@@ -86,16 +65,10 @@ public class Recalls
 
         return retVal;
     }
-
-    #endregion
-
-    /// <summary>
-    ///     Gets all recalls for the supplied patients, usually a family or single pat.  Result might have a length of zero.
-    ///     Each recall will also have the DateScheduled filled by pulling that info from other tables.
-    /// </summary>
+    
     public static List<Recall> GetList(List<long> listPatNums)
     {
-        if (listPatNums == null || listPatNums.Count <= 0) return new List<Recall>();
+        if (listPatNums == null || listPatNums.Count <= 0) return [];
 
         var command = "SELECT * FROM recall WHERE recall.PatNum IN (" + string.Join(",", listPatNums) + ")";
         return RecallCrud.SelectMany(command);
@@ -107,8 +80,7 @@ public class Recalls
         patNums.Add(patNum);
         return GetList(patNums);
     }
-
-    /// <summary></summary>
+    
     public static List<Recall> GetList(List<Patient> patients)
     {
         var patNums = new List<long>();
@@ -121,14 +93,9 @@ public class Recalls
         return RecallCrud.SelectOne(recallNum);
     }
 
-    /// <summary>
-    ///     Gets a list of recalls that are past due for the patients passed in. A recall is considered past due if the the
-    ///     DateDue is before
-    ///     today and the DateScheduled is blank.
-    /// </summary>
     public static List<Recall> GetPastDueForPats(DateTime dateStart, List<long> listPatNums)
     {
-        if (listPatNums == null || listPatNums.Count <= 0) return new List<Recall>();
+        if (listPatNums == null || listPatNums.Count <= 0) return [];
 
         var dateMin = new DateTime(1880, 1, 1);
         var command = "SELECT * FROM recall " +
@@ -139,7 +106,6 @@ public class Recalls
         return RecallCrud.SelectMany(command);
     }
 
-    ///<summary>Will return a recall or null. Pass in a list of recalls for the patient to save a database call.</summary>
     public static Recall GetRecallProphyOrPerio(long patNum, bool excludeScheduled = false, List<Recall> listRecalls = null)
     {
         listRecalls = listRecalls ?? GetList(patNum);
@@ -149,10 +115,6 @@ public class Recalls
             .FirstOrDefault();
     }
 
-    /// <summary>
-    ///     Will return true if perio or prophy is scheduled. Pass in a list of recalls for the patient to save a database
-    ///     call.
-    /// </summary>
     public static bool HasProphyOrPerioScheduled(long patNum, List<Recall> listRecalls = null)
     {
         listRecalls = listRecalls ?? GetList(patNum);
@@ -161,21 +123,12 @@ public class Recalls
                                     && x.DateScheduled.Year > 1880);
     }
 
-    ///<summary>Returns true if recall passed in is either a Perio or Prophy type.</summary>
     public static bool IsRecallProphyOrPerio(Recall recall)
     {
         if (recall == null) return false;
         return recall.RecallTypeNum.In(RecallTypes.ProphyType, RecallTypes.PerioType);
     }
 
-    /// <summary>
-    ///     Returns the recall time pattern for the patient and the specific recall passed in.
-    ///     Loops through all recalls passed in and adds any due recall procedures to the time pattern if recallCur is a
-    ///     special recall type.
-    ///     Set listRecalls to a list of all potential recalls for this patient that MIGHT need to be automatically scheduled
-    ///     for this current appointment.
-    ///     Also, this method will manipulate listProcStrs if any additional procedures are added.
-    /// </summary>
     public static string GetRecallTimePattern(Recall recallCur, List<Recall> listRecalls, Patient patCur, List<string> listProcStrs)
     {
         var listRecallTypes = RecallTypes.GetDeepCopy();
@@ -225,26 +178,12 @@ public class Recalls
         return Appointments.GetApptTimePatternFromProcPatterns(listProcPatterns);
     }
 
-    /// <summary>
-    ///     Checks the patient's birth date in regards to the age they will be when the recall is due.
-    ///     E.g. if pt's 12th birthday falls after recall date.
-    /// </summary>
     public static bool IsChildRecall(Patient patCur, DateTime recallDue)
     {
         return patCur.Birthdate.AddYears(PrefC.GetInt(PrefName.RecallAgeAdult)) > (recallDue > DateTime.Today ? recallDue : DateTime.Today);
     }
 
-    /// <summary>
-    ///     Used by FromRecallList, FormASAP, AutoComm, and ODAPI to get list of patients with outstanding recalls.
-    ///     Leave provNum or siteNum = 0 in order to avoid filtering on those columns.
-    ///     If provNum > 0 then looks for both provider match in either PriProv or SecProv.
-    ///     If clinicNum is less than 0, will get all clinics.
-    ///     codeRangeStart and codeRangeEnd will only be used if isAsap=true.
-    /// </summary>
-    public static DataTable GetRecallList(
-        DateTime fromDate, DateTime toDate, bool groupByFamilies, long provNum, long clinicNum, long siteNum,
-        RecallListSort sortBy, RecallListShowNumberReminders showReminders, long maxReminders, bool isAsap = false, string codeRangeStart = "", string codeRangeEnd = "",
-        bool doShowReminded = false, List<RecallType> listRecallTypes = null, bool isForWebSched = false)
+    public static DataTable GetRecallList(DateTime fromDate, DateTime toDate, bool groupByFamilies, long provNum, long clinicNum, long siteNum, RecallListSort sortBy, RecallListShowNumberReminders showReminders, long maxReminders, bool isAsap = false, string codeRangeStart = "", string codeRangeEnd = "", bool doShowReminded = false, List<RecallType> listRecallTypes = null, bool isForWebSched = false)
     {
         #region Logging
 
@@ -326,9 +265,9 @@ public class Recalls
             if (!listRecallTypes.IsNullOrEmpty())
             {
                 if (!listRecallTypesCur.IsNullOrEmpty())
-                    listRecallTypesCur = listRecallTypesCur.Intersect(listRecallTypes.Select(x => SOut.Long(x.RecallTypeNum))).ToList();
+                    listRecallTypesCur = listRecallTypesCur.Intersect(listRecallTypes.Select(x => (x.RecallTypeNum.ToString()))).ToList();
                 else
-                    listRecallTypesCur = listRecallTypes.Select(x => SOut.Long(x.RecallTypeNum)).ToList();
+                    listRecallTypesCur = listRecallTypes.Select(x => (x.RecallTypeNum.ToString())).ToList();
             }
 
             if (!listRecallTypesCur.IsNullOrEmpty()) command += $"AND recall.RecallTypeNum IN({string.Join(",", listRecallTypesCur)}) ";
@@ -346,10 +285,10 @@ public class Recalls
         #region Patient Filter
 
         command += "AND patient.PatStatus=" + SOut.Int((int) PatientStatus.Patient) + " ";
-        if (provNum > 0) command += "AND (patient.PriProv=" + SOut.Long(provNum) + " OR patient.SecProv=" + SOut.Long(provNum) + ") ";
+        if (provNum > 0) command += "AND (patient.PriProv=" + (provNum) + " OR patient.SecProv=" + (provNum) + ") ";
         if (clinicNum >= 0) //Only include appointments that belong to HQ clinic when clinics are enabled and no ClinicNum is specified.
-            command += "AND patient.ClinicNum=" + SOut.Long(clinicNum) + " ";
-        if (siteNum > 0) command += "AND patient.SiteNum=" + SOut.Long(siteNum) + " ";
+            command += "AND patient.ClinicNum=" + (clinicNum) + " ";
+        if (siteNum > 0) command += "AND patient.SiteNum=" + (siteNum) + " ";
         command += "GROUP BY recall.RecallNum";
 
         #endregion
@@ -434,7 +373,7 @@ public class Recalls
         //Check the commlog table to find any reminders have been sent to these patients.
         command = "SELECT PatNum,CommDateTime,CommSource "
                   + "FROM commlog "
-                  + "WHERE CommType=" + SOut.Long(Commlogs.GetTypeAuto(CommItemTypeAuto.RECALL)) + " "
+                  + "WHERE CommType=" + (Commlogs.GetTypeAuto(CommItemTypeAuto.RECALL)) + " "
                   + "AND PatNum IN (" + string.Join(",", dictPatientRows.Keys) + ")";
         sw.Restart();
         //Create dictionary of key=PatNum, value=List of CommDateTime.Date for that patient
@@ -456,25 +395,7 @@ public class Recalls
                   + "GROUP BY PatNum "
                   + ") recent ON recent.PatNum=webschedrecall.PatNum AND DATE(recent.DateTimeEntry)=DATE(webschedrecall.DateTimeEntry)";
         sw.Restart();
-        var tableWebSchedRecalls = DataCore.GetTable(command);
-        logQuery("tableWebSchedRecalls", command, tableWebSchedRecalls.Rows.Count);
         //Create dictionary of key=PatNum, value=List of WebSchedRecalls for that patient
-        sw.Restart();
-        var dictWebSchedRecalls = tableWebSchedRecalls.AsEnumerable()
-            .Select(x => new WebSchedRecall
-            {
-                WebSchedRecallNum = SIn.Long(x["WebSchedRecallNum"].ToString()),
-                PatNum = SIn.Long(x["PatNum"].ToString()),
-                MessageType = SIn.Enum<CommType>(SIn.Int(x["MessageType"].ToString())),
-                SendStatus = SIn.Enum<AutoCommStatus>(SIn.Int(x["SendStatus"].ToString())),
-                DateTimeSendFailed = SIn.DateTime(x["DateTimeSendFailed"].ToString()),
-                ResponseDescript = SIn.String(x["ResponseDescript"].ToString()),
-                DateTimeSent = SIn.DateTime(x["DateTimeSent"].ToString())
-            })
-            .GroupBy(x => x.PatNum, x => x)
-            .ToDictionary(x => x.Key, x => x.ToList());
-        logOther($"dictWebSchedRecalls {dictWebSchedRecalls.Count} rows");
-
         #endregion Run Queries and Create Dictionaries
 
         List<DateTime> listDatesRemindersSent;
@@ -499,7 +420,7 @@ public class Recalls
                 continue;
             rowPat = dictPatientRows[patNum];
             guarNum = SIn.Long(rowPat["Guarantor"].ToString());
-            if (!dictCommlogs.TryGetValue(patNum, out listDatesRemindersSent)) listDatesRemindersSent = new List<DateTime>();
+            if (!dictCommlogs.TryGetValue(patNum, out listDatesRemindersSent)) listDatesRemindersSent = [];
             familyBalance = SIn.Double(rowPat["BalTotal"].ToString()); //from the guarantor's patient table
             if (!PrefC.GetBool(PrefName.BalancesDontSubtractIns)) //typical
                 familyBalance -= SIn.Double(rowPat["InsEst"].ToString());
@@ -559,28 +480,6 @@ public class Recalls
                 row["webSchedSendDesc"] = "";
                 row["webSchedSendError"] = "";
                 row["webSchedSendStatus"] = ((int) AutoCommStatus.Undefined).ToString();
-                if (dictWebSchedRecalls.TryGetValue(patNum, out var listWebSchedSendMostRecent))
-                {
-                    //We should expect a WebSchedRecall for each configured send method in this list, ex. one for sms, one for email.
-                    var webSchedRecall = listWebSchedSendMostRecent
-                        .OrderByDescending(x => AutoCommObj.IsSent(x.SendStatus)) //Prioritize successfully sent
-                        .ThenByDescending(x => x.SendStatus == AutoCommStatus.SendNotAttempted) //Then pending
-                        .ThenByDescending(x => x.SendStatus == AutoCommStatus.SendFailed) //Then failed.
-                        .FirstOrDefault();
-                    row["webSchedDateTimeFailed"] = webSchedRecall.DateTimeSendFailed;
-                    row["webSchedSendStatus"] = ((int) webSchedRecall.SendStatus).ToString();
-                    row["WebSchedRecallNum"] = webSchedRecall.WebSchedRecallNum;
-                    //This may be displayed in the Recall List window.
-                    row["webSchedSendDesc"] = string.Join(";", listWebSchedSendMostRecent.Select(x => x.MessageType.GetDescription() + ": " + x.SendStatus switch
-                    {
-                        AutoCommStatus.SendNotAttempted => Lans.g("FormRecallList", "Sending"),
-                        AutoCommStatus.SentAwaitingReceipt => Lans.g("FormRecallList", "Awaiting Delivery Receipt"),
-                        AutoCommStatus.SendFailed => Lans.g("FormRecallList", "Send Failed"),
-                        _ => webSchedRecall.SendStatus.GetDescription()
-                    }));
-                    row["webSchedSendError"] = webSchedRecall.ResponseDescript;
-                }
-
                 row["WirelessPhone"] = rowPat["WirelessPhone"].ToString();
 
                 #endregion Create Row
@@ -603,21 +502,11 @@ public class Recalls
         rows.ForEach(x => table.Rows.Add(x));
         logOther($"addRows {table.Rows.Count} rows");
         swTotal.Stop();
-        if (/* ODBuild.IsDebug() */ false)
-        {
-            Logger.WriteLine($"\r\n----------SUMMARY TOTAL {swTotal.Elapsed.TotalSeconds.ToString("0.00")}s\r\n{info}\r\n\r\n");
-            Logger.WriteLine($"\r\n----------INFO TOTAL {swTotal.Elapsed.TotalSeconds.ToString("0.00")}s\r\n{info}\r\n\r\n----------\r\n{verbose}\r\n\r\n");
-        }
 
         return table;
     }
 
-    /// <summary>
-    ///     Determines the contact method for the given patient and returns a string with an appropriate representation of that
-    ///     contact method.
-    /// </summary>
-    public static string GetContactFromMethod(ContactMethod contMeth, bool isGroupByFamilies, string hmPhone, string wkPhone, string wirelessPhone
-        , string guarEmail, string email)
+    public static string GetContactFromMethod(ContactMethod contMeth, bool isGroupByFamilies, string hmPhone, string wkPhone, string wirelessPhone, string guarEmail, string email)
     {
         string contactMethod;
         switch (contMeth)
@@ -673,9 +562,7 @@ public class Recalls
         return contactMethod;
     }
 
-    ///<summary>Returns true if a recall reminder should be sent for this patient based on the passed in arguments.</summary>
-    private static bool DoIncludeRecall(int numberOfReminders, DateTime dateRemind, RecallListShowNumberReminders showReminders
-        , double disableUntilBalance, DateTime disableUntilDate, double familyBalance, bool isAsap, bool doShowReminded, long maxReminders, bool isForWebSched = false)
+    private static bool DoIncludeRecall(int numberOfReminders, DateTime dateRemind, RecallListShowNumberReminders showReminders, double disableUntilBalance, DateTime disableUntilDate, double familyBalance, bool isAsap, bool doShowReminded, long maxReminders, bool isForWebSched = false)
     {
         //filter by disable until date and balance
         if (disableUntilDate > DateTime.Today) return false;
@@ -702,11 +589,6 @@ public class Recalls
         return !HasTooManyReminders(numberOfReminders, dateRemind, maxReminders, isForWebSched);
     }
 
-    /// <summary>
-    ///     Determines if the given numberOfReminders would exceed the allowed amount of Recall reminders, either by recall
-    ///     interval preference
-    ///     or by PrefName.RecallMaxNumberReminders.
-    /// </summary>
     public static bool HasTooManyReminders(int numberOfReminders, DateTime dateRemind, long maxReminders, bool isForWebSched = false)
     {
         if (numberOfReminders == 1)
@@ -728,11 +610,6 @@ public class Recalls
         return false;
     }
 
-    /// <summary>
-    ///     Replaces all recall fields in the given message with the given patient's recall information.  Returns the resulting
-    ///     string.
-    ///     Replaces: [DueDate],[URL]
-    /// </summary>
     public static string ReplaceRecall(string message, Patient pat)
     {
         if (pat == null) return message;
@@ -745,33 +622,28 @@ public class Recalls
         retVal = retVal.Replace("[URL]", PrefC.GetString(PrefName.PatientPortalURL));
         return retVal;
     }
-
     
-    public static long Insert(Recall recall)
+    public static void Insert(Recall recall)
     {
-        return RecallCrud.Insert(recall);
+        RecallCrud.Insert(recall);
     }
-
     
     public static void Update(Recall recall)
     {
         RecallCrud.Update(recall);
     }
 
-    ///<summary>Returns true if it was updated</summary>
     public static bool Update(Recall recall, Recall recallOld)
     {
         return RecallCrud.Update(recall, recallOld);
     }
-
     
     public static void Delete(Recall recall)
     {
-        var command = "DELETE from recall WHERE RecallNum = " + SOut.Long(recall.RecallNum);
+        var command = "DELETE from recall WHERE RecallNum = " + (recall.RecallNum);
         Db.NonQ(command);
     }
 
-    ///<summary>Returns false if the synch is in the process of running.</summary>
     public static bool SynchAllPatients(bool doThrowException = false)
     {
         if (_odThreadQueueData != null) return false;
@@ -790,7 +662,7 @@ public class Recalls
         #region Get Global Parameters
 
         //Get all of the PatNum milestones which will allow the threads to get "full" batches based on BATCH_SIZE.
-        _listPatNumMaxPerGroup = Patients.GetPatNumMaxForGroups(BATCH_SIZE, new List<PatientStatus> {PatientStatus.Patient});
+        _listPatNumMaxPerGroup = Patients.GetPatNumMaxForGroups(BATCH_SIZE, [PatientStatus.Patient]);
         if (_listPatNumMaxPerGroup.Count == 0)
         {
             //not likely to happen, this would mean there are 0 patients in the db, nothing to do
@@ -1065,12 +937,6 @@ public class Recalls
         return true;
     }
 
-    /// <summary>
-    ///     Run method of SynchAllPatients threads.  This method expects only certain threads to call it which are named
-    ///     specifically.
-    ///     This method also expects _listPatNumMaxPerGroup to be filled prior to invoking and will manipulate _queueBatchData
-    ///     as it executes.
-    /// </summary>
     private static void QueueDataBatches(ODThread odThread)
     {
         try
@@ -1166,14 +1032,6 @@ public class Recalls
         }
     }
 
-    /// <summary>
-    ///     Synchronizes all recalls for one patient.
-    ///     If datePrevious has changed, then it completely deletes the old status and note information and sets a new
-    ///     DatePrevious and dateDueCalc.
-    ///     Also updates dateDue to match dateDueCalc if not disabled.  Creates any recalls as necessary.
-    ///     Recalls will never get automatically deleted except when all triggers are removed.  Otherwise, the dateDueCalc just
-    ///     gets cleared.
-    /// </summary>
     public static void Synch(long patNum)
     {
         var pat = Patients.GetPat(patNum);
@@ -1181,7 +1039,7 @@ public class Recalls
             return;
         var typeListActive = RecallTypes.GetActive();
         var typeList = new List<RecallType>(typeListActive);
-        var command = "SELECT * FROM recall WHERE PatNum=" + SOut.Long(patNum);
+        var command = "SELECT * FROM recall WHERE PatNum=" + (patNum);
         var recallList = RecallCrud.SelectMany(command);
         //determine if this patient is a perio patient.
         var isPerio = false;
@@ -1215,21 +1073,21 @@ public class Recalls
         //Because of the inner join, this will not include recall types with no trigger.
         command = "SELECT RecallTypeNum,MAX(ProcDate) procDate_ "
                   + "FROM procedurelog,recalltrigger "
-                  + "WHERE PatNum=" + SOut.Long(patNum)
+                  + "WHERE PatNum=" + (patNum)
                   + " AND procedurelog.CodeNum=recalltrigger.CodeNum "
                   + "AND (";
         if (typeListActive.Count > 0) //This will include both prophy and perio, regardless of whether this is a prophy or perio patient.
             for (var i = 0; i < typeListActive.Count; i++)
             {
                 if (i > 0) command += " OR";
-                command += " RecallTypeNum=" + SOut.Long(typeListActive[i].RecallTypeNum);
+                command += " RecallTypeNum=" + (typeListActive[i].RecallTypeNum);
             }
         else
             command += " RecallTypeNum=0"; //Effectively forces an empty result set, without changing the returned table structure.
 
-        command += ") AND (ProcStatus = " + SOut.Long((int) ProcStat.C) + " "
-                   + "OR ProcStatus = " + SOut.Long((int) ProcStat.EC) + " "
-                   + "OR ProcStatus = " + SOut.Long((int) ProcStat.EO) + ") "
+        command += ") AND (ProcStatus = " + ((int) ProcStat.C) + " "
+                   + "OR ProcStatus = " + ((int) ProcStat.EC) + " "
+                   + "OR ProcStatus = " + ((int) ProcStat.EO) + ") "
                    + "GROUP BY RecallTypeNum";
         var tableDates = DataCore.GetTable(command);
         if (tableDates.Rows.Count == 0) //This patient has no trigger procedures, so do not add/update their recalls.
@@ -1385,7 +1243,6 @@ public class Recalls
         }*/
     }
 
-    /// <summary>Returns true if the patNum has a past due recall in the list that matches the types.</summary>
     public static bool IsPatientPastDue(long patNum, DateTime aptDateTime, bool isProphyOrPerio, List<Recall> listPastDueRecalls)
     {
         if (listPastDueRecalls == null) return false;
@@ -1396,12 +1253,6 @@ public class Recalls
             .Any();
     }
 
-    /// <summary>
-    ///     Synchronizes DateScheduled column in recall table for one patient.
-    ///     This must be used instead of lazy synch in RecallsForPatient, when deleting an appointment, when sending to
-    ///     unscheduled list, setting an appointment complete, etc.
-    ///     This is fast, but it would be inefficient to call it too much.
-    /// </summary>
     public static void SynchScheduledApptFull(long patNum)
     {
         var pat = Patients.GetPat(patNum);
@@ -1410,19 +1261,19 @@ public class Recalls
         //Clear out DateScheduled column for this pat before changing
         var command = "UPDATE recall "
                       + "SET recall.DateScheduled=" + SOut.Date(DateTime.MinValue) + " "
-                      + "WHERE recall.PatNum=" + SOut.Long(patNum);
+                      + "WHERE recall.PatNum=" + (patNum);
         Db.NonQ(command);
         //Get table of future appointments dates with recall type for this patient, where a procedure is attached that is a recall trigger procedure
         command = "SELECT recalltrigger.RecallTypeNum,MIN(DATE(appointment.AptDateTime)) AS AptDateTime "
                   + "FROM procedurelog "
                   + "INNER JOIN recalltrigger ON procedurelog.CodeNum=recalltrigger.CodeNum "
                   + "INNER JOIN recall ON recalltrigger.RecallTypeNum=recall.RecallTypeNum "
-                  + "AND recall.PatNum=" + SOut.Long(patNum) + " "
+                  + "AND recall.PatNum=" + (patNum) + " "
                   + "INNER JOIN appointment ON appointment.AptNum=procedurelog.AptNum "
-                  + "AND appointment.PatNum=" + SOut.Long(patNum) + " "
+                  + "AND appointment.PatNum=" + (patNum) + " "
                   + "AND appointment.AptStatus=" + SOut.Int((int) ApptStatus.Scheduled) + " "
                   + "AND appointment.AptDateTime > CURDATE() " //early this morning
-                  + "WHERE procedurelog.PatNum=" + SOut.Long(patNum) + " "
+                  + "WHERE procedurelog.PatNum=" + (patNum) + " "
                   + "GROUP BY recalltrigger.RecallTypeNum";
         var table = DataCore.GetTable(command);
         //Update the recalls for this patient with DATE(AptDateTime) where there is a future appointment with recall proc on it
@@ -1430,19 +1281,15 @@ public class Recalls
         {
             if (table.Rows[i]["RecallTypeNum"].ToString() == "") continue;
             command = @"UPDATE recall	SET recall.DateScheduled=" + SOut.Date(SIn.Date(table.Rows[i]["AptDateTime"].ToString())) + " "
-                      + "WHERE recall.RecallTypeNum=" + SOut.Long(SIn.Long(table.Rows[i]["RecallTypeNum"].ToString())) + " "
-                      + "AND recall.PatNum=" + SOut.Long(patNum) + " ";
+                      + "WHERE recall.RecallTypeNum=" + (SIn.Long(table.Rows[i]["RecallTypeNum"].ToString())) + " "
+                      + "AND recall.PatNum=" + (patNum) + " ";
             Db.NonQ(command);
         }
     }
 
-    /// <summary>
-    ///     Updates RecallInterval and DueDate for all patients that have the recallTypeNum and defaultIntervalOld to use
-    ///     the defaultIntervalNew.
-    /// </summary>
     public static void UpdateDefaultIntervalForPatients(long recallTypeNum, Interval defaultIntervalOld, Interval defaultIntervalNew)
     {
-        var command = "SELECT * FROM recall WHERE IsDisabled=0 AND RecallTypeNum=" + SOut.Long(recallTypeNum) + " AND RecallInterval=" + SOut.Int(defaultIntervalOld.ToInt());
+        var command = "SELECT * FROM recall WHERE IsDisabled=0 AND RecallTypeNum=" + (recallTypeNum) + " AND RecallInterval=" + SOut.Int(defaultIntervalOld.ToInt());
         var recallList = RecallCrud.SelectMany(command);
         for (var i = 0; i < recallList.Count; i++)
         {
@@ -1465,11 +1312,10 @@ public class Recalls
 
     public static void DeleteAllOfType(long recallTypeNum)
     {
-        var command = "DELETE FROM recall WHERE RecallTypeNum= " + SOut.Long(recallTypeNum);
+        var command = "DELETE FROM recall WHERE RecallTypeNum= " + (recallTypeNum);
         Db.NonQ(command);
     }
 
-    ///<summary>Shared table structure for Recalls and Reactivations, be careful when making changes.</summary>
     public static DataTable GetAddrTableStructure()
     {
         var table = new DataTable();
@@ -1491,7 +1337,6 @@ public class Recalls
         table.Columns.Add("Language"); //Can be guar.
         return table;
     }
-
     
     public static DataTable GetAddrTable(List<long> recallNums, bool groupByFamily, RecallListSort sortBy)
     {
@@ -1633,66 +1478,7 @@ public class Recalls
         for (var i = 0; i < rows.Count; i++) table.Rows.Add(rows[i]);
         return table;
     }
-
     
-    public static DataTable GetAddrTableForWebSched(List<long> recallNums, bool groupByFamily, RecallListSort sortBy, List<CommType> listCommTypes = null)
-    {
-        var rawTable = GetAddrTableRaw(recallNums);
-        var hashRecallNumsUnsent = WebSchedRecalls.GetAllUnsent(listCommTypes).Select(x => x.RecallNum).Distinct().ToHashSet();
-        //Only return rows where there isn't already a pending WebSchedRecall.
-        var rawRows = rawTable.Rows.Cast<DataRow>().Where(x => !hashRecallNumsUnsent.Contains(SIn.Long(x["RecallNum"].ToString()))).ToList();
-        var comparer = new RecallComparer();
-        comparer.GroupByFamilies = groupByFamily;
-        comparer.SortBy = sortBy;
-        rawRows.Sort(comparer);
-        var table = new DataTable();
-        table.Columns.Add("clinicNum"); //will be the guar clinicNum if grouped.
-        table.Columns.Add("dateDue");
-        table.Columns.Add("email"); //will be guar if grouped by family
-        table.Columns.Add("emailPatNum"); //will be guar if grouped by family
-        table.Columns.Add("numberOfReminders"); //for a family, this will be the max for the family
-        table.Columns.Add("patientNameF");
-        table.Columns.Add("patientNameFL");
-        table.Columns.Add("PatNum");
-        table.Columns.Add("RecallNum");
-        table.Columns.Add("PreferRecallMethod");
-        Patient pat;
-        for (var i = 0; i < rawRows.Count; i++)
-        {
-            var rawRaw = rawRows[i];
-            var row = table.NewRow();
-            if (groupByFamily)
-            {
-                //Use guarantors clinic and email for all notifications.
-                row["clinicNum"] = rawRaw["guarClinicNum"].ToString();
-                row["email"] = rawRaw["guarEmail"].ToString();
-                row["emailPatNum"] = rawRaw["Guarantor"].ToString();
-            }
-            else
-            {
-                row["clinicNum"] = rawRaw["ClinicNum"].ToString();
-                row["email"] = rawRaw["Email"].ToString();
-                row["emailPatNum"] = rawRaw["PatNum"].ToString();
-            }
-
-            row["dateDue"] = SIn.Date(rawRaw["DateDue"].ToString()).ToShortDateString();
-            row["numberOfReminders"] = SIn.Long(rawRaw["numberOfReminders"].ToString()).ToString();
-            row["PatNum"] = rawRaw["PatNum"].ToString();
-            pat = new Patient();
-            pat.LName = rawRaw["LName"].ToString();
-            pat.FName = rawRaw["FName"].ToString();
-            pat.Preferred = rawRaw["Preferred"].ToString();
-            row["patientNameF"] = pat.GetNameFirstOrPreferred();
-            row["patientNameFL"] = pat.GetNameFLnoPref();
-            row["RecallNum"] = rawRaw["RecallNum"].ToString();
-            row["PreferRecallMethod"] = rawRaw["PreferRecallMethod"].ToString();
-            table.Rows.Add(row);
-        }
-
-        return table;
-    }
-
-    ///<summary>Gets a base table used for creating recall reminders.</summary>
     public static DataTable GetAddrTableRaw(List<long> recallNums)
     {
         //numberofReminders is count of distinct CommSource and Date.  This means that a manual WebSchedRecall email and an automated WebSchedRecall 
@@ -1708,21 +1494,20 @@ public class Recalls
 				LEFT JOIN definition ON definition.DefNum=patient.BillingType
 					AND definition.Category={SOut.Int((int) DefCat.BillingTypes)}
 				LEFT JOIN commlog ON commlog.PatNum=recall.PatNum
-					AND commlog.CommType={SOut.Long(Commlogs.GetTypeAuto(CommItemTypeAuto.RECALL))}
+					AND commlog.CommType={(Commlogs.GetTypeAuto(CommItemTypeAuto.RECALL))}
 					AND commlog.CommDateTime > recall.DatePrevious
 				LEFT JOIN (
 					SELECT patient.Guarantor,MAX(recall.DateDue) maxDateDue
 					FROM patient
 					INNER JOIN recall ON patient.PatNum=recall.PatNum
-					WHERE recall.RecallNum IN ({string.Join(",", recallNums.Select(x => SOut.Long(x)))})
+					WHERE recall.RecallNum IN ({string.Join(",", recallNums.Select(x => (x)))})
 					GROUP BY patient.Guarantor
 				) t ON t.Guarantor=patient.Guarantor
-				WHERE recall.RecallNum IN ({string.Join(",", recallNums.Select(x => SOut.Long(x)))})
+				WHERE recall.RecallNum IN ({string.Join(",", recallNums.Select(x => (x)))})
 				GROUP BY recall.RecallNum";
         return DataCore.GetTable(command);
     }
 
-    /// <summary></summary>
     public static void UpdateStatus(long recallNum, long newStatus)
     {
         var recall = GetRecall(recallNum);
@@ -1753,24 +1538,18 @@ public class Recalls
     {
         var command = "SELECT COUNT(*) FROM recall "
                       + "JOIN recalltype ON recall.RecallTypeNum=recalltype.RecallTypeNum "
-                      + "WHERE recalltype.recallTypeNum=" + SOut.Long(recallTypeNum);
+                      + "WHERE recalltype.recallTypeNum=" + (recallTypeNum);
         return SIn.Int(Db.GetCount(command));
     }
 
-    ///<summary>Returns recalls with given list of RecallNums. Used along with GetChangedSinceRecallNums.</summary>
     public static List<Recall> GetMultRecalls(List<long> listRecallNums)
     {
-        if (listRecallNums.IsNullOrEmpty()) return new List<Recall>();
+        if (listRecallNums.IsNullOrEmpty()) return [];
 
         var command = $"SELECT * FROM recall WHERE RecallNum IN ({string.Join(",", listRecallNums)})";
         return RecallCrud.SelectMany(command);
     }
 
-    /// <summary>
-    ///     Gets the patients that have had a recall reminder sent to them in the date range. If a recall reminder was recorded
-    ///     as a commlog
-    ///     without a row in the webschedrecall table, some fields will be blank.
-    /// </summary>
     public static List<RecallRecent> GetRecentRecalls(DateTime dateTimeFrom, DateTime dateTimeTo, List<long> listClinicNums)
     {
         const string lanThis = "FormRecallList";
@@ -1782,21 +1561,21 @@ public class Recalls
 				FROM (
 					SELECT webschedrecall.DateTimeSent DateSent,webschedrecall.PatNum,webschedrecall.RecallNum,
 					(CASE WHEN webschedrecall.Source=1 THEN -1 ELSE -2 END) CommMode,webschedrecall.ClinicNum,"
-                      + @$"'{SOut.Long((long) CommItemSource.WebSched)}'as CommSource 
+                      + @$"'{((long) CommItemSource.WebSched)}'as CommSource 
 					FROM webschedrecall
 					WHERE " + DbHelper.BetweenDates("webschedrecall.DateTimeSent", dateTimeFrom, dateTimeTo) + @"
 					UNION ALL
 					SELECT commlog.CommDateTime DateSent,commlog.PatNum,0 RecallNum,commlog.Mode_ CommMode,-1 ClinicNum,commlog.CommSource
 					FROM commlog
 					WHERE " + DbHelper.BetweenDates("commlog.CommDateTime", dateTimeFrom, dateTimeTo) + @"
-					AND commlog.CommType=" + SOut.Long(Commlogs.GetTypeAuto(CommItemTypeAuto.RECALL)) + @"
+					AND commlog.CommType=" + (Commlogs.GetTypeAuto(CommItemTypeAuto.RECALL)) + @"
 				) recallreminder
 				INNER JOIN patient ON patient.PatNum=recallreminder.PatNum
 				LEFT JOIN recall ON recall.RecallNum=recallreminder.RecallNum
 				LEFT JOIN recalltype ON recalltype.RecallTypeNum=recall.RecallTypeNum
 				LEFT JOIN definition ON definition.DefNum=recall.RecallStatus
 				";
-        if (listClinicNums.Count > 0) command += "HAVING ClinicNum IN(" + string.Join(",", listClinicNums.Select(x => SOut.Long(x))) + " )";
+        if (listClinicNums.Count > 0) command += "HAVING ClinicNum IN(" + string.Join(",", listClinicNums.Select(x => (x))) + " )";
         var table = DataCore.GetTable(command);
         var listRecent = new List<RecallRecent>();
         foreach (DataRow row in table.Rows)
@@ -1845,235 +1624,51 @@ public class Recalls
             .OrderBy(x => x.DateSent).ThenBy(x => x.PatientName).ToList();
         return listRecent;
     }
-
-    #region Web Sched
-
-    /// <summary>
-    ///     Creates and inserts an appointment for the recall passed in using the dateStart hour as the beginning of the
-    ///     appointment.
-    ///     It will be scheduled in the first available operatory.
-    ///     <para>
-    ///         The first available operatory is determined by the order in which they are stored in the database
-    ///         (operatory.ItemOrder).
-    ///     </para>
-    ///     <para>
-    ///         This means that (visually to the user) we will be filling up their appointment schedule from the left to the
-    ///         right.
-    ///     </para>
-    ///     <para>Surround with a try catch.  Throws exceptions if anything goes wrong.</para>
-    ///     <para>Returns the list of procedures that were scheduled and the appointment created.</para>
-    /// </summary>
-    /// <param name="isASAP">If true, then the appointment created will have a priority of ASAP.</param>
-    public static Tuple<Appointment, List<Procedure>> CreateRecallApptForWebSched(long recallNum, DateTime dateStart, DateTime dateEnd
-        , List<TimeSlot> listAvailableTimeSlots, LogSources source, bool isASAP = false, bool sendVerification = false, string logGuid = "")
-    {
-        foreach (var timeSlot in listAvailableTimeSlots)
-        {
-            if (dateStart != timeSlot.DateTimeStart || dateEnd != timeSlot.DateTimeStop) continue; //Not the available slot that the patient selected within the app.
-            //At this point we know the slot time that the patient selected matches this open time slot.
-            var recallCur = GetRecall(recallNum);
-            if (recallCur == null) throw new ODException("This recall appointment is no longer available.\r\nPlease call us to schedule your appointment.");
-            var patCur = Patients.GetPat(recallCur.PatNum);
-            var listRecalls = GetList(patCur.PatNum);
-            for (var j = 0; j < listRecalls.Count; j++)
-                if (listRecalls[j].RecallNum == recallNum)
-                {
-                    recallCur = listRecalls[j].Copy();
-                    break;
-                }
-
-            var aptCur = new Appointment();
-            aptCur.AptDateTime = dateStart; //set the AptDateTime here, so FillAppointmentforRecall uses the correct Date for the procedure
-            var fam = Patients.GetFamily(patCur.PatNum);
-            var procList = Procedures.Refresh(patCur.PatNum);
-            var listSubs = InsSubs.RefreshForFam(fam);
-            var listPlans = InsPlans.RefreshForSubList(listSubs);
-            var listProcStrs = RecallTypes.GetProcs(recallCur.RecallTypeNum);
-            //Now we need to completely fill the appointment with procedures, claimprocs, etc. for this specific recall.
-            var listProcedures = Appointments.FillAppointmentForRecall(aptCur, recallCur, listRecalls, patCur, listProcStrs, listPlans, listSubs);
-            var aptOld = aptCur.Copy();
-            //Take the recall appointment that was just inserted via FillAppointmentForRecall() and update the time and operatory.
-            var opCur = Operatories.GetOperatory(timeSlot.OperatoryNum);
-            aptCur.AptStatus = ApptStatus.Scheduled;
-            aptCur.Op = opCur.OperatoryNum;
-            aptCur.Priority = isASAP ? ApptPriority.ASAP : ApptPriority.Normal;
-            aptCur.Confirmed = PrefC.GetLong(PrefName.WebSchedRecallConfirmStatus);
-            //Make sure that operatory specific settings are applied to the appointment.
-            var listSchedules = Schedules.RefreshDayEdit(aptCur.AptDateTime);
-            if (!true)
-                aptCur.ClinicNum = 0;
-            else if (opCur.ClinicNum == 0)
-                aptCur.ClinicNum = patCur.ClinicNum;
-            else
-                aptCur.ClinicNum = opCur.ClinicNum;
-            WebSchedProviderRules rule;
-            if (true)
-                rule = SIn.Enum<WebSchedProviderRules>(
-                    ClinicPrefs.GetPref(PrefName.WebSchedProviderRule, aptCur.ClinicNum)?.ValueString ?? PrefC.GetString(PrefName.WebSchedProviderRule));
-            else
-                rule = SIn.Enum<WebSchedProviderRules>(PrefC.GetString(PrefName.WebSchedProviderRule));
-            long preferredProvNum = 0;
-            if (rule != WebSchedProviderRules.FirstAvailable)
-                //If the recall is supposed to be with a particular provider, then the listAvailableTimeSlots should all have a ProvNum of that 
-                //particular provider.
-                preferredProvNum = timeSlot.ProvNum;
-            var assignedDent = Schedules.GetAssignedProvNumForSpot(listSchedules, opCur, false, aptCur.AptDateTime, preferredProvNum);
-            var assignedHyg = Schedules.GetAssignedProvNumForSpot(listSchedules, opCur, true, aptCur.AptDateTime, preferredProvNum);
-            if (assignedDent > 0) //if no dentist is assigned to op, then keep the original dentist.  All appts must have prov.
-                aptCur.ProvNum = assignedDent;
-            if (assignedHyg > 0) aptCur.ProvHyg = assignedHyg;
-            aptCur.IsHygiene = opCur.IsHygiene;
-            //Note: We do not need to do any prospective operatory checks here because the query currently excludes prospective ops.
-            //Also, aptCur already has the correct time pattern set.  No need to set it again here.
-            Appointments.Update(aptCur, aptOld);
-            listProcedures.AddRange(Appointments.TryAddPerVisitProcCodesToAppt(aptCur, aptOld.AptStatus));
-            //At this point, the appointment has been fully scheduled. The remaining operations can be run on a thread so that this method can return 
-            //faster.
-            var thread = new ODThread(o =>
-            {
-                var eServiceCode = Imedisoft.Core.Entities.eServiceCode.WebSched;
-                if (source == LogSources.WebSchedASAP) eServiceCode = eServiceCode.WebSchedASAP;
-                if (recallCur.Priority == RecallPriority.ASAP)
-                {
-                    var recallOld = recallCur.Copy();
-                    recallCur.Priority = RecallPriority.Normal;
-                    if (Update(recallCur, recallOld))
-                    {
-                        SecurityLogs.MakeLogEntry(EnumPermType.RecallEdit, recallCur.PatNum, "Recall priority changed to Normal by Web Sched.");
-                        EServiceLogs.MakeLogEntry(eServiceAction.WSMovedAppt, eServiceType.WSAsap, FKeyType.ApptNum, aptCur.PatNum, FKey: aptCur.AptNum, clinicNum: aptCur.ClinicNum, logGuid: logGuid);
-                    }
-                }
-
-                //Create a security log so that the office knows where this appointment came from.
-                SecurityLogs.MakeLogEntry(EnumPermType.AppointmentCreate, aptCur.PatNum,
-                    aptCur.AptDateTime + ", " + aptCur.ProcDescript + "  -  Created via Web Sched",
-                    aptCur.AptNum, source, aptOld.DateTStamp);
-                EServiceLogs.MakeLogEntry(eServiceAction.WSAppointmentScheduledFromServer, eServiceType.WSRecall, FKeyType.ApptNum, aptCur.PatNum,
-                    FKey: aptCur.AptNum, clinicNum: aptCur.ClinicNum, logGuid: logGuid);
-                if (sendVerification)
-                    Appointments.SendWebSchedNotify(aptCur, PrefName.WebSchedVerifyRecallType, PrefName.WebSchedVerifyRecallText,
-                        PrefName.WebSchedVerifyRecallEmailSubj, PrefName.WebSchedVerifyRecallEmailBody, PrefName.WebSchedVerifyRecallEmailTemplateType);
-                //There is no need to make security logs for anything other than the appointment.  That is how the recall list system currently does it.
-                SynchScheduledApptFull(aptCur.PatNum); //Synch the recalls so that the appointment will disappear from the recall list.
-                var alert = new AlertItem
-                {
-                    ClinicNum = aptCur.ClinicNum,
-                    Description = aptCur.AptDateTime.ToString(),
-                    Type = AlertType.WebSchedRecallApptCreated,
-                    Actions = ActionType.MarkAsRead | ActionType.OpenForm | ActionType.Delete,
-                    FormToOpen = FormType.FormWebSchedAppts,
-                    Severity = SeverityType.Low,
-                    FKey = aptCur.AptNum
-                };
-                AlertItems.Insert(alert);
-            });
-            thread.Name = "FinishWebSchedRecallAppt";
-            thread.AddExceptionHandler(_ => { });
-            thread.Start();
-            if (RunWebSchedSynchronously) thread.Join(Timeout.Infinite);
-            return new Tuple<Appointment, List<Procedure>>(aptCur, listProcedures);
-        }
-
-        //It is very possible that from the time the patient loaded the Web Sched app and now that the available time slot has been removed or filled.
-        throw new ODException("The selected appointment time is no longer available.\r\nPlease choose a different time slot.", 100);
-    }
-
-    #endregion
-
-    /// <summary>
-    ///     List of recalls, dictionary of last completed dates for recall code nums, and dictionary of next scheduled dates
-    ///     for recall types for
-    ///     one patient.  This will be added to a dictionary with key=PatNum for the patient whose data this represents.
-    /// </summary>
-    /// [Serializable] //Change dicts to serializable dicts if this needs to be serialized
+    
     private class PatBatchData
     {
-        ///<summary>RecallTypeNum to scheduled date.</summary>
         public readonly Dictionary<long, DateTime> DictRecallTypesSched = new();
 
-        ///<summary>CodeNum to a last completed date.</summary>
         public Dictionary<long, DateTime> DictLastProcDates = new();
 
-        public List<Recall> ListRecalls = new();
+        public List<Recall> ListRecalls = [];
     }
-
-
+    
     public class RecallRecent
     {
         public int Age;
-        public string CarrierName;
         public CommItemSource CommSource;
         public DateTime DateSent;
         public DateTime DueDate;
         public string PatientName;
         public long PatNum;
-
-        ///<summary>May be 0 if this is from a commlog.</summary>
         public long RecallNum;
-
         public string RecallStatus;
         public string RecallType;
         public string ReminderType;
     }
-
-    #region Recall Sync All Patient Variables
-
-    /// <summary>
-    ///     Queue to hold batches for FIFO processing.  A batch is a dictionary of PatNum keys linked to PatBatchData objects,
-    ///     which hold the
-    ///     pat's list of current recalls, dictionary of last proc dates for recall trigger procs, and dictionary of scheduled
-    ///     recall dates.  One thread
-    ///     fills the queue with db data while the main thread processes the batches of pat data.  The queue will have at most
-    ///     two batches in it at any
-    ///     given time.  If the queue contains 2 batches already, the filling thread will wait for the main thread to remove a
-    ///     batch from the front of the
-    ///     queue before adding another batch to the rear of the queue.
-    ///     Make sure to use _lockObjQueueBatchData when manipulating this queue.
-    /// </summary>
+    
     private static Queue<Dictionary<long, PatBatchData>> _queueBatchData;
-
-    ///<summary>Lock object to keep the queue thread safe.</summary>
+    
     private static readonly object _lockObjQueueBatchData = new();
 
-    /// <summary>
-    ///     False until the filling thread has added the last batch of data to the queue.  Once true AND the queue is empty,
-    ///     the main thread is
-    ///     finished as well.
-    /// </summary>
     private static bool _isQueueBatchThreadDone;
 
     private static bool _isQueueBatchThreadDone2;
 
-    /// <summary>
-    ///     Number of PatNums the filling thread uses for each batch of data.  The processing takes longer than filling, so we
-    ///     can keep this
-    ///     number relatively small to reduce total program memory consumption.
-    /// </summary>
     private const int BATCH_SIZE = 10000;
 
     private static int _totalPatCount;
     private static List<long> _listPatNumMaxPerGroup;
 
-    ///<summary>If this thread is not null then SynchAllPatients() is in the middle of running.</summary>
     private static ODThread _odThreadQueueData;
-
-    #endregion Recall Sync All Patient Variables
 }
 
-/// <summary>
-///     The supplied DataRows must include the following columns:
-///     Guarantor, PatNum, guarLName, guarFName, LName, FName, DateDue, maxDateDue, billingType.
-///     maxDateDue is the most recent DateDue for all family members in the list and needs to be the same for all family
-///     members.
-///     This date will be used for better grouping.
-/// </summary>
 internal class RecallComparer : IComparer<DataRow>
 {
     public bool GroupByFamilies;
 
-    ///<summary>rather than by the ordinary DueDate.</summary>
     public RecallListSort SortBy;
-
     
     public int Compare(DataRow x, DataRow y)
     {

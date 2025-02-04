@@ -3,25 +3,11 @@ using Imedisoft.Core.Entities;
 
 namespace OpenDentBusiness;
 
-public class InsPlanSubstitution
+public class InsPlanSubstitution(ProcedureCode procCode, SubstitutionLink subLink = null)
 {
-    public readonly ProcedureCode ProcCode;
-    public readonly SubstitutionLink SubLink;
-    public SubstitutionCondition SubCondition;
-
-    public InsPlanSubstitution(ProcedureCode procCode, SubstitutionLink subLink = null)
-    {
-        ProcCode = procCode;
-        SubLink = subLink;
-        if (subLink is null)
-        {
-            SubCondition = procCode.SubstOnlyIf;
-        }
-        else
-        {
-            SubCondition = subLink.SubstOnlyIf;
-        }
-    }
+    public readonly ProcedureCode ProcCode = procCode;
+    public readonly SubstitutionLink SubLink = subLink;
+    public SubstitutionCondition SubCondition = subLink?.SubstOnlyIf ?? procCode.SubstOnlyIf;
 
     public static bool AreEqual(InsPlanSubstitution insPlanSub1, InsPlanSubstitution insPlanSub2)
     {
@@ -32,9 +18,9 @@ public class InsPlanSubstitution
 
     public static bool HasDuplicates(List<InsPlanSubstitution> listInsPlanSubs)
     {
-        for (int i = 0; i < listInsPlanSubs.Count; i++)
+        for (var i = 0; i < listInsPlanSubs.Count; i++)
         {
-            for (int j = i + 1; j < listInsPlanSubs.Count; j++)
+            for (var j = i + 1; j < listInsPlanSubs.Count; j++)
             {
                 if (AreEqual(listInsPlanSubs[i], listInsPlanSubs[j]))
                 {

@@ -1,34 +1,13 @@
-#region
-
 using System.Collections.Generic;
 using System.Data;
-using System.Linq;
 using DataConnectionBase;
 using Imedisoft.Core.Entities;
 using OpenDentBusiness;
-
-#endregion
 
 namespace Imedisoft.Core.Crud;
 
 public class ProgramCrud
 {
-    public static Program SelectOne(long programNum)
-    {
-        var command = "SELECT * FROM program "
-                      + "WHERE ProgramNum = " + SOut.Long(programNum);
-        var list = TableToList(DataCore.GetTable(command));
-        if (list.Count == 0) return null;
-        return list[0];
-    }
-
-    public static Program SelectOne(string command)
-    {
-        var list = TableToList(DataCore.GetTable(command));
-        if (list.Count == 0) return null;
-        return list[0];
-    }
-
     public static List<Program> SelectMany(string command)
     {
         var list = TableToList(DataCore.GetTable(command));
@@ -38,23 +17,24 @@ public class ProgramCrud
     public static List<Program> TableToList(DataTable table)
     {
         var retVal = new List<Program>();
-        Program program;
         foreach (DataRow row in table.Rows)
         {
-            program = new Program();
-            program.ProgramNum = SIn.Long(row["ProgramNum"].ToString());
-            program.ProgName = SIn.String(row["ProgName"].ToString());
-            program.ProgDesc = SIn.String(row["ProgDesc"].ToString());
-            program.Enabled = SIn.Bool(row["Enabled"].ToString());
-            program.Path = SIn.String(row["Path"].ToString());
-            program.CommandLine = SIn.String(row["CommandLine"].ToString());
-            program.Note = SIn.String(row["Note"].ToString());
-            program.PluginDllName = SIn.String(row["PluginDllName"].ToString());
-            program.ButtonImage = SIn.String(row["ButtonImage"].ToString());
-            program.FileTemplate = SIn.String(row["FileTemplate"].ToString());
-            program.FilePath = SIn.String(row["FilePath"].ToString());
-            program.IsDisabledByHq = SIn.Bool(row["IsDisabledByHq"].ToString());
-            program.CustErr = SIn.String(row["CustErr"].ToString());
+            var program = new Program
+            {
+                ProgramNum = SIn.Long(row["ProgramNum"].ToString()),
+                ProgName = SIn.String(row["ProgName"].ToString()),
+                ProgDesc = SIn.String(row["ProgDesc"].ToString()),
+                Enabled = SIn.Bool(row["Enabled"].ToString()),
+                Path = SIn.String(row["Path"].ToString()),
+                CommandLine = SIn.String(row["CommandLine"].ToString()),
+                Note = SIn.String(row["Note"].ToString()),
+                PluginDllName = SIn.String(row["PluginDllName"].ToString()),
+                ButtonImage = SIn.String(row["ButtonImage"].ToString()),
+                FileTemplate = SIn.String(row["FileTemplate"].ToString()),
+                FilePath = SIn.String(row["FilePath"].ToString()),
+                IsDisabledByHq = SIn.Bool(row["IsDisabledByHq"].ToString()),
+                CustErr = SIn.String(row["CustErr"].ToString())
+            };
             retVal.Add(program);
         }
 
@@ -83,12 +63,7 @@ public class ProgramCrud
         return table;
     }
 
-    public static long Insert(Program program)
-    {
-        return Insert(program, false);
-    }
-
-    public static long Insert(Program program, bool useExistingPK)
+    public static void Insert(Program program)
     {
         var command = "INSERT INTO program (";
 
@@ -120,49 +95,6 @@ public class ProgramCrud
         {
             program.ProgramNum = Db.NonQ(command, true, "ProgramNum", "program", paramPath, paramCommandLine, paramNote, paramButtonImage, paramFileTemplate);
         }
-        return program.ProgramNum;
-    }
-
-    public static long InsertNoCache(Program program)
-    {
-        return InsertNoCache(program, false);
-    }
-
-    public static long InsertNoCache(Program program, bool useExistingPK)
-    {
-        const bool isRandomKeys = false;
-        var command = "INSERT INTO program (";
-        if (isRandomKeys || useExistingPK) command += "ProgramNum,";
-        command += "ProgName,ProgDesc,Enabled,Path,CommandLine,Note,PluginDllName,ButtonImage,FileTemplate,FilePath,IsDisabledByHq,CustErr) VALUES(";
-        if (isRandomKeys || useExistingPK) command += SOut.Long(program.ProgramNum) + ",";
-        command +=
-            "'" + SOut.String(program.ProgName) + "',"
-            + "'" + SOut.String(program.ProgDesc) + "',"
-            + SOut.Bool(program.Enabled) + ","
-            + DbHelper.ParamChar + "paramPath,"
-            + DbHelper.ParamChar + "paramCommandLine,"
-            + DbHelper.ParamChar + "paramNote,"
-            + "'" + SOut.String(program.PluginDllName) + "',"
-            + DbHelper.ParamChar + "paramButtonImage,"
-            + DbHelper.ParamChar + "paramFileTemplate,"
-            + "'" + SOut.String(program.FilePath) + "',"
-            + SOut.Bool(program.IsDisabledByHq) + ","
-            + "'" + SOut.String(program.CustErr) + "')";
-        if (program.Path == null) program.Path = "";
-        var paramPath = new OdSqlParameter("paramPath", SOut.StringParam(program.Path));
-        if (program.CommandLine == null) program.CommandLine = "";
-        var paramCommandLine = new OdSqlParameter("paramCommandLine", SOut.StringParam(program.CommandLine));
-        if (program.Note == null) program.Note = "";
-        var paramNote = new OdSqlParameter("paramNote", SOut.StringParam(program.Note));
-        if (program.ButtonImage == null) program.ButtonImage = "";
-        var paramButtonImage = new OdSqlParameter("paramButtonImage", SOut.StringParam(program.ButtonImage));
-        if (program.FileTemplate == null) program.FileTemplate = "";
-        var paramFileTemplate = new OdSqlParameter("paramFileTemplate", SOut.StringParam(program.FileTemplate));
-        if (useExistingPK || isRandomKeys)
-            Db.NonQ(command, paramPath, paramCommandLine, paramNote, paramButtonImage, paramFileTemplate);
-        else
-            program.ProgramNum = Db.NonQ(command, true, "ProgramNum", "program", paramPath, paramCommandLine, paramNote, paramButtonImage, paramFileTemplate);
-        return program.ProgramNum;
     }
 
     public static void Update(Program program)
@@ -284,37 +216,5 @@ public class ProgramCrud
                                         + " WHERE ProgramNum = " + SOut.Long(program.ProgramNum);
         Db.NonQ(command, paramPath, paramCommandLine, paramNote, paramButtonImage, paramFileTemplate);
         return true;
-    }
-
-    public static bool UpdateComparison(Program program, Program oldProgram)
-    {
-        if (program.ProgName != oldProgram.ProgName) return true;
-        if (program.ProgDesc != oldProgram.ProgDesc) return true;
-        if (program.Enabled != oldProgram.Enabled) return true;
-        if (program.Path != oldProgram.Path) return true;
-        if (program.CommandLine != oldProgram.CommandLine) return true;
-        if (program.Note != oldProgram.Note) return true;
-        if (program.PluginDllName != oldProgram.PluginDllName) return true;
-        if (program.ButtonImage != oldProgram.ButtonImage) return true;
-        if (program.FileTemplate != oldProgram.FileTemplate) return true;
-        if (program.FilePath != oldProgram.FilePath) return true;
-        if (program.IsDisabledByHq != oldProgram.IsDisabledByHq) return true;
-        if (program.CustErr != oldProgram.CustErr) return true;
-        return false;
-    }
-
-    public static void Delete(long programNum)
-    {
-        var command = "DELETE FROM program "
-                      + "WHERE ProgramNum = " + SOut.Long(programNum);
-        Db.NonQ(command);
-    }
-
-    public static void DeleteMany(List<long> listProgramNums)
-    {
-        if (listProgramNums == null || listProgramNums.Count == 0) return;
-        var command = "DELETE FROM program "
-                      + "WHERE ProgramNum IN(" + string.Join(",", listProgramNums.Select(x => SOut.Long(x))) + ")";
-        Db.NonQ(command);
     }
 }

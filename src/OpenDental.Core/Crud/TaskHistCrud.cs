@@ -17,36 +17,37 @@ public class TaskHistCrud
     public static List<TaskHist> TableToList(DataTable table)
     {
         var retVal = new List<TaskHist>();
-        TaskHist taskHist;
         foreach (DataRow row in table.Rows)
         {
-            taskHist = new TaskHist();
-            taskHist.TaskHistNum = SIn.Long(row["TaskHistNum"].ToString());
-            taskHist.UserNumHist = SIn.Long(row["UserNumHist"].ToString());
-            taskHist.DateTStamp = SIn.DateTime(row["DateTStamp"].ToString());
-            taskHist.IsNoteChange = SIn.Bool(row["IsNoteChange"].ToString());
-            taskHist.TaskNum = SIn.Long(row["TaskNum"].ToString());
-            taskHist.TaskListNum = SIn.Long(row["TaskListNum"].ToString());
-            taskHist.DateTask = SIn.Date(row["DateTask"].ToString());
-            taskHist.KeyNum = SIn.Long(row["KeyNum"].ToString());
-            taskHist.Descript = SIn.String(row["Descript"].ToString());
-            taskHist.TaskStatus = (TaskStatusEnum) SIn.Int(row["TaskStatus"].ToString());
-            taskHist.IsRepeating = SIn.Bool(row["IsRepeating"].ToString());
-            taskHist.DateType = (TaskDateType) SIn.Int(row["DateType"].ToString());
-            taskHist.FromNum = SIn.Long(row["FromNum"].ToString());
-            taskHist.ObjectType = (TaskObjectType) SIn.Int(row["ObjectType"].ToString());
-            taskHist.DateTimeEntry = SIn.DateTime(row["DateTimeEntry"].ToString());
-            taskHist.UserNum = SIn.Long(row["UserNum"].ToString());
-            taskHist.DateTimeFinished = SIn.DateTime(row["DateTimeFinished"].ToString());
-            taskHist.PriorityDefNum = SIn.Long(row["PriorityDefNum"].ToString());
-            taskHist.ReminderGroupId = SIn.String(row["ReminderGroupId"].ToString());
-            taskHist.ReminderType = (TaskReminderType) SIn.Int(row["ReminderType"].ToString());
-            taskHist.ReminderFrequency = SIn.Int(row["ReminderFrequency"].ToString());
-            taskHist.DateTimeOriginal = SIn.DateTime(row["DateTimeOriginal"].ToString());
-            taskHist.SecDateTEdit = SIn.DateTime(row["SecDateTEdit"].ToString());
-            taskHist.DescriptOverride = SIn.String(row["DescriptOverride"].ToString());
-            taskHist.IsReadOnly = SIn.Bool(row["IsReadOnly"].ToString());
-            taskHist.TriageCategory = SIn.Long(row["TriageCategory"].ToString());
+            var taskHist = new TaskHist
+            {
+                TaskHistNum = SIn.Long(row["TaskHistNum"].ToString()),
+                UserNumHist = SIn.Long(row["UserNumHist"].ToString()),
+                DateTStamp = SIn.DateTime(row["DateTStamp"].ToString()),
+                IsNoteChange = SIn.Bool(row["IsNoteChange"].ToString()),
+                TaskNum = SIn.Long(row["TaskNum"].ToString()),
+                TaskListNum = SIn.Long(row["TaskListNum"].ToString()),
+                DateTask = SIn.Date(row["DateTask"].ToString()),
+                KeyNum = SIn.Long(row["KeyNum"].ToString()),
+                Descript = SIn.String(row["Descript"].ToString()),
+                TaskStatus = (TaskStatusEnum) SIn.Int(row["TaskStatus"].ToString()),
+                IsRepeating = SIn.Bool(row["IsRepeating"].ToString()),
+                DateType = (TaskDateType) SIn.Int(row["DateType"].ToString()),
+                FromNum = SIn.Long(row["FromNum"].ToString()),
+                ObjectType = (TaskObjectType) SIn.Int(row["ObjectType"].ToString()),
+                DateTimeEntry = SIn.DateTime(row["DateTimeEntry"].ToString()),
+                UserNum = SIn.Long(row["UserNum"].ToString()),
+                DateTimeFinished = SIn.DateTime(row["DateTimeFinished"].ToString()),
+                PriorityDefNum = SIn.Long(row["PriorityDefNum"].ToString()),
+                ReminderGroupId = SIn.String(row["ReminderGroupId"].ToString()),
+                ReminderType = (TaskReminderType) SIn.Int(row["ReminderType"].ToString()),
+                ReminderFrequency = SIn.Int(row["ReminderFrequency"].ToString()),
+                DateTimeOriginal = SIn.DateTime(row["DateTimeOriginal"].ToString()),
+                SecDateTEdit = SIn.DateTime(row["SecDateTEdit"].ToString()),
+                DescriptOverride = SIn.String(row["DescriptOverride"].ToString()),
+                IsReadOnly = SIn.Bool(row["IsReadOnly"].ToString()),
+                TriageCategory = SIn.Long(row["TriageCategory"].ToString())
+            };
             retVal.Add(taskHist);
         }
 

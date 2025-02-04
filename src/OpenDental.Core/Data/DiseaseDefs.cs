@@ -74,19 +74,6 @@ public static class DiseaseDefs
         return diseaseDef == null ? "" : diseaseDef.DiseaseName;
     }
 
-    public static string GetNameByCode(string snomedOrIcd9Code)
-    {
-        var diseaseDef = GetFirstOrDefault(x => x.SnomedCode == snomedOrIcd9Code);
-        if (diseaseDef != null)
-        {
-            return diseaseDef.DiseaseName;
-        }
-
-        diseaseDef = GetFirstOrDefault(x => x.ICD9Code == snomedOrIcd9Code);
-
-        return diseaseDef != null ? diseaseDef.DiseaseName : "";
-    }
-
     public static long GetNumFromCode(string codeValue)
     {
         var diseaseDef = GetFirstOrDefault(x => x.SnomedCode == codeValue);
@@ -130,15 +117,6 @@ public static class DiseaseDefs
         return diseaseDef?.DiseaseDefNum ?? 0;
     }
 
-    public static List<DiseaseDef> GetMultDiseaseDefs(List<long> diseaseDefNums)
-    {
-        var dataTable = diseaseDefNums.Count > 0
-            ? DataCore.GetTable("SELECT * FROM diseasedef WHERE DiseaseDefNum IN (" + string.Join(", ", diseaseDefNums) + ")")
-            : new DataTable();
-
-        return DiseaseDefCrud.TableToList(dataTable);
-    }
-
     public static bool ContainsSnomed(string snomedCode, long diseaseDefNum)
     {
         var diseaseDef = GetFirstOrDefault(x => x.SnomedCode == snomedCode && x.DiseaseDefNum != diseaseDefNum);
@@ -172,46 +150,6 @@ public static class DiseaseDefs
     public static int SortItemOrder(DiseaseDef diseaseDef, DiseaseDef diseaseDefOther)
     {
         return diseaseDef.ItemOrder != diseaseDefOther.ItemOrder ? diseaseDef.ItemOrder.CompareTo(diseaseDefOther.ItemOrder) : diseaseDef.DiseaseDefNum.CompareTo(diseaseDefOther.DiseaseDefNum);
-    }
-
-    public static long GetDefNumForDefaultPreg(string pregnancyCode)
-    {
-        var diseaseDefNum = GetNumFromCode(pregnancyCode);
-        if (diseaseDefNum != 0)
-        {
-            return diseaseDefNum;
-        }
-
-        var diseaseDef = new DiseaseDef
-        {
-            DiseaseName = "Pregnant"
-        };
-
-        var pregnancyCodeSys = PrefC.GetString(PrefName.PregnancyDefaultCodeSystem);
-        switch (pregnancyCodeSys)
-        {
-            case "ICD9CM":
-                diseaseDef.ICD9Code = pregnancyCode;
-                break;
-
-            case "ICD10CM":
-                diseaseDef.Icd10Code = pregnancyCode;
-                break;
-
-            case "SNOMEDCT":
-                diseaseDef.SnomedCode = pregnancyCode;
-                break;
-        }
-
-        diseaseDefNum = Insert(diseaseDef);
-
-        RefreshCache();
-
-        Signalods.SetInvalid(InvalidType.Diseases);
-
-        SecurityLogs.MakeLogEntry(EnumPermType.ProblemDefEdit, 0, diseaseDef.DiseaseName + " added.");
-
-        return diseaseDefNum;
     }
 
     private class DiseaseDefCache : CacheListAbs<DiseaseDef>
@@ -249,24 +187,24 @@ public static class DiseaseDefs
 
     private static readonly DiseaseDefCache Cache = new();
 
-    public static int GetCount(bool isShort = false)
+    public static int GetCount(bool shortList = false)
     {
-        return Cache.GetCount(isShort);
+        return Cache.GetCount(shortList);
     }
 
-    public static List<DiseaseDef> GetDeepCopy(bool isShort = false)
+    public static List<DiseaseDef> GetDeepCopy(bool shortList = false)
     {
-        return Cache.GetDeepCopy(isShort);
+        return Cache.GetDeepCopy(shortList);
     }
 
-    public static List<DiseaseDef> GetWhere(Predicate<DiseaseDef> match, bool isShort = false)
+    public static List<DiseaseDef> GetWhere(Predicate<DiseaseDef> predicate, bool shortList = false)
     {
-        return Cache.GetWhere(match, isShort);
+        return Cache.GetWhere(predicate, shortList);
     }
 
-    public static DiseaseDef GetFirstOrDefault(Func<DiseaseDef, bool> match, bool isShort = false)
+    public static DiseaseDef GetFirstOrDefault(Func<DiseaseDef, bool> predicate, bool shortList = false)
     {
-        return Cache.GetFirstOrDefault(match, isShort);
+        return Cache.GetFirstOrDefault(predicate, shortList);
     }
 
     public static void RefreshCache()
@@ -274,9 +212,9 @@ public static class DiseaseDefs
         GetTableFromCache(true);
     }
 
-    public static DataTable GetTableFromCache(bool doRefreshCache)
+    public static DataTable GetTableFromCache(bool refreshCache)
     {
-        return Cache.GetTableFromCache(doRefreshCache);
+        return Cache.GetTableFromCache(refreshCache);
     }
 
     public static void ClearCache()

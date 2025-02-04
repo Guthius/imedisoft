@@ -214,7 +214,6 @@
 			this.labelPatPaySplitsFilter = new System.Windows.Forms.Label();
 			this.labelProvPaySplitsFilter = new System.Windows.Forms.Label();
 			this.labelRecurringChargeWarning = new System.Windows.Forms.Label();
-			this.warningIntegrity1 = new OpenDental.UI.WarningIntegrity();
 			this.labelTransactionCompleted = new System.Windows.Forms.Label();
 			this.labelSurchargeFee = new System.Windows.Forms.Label();
 			this.textSurcharge = new System.Windows.Forms.TextBox();
@@ -1327,13 +1326,6 @@
 			this.labelRecurringChargeWarning.Text = "Uncheck \'Apply to Recurring Charge\' to unlock.";
 			this.labelRecurringChargeWarning.Visible = false;
 			// 
-			// warningIntegrity1
-			// 
-			this.warningIntegrity1.Location = new System.Drawing.Point(1, -1);
-			this.warningIntegrity1.Name = "warningIntegrity1";
-			this.warningIntegrity1.Size = new System.Drawing.Size(18, 18);
-			this.warningIntegrity1.TabIndex = 1001;
-			// 
 			// labelTransactionCompleted
 			// 
 			this.labelTransactionCompleted.ForeColor = System.Drawing.Color.Firebrick;
@@ -1382,7 +1374,6 @@
 			this.Controls.Add(this.textSurcharge);
 			this.Controls.Add(this.labelSurchargeFee);
 			this.Controls.Add(this.labelTransactionCompleted);
-			this.Controls.Add(this.warningIntegrity1);
 			this.Controls.Add(this.labelRecurringChargeWarning);
 			this.Controls.Add(this.panelSplits);
 			this.Controls.Add(this.butPaySimple);
@@ -1456,7 +1447,6 @@
 		private System.Windows.Forms.Panel panelEdgeExpress;
 		private System.Windows.Forms.Panel panelSplits;
 		private System.Windows.Forms.Label labelRecurringChargeWarning;
-		private UI.WarningIntegrity warningIntegrity1;
 		private System.Windows.Forms.Label labelTransactionCompleted;
 		private UI.GroupBox groupBoxFilteringPaySplits;
 		private UI.ComboBox comboProviderPaySplitsFilter;

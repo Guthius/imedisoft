@@ -1,11 +1,6 @@
-using System;
-using System.Drawing;
-using System.Collections;
-using System.ComponentModel;
 using System.Globalization;
 using System.Windows.Forms;
 using OpenDentBusiness;
-using CodeBase;
 using System.Collections.Generic;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Entities;
@@ -122,7 +117,7 @@ public partial class FormPractice : FormODBase {
 		if(comboProv.SelectedIndex==-1){//practice really needs a default prov
 			comboProv.SelectedIndex=0;
 		}
-		if(Providers.GetProv(comboProv.GetSelectedProvNum()).FeeSched==0){
+		if(Providers.GetById(comboProv.GetSelectedProvNum()).FeeScheduleId is null){
 			MsgBox.Show(this,"The selected provider must have a fee schedule set before they can be the default provider.");
 			return;
 		}

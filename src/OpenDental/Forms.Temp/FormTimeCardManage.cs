@@ -1,7 +1,6 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Data;
 using System.Drawing;
 using System.Drawing.Printing;
 using System.Globalization;
@@ -17,7 +16,6 @@ using Imedisoft.Core.Data;
 using Imedisoft.Core.Entities;
 using Imedisoft.Core.Features.Clinics;
 using OpenDental.Logic;
-using OpenDental.Thinfinity;
 
 namespace OpenDental;
 
@@ -55,15 +53,11 @@ public partial class FormTimeCardManage:FormODBase {
 			DialogResult=DialogResult.Cancel;
 			return;
 		}
-		if(!true) {
-			comboClinic.Visible=false;
+		//clinics
+		if(!Security.CurUser.ClinicIsRestricted) {
+			comboClinic.IncludeAll=true;
 		}
-		else {//clinics
-			if(!Security.CurUser.ClinicIsRestricted) {
-				comboClinic.IncludeAll=true;
-			}
-			comboClinic.ClinicNumSelected=Clinics.ClinicNum;
-		}
+		comboClinic.ClinicNumSelected=Clinics.ClinicNum;
 		_listPayPeriods=PayPeriods.GetDeepCopy();
 		LayoutMenu();
 		FillPayPeriod();
@@ -92,24 +86,19 @@ public partial class FormTimeCardManage:FormODBase {
 	private GridOD FillMain(bool isForGridPrint=false) {
 		long clinicNum=0;
 		var isAll=false;
-		if(true) {
-			if(Security.CurUser.ClinicIsRestricted) {
+		if(Security.CurUser.ClinicIsRestricted) {
+			clinicNum=comboClinic.ClinicNumSelected;
+		}
+		else {//All and Headquarters are the first two available options.
+			if(comboClinic.IsAllSelected) {
+				isAll=true;
+			}
+			else if(comboClinic.IsUnassignedSelected) {
+				//Do nothing since the defaults are this selection
+			}
+			else {//A specific clinic was selected.
 				clinicNum=comboClinic.ClinicNumSelected;
 			}
-			else {//All and Headquarters are the first two available options.
-				if(comboClinic.IsAllSelected) {
-					isAll=true;
-				}
-				else if(comboClinic.IsUnassignedSelected) {
-					//Do nothing since the defaults are this selection
-				}
-				else {//A specific clinic was selected.
-					clinicNum=comboClinic.ClinicNumSelected;
-				}
-			}
-		}
-		else {
-			isAll=true;
 		}
 		List<EmployeeTimeCard> listEmployeeTimeCards;
 		GridOD grid;
@@ -280,10 +269,6 @@ public partial class FormTimeCardManage:FormODBase {
 		gridTimeCard.Columns.Add(col);
 		col=new GridColumn(Lan.g(this,"PL"),45,HorizontalAlignment.Right);
 		gridTimeCard.Columns.Add(col);
-		if(false) {
-			col=new GridColumn(Lan.g(this,"WFH"),45,HorizontalAlignment.Right);
-			gridTimeCard.Columns.Add(col);
-		}
 		col=new GridColumn(Lan.g(this,"Day"),50,HorizontalAlignment.Right);
 		gridTimeCard.Columns.Add(col);
 		col=new GridColumn(Lan.g(this,"Week"),50,HorizontalAlignment.Right);
@@ -418,14 +403,6 @@ public partial class FormTimeCardManage:FormODBase {
 				//Column 11 - PL (Unpaid Protected Leave)-------------------------
 				row.Cells.Add("");//No PL should exist, leave blank
 				//Column 12 - WFH Working From Home ------------------------------
-				if(false) {
-					if(clockEvent.IsWorkingHome){
-						row.Cells.Add("X");//Working from home, fill with X
-					}
-					else {
-						row.Cells.Add("");//No WFH on adjustments, leave blank
-					}
-				}
 				//Column 13 (or 12 if no WFH) - Day (daily total)-----------------
 				//if this is the last entry for a given date
 				if(i==arrayListMerged.Count-1//if this is the last row
@@ -515,9 +492,6 @@ public partial class FormTimeCardManage:FormODBase {
 					row.Cells.Add("");
 				}
 				//Column 12 - WFH Working From Home ------------------------------
-				if(false) {
-					row.Cells.Add("");//No WFH on adjustments, leave blank
-				}
 				//Column 13 (or 12 if no WFH) - Day (daily total)-----------------
 				//if this is the last entry for a given date
 				if(i==arrayListMerged.Count-1//if this is the last row
@@ -589,9 +563,6 @@ public partial class FormTimeCardManage:FormODBase {
 		}
 		_pagesPrinted=0;
 		var printoutOrientation=PrintoutOrientation.Portrait;
-		if(false) {
-			printoutOrientation=PrintoutOrientation.Landscape; //Switching for extra WFH column
-		}
 		PrinterL.TryPreview(pd2_PrintPage,
 			Lan.g(this,Lans.g("Employee time cards printed")),
 			printoutOrientation:printoutOrientation,
@@ -617,9 +588,6 @@ public partial class FormTimeCardManage:FormODBase {
 		}
 		_pagesPrinted=0;
 		var printoutOrientation=PrintoutOrientation.Portrait;
-		if(false) {
-			printoutOrientation=PrintoutOrientation.Landscape; //Switching for extra WFH column
-		}
 		PrinterL.TryPreview(pd2_PrintPageSelective,
 			Lan.g(this,"Employee time cards printed"),
 			printoutOrientation:printoutOrientation,
@@ -662,13 +630,7 @@ public partial class FormTimeCardManage:FormODBase {
 		g.DrawString(str,fontTitle,solidBrush,new RectangleF(xPos,yPos,e.PageBounds.Width-marginBothSides,heightRect),stringFormatNote);
 		yPos+=heightRect+5;//+5 pixels for a small space between columns and title area.
 		//define columns
-		var colW=new int[14];
-		if(true || false) {
-			colW=new int[15];
-		}
-		if(true && false) {
-			colW=new int[16];
-		}
+		var colW = new int[15];
 		colW[0]=70;//Date
 		colW[1]=45;//Day: Column starts to wrap at 32 pixels, however added padding to 45 to allow room for language translations
 		colW[2]=60;//In/Out
@@ -683,32 +645,18 @@ public partial class FormTimeCardManage:FormODBase {
 		colW[11]=45;//Day
 		colW[12]=50;//Week
 		colW[13]=130;//Note
-		if(false) {
-			colW[11]=45;//WFH
-			colW[12]=45;//Day
-			colW[13]=50;//Week
-			colW[14]=300;//Note
-		}
-		else if(true) {
+
+		if(true) {
 			colW[13]=50;//Clinic
 			colW[14]=80;//Note: Reduce width when Clinic column is added so that we do not exceed the margin.
 		}
-		if(true && false) {
-			colW[14]=100;//Clinic
-			colW[15]=200;//Note: Reduce width when Clinic column is added so that we do not exceed the margin.
-		}
+
 		var colPos=new int[colW.Length+1];
 		colPos[0]=45;
 		for(var i=1;i<colPos.Length;i++) {
 			colPos[i]=colPos[i-1]+colW[i-1];
 		}
-		var ColCaption=new string[14];
-		if(true || false) {
-			ColCaption=new string[15];
-		}
-		if(true && false) {
-			ColCaption=new string[16];
-		}
+		var ColCaption = new string[15];
 		ColCaption[0]=Lan.g(this,"Date");
 		ColCaption[1]=Lan.g(this,"Day");
 		ColCaption[2]=Lan.g(this,"In");
@@ -723,20 +671,9 @@ public partial class FormTimeCardManage:FormODBase {
 		ColCaption[11]=Lan.g(this,"Day");
 		ColCaption[12]=Lan.g(this,"Week");
 		ColCaption[13]=Lan.g(this,"Note");
-		if(false) {
-			ColCaption[11]=Lan.g(this,"WFH");
-			ColCaption[12]=Lan.g(this,"Day");
-			ColCaption[13]=Lan.g(this,"Week");
-			ColCaption[14]=Lan.g(this,"Note");
-		}
-		else if(true) {
-			ColCaption[13]=Lan.g(this,"Clinic");
-			ColCaption[14]=Lan.g(this,"Note");
-		}
-		if(true && false) {
-			ColCaption[14]=Lan.g(this,"Clinic");
-			ColCaption[15]=Lan.g(this,"Note");
-		}
+		ColCaption[13]=Lan.g(this,"Clinic");
+		ColCaption[14]=Lan.g(this,"Note");
+
 		//column headers-----------------------------------------------------------------------------------------
 		e.Graphics.FillRectangle(Brushes.LightGray,colPos[0],yPos,colPos[colPos.Length-1]-colPos[0],18);
 		e.Graphics.DrawRectangle(pen,colPos[0],yPos,colPos[colPos.Length-1]-colPos[0],18);
@@ -978,12 +915,7 @@ public partial class FormTimeCardManage:FormODBase {
 				}
 			}
 			g.DrawString(text,headingFont,Brushes.Black,center-g.MeasureString(text,headingFont).Width/2,y);
-			if(true) {
-				y+=75;//To move the grid down three lines to make room for the header text
-			}
-			else {
-				y+=50;//To move the grid down two lines to make room for the header text
-			}
+			y+=75;//To move the grid down three lines to make room for the header text
 			_isHeadingPrinted=true;
 			headingPrintH=y;
 		}
@@ -1034,10 +966,6 @@ public partial class FormTimeCardManage:FormODBase {
 			stringBuilder.AppendLine(listEmployeeTimeCards[i].GetExportString());
 		}
 		var fileName="ODPayroll"+DateTime.Now.ToString("yyyyMMdd_hhmmss")+".TXT";
-		if(false) {
-			ThinfinityUtils.ExportForDownload(fileName,stringBuilder.ToString());
-			return;
-		}
 		try {
 			System.IO.File.WriteAllText(folderBrowserDialog.SelectedPath+"\\"+fileName,stringBuilder.ToString());
 			ODMessageBox.Show(this,Lan.g(this,"File created")+" : "+folderBrowserDialog.SelectedPath+"\\"+fileName);
@@ -1170,13 +1098,7 @@ public partial class FormTimeCardManage:FormODBase {
 		}
 		var fileSuffix=GenerateFileSuffix(folderBrowserDialog.SelectedPath,"\\EPI"+coCode);
 		try {
-			if(false) {
-				var fileName="EPI"+coCode+fileSuffix+".CSV";
-				ThinfinityUtils.ExportForDownload(fileName,stringBuilder.ToString());
-			}
-			else {
-				System.IO.File.WriteAllText(folderBrowserDialog.SelectedPath+"\\EPI"+coCode+fileSuffix+".CSV",stringBuilder.ToString());
-			}
+			System.IO.File.WriteAllText(folderBrowserDialog.SelectedPath+"\\EPI"+coCode+fileSuffix+".CSV",stringBuilder.ToString());
 			if(errors!="") {
 				var msgBox=new MsgBoxCopyPaste(
 					"The following errors will prevent ADP from properly processing this export:\r\n"+errors);
@@ -1263,13 +1185,9 @@ public partial class FormTimeCardManage:FormODBase {
 		if(!PayFrequencyMatchesDateRange(payPeriodInterval)) {
 			errors+="  The pay frequency '"+payPeriodInterval+"' does not match the pay period date range.\r\n";
 		}
-		try {
-			if(false) {
-				ThinfinityUtils.ExportForDownload(fileName+".CSV",stringBuilder.ToString());
-			}
-			else {
-				System.IO.File.WriteAllText(folderBrowserDialog.SelectedPath+"\\"+fileName+".CSV",stringBuilder.ToString());
-			}
+		try
+		{
+			System.IO.File.WriteAllText(folderBrowserDialog.SelectedPath+"\\"+fileName+".CSV",stringBuilder.ToString());
 		}
 		catch(Exception ex) {
 			ODMessageBox.Show(this,"File not created:\r\n"+ex.Message);
@@ -1289,9 +1207,6 @@ public partial class FormTimeCardManage:FormODBase {
 		//generate suffix from i
 		for(var i=0;i<=1297;i++) {//1296=36*36 to represent all acceptable suffixes for file name consisting of two alphanumeric digits; +1 to catch error. (A-Z, 0-9)
 			fileSuffix="";
-			if(/* ODEnvironment.IsCloudServer */ false) {
-				return ""; //we don't have a way to check if the file exists.
-			}
 			if(i==1297) {
 				return "NamingError"; //could not find acceptable file name.
 			}

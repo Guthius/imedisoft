@@ -59,7 +59,7 @@ namespace OpenDental {
 			this.butSave.Size = new System.Drawing.Size(75, 25);
 			this.butSave.TabIndex = 1;
 			this.butSave.Text = "&Save";
-			this.butSave.Click += new System.EventHandler(this.butSave_Click);
+			this.butSave.Click += new System.EventHandler(this.ButtonSave_Click);
 			// 
 			// butDelete
 			// 
@@ -69,7 +69,7 @@ namespace OpenDental {
 			this.butDelete.Size = new System.Drawing.Size(75,25);
 			this.butDelete.TabIndex = 2;
 			this.butDelete.Text = "&Delete";
-			this.butDelete.Click += new System.EventHandler(this.butDelete_Click);
+			this.butDelete.Click += new System.EventHandler(this.ButtonDelete_Click);
 			// 
 			// textLName
 			// 
@@ -77,7 +77,7 @@ namespace OpenDental {
 			this.textLName.Name = "textLName";
 			this.textLName.Size = new System.Drawing.Size(205,20);
 			this.textLName.TabIndex = 3;
-			this.textLName.TextChanged += new System.EventHandler(this.textLName_TextChanged);
+			this.textLName.TextChanged += new System.EventHandler(this.TextBoxLName_TextChanged);
 			// 
 			// label1
 			// 
@@ -103,7 +103,7 @@ namespace OpenDental {
 			this.textFName.Name = "textFName";
 			this.textFName.Size = new System.Drawing.Size(205,20);
 			this.textFName.TabIndex = 5;
-			this.textFName.TextChanged += new System.EventHandler(this.textFName_TextChanged);
+			this.textFName.TextChanged += new System.EventHandler(this.TextBoxFName_TextChanged);
 			// 
 			// label3
 			// 

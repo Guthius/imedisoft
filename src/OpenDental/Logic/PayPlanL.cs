@@ -262,7 +262,7 @@ public class PayPlanL
 
         var row = new GridRow();
         row.Cells.Add(SIn.DateTime(dataRowBundleClaimProc["DateCP"].ToString()).ToShortDateString()); //0 Date
-        row.Cells.Add(Providers.GetLName(SIn.Long(dataRowBundleClaimProc["ProvNum"].ToString()))); //1 Prov Abbr
+        row.Cells.Add(Providers.GetLastName(SIn.Long(dataRowBundleClaimProc["ProvNum"].ToString()))); //1 Prov Abbr
         row.Cells.Add(descript); //2 Descript
         row.Cells.Add(""); //3 Principal
         row.Cells.Add(""); //4 Interest

@@ -1,18 +1,10 @@
 using System;
-using System.Drawing;
-using System.Collections;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Text;
 using System.Windows.Forms;
 using OpenDentBusiness;
 using OpenDental.UI;
 using System.Linq;
 using CodeBase;
-using System.Net;
-using System.Xml;
-using System.Text.RegularExpressions;
-using System.IO;
 using System.Globalization;
 using DataConnectionBase;
 using Imedisoft.Core.Caching;
@@ -457,11 +449,6 @@ public partial class FormRecallSetup : FormODBase {
 		gridMain.ListGridRows.Add(row);
 	}
 
-	private void butSetup_Click(object sender,EventArgs e) {
-		using var formEServicesWebSchedRecall=new FormEServicesWebSchedRecall();
-		formEServicesWebSchedRecall.ShowDialog();
-	}
-
 	private void butSave_Click(object sender, System.EventArgs e) {
 		if(!textRight.IsValid()
 		   || !textDown.IsValid()
@@ -496,7 +483,7 @@ public partial class FormRecallSetup : FormODBase {
 		}
 		for(var i = 0;i<gridMain.ListGridRows.Count;i++) {
 			var index =gridMain.Columns.GetIndex(Lan.g("TableRecallMsgs","Message"));
-			var errorText=PrefC.GetFirstShortURL(gridMain.ListGridRows[i].Cells[index].Text);
+			var errorText=PrefC.GetFirstShortUrl(gridMain.ListGridRows[i].Cells[index].Text);
 			if(!string.IsNullOrWhiteSpace(errorText)) {
 				MsgBox.Show(this,Lan.g(this,"Message cannot contain the URL")+" "+errorText+" "+Lan.g(this,"as this is only allowed for eServices."));
 				return;

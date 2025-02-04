@@ -17,8 +17,8 @@ public static class HieClinics
         return HieClinicCrud.SelectMany("SELECT * FROM hieclinic");
     }
 
-    public static void Sync(List<HieClinic> listHieClinics)
+    public static void Sync(List<HieClinic> hieClinics)
     {
-        HieClinicCrud.Sync(listHieClinics, Refresh());
+        HieClinicCrud.Sync(hieClinics, Refresh());
     }
 }

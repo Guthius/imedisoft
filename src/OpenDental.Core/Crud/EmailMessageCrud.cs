@@ -1,14 +1,9 @@
-#region
-
 using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Linq;
 using DataConnectionBase;
 using Imedisoft.Core.Entities;
 using OpenDentBusiness;
-
-#endregion
 
 namespace Imedisoft.Core.Crud;
 
@@ -23,13 +18,6 @@ public class EmailMessageCrud
         return list[0];
     }
 
-    public static EmailMessage SelectOne(string command)
-    {
-        var list = TableToList(DataCore.GetTable(command));
-        if (list.Count == 0) return null;
-        return list[0];
-    }
-
     public static List<EmailMessage> SelectMany(string command)
     {
         var list = TableToList(DataCore.GetTable(command));
@@ -39,30 +27,31 @@ public class EmailMessageCrud
     public static List<EmailMessage> TableToList(DataTable table)
     {
         var retVal = new List<EmailMessage>();
-        EmailMessage emailMessage;
         foreach (DataRow row in table.Rows)
         {
-            emailMessage = new EmailMessage();
-            emailMessage.EmailMessageNum = SIn.Long(row["EmailMessageNum"].ToString());
-            emailMessage.PatNum = SIn.Long(row["PatNum"].ToString());
-            emailMessage.ToAddress = SIn.String(row["ToAddress"].ToString());
-            emailMessage.FromAddress = SIn.String(row["FromAddress"].ToString());
-            emailMessage.Subject = SIn.String(row["Subject"].ToString());
-            emailMessage.BodyText = SIn.String(row["BodyText"].ToString());
-            emailMessage.MsgDateTime = SIn.DateTime(row["MsgDateTime"].ToString());
-            emailMessage.SentOrReceived = (EmailSentOrReceived) SIn.Int(row["SentOrReceived"].ToString());
-            emailMessage.RecipientAddress = SIn.String(row["RecipientAddress"].ToString());
-            emailMessage.RawEmailIn = SIn.String(row["RawEmailIn"].ToString());
-            emailMessage.ProvNumWebMail = SIn.Long(row["ProvNumWebMail"].ToString());
-            emailMessage.PatNumSubj = SIn.Long(row["PatNumSubj"].ToString());
-            emailMessage.CcAddress = SIn.String(row["CcAddress"].ToString());
-            emailMessage.BccAddress = SIn.String(row["BccAddress"].ToString());
-            emailMessage.HideIn = (HideInFlags) SIn.Int(row["HideIn"].ToString());
-            emailMessage.AptNum = SIn.Long(row["AptNum"].ToString());
-            emailMessage.UserNum = SIn.Long(row["UserNum"].ToString());
-            emailMessage.HtmlType = (EmailType) SIn.Int(row["HtmlType"].ToString());
-            emailMessage.SecDateTEntry = SIn.DateTime(row["SecDateTEntry"].ToString());
-            emailMessage.SecDateTEdit = SIn.DateTime(row["SecDateTEdit"].ToString());
+            var emailMessage = new EmailMessage
+            {
+                EmailMessageNum = SIn.Long(row["EmailMessageNum"].ToString()),
+                PatNum = SIn.Long(row["PatNum"].ToString()),
+                ToAddress = SIn.String(row["ToAddress"].ToString()),
+                FromAddress = SIn.String(row["FromAddress"].ToString()),
+                Subject = SIn.String(row["Subject"].ToString()),
+                BodyText = SIn.String(row["BodyText"].ToString()),
+                MsgDateTime = SIn.DateTime(row["MsgDateTime"].ToString()),
+                SentOrReceived = (EmailSentOrReceived) SIn.Int(row["SentOrReceived"].ToString()),
+                RecipientAddress = SIn.String(row["RecipientAddress"].ToString()),
+                RawEmailIn = SIn.String(row["RawEmailIn"].ToString()),
+                ProvNumWebMail = SIn.Long(row["ProvNumWebMail"].ToString()),
+                PatNumSubj = SIn.Long(row["PatNumSubj"].ToString()),
+                CcAddress = SIn.String(row["CcAddress"].ToString()),
+                BccAddress = SIn.String(row["BccAddress"].ToString()),
+                HideIn = (HideInFlags) SIn.Int(row["HideIn"].ToString()),
+                AptNum = SIn.Long(row["AptNum"].ToString()),
+                UserNum = SIn.Long(row["UserNum"].ToString()),
+                HtmlType = (EmailType) SIn.Int(row["HtmlType"].ToString()),
+                SecDateTEntry = SIn.DateTime(row["SecDateTEntry"].ToString()),
+                SecDateTEdit = SIn.DateTime(row["SecDateTEdit"].ToString())
+            };
             var msgType = row["MsgType"].ToString();
             if (msgType == "")
                 emailMessage.MsgType = 0;
@@ -83,43 +72,7 @@ public class EmailMessageCrud
         return retVal;
     }
 
-    public static DataTable ListToTable(List<EmailMessage> listEmailMessages, string tableName = "")
-    {
-        if (string.IsNullOrEmpty(tableName)) tableName = "EmailMessage";
-        var table = new DataTable(tableName);
-        table.Columns.Add("EmailMessageNum");
-        table.Columns.Add("PatNum");
-        table.Columns.Add("ToAddress");
-        table.Columns.Add("FromAddress");
-        table.Columns.Add("Subject");
-        table.Columns.Add("BodyText");
-        table.Columns.Add("MsgDateTime");
-        table.Columns.Add("SentOrReceived");
-        table.Columns.Add("RecipientAddress");
-        table.Columns.Add("RawEmailIn");
-        table.Columns.Add("ProvNumWebMail");
-        table.Columns.Add("PatNumSubj");
-        table.Columns.Add("CcAddress");
-        table.Columns.Add("BccAddress");
-        table.Columns.Add("HideIn");
-        table.Columns.Add("AptNum");
-        table.Columns.Add("UserNum");
-        table.Columns.Add("HtmlType");
-        table.Columns.Add("SecDateTEntry");
-        table.Columns.Add("SecDateTEdit");
-        table.Columns.Add("MsgType");
-        table.Columns.Add("FailReason");
-        foreach (var emailMessage in listEmailMessages)
-            table.Rows.Add(SOut.Long(emailMessage.EmailMessageNum), SOut.Long(emailMessage.PatNum), emailMessage.ToAddress, emailMessage.FromAddress, emailMessage.Subject, emailMessage.BodyText, SOut.DateTime(emailMessage.MsgDateTime, false), SOut.Int((int) emailMessage.SentOrReceived), emailMessage.RecipientAddress, emailMessage.RawEmailIn, SOut.Long(emailMessage.ProvNumWebMail), SOut.Long(emailMessage.PatNumSubj), emailMessage.CcAddress, emailMessage.BccAddress, SOut.Int((int) emailMessage.HideIn), SOut.Long(emailMessage.AptNum), SOut.Long(emailMessage.UserNum), SOut.Int((int) emailMessage.HtmlType), SOut.DateTime(emailMessage.SecDateTEntry, false), SOut.DateTime(emailMessage.SecDateTEdit, false), SOut.Int((int) emailMessage.MsgType), emailMessage.FailReason);
-        return table;
-    }
-
-    public static long Insert(EmailMessage emailMessage)
-    {
-        return Insert(emailMessage, false);
-    }
-
-    public static long Insert(EmailMessage emailMessage, bool useExistingPK)
+    public static void Insert(EmailMessage emailMessage)
     {
         var command = "INSERT INTO emailmessage (";
 
@@ -164,62 +117,6 @@ public class EmailMessageCrud
         {
             emailMessage.EmailMessageNum = Db.NonQ(command, true, "EmailMessageNum", "emailMessage", paramToAddress, paramFromAddress, paramSubject, paramBodyText, paramRawEmailIn, paramCcAddress, paramBccAddress);
         }
-        return emailMessage.EmailMessageNum;
-    }
-
-    public static long InsertNoCache(EmailMessage emailMessage)
-    {
-        return InsertNoCache(emailMessage, false);
-    }
-
-    public static long InsertNoCache(EmailMessage emailMessage, bool useExistingPK)
-    {
-        const bool isRandomKeys = false;
-        var command = "INSERT INTO emailmessage (";
-        if (isRandomKeys || useExistingPK) command += "EmailMessageNum,";
-        command += "PatNum,ToAddress,FromAddress,Subject,BodyText,MsgDateTime,SentOrReceived,RecipientAddress,RawEmailIn,ProvNumWebMail,PatNumSubj,CcAddress,BccAddress,HideIn,AptNum,UserNum,HtmlType,SecDateTEntry,MsgType,FailReason) VALUES(";
-        if (isRandomKeys || useExistingPK) command += SOut.Long(emailMessage.EmailMessageNum) + ",";
-        command +=
-            SOut.Long(emailMessage.PatNum) + ","
-                                           + DbHelper.ParamChar + "paramToAddress,"
-                                           + DbHelper.ParamChar + "paramFromAddress,"
-                                           + DbHelper.ParamChar + "paramSubject,"
-                                           + DbHelper.ParamChar + "paramBodyText,"
-                                           + SOut.DateTime(emailMessage.MsgDateTime) + ","
-                                           + SOut.Int((int) emailMessage.SentOrReceived) + ","
-                                           + "'" + SOut.String(emailMessage.RecipientAddress) + "',"
-                                           + DbHelper.ParamChar + "paramRawEmailIn,"
-                                           + SOut.Long(emailMessage.ProvNumWebMail) + ","
-                                           + SOut.Long(emailMessage.PatNumSubj) + ","
-                                           + DbHelper.ParamChar + "paramCcAddress,"
-                                           + DbHelper.ParamChar + "paramBccAddress,"
-                                           + SOut.Int((int) emailMessage.HideIn) + ","
-                                           + SOut.Long(emailMessage.AptNum) + ","
-                                           + SOut.Long(emailMessage.UserNum) + ","
-                                           + SOut.Int((int) emailMessage.HtmlType) + ","
-                                           + "NOW()" + ","
-                                           //SecDateTEdit can only be set by MySQL
-                                           + "'" + SOut.String(emailMessage.MsgType.ToString()) + "',"
-                                           + "'" + SOut.String(emailMessage.FailReason) + "')";
-        if (emailMessage.ToAddress == null) emailMessage.ToAddress = "";
-        var paramToAddress = new OdSqlParameter("paramToAddress", SOut.StringParam(emailMessage.ToAddress));
-        if (emailMessage.FromAddress == null) emailMessage.FromAddress = "";
-        var paramFromAddress = new OdSqlParameter("paramFromAddress", SOut.StringParam(emailMessage.FromAddress));
-        if (emailMessage.Subject == null) emailMessage.Subject = "";
-        var paramSubject = new OdSqlParameter("paramSubject", SOut.StringParam(emailMessage.Subject));
-        if (emailMessage.BodyText == null) emailMessage.BodyText = "";
-        var paramBodyText = new OdSqlParameter("paramBodyText", SOut.StringParam(emailMessage.BodyText));
-        if (emailMessage.RawEmailIn == null) emailMessage.RawEmailIn = "";
-        var paramRawEmailIn = new OdSqlParameter("paramRawEmailIn", SOut.StringParam(emailMessage.RawEmailIn));
-        if (emailMessage.CcAddress == null) emailMessage.CcAddress = "";
-        var paramCcAddress = new OdSqlParameter("paramCcAddress", SOut.StringParam(emailMessage.CcAddress));
-        if (emailMessage.BccAddress == null) emailMessage.BccAddress = "";
-        var paramBccAddress = new OdSqlParameter("paramBccAddress", SOut.StringParam(emailMessage.BccAddress));
-        if (useExistingPK || isRandomKeys)
-            Db.NonQ(command, paramToAddress, paramFromAddress, paramSubject, paramBodyText, paramRawEmailIn, paramCcAddress, paramBccAddress);
-        else
-            emailMessage.EmailMessageNum = Db.NonQ(command, true, "EmailMessageNum", "emailMessage", paramToAddress, paramFromAddress, paramSubject, paramBodyText, paramRawEmailIn, paramCcAddress, paramBccAddress);
-        return emailMessage.EmailMessageNum;
     }
 
     public static void Update(EmailMessage emailMessage)
@@ -264,7 +161,7 @@ public class EmailMessageCrud
         Db.NonQ(command, paramToAddress, paramFromAddress, paramSubject, paramBodyText, paramRawEmailIn, paramCcAddress, paramBccAddress);
     }
 
-    public static bool Update(EmailMessage emailMessage, EmailMessage oldEmailMessage)
+    public static void Update(EmailMessage emailMessage, EmailMessage oldEmailMessage)
     {
         var command = "";
         if (emailMessage.PatNum != oldEmailMessage.PatNum)
@@ -383,7 +280,7 @@ public class EmailMessageCrud
             command += "FailReason = '" + SOut.String(emailMessage.FailReason) + "'";
         }
 
-        if (command == "") return false;
+        if (command == "") return;
         if (emailMessage.ToAddress == null) emailMessage.ToAddress = "";
         var paramToAddress = new OdSqlParameter("paramToAddress", SOut.StringParam(emailMessage.ToAddress));
         if (emailMessage.FromAddress == null) emailMessage.FromAddress = "";
@@ -401,47 +298,5 @@ public class EmailMessageCrud
         command = "UPDATE emailmessage SET " + command
                                              + " WHERE EmailMessageNum = " + SOut.Long(emailMessage.EmailMessageNum);
         Db.NonQ(command, paramToAddress, paramFromAddress, paramSubject, paramBodyText, paramRawEmailIn, paramCcAddress, paramBccAddress);
-        return true;
-    }
-
-    public static bool UpdateComparison(EmailMessage emailMessage, EmailMessage oldEmailMessage)
-    {
-        if (emailMessage.PatNum != oldEmailMessage.PatNum) return true;
-        if (emailMessage.ToAddress != oldEmailMessage.ToAddress) return true;
-        if (emailMessage.FromAddress != oldEmailMessage.FromAddress) return true;
-        if (emailMessage.Subject != oldEmailMessage.Subject) return true;
-        if (emailMessage.BodyText != oldEmailMessage.BodyText) return true;
-        if (emailMessage.MsgDateTime != oldEmailMessage.MsgDateTime) return true;
-        if (emailMessage.SentOrReceived != oldEmailMessage.SentOrReceived) return true;
-        if (emailMessage.RecipientAddress != oldEmailMessage.RecipientAddress) return true;
-        if (emailMessage.RawEmailIn != oldEmailMessage.RawEmailIn) return true;
-        if (emailMessage.ProvNumWebMail != oldEmailMessage.ProvNumWebMail) return true;
-        if (emailMessage.PatNumSubj != oldEmailMessage.PatNumSubj) return true;
-        if (emailMessage.CcAddress != oldEmailMessage.CcAddress) return true;
-        if (emailMessage.BccAddress != oldEmailMessage.BccAddress) return true;
-        if (emailMessage.HideIn != oldEmailMessage.HideIn) return true;
-        if (emailMessage.AptNum != oldEmailMessage.AptNum) return true;
-        if (emailMessage.UserNum != oldEmailMessage.UserNum) return true;
-        if (emailMessage.HtmlType != oldEmailMessage.HtmlType) return true;
-        //SecDateTEntry not allowed to change
-        //SecDateTEdit can only be set by MySQL
-        if (emailMessage.MsgType != oldEmailMessage.MsgType) return true;
-        if (emailMessage.FailReason != oldEmailMessage.FailReason) return true;
-        return false;
-    }
-
-    public static void Delete(long emailMessageNum)
-    {
-        var command = "DELETE FROM emailmessage "
-                      + "WHERE EmailMessageNum = " + SOut.Long(emailMessageNum);
-        Db.NonQ(command);
-    }
-
-    public static void DeleteMany(List<long> listEmailMessageNums)
-    {
-        if (listEmailMessageNums == null || listEmailMessageNums.Count == 0) return;
-        var command = "DELETE FROM emailmessage "
-                      + "WHERE EmailMessageNum IN(" + string.Join(",", listEmailMessageNums.Select(x => SOut.Long(x))) + ")";
-        Db.NonQ(command);
     }
 }

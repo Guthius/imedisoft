@@ -33,9 +33,9 @@ namespace OpenDentBusiness.Pearl {
 				if(DateTime_.Now<_dateTimeLastAuthTokenRefresh) {
 					return;
 				}
-				HttpClient httpClientTemp=new HttpClient();
+				var httpClientTemp=new HttpClient();
 				httpClientTemp.BaseAddress=new Uri("https://native-integration-prod.hellopearl.com");
-				AuthTokenResponse result=GetAuthToken(clientId,clientSecret);
+				var result=GetAuthToken(clientId,clientSecret);
 				httpClientTemp.DefaultRequestHeaders.Authorization=new AuthenticationHeaderValue(result.token_type,result.access_token);
 				_httpPearlClient=httpClientTemp;
 				//TODO: Replace _httpPearlClient and _httpAwsClient with HttpClientWrappers so they can be properly disposed after B55906 is implemented.
@@ -49,16 +49,16 @@ namespace OpenDentBusiness.Pearl {
 			if(bitmap==null) {
 				return null;
 			}
-			string clientId=ProgramProperties.GetPropVal(ProgramName.Pearl,Bridges.Pearl.PEARL_CLIENT_ID_PROPERTY);
-			string clientSecret=ProgramProperties.GetPropVal(ProgramName.Pearl,Bridges.Pearl.PEARL_CLIENT_SECRET_PROPERTY);
-			string officeId=ProgramProperties.GetPropVal(ProgramName.Pearl,Bridges.Pearl.PEARL_OFFICE_ID_PROPERTY);
-			string organizationId=ProgramProperties.GetPropVal(ProgramName.Pearl,Bridges.Pearl.PEARL_ORGANIZATION_ID_PROPERTY);
-			string requestId=Guid.NewGuid().ToString();
-			PearlRequest pearlRequest=new PearlRequest();
+			var clientId=ProgramProperties.GetPropVal(ProgramName.Pearl,Bridges.Pearl.PEARL_CLIENT_ID_PROPERTY);
+			var clientSecret=ProgramProperties.GetPropVal(ProgramName.Pearl,Bridges.Pearl.PEARL_CLIENT_SECRET_PROPERTY);
+			var officeId=ProgramProperties.GetPropVal(ProgramName.Pearl,Bridges.Pearl.PEARL_OFFICE_ID_PROPERTY);
+			var organizationId=ProgramProperties.GetPropVal(ProgramName.Pearl,Bridges.Pearl.PEARL_ORGANIZATION_ID_PROPERTY);
+			var requestId=Guid.NewGuid().ToString();
+			var pearlRequest=new PearlRequest();
 			pearlRequest.RequestId=requestId;
 			pearlRequest.DocNum=docNum;
 			RefreshAuthTokenIfNeeded(clientId,clientSecret);
-			ImageResponse imageResponse=GetAwsPresignedUrlInfo(new ImageRequest() {
+			var imageResponse=GetAwsPresignedUrlInfo(new ImageRequest() {
 				request_id=requestId,
 				extension=".jpg",//ImageFormat.Jpeg below for temp image path
 				patient_id=patient.PatNum.ToString(),
@@ -75,7 +75,7 @@ namespace OpenDentBusiness.Pearl {
 			pearlRequest.RequestStatus=EnumPearlStatus.Uploading;
 			PearlRequests.Insert(pearlRequest);
 			EventRefreshDisplay?.Invoke(this,new EventArgs());
-			bool wasImageUploaded=UploadToAwsPresignedUrl(bitmap,imageResponse);
+			var wasImageUploaded=UploadToAwsPresignedUrl(bitmap,imageResponse);
 			if(!wasImageUploaded) {
 				//Image upload failed, delete PearlRequest so the image can be resent.
 				PearlRequests.Delete(pearlRequest.PearlRequestNum);
@@ -94,14 +94,14 @@ namespace OpenDentBusiness.Pearl {
 			if(string.IsNullOrWhiteSpace(requestId)) {
 				return null;
 			}
-			string organizationId=ProgramProperties.GetPropVal(ProgramName.Pearl,Bridges.Pearl.PEARL_ORGANIZATION_ID_PROPERTY);
-			Result result=GetImageByRequestId(organizationId,requestId).result;
+			var organizationId=ProgramProperties.GetPropVal(ProgramName.Pearl,Bridges.Pearl.PEARL_ORGANIZATION_ID_PROPERTY);
+			var result=GetImageByRequestId(organizationId,requestId).result;
 			return result;
 		}
 
 		///<summary>Attempts to retrieve a token from Pearl. Throws exceptions.</summary>
 		public AuthTokenResponse GetAuthToken(string clientId,string clientSecret) {
-			AuthTokenResponse retVal=APIRequest.Inst.SendRequest<AuthTokenResponse>(
+			var retVal=APIRequest.Inst.SendRequest<AuthTokenResponse>(
 				urlEndpoint:"/api/v1/auth/token",
 				method:HttpMethod.Post,
 				authHeaderVal:null,
@@ -117,7 +117,7 @@ namespace OpenDentBusiness.Pearl {
 		///<summary>Attempts to retrieve the pre-signed Amazon URL information from Pearl we will need for uploading an image for processing. 
 		///Throws exceptions.</summary>
 		public ImageResponse GetAwsPresignedUrlInfo(ImageRequest image) {
-			ImageResponse retVal=APIRequest.Inst.SendRequest<ImageResponse>(
+			var retVal=APIRequest.Inst.SendRequest<ImageResponse>(
 				urlEndpoint:"/api/v1/image",
 				method:HttpMethod.Post,
 				authHeaderVal:null,
@@ -129,17 +129,17 @@ namespace OpenDentBusiness.Pearl {
 
 		///<summary>Attempts to upload an image to an Amazon pre-signed URL. Throws exceptions.</summary>
 		public bool UploadToAwsPresignedUrl(Bitmap bitmap,ImageResponse image) {
-			string fileName=image.image_url.Split('/').Last(); 
-			string tempPath=Path.GetFullPath(BitmapToImageTempCopy(bitmap,fileName));
-			using(FileStream tempFileStream = new FileStream(tempPath,FileMode.Open)) {
-				MultipartFormDataContent formData=new MultipartFormDataContent();
-				for(int i=0;i<image.presigned_url.fields.Length;i++) {
-					string value=image.presigned_url.fields[i].value;
+			var fileName=image.image_url.Split('/').Last(); 
+			var tempPath=Path.GetFullPath(BitmapToImageTempCopy(bitmap,fileName));
+			using(var tempFileStream = new FileStream(tempPath,FileMode.Open)) {
+				var formData=new MultipartFormDataContent();
+				for(var i=0;i<image.presigned_url.fields.Length;i++) {
+					var value=image.presigned_url.fields[i].value;
 					formData.Add(new StringContent(value),image.presigned_url.fields[i].header);
 				}
 				//Per the AWS documentation, the file must be the last element in formData.
 				formData.Add(new StreamContent(tempFileStream),"file",fileName);
-				HttpResponseMessage response=APIRequest.Inst.SendRequest<HttpResponseMessage,MultipartFormDataContent>(
+				var response=APIRequest.Inst.SendRequest<HttpResponseMessage,MultipartFormDataContent>(
 					urlEndpoint:image.presigned_url.url,
 					method:HttpMethod.Post,
 					authHeaderVal:null,
@@ -170,7 +170,7 @@ namespace OpenDentBusiness.Pearl {
 			//		}
 			//	};
 			//}
-			ImageRequestIdResponse retVal=APIRequest.Inst.SendRequest<ImageRequestIdResponse>(
+			var retVal=APIRequest.Inst.SendRequest<ImageRequestIdResponse>(
 				urlEndpoint:$"/api/v1/image/{organizationId}/byRequestId/{requestId}",
 				method:HttpMethod.Get,
 				authHeaderVal:null,
@@ -182,7 +182,7 @@ namespace OpenDentBusiness.Pearl {
 
 		///<summary>Returns a temporary path for the given bitmap, this file will need to be deleted later. Throws exceptions.</summary>
 		public string BitmapToImageTempCopy(Bitmap bitmap,string fileName) {
-			string tempPath=Path.Combine(Path.GetTempPath(),"opendental",fileName);
+			var tempPath=Path.Combine(Path.GetTempPath(),"opendental",fileName);
 			bitmap.Save(tempPath,ImageFormat.Jpeg);
 			return tempPath;
 		}

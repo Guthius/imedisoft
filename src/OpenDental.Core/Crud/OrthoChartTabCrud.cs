@@ -18,14 +18,15 @@ public class OrthoChartTabCrud
     public static List<OrthoChartTab> TableToList(DataTable table)
     {
         var retVal = new List<OrthoChartTab>();
-        OrthoChartTab orthoChartTab;
         foreach (DataRow row in table.Rows)
         {
-            orthoChartTab = new OrthoChartTab();
-            orthoChartTab.OrthoChartTabNum = SIn.Long(row["OrthoChartTabNum"].ToString());
-            orthoChartTab.TabName = SIn.String(row["TabName"].ToString());
-            orthoChartTab.ItemOrder = SIn.Int(row["ItemOrder"].ToString());
-            orthoChartTab.IsHidden = SIn.Bool(row["IsHidden"].ToString());
+            var orthoChartTab = new OrthoChartTab
+            {
+                OrthoChartTabNum = SIn.Long(row["OrthoChartTabNum"].ToString()),
+                TabName = SIn.String(row["TabName"].ToString()),
+                ItemOrder = SIn.Int(row["ItemOrder"].ToString()),
+                IsHidden = SIn.Bool(row["IsHidden"].ToString())
+            };
             retVal.Add(orthoChartTab);
         }
 
@@ -108,15 +109,13 @@ public class OrthoChartTabCrud
         var idxNew = 0;
         var idxDB = 0;
         var rowsUpdatedCount = 0;
-        OrthoChartTab fieldNew;
-        OrthoChartTab fieldDB;
         //Because both lists have been sorted using the same criteria, we can now walk each list to determine which list contians the next element.  The next element is determined by Primary Key.
         //If the New list contains the next item it will be inserted.  If the DB contains the next item, it will be deleted.  If both lists contain the next item, the item will be updated.
         while (idxNew < listNew.Count || idxDB < listDB.Count)
         {
-            fieldNew = null;
+            OrthoChartTab fieldNew = null;
             if (idxNew < listNew.Count) fieldNew = listNew[idxNew];
-            fieldDB = null;
+            OrthoChartTab fieldDB = null;
             if (idxDB < listDB.Count) fieldDB = listDB[idxDB];
             //begin compare
             if (fieldNew != null && fieldDB == null)

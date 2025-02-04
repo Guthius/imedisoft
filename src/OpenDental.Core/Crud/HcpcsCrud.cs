@@ -8,13 +8,6 @@ namespace Imedisoft.Core.Crud;
 
 public class HcpcsCrud
 {
-    public static Hcpcs SelectOne(string command)
-    {
-        var list = TableToList(DataCore.GetTable(command));
-        if (list.Count == 0) return null;
-        return list[0];
-    }
-
     public static List<Hcpcs> SelectMany(string command)
     {
         var list = TableToList(DataCore.GetTable(command));
@@ -24,13 +17,14 @@ public class HcpcsCrud
     public static List<Hcpcs> TableToList(DataTable table)
     {
         var retVal = new List<Hcpcs>();
-        Hcpcs hcpcs;
         foreach (DataRow row in table.Rows)
         {
-            hcpcs = new Hcpcs();
-            hcpcs.HcpcsNum = SIn.Long(row["HcpcsNum"].ToString());
-            hcpcs.HcpcsCode = SIn.String(row["HcpcsCode"].ToString());
-            hcpcs.DescriptionShort = SIn.String(row["DescriptionShort"].ToString());
+            var hcpcs = new Hcpcs
+            {
+                HcpcsNum = SIn.Long(row["HcpcsNum"].ToString()),
+                HcpcsCode = SIn.String(row["HcpcsCode"].ToString()),
+                DescriptionShort = SIn.String(row["DescriptionShort"].ToString())
+            };
             retVal.Add(hcpcs);
         }
 

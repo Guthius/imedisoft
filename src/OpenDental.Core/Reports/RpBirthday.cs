@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Data;
-using System.Linq;
 using DataConnectionBase;
 
 namespace OpenDentBusiness {
@@ -20,15 +18,15 @@ namespace OpenDentBusiness {
 				+"OR SUBSTRING(Birthdate,6,5) <= '"+dateTo.ToString("MM-dd")+"') ";
 				orderByClause="SUBSTRING(Birthdate,6,5) < '"+dateFrom.ToString("MM-dd")+"',MONTH(Birthdate),DAY(Birthdate)";
 			}
-			string command="SELECT LName,FName,Preferred,Address,Address2,City,State,Zip,Birthdate "
-				+"FROM patient " 
-				+"WHERE "+dateWhereClause+" "
-				+"AND Birthdate > '1880-01-01' "
-				+"AND PatStatus=0	"
-				+"ORDER BY "+orderByClause;
-			DataTable table=ReportsComplex.GetTable(command);
+			var command="SELECT LName,FName,Preferred,Address,Address2,City,State,Zip,Birthdate "
+			            +"FROM patient " 
+			            +"WHERE "+dateWhereClause+" "
+			            +"AND Birthdate > '1880-01-01' "
+			            +"AND PatStatus=0	"
+			            +"ORDER BY "+orderByClause;
+			var table=DataCore.GetTable(command);
 			table.Columns.Add("Age");
-			for(int i=0;i<table.Rows.Count;i++) {
+			for(var i=0;i<table.Rows.Count;i++) {
 				table.Rows[i]["Age"]=Patients.DateToAge(SIn.Date(table.Rows[i]["Birthdate"].ToString()),dateTo).ToString();
 			}
 			return table;

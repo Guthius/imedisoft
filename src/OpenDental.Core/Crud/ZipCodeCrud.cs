@@ -17,15 +17,16 @@ public class ZipCodeCrud
     public static List<ZipCode> TableToList(DataTable table)
     {
         var retVal = new List<ZipCode>();
-        ZipCode zipCode;
         foreach (DataRow row in table.Rows)
         {
-            zipCode = new ZipCode();
-            zipCode.ZipCodeNum = SIn.Long(row["ZipCodeNum"].ToString());
-            zipCode.ZipCodeDigits = SIn.String(row["ZipCodeDigits"].ToString());
-            zipCode.City = SIn.String(row["City"].ToString());
-            zipCode.State = SIn.String(row["State"].ToString());
-            zipCode.IsFrequent = SIn.Bool(row["IsFrequent"].ToString());
+            var zipCode = new ZipCode
+            {
+                ZipCodeNum = SIn.Long(row["ZipCodeNum"].ToString()),
+                ZipCodeDigits = SIn.String(row["ZipCodeDigits"].ToString()),
+                City = SIn.String(row["City"].ToString()),
+                State = SIn.String(row["State"].ToString()),
+                IsFrequent = SIn.Bool(row["IsFrequent"].ToString())
+            };
             retVal.Add(zipCode);
         }
 

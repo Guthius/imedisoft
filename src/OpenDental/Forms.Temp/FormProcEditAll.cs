@@ -1,10 +1,6 @@
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
 using System.Linq;
-using System.Text;
 using System.Windows.Forms;
 using OpenDentBusiness;
 using CodeBase;
@@ -13,6 +9,7 @@ using Imedisoft.Core.Caching;
 using Imedisoft.Core.Entities;
 using Imedisoft.Core.Features.Clinics;
 using Imedisoft.Core.Features.Clinics.Dtos;
+using Imedisoft.Features.Providers.Dtos;
 using OpenDental.Logic;
 
 namespace OpenDental;
@@ -28,7 +25,7 @@ public partial class FormProcEditAll:FormODBase {
 	///<summary>True when all procs in ProcList Can Bypass Lock Date.</summary>
 	private bool _canAllBypass;
 	///<summary>List of providers shown in comboProv. Excludes blank(multi) and provider abbr text if user does not have access to a clinic from ProcList.</summary>>
-	private List<Provider> _listProvidersForClinic;
+	private List<ProviderDto> _listProvidersForClinic;
 	///<summary>List of clinics shown in comboClincs. Excludes blank(multi) and clinic abbr text if user does not have access to a clinic from ProcList.</summary>
 	private List<ClinicDto> _listClinics;
 
@@ -156,10 +153,10 @@ public partial class FormProcEditAll:FormODBase {
 		else {
 			_listProvidersForClinic=Providers.GetProvsForClinic(comboClinic.GetSelected<ClinicDto>().Id);
 		}
-		_listProvidersForClinic=_listProvidersForClinic.Where(x => !x.IsHidden).OrderBy(x => x.ItemOrder).ToList();
-		Provider providerSelection=null;
+		_listProvidersForClinic=_listProvidersForClinic.Where(x => !x.IsHidden).ToList();
+		ProviderDto providerSelection=null;
 		if(tryMaintainOldSelection && comboProv.GetSelected<Provider>()!=null){//Only true on manual selection, not on load.
-			providerSelection=_listProvidersForClinic.FirstOrDefault(x => x.ProvNum==comboProv.GetSelectedProvNum());
+			providerSelection=_listProvidersForClinic.FirstOrDefault(x => x.Id==comboProv.GetSelectedProvNum());
 		}
 		comboProv.Items.Clear();
 		comboProv.Items.Add("",null);
@@ -167,12 +164,12 @@ public partial class FormProcEditAll:FormODBase {
 		comboProv.SelectedIndex=0;//default selected index to blank/original values, override if there is a different match below.
 		var isAllProcsForSameProv=ListProcedures.Select(x => x.ProvNum).Distinct().ToList().Count==1;
 		if(tryMaintainOldSelection && providerSelection!=null){
-			comboProv.SetSelectedProvNum(providerSelection.ProvNum);//set to previous selection
+			comboProv.SetSelectedProvNum(providerSelection.Id);//set to previous selection
 		}
 		else if(isAllProcsForSameProv){
 			comboProv.SetSelectedProvNum(ListProcedures[0].ProvNum);//default to the proc's prov if all procs have same prov
 		}
-		if(isAllProcsForSameProv && !_listProvidersForClinic.Any(x => x.ProvNum==ListProcedures[0].ProvNum)) {
+		if(isAllProcsForSameProv && !_listProvidersForClinic.Any(x => x.Id==ListProcedures[0].ProvNum)) {
 			//All procedure clinics are the same but value is missing from our list.
 			//We might eventaully check to see how many clincs from proc list do not exists in listClinics.
 			comboProv.SetSelectedProvNum(ListProcedures[0].ProvNum);//selectedIndex -1

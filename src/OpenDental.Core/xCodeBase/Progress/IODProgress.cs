@@ -2,7 +2,7 @@
 
 public interface IODProgress
 {
-    string LanThis { get; set; }
+    string LanThis { get; }
 
     void UpdateProgress(string message);
 
@@ -11,8 +11,6 @@ public interface IODProgress
 
 public class ODProgressDoNothing : IODProgress
 {
-    public static ODProgressDoNothing Instance { get; } = new();
-
     public string LanThis
     {
         get => "ODProgressDoNothing";
@@ -24,10 +22,6 @@ public class ODProgressDoNothing : IODProgress
     }
 
     public void UpdateProgressDetailed(string labelValue, string percentVal = "", string tagString = "", int barVal = 0, int barMax = 100, int marqSpeed = 0, string labelTop = "", bool isLeftHidden = false, bool isTopHidden = false, bool isPercentHidden = false, ProgBarStyle progStyle = ProgBarStyle.Blocks, ProgBarEventType progEvent = ProgBarEventType.ProgressBar)
-    {
-    }
-
-    public void Close()
     {
     }
 }

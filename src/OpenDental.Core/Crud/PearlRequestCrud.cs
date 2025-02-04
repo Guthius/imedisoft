@@ -18,16 +18,17 @@ public class PearlRequestCrud
     public static List<PearlRequest> TableToList(DataTable table)
     {
         var retVal = new List<PearlRequest>();
-        PearlRequest pearlRequest;
         foreach (DataRow row in table.Rows)
         {
-            pearlRequest = new PearlRequest();
-            pearlRequest.PearlRequestNum = SIn.Long(row["PearlRequestNum"].ToString());
-            pearlRequest.RequestId = SIn.String(row["RequestId"].ToString());
-            pearlRequest.DocNum = SIn.Long(row["DocNum"].ToString());
-            pearlRequest.RequestStatus = (EnumPearlStatus) SIn.Int(row["RequestStatus"].ToString());
-            pearlRequest.DateTSent = SIn.Date(row["DateTSent"].ToString());
-            pearlRequest.DateTChecked = SIn.Date(row["DateTChecked"].ToString());
+            var pearlRequest = new PearlRequest
+            {
+                PearlRequestNum = SIn.Long(row["PearlRequestNum"].ToString()),
+                RequestId = SIn.String(row["RequestId"].ToString()),
+                DocNum = SIn.Long(row["DocNum"].ToString()),
+                RequestStatus = (EnumPearlStatus) SIn.Int(row["RequestStatus"].ToString()),
+                DateTSent = SIn.Date(row["DateTSent"].ToString()),
+                DateTChecked = SIn.Date(row["DateTChecked"].ToString())
+            };
             retVal.Add(pearlRequest);
         }
 

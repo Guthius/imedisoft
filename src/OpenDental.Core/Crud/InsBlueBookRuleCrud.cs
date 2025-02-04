@@ -17,15 +17,16 @@ public class InsBlueBookRuleCrud
     public static List<InsBlueBookRule> TableToList(DataTable table)
     {
         var retVal = new List<InsBlueBookRule>();
-        InsBlueBookRule insBlueBookRule;
         foreach (DataRow row in table.Rows)
         {
-            insBlueBookRule = new InsBlueBookRule();
-            insBlueBookRule.InsBlueBookRuleNum = SIn.Long(row["InsBlueBookRuleNum"].ToString());
-            insBlueBookRule.ItemOrder = SIn.Int(row["ItemOrder"].ToString());
-            insBlueBookRule.RuleType = (InsBlueBookRuleType) SIn.Int(row["RuleType"].ToString());
-            insBlueBookRule.LimitValue = SIn.Int(row["LimitValue"].ToString());
-            insBlueBookRule.LimitType = (InsBlueBookRuleLimitType) SIn.Int(row["LimitType"].ToString());
+            var insBlueBookRule = new InsBlueBookRule
+            {
+                InsBlueBookRuleNum = SIn.Long(row["InsBlueBookRuleNum"].ToString()),
+                ItemOrder = SIn.Int(row["ItemOrder"].ToString()),
+                RuleType = (InsBlueBookRuleType) SIn.Int(row["RuleType"].ToString()),
+                LimitValue = SIn.Int(row["LimitValue"].ToString()),
+                LimitType = (InsBlueBookRuleLimitType) SIn.Int(row["LimitType"].ToString())
+            };
             retVal.Add(insBlueBookRule);
         }
 

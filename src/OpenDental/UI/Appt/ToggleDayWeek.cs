@@ -1,18 +1,9 @@
-﻿using Health.Direct.Common.Extensions;
-using OpenDentBusiness;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.ComponentModel.Design.Serialization;
-using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Drawing2D;
-using System.Linq;
-using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
-using System.Windows.Markup;
 
 namespace OpenDental.UI;
 //Jordan is the only one allowed to edit this file.
@@ -20,7 +11,7 @@ namespace OpenDental.UI;
 ///<summary>A toggle for Day/Week in the Appt module. Maybe add Month later.</summary>
 public partial class ToggleDayWeek : Control {
 	#region Fields - Public
-	public LayoutManagerForms LayoutManager=new LayoutManagerForms();
+	
 	#endregion Fields - Public
 
 	#region Fields - Private Static
@@ -31,7 +22,6 @@ public partial class ToggleDayWeek : Control {
 
 	#region Fields - Private
 	private int _hoverIndex=-1;
-	private bool _isMouseDown;
 	private List<string> Items;
 		
 	private long _selectedIndex;
@@ -109,7 +99,6 @@ public partial class ToggleDayWeek : Control {
 	#region Events - Event Handlers - Mouse
 	protected override void OnMouseDown(MouseEventArgs e){
 		Focus();
-		_isMouseDown=true;
 		var heightLine=Height/Items.Count;
 		_selectedIndex=e.Location.Y/heightLine;
 		Invalidate();
@@ -123,7 +112,6 @@ public partial class ToggleDayWeek : Control {
 		//but, sometimes, if an event from above resulted in a dialog, then there will be no mouse up event.  Handle that below.
 		var mouseButtons=Control.MouseButtons;//introducing variable for debugging because this state is not preserved at break points.
 		if(mouseButtons==MouseButtons.None){
-			_isMouseDown=false;
 		}
 	}
 
@@ -143,7 +131,6 @@ public partial class ToggleDayWeek : Control {
 
 	protected override void OnMouseUp(MouseEventArgs e) {
 		base.OnMouseUp(e);
-		_isMouseDown=false;
 		Invalidate();
 	}
 	#endregion Events - Event Handlers - Mouse

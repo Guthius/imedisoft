@@ -1,14 +1,13 @@
 using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Drawing;
 using System.Windows.Forms;
 using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Data;
 using Imedisoft.Core.Entities;
+using OpenDental.Chart;
 using OpenDentBusiness;
-using SparksToothChart;
 
 namespace OpenDental;
 
@@ -46,7 +45,7 @@ public partial class FormToothChartingBig:FormODBase {
 			toothChart.Dock = System.Windows.Forms.DockStyle.Fill;
 			toothChart.Location=toothChartWrapper.Location;
 			toothChart.Size=toothChartWrapper.Size;
-			LayoutManagerForms.Add(toothChart,this);
+			Controls.Add(toothChart);
 		}
 		else{
 			toothChartWrapper.Visible=true;
@@ -267,10 +266,10 @@ public partial class FormToothChartingBig:FormODBase {
 					_toothChartRelay.SetImplant(ListDataRowsProcs[i]["ToothNum"].ToString(),cDark);
 					break;
 				case ToothPaintingType.PostBU:
-					_toothChartRelay.SetBU(ListDataRowsProcs[i]["ToothNum"].ToString(),cDark);
+					_toothChartRelay.SetBu(ListDataRowsProcs[i]["ToothNum"].ToString(),cDark);
 					break;
 				case ToothPaintingType.RCT:
-					_toothChartRelay.SetRCT(ListDataRowsProcs[i]["ToothNum"].ToString(),cDark);
+					_toothChartRelay.SetRct(ListDataRowsProcs[i]["ToothNum"].ToString(),cDark);
 					break;
 				case ToothPaintingType.RetainedRoot:
 					_toothChartRelay.SetRetainedRoot(ListDataRowsProcs[i]["ToothNum"].ToString(),cDark);

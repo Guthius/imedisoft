@@ -3,9 +3,6 @@ using System.Collections.Generic;
 using System.Data;
 using System.Diagnostics;
 using System.Linq;
-using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 using CodeBase;
 using DataConnectionBase;
 using Imedisoft.Core.Caching;
@@ -27,7 +24,7 @@ namespace OpenDentBusiness {
 				sw=Stopwatch.StartNew();
 				sTotal=Stopwatch.StartNew();
 			}
-			DataTable table=new DataTable();
+			var table=new DataTable();
 			//columns that start with lowercase are altered for display rather than being raw data.
 			table.Columns.Add("PatNum");
 			table.Columns.Add("LName");
@@ -49,8 +46,8 @@ namespace OpenDentBusiness {
 			table.Columns.Add("carrierName");
 			table.Columns.Add("clinicAbbr");
 			//dictionary with Key=PatNum, Value=AmtPlanned
-			Dictionary<long,double> dictAmtPlanned=new Dictionary<long,double>();
-			using(DataTable tablePlanned=GetDictAmtPlanned(patsWithAppts,dateFrom,dateTo,listProviders,listBilling,code1,code2,listClinicNums,useTreatingProvider)) {
+			var dictAmtPlanned=new Dictionary<long,double>();
+			using(var tablePlanned=GetDictAmtPlanned(patsWithAppts,dateFrom,dateTo,listProviders,listBilling,code1,code2,listClinicNums,useTreatingProvider)) {
 				if(/* ODBuild.IsDebug() */ false) {
 					sw.Stop();
 					Console.WriteLine("Get tablePlanned: "+sw.Elapsed.TotalSeconds+" sec, Rows: "+tablePlanned.Rows.Count);
@@ -61,11 +58,11 @@ namespace OpenDentBusiness {
 				}
 				dictAmtPlanned=tablePlanned.Select().ToDictionary(x => SIn.Long(x["PatNum"].ToString()),x => SIn.Double(x["AmtPlanned"].ToString()));
 			}
-			string patNumStr=string.Join(",",dictAmtPlanned.Keys.Select(x => SOut.Long(x)));
-			DateTime renewDate=BenefitLogic.ComputeRenewDate(DateTime.Now,monthStart);
+			var patNumStr=string.Join(",",dictAmtPlanned.Keys.Select(x => SOut.Long(x)));
+			var renewDate=BenefitLogic.ComputeRenewDate(DateTime.Now,monthStart);
 			//dictionary with Key=PatPlanNum, Value=Tuple(AmtPending,AmtUsed)
-			Dictionary<long,Tuple<double,double>> dictPatInfo=new Dictionary<long,Tuple<double,double>>();
-			using(DataTable tablePat=GetPatInfo(isProcsGeneral,renewDate,patNumStr)) {
+			var dictPatInfo=new Dictionary<long,Tuple<double,double>>();
+			using(var tablePat=GetPatInfo(isProcsGeneral,renewDate,patNumStr)) {
 				dictPatInfo=tablePat.Select().ToDictionary(x => SIn.Long(x["PatPlanNum"].ToString()),
 					x => Tuple.Create(SIn.Double(x["AmtPending"].ToString()),SIn.Double(x["AmtUsed"].ToString())));
 			}
@@ -75,8 +72,8 @@ namespace OpenDentBusiness {
 				sw=Stopwatch.StartNew();
 			}
 			//dictionary with Key=InsSubNum, Value=Tuple(AmtPending,AmtUsed)
-			Dictionary<long,Tuple<double,double>> dictFamInfo=new Dictionary<long,Tuple<double,double>>();
-			using(DataTable tableFam=GetFamInfo(isProcsGeneral,renewDate,patNumStr)) {
+			var dictFamInfo=new Dictionary<long,Tuple<double,double>>();
+			using(var tableFam=GetFamInfo(isProcsGeneral,renewDate,patNumStr)) {
 				dictFamInfo=tableFam.Select().ToDictionary(x => SIn.Long(x["InsSubNum"].ToString()),
 					x => Tuple.Create(SIn.Double(x["AmtPending"].ToString()),SIn.Double(x["AmtUsed"].ToString())));
 			}
@@ -86,8 +83,8 @@ namespace OpenDentBusiness {
 				sw=Stopwatch.StartNew();
 			}
 			//dictionary with Key=PlanNum, Value=Tuple(AnnualMaxInd,AnnualMaxFam)
-			Dictionary<long,Tuple<double,double>> dictAnnualMax=new Dictionary<long,Tuple<double,double>>();
-			using(DataTable tableAnnualMax=GetAnnualMaxInfo(patNumStr)) {
+			var dictAnnualMax=new Dictionary<long,Tuple<double,double>>();
+			using(var tableAnnualMax=GetAnnualMaxInfo(patNumStr)) {
 				dictAnnualMax=tableAnnualMax.Select().ToDictionary(x => SIn.Long(x["PlanNum"].ToString()),
 					x => Tuple.Create(SIn.Double(x["AnnualMaxInd"].ToString()),SIn.Double(x["AnnualMaxFam"].ToString())));
 			}
@@ -96,7 +93,7 @@ namespace OpenDentBusiness {
 				Console.WriteLine("Get dictAnnualMax: "+sw.Elapsed.TotalSeconds+" sec, Rows: "+dictAnnualMax.Count);
 				sw=Stopwatch.StartNew();
 			}
-			using(DataTable rawtable=GetTableRaw(noIns,monthStart,patNumStr)) {
+			using(var rawtable=GetTableRaw(noIns,monthStart,patNumStr)) {
 				if(/* ODBuild.IsDebug() */ false) {
 					sw.Stop();
 					Console.WriteLine("Get RawTable: "+sw.Elapsed.TotalSeconds+" sec, Rows: "+rawtable.Rows.Count);
@@ -105,20 +102,20 @@ namespace OpenDentBusiness {
 				DataRow row;
 				foreach(DataRow rawRow in rawtable.Rows) {
 					row=table.NewRow();
-					long patNum=SIn.Long(rawRow["PatNum"].ToString());
-					long patPlanNum=SIn.Long(rawRow["PatPlanNum"].ToString());
-					long planNum=SIn.Long(rawRow["PlanNum"].ToString());
-					long insSubNum=SIn.Long(rawRow["InsSubNum"].ToString());
+					var patNum=SIn.Long(rawRow["PatNum"].ToString());
+					var patPlanNum=SIn.Long(rawRow["PatPlanNum"].ToString());
+					var planNum=SIn.Long(rawRow["PlanNum"].ToString());
+					var insSubNum=SIn.Long(rawRow["InsSubNum"].ToString());
 					double amtPlanned=dictAmtPlanned.TryGetValue(patNum,out amtPlanned)?amtPlanned:0;
 					Tuple<double,double> tuplePatInfo=dictPatInfo.TryGetValue(patPlanNum,out tuplePatInfo)?tuplePatInfo:Tuple.Create(0d,0d);
-					double patAmtPending=tuplePatInfo.Item1;
-					double patAmtUsed=tuplePatInfo.Item2;
+					var patAmtPending=tuplePatInfo.Item1;
+					var patAmtUsed=tuplePatInfo.Item2;
 					Tuple<double,double> tupleFamInfo=dictFamInfo.TryGetValue(insSubNum,out tupleFamInfo)?tupleFamInfo:Tuple.Create(0d,0d);
-					double famAmtPending=tupleFamInfo.Item1;
-					double famAmtUsed=tupleFamInfo.Item2;
+					var famAmtPending=tupleFamInfo.Item1;
+					var famAmtUsed=tupleFamInfo.Item2;
 					Tuple<double,double> tupleAnnualMax=dictAnnualMax.TryGetValue(planNum,out tupleAnnualMax)?tupleAnnualMax:Tuple.Create(0d,0d);
-					double patAnnualMax=tupleAnnualMax.Item1;
-					double famAnnualMax=tupleAnnualMax.Item2;
+					var patAnnualMax=tupleAnnualMax.Item1;
+					var famAnnualMax=tupleAnnualMax.Item2;
 					if(aboveAmount>0) {
 						if(dictAnnualMax.ContainsKey(planNum)
 							&& ((patAnnualMax!=-1 && patAnnualMax-patAmtUsed<=aboveAmount) || (famAnnualMax!=-1 && famAnnualMax-famAmtUsed<=aboveAmount)))
@@ -129,7 +126,7 @@ namespace OpenDentBusiness {
 					row["PatNum"]=patNum;
 					row["LName"]=rawRow["LName"].ToString();
 					row["FName"]=rawRow["FName"].ToString();
-					ContactMethod contmeth=SIn.Enum<ContactMethod>(rawRow["PreferRecallMethod"].ToString());
+					var contmeth=SIn.Enum<ContactMethod>(rawRow["PreferRecallMethod"].ToString());
 					switch(contmeth) {
 						case ContactMethod.None:
 							if(PrefC.GetBool(PrefName.RecallUseEmailIfHasEmailAddress) && !string.IsNullOrEmpty(rawRow["Email"].ToString())) {
@@ -191,7 +188,7 @@ namespace OpenDentBusiness {
 		public static DataTable GetDictAmtPlanned(bool patsWithAppts,DateTime dateFrom,DateTime dateTo,List<long> listProvNums,List<long> listBillTypes,
 			string code1,string code2,List<long> listClinicNums,bool useTreatingProvider)
 		{
-			string command=$@"SELECT procedurelog.PatNum,SUM(procedurelog.ProcFee*(procedurelog.UnitQty+procedurelog.BaseUnits)) AmtPlanned
+			var command=$@"SELECT procedurelog.PatNum,SUM(procedurelog.ProcFee*(procedurelog.UnitQty+procedurelog.BaseUnits)) AmtPlanned
 				FROM procedurelog
 				INNER JOIN patient ON patient.PatNum=procedurelog.PatNum{(string.IsNullOrEmpty(code1)?"":$@"
 				INNER JOIN procedurecode ON procedurecode.CodeNum=procedurelog.CodeNum")}
@@ -216,7 +213,7 @@ namespace OpenDentBusiness {
 		}
 
 		public static DataTable GetPatInfo(bool isProcsGeneral,DateTime renewDate,string patNumStr) {
-			string commandIndInfo=$@"SELECT patplan.PatPlanNum,
+			var commandIndInfo=$@"SELECT patplan.PatPlanNum,
 				{GetSelectCoverageStr()}
 				INNER JOIN patplan ON patplan.PatNum=claimproc.PatNum
 					AND patplan.InsSubNum=claimproc.InsSubNum
@@ -227,7 +224,7 @@ namespace OpenDentBusiness {
 		}
 
 		public static DataTable GetFamInfo(bool isProcsGeneral,DateTime renewDate,string patNumStr) {
-			string commandFamInfo=$@"SELECT claimproc.InsSubNum,
+			var commandFamInfo=$@"SELECT claimproc.InsSubNum,
 				{GetSelectCoverageStr()}
 				{GetWhereCoverageStr(isProcsGeneral,renewDate,patNumStr)}
 				GROUP BY claimproc.InsSubNum
@@ -269,7 +266,7 @@ namespace OpenDentBusiness {
 		
 		///<summary>It is known that patNumStr is not empty</summary>
 		public static DataTable GetAnnualMaxInfo(string patNumStr) {
-			string commandAnnualMax=$@"SELECT benefit.PlanNum,
+			var commandAnnualMax=$@"SELECT benefit.PlanNum,
 				MAX(CASE WHEN CoverageLevel!={SOut.Int((int)BenefitCoverageLevel.Family)} THEN MonetaryAmt ELSE -1 END) AnnualMaxInd, 
 				MAX(CASE WHEN CoverageLevel={SOut.Int((int)BenefitCoverageLevel.Family)} THEN MonetaryAmt ELSE -1 END) AnnualMaxFam
 				FROM benefit
@@ -288,7 +285,7 @@ namespace OpenDentBusiness {
 		
 		///<summary>It is known that patNumStr is not empty</summary>
 		public static DataTable GetTableRaw(bool noIns,int monthStart,string patNumStr) {
-			string command=$@"SELECT patient.PatNum,patient.LName,patient.FName,patient.Email,patient.HmPhone,patient.WirelessPhone,patient.WkPhone,
+			var command=$@"SELECT patient.PatNum,patient.LName,patient.FName,patient.Email,patient.HmPhone,patient.WirelessPhone,patient.WkPhone,
 				patient.PreferRecallMethod,patient.Address,patient.Address2,patient.City,patient.State,patient.Zip,patient.PriProv,patient.BillingType,
 				patplan.PatPlanNum,inssub.InsSubNum,inssub.PlanNum,COALESCE(carrier.CarrierName,'') carrierName,COALESCE(clinic.Abbr,'Unassigned') clinicAbbr
 				FROM patient

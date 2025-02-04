@@ -4,12 +4,13 @@ namespace OpenDentBusiness.AutoComm;
 
 public class ArrivalsTagReplacer : ApptTagReplacer
 {
-    public const string ARRIVED_TAG = "[Arrived]";
-    public const string ARRIVED_CODE = "A";
+    public const string ArrivedTag = "[Arrived]";
+    public const string ArrivedCode = "A";
 
     protected override void ReplaceTagsChild(StringBuilder sbTemplate, AutoCommObj autoCommObj, bool isEmail)
     {
         base.ReplaceTagsChild(sbTemplate, autoCommObj, isEmail);
-        ReplaceOneTag(sbTemplate, ARRIVED_TAG, ARRIVED_CODE, isEmail);
+        
+        ReplaceOneTag(sbTemplate, ArrivedTag, ArrivedCode, isEmail);
     }
 }

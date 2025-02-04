@@ -1,21 +1,18 @@
 using System;
 using System.Collections.Generic;
-using System.Data;
-using System.Drawing;
-using System.Text;
-using System.Windows.Forms;
 using OpenDentBusiness;
 using OpenDental.ReportingComplex;
 using System.Linq;
 using Imedisoft.Core.Entities;
 using Imedisoft.Core.Features.Clinics;
 using Imedisoft.Core.Features.Clinics.Dtos;
+using Imedisoft.Features.Providers.Dtos;
 
 namespace OpenDental;
 
 public partial class FormRpActivePatients:FormODBase {
 	private List<ClinicDto> _listClinics;
-	private List<Provider> _listProviders;
+	private List<ProviderDto> _listProviders;
 	private List<Def> _listBillingTypeDefs;
 	private List<PatientStatus> _listPatientStatuses = [];
 
@@ -29,7 +26,7 @@ public partial class FormRpActivePatients:FormODBase {
 		_listBillingTypeDefs=Defs.GetDefsForCategory(DefCat.BillingTypes,true);
 		listBillingTypes.Items.AddList(_listBillingTypeDefs,x => x.ItemName);
 		_listProviders=Providers.GetListReports();
-		listProv.Items.AddList(_listProviders,x => x.GetLongDesc());
+		listProv.Items.AddList(_listProviders,x => x.Description);
 		foreach(PatientStatus patientStatus in Enum.GetValues(typeof(PatientStatus))) {
 			if(patientStatus==PatientStatus.Deleted) {
 				continue;
@@ -38,26 +35,19 @@ public partial class FormRpActivePatients:FormODBase {
 			listPatientStatuses.Items.Add(Lan.g("enumPatientStatus",patientStatus.ToString()));
 		}
 		checkAllPatStatus.Checked=true;
-		if(!true) {
-			listClin.Visible=false;
-			labelClin.Visible=false;
-			checkAllClin.Visible=false;
+		_listClinics=Clinics.GetForUserod(Security.CurUser);
+		if(!Security.CurUser.ClinicIsRestricted) {
+			listClin.Items.Add(Lan.g(this,"Unassigned"));
+			listClin.SetSelected(0);
 		}
-		else {
-			_listClinics=Clinics.GetForUserod(Security.CurUser);
-			if(!Security.CurUser.ClinicIsRestricted) {
-				listClin.Items.Add(Lan.g(this,"Unassigned"));
-				listClin.SetSelected(0);
+		for(var i=0;i<_listClinics.Count;i++) {
+			listClin.Items.Add(_listClinics[i].Abbr);
+			if(Clinics.ClinicNum==0) {
+				checkAllClin.Checked=true;
 			}
-			for(var i=0;i<_listClinics.Count;i++) {
-				listClin.Items.Add(_listClinics[i].Abbr);
-				if(Clinics.ClinicNum==0) {
-					checkAllClin.Checked=true;
-				}
-				if(_listClinics[i].Id==Clinics.ClinicNum) {
-					listClin.SelectedIndices.Clear();
-					listClin.SetSelected(listClin.Items.Count-1);
-				}
+			if(_listClinics[i].Id==Clinics.ClinicNum) {
+				listClin.SelectedIndices.Clear();
+				listClin.SetSelected(listClin.Items.Count-1);
 			}
 		}
 	}
@@ -136,12 +126,12 @@ public partial class FormRpActivePatients:FormODBase {
 		var listPatientStatusEnums=new List<long>();
 		if(checkAllProv.Checked) {
 			for(var i=0;i<_listProviders.Count;i++) {
-				listProvNums.Add(_listProviders[i].ProvNum);
+				listProvNums.Add(_listProviders[i].Id);
 			}
 		}
 		else {
 			for(var i=0;i<listProv.SelectedIndices.Count;i++) {
-				listProvNums.Add(_listProviders[listProv.SelectedIndices[i]].ProvNum);
+				listProvNums.Add(_listProviders[listProv.SelectedIndices[i]].Id);
 			}
 		}
 		if(true) {
@@ -263,12 +253,7 @@ public partial class FormRpActivePatients:FormODBase {
 		report.AddSubTitle("Billing",subtitleBilling);
 		report.AddSubTitle("Patient Status",subtitlePatStatus);
 		QueryObject query;
-		if(true) {
-			query=report.AddQuery(tablePats,"","clinic",SplitByKind.Value,0);
-		}
-		else {
-			query=report.AddQuery(tablePats,"","",SplitByKind.None,0);
-		}
+		query=report.AddQuery(tablePats,"","clinic",SplitByKind.Value,0);
 		query.AddColumn("Name",150,FieldValueType.String);
 		query.AddColumn("Provider",80,FieldValueType.String);
 		query.AddColumn("Address",150,FieldValueType.String);

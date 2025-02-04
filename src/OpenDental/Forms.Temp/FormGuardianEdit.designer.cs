@@ -116,7 +116,7 @@ namespace OpenDental{
 			this.butDelete.Size = new System.Drawing.Size(75, 24);
 			this.butDelete.TabIndex = 68;
 			this.butDelete.Text = "Delete";
-			this.butDelete.Click += new System.EventHandler(this.butDelete_Click);
+			this.butDelete.Click += new System.EventHandler(this.ButtonDelete_Click);
 			// 
 			// butPick
 			// 
@@ -126,7 +126,7 @@ namespace OpenDental{
 			this.butPick.TabIndex = 67;
 			this.butPick.TabStop = false;
 			this.butPick.Text = "...";
-			this.butPick.Click += new System.EventHandler(this.butPick_Click);
+			this.butPick.Click += new System.EventHandler(this.ButtonPick_Click);
 			// 
 			// butSave
 			// 
@@ -136,7 +136,7 @@ namespace OpenDental{
 			this.butSave.Size = new System.Drawing.Size(75, 24);
 			this.butSave.TabIndex = 3;
 			this.butSave.Text = "&Save";
-			this.butSave.Click += new System.EventHandler(this.butSave_Click);
+			this.butSave.Click += new System.EventHandler(this.ButtonSave_Click);
 			// 
 			// FormGuardianEdit
 			// 

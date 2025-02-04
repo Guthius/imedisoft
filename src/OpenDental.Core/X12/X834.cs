@@ -1,9 +1,8 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Text;
 using System.Text.RegularExpressions;
 using Imedisoft.Core.Crud;
+using Imedisoft.Core.Data;
 using Imedisoft.Core.Entities;
 
 namespace OpenDentBusiness {
@@ -59,14 +58,14 @@ namespace OpenDentBusiness {
 
 		///<summary>GS: Functional Group.  Required.  Repeat unlimited.  Guide page 208.</summary>
 		private void ReadLoopGS() {
-			for(int i=0;i<FunctGroups.Count;i++) {
+			for(var i=0;i<FunctGroups.Count;i++) {
 				ReadLoopST(FunctGroups[i].Transactions);
 			}
 		}
 
 		///<summary>ST: Transaction Set Header.  Required.  Repeat 1.  Guide pages 22, 31, 208.</summary>
 		private void ReadLoopST(List <X12Transaction> listTrans) {
-			for(int i=0;i<listTrans.Count;i++) {
+			for(var i=0;i<listTrans.Count;i++) {
 				_listSegments=listTrans[i].Segments;
 				_segNum=0;
 				_tranCur=new Hx834_Tran();
@@ -141,7 +140,7 @@ namespace OpenDentBusiness {
 		private void ReadLoop1000C() {
 			_tranCur.ListBrokers.Clear();
 			while(_segCur.IsType("N1","BO","TV")) {
-				Hx834_Broker broker=new Hx834_Broker();
+				var broker=new Hx834_Broker();
 				ReadLoop1000C_N1(broker);
 				ReadLoop1100C(broker);
 				_tranCur.ListBrokers.Add(broker);
@@ -175,7 +174,7 @@ namespace OpenDentBusiness {
 		private void ReadLoop2000() {
 			_tranCur.ListMembers.Clear();
 			while(_segCur.IsType("INS")) {
-				Hx834_Member member=new Hx834_Member();
+				var member=new Hx834_Member();
 				member.Tran=_tranCur;
 				ReadLoop2000_INS(member);
 				ReadLoop2000_REF_1(member);
@@ -297,8 +296,8 @@ namespace OpenDentBusiness {
 			//INS04: Nowhere to store this information, and nobody cares why the change has occurred, only that it did occur.
 			//INS05: Nowhere to store this information.  Plus this does not tell us if the subscriber is inactive.
 			//INS06:
-			bool isMedicareA=false;
-			bool isMedicareB=false;
+			var isMedicareA=false;
+			var isMedicareB=false;
 			if(member.MemberLevelDetail.MedicareStatusCode.StartsWith("A")) {//Medicare Part A (Hospital Insurance)
 				isMedicareA=true;
 			}
@@ -370,7 +369,7 @@ namespace OpenDentBusiness {
 		private void ReadLoop2000_REF_3(Hx834_Member member) {
 			member.ListMemberSupplementalIdentifiers.Clear();
 			while(_segCur.IsType("REF","17","23","3H","4A","6O","ABB","D3","DX","F6","P5","Q4","QQ","ZZ")) {
-				X12_REF href=new X12_REF(_segCur);
+				var href=new X12_REF(_segCur);
 				member.ListMemberSupplementalIdentifiers.Add(href);
 				_segNum++;
 			}
@@ -383,7 +382,7 @@ namespace OpenDentBusiness {
 			while(_segCur.IsType("DTP",
 				"050","286","296","297","300","301","303","336","337","338","339","340","341","350","351","356","357","383","385","386","393","394","473","474"))
 			{
-				X12_DTP dtp=new X12_DTP(_segCur);
+				var dtp=new X12_DTP(_segCur);
 				member.ListMemberLevelDates.Add(dtp);
 				_segNum++;
 				if(dtp.DateTimeQualifier=="050") {//Recieved
@@ -494,7 +493,7 @@ namespace OpenDentBusiness {
 			}
 			member.MemberCommunicationsNumbers=new X12_PER(_segCur);
 			_segNum++;
-			string[] arrayNumbers=new string[] {
+			var arrayNumbers=new string[] {
 				member.MemberCommunicationsNumbers.CommunicationNumberQualifier1,member.MemberCommunicationsNumbers.CommunicationNumber1,
 				member.MemberCommunicationsNumbers.CommunicationNumberQualifier2,member.MemberCommunicationsNumbers.CommunicationNumber2,
 				member.MemberCommunicationsNumbers.CommunicationNumberQualifier3,member.MemberCommunicationsNumbers.CommunicationNumber3,
@@ -504,9 +503,9 @@ namespace OpenDentBusiness {
 			member.Pat.Email=null;
 			member.Pat.HmPhone=null;
 			member.Pat.WkPhone=null;
-			for(int i=0;i<arrayNumbers.Length;i+=2) {
-				string qualifier=arrayNumbers[i];
-				string number=arrayNumbers[i+1];
+			for(var i=0;i<arrayNumbers.Length;i+=2) {
+				var qualifier=arrayNumbers[i];
+				var number=arrayNumbers[i+1];
 				if(qualifier=="AP") {//Alternate Phone
 					if(member.Pat.AddrNote!="") {
 						member.Pat.AddrNote+="\r\n";
@@ -626,8 +625,8 @@ namespace OpenDentBusiness {
 			//DMG05:
 			member.ListPatRaces.Clear();
 			if(member.MemberDemographics.CompositeRaceOrEthnicityInformation.StartsWith("7")) {//Not Provided
-				member.ListPatRaces.Add(new PatientRace(member.Pat.PatNum,PatientRace.DECLINE_SPECIFY_RACE_CODE));//Declined to specify race
-				member.ListPatRaces.Add(new PatientRace(member.Pat.PatNum,PatientRace.DECLINE_SPECIFY_RACE_CODE));//Declined to specify ethnicity
+				member.ListPatRaces.Add(new PatientRace(member.Pat.PatNum,PatientRace.DeclineSpecifyRaceCode));//Declined to specify race
+				member.ListPatRaces.Add(new PatientRace(member.Pat.PatNum,PatientRace.DeclineSpecifyRaceCode));//Declined to specify ethnicity
 			}
 			else if(member.MemberDemographics.CompositeRaceOrEthnicityInformation.StartsWith("8")) {//Not Applicable
 			}
@@ -721,16 +720,16 @@ namespace OpenDentBusiness {
 		///<summary>LUI: Member Language.  Situational.  Repeat >1.  Guide page 84.</summary>
 		private void ReadLoop2100A_LUI(Hx834_Member member) {
 			member.ListMemberLanguages.Clear();
-			List<string> listLangRead=new List<string>();
-			List<string> listLangWrite=new List<string>();
-			List<string> listLangSpeak=new List<string>();
-			List<string> listLangNative=new List<string>();
-			List<string> listLangPrimary=new List<string>();
+			var listLangRead=new List<string>();
+			var listLangWrite=new List<string>();
+			var listLangSpeak=new List<string>();
+			var listLangNative=new List<string>();
+			var listLangPrimary=new List<string>();
 			while(_segCur.IsType("LUI")) {
-				X12_LUI lui=new X12_LUI(_segCur);
+				var lui=new X12_LUI(_segCur);
 				member.ListMemberLanguages.Add(lui);
 				_segNum++;
-				string lang="";
+				var lang="";
 				//LUI01 & LUI02:
 				if(lui.IdentificationCodeQualifier=="LD") {//NISO Z39.53 Language Code
 					lang=lui.IdentificationCode;//I think this is the same as ISO 639-2.  We support ISO 639-2 direclty.
@@ -849,7 +848,7 @@ namespace OpenDentBusiness {
 		private void ReadLoop2100D(Hx834_Member member) {
 			member.ListMemberEmployers.Clear();
 			while(_segCur.IsType("NM1","36")) {
-				Hx834_Employer employer=new Hx834_Employer();
+				var employer=new Hx834_Employer();
 				ReadLoop2100D_NM1(employer);
 				ReadLoop2100D_PER(employer);
 				ReadLoop2100D_N3(employer);
@@ -899,7 +898,7 @@ namespace OpenDentBusiness {
 		private void ReadLoop2100E(Hx834_Member member) {
 			member.ListMemberSchools.Clear();
 			while(_segCur.IsType("NM1","M8")) {
-				Hx834_School school=new Hx834_School();
+				var school=new Hx834_School();
 				ReadLoop2100E_NM1(school);
 				ReadLoop2100E_PER(school);
 				ReadLoop2100E_N3(school);
@@ -1000,7 +999,7 @@ namespace OpenDentBusiness {
 		private void ReadLoop2100G(Hx834_Member member) {
 			member.ListResponsiblePerson.Clear();
 			while(_segCur.IsType("NM1","6Y","9K","E1","EI","EXS","GB","GD","J6","LR","QD","S1","TZ","X4")) {
-				Hx834_ResponsiblePerson person=new Hx834_ResponsiblePerson();
+				var person=new Hx834_ResponsiblePerson();
 				ReadLoop2100G_NM1(person);
 				ReadLoop2100G_PER(person);
 				ReadLoop2100G_N3(person);
@@ -1088,7 +1087,7 @@ namespace OpenDentBusiness {
 		private void ReadLoop2200(Hx834_Member member) {
 			member.ListDisabilityInformation.Clear();
 			while(_segCur.IsType("DSB")) {
-				Hx834_DisabilityInformation disabilityInfo=new Hx834_DisabilityInformation();
+				var disabilityInfo=new Hx834_DisabilityInformation();
 				ReadLoop2200_DSB(disabilityInfo);
 				ReadLoop2200_DTP(disabilityInfo);
 				member.ListDisabilityInformation.Add(disabilityInfo);
@@ -1118,7 +1117,7 @@ namespace OpenDentBusiness {
 		private void ReadLoop2300(Hx834_Member member) {
 			member.ListHealthCoverage.Clear();
 			while(_segCur.IsType("HD")) {
-				Hx834_HealthCoverage healthCoverage=new Hx834_HealthCoverage();
+				var healthCoverage=new Hx834_HealthCoverage();
 				healthCoverage.Member=member;
 				ReadLoop2300_HD(healthCoverage);
 				ReadLoop2300_DTP(healthCoverage);
@@ -1153,7 +1152,7 @@ namespace OpenDentBusiness {
 		private void ReadLoop2300_DTP(Hx834_HealthCoverage healthCoverage) {
 			healthCoverage.ListHealthCoverageDates.Clear();
 			while(_segCur.IsType("DTP","300","303","343","348","349","543","695")) {
-				X12_DTP dtp=new X12_DTP(_segCur);
+				var dtp=new X12_DTP(_segCur);
 				healthCoverage.ListHealthCoverageDates.Add(dtp);
 				_segNum++;
 				if(dtp.DateTimeQualifier=="300") {//Enrollment Signature Date
@@ -1194,7 +1193,7 @@ namespace OpenDentBusiness {
 		private void ReadLoop2300_REF_1(Hx834_HealthCoverage healthCoverage) {
 			healthCoverage.ListHealthCoveragePolicyNumbers.Clear();
 			while(_segCur.IsType("REF","17","1L","9V","CE","E8","M7","PID","RB","X9","XM","XX1","XX2","ZX","ZZ")) {
-				X12_REF policyNum=new X12_REF(_segCur);
+				var policyNum=new X12_REF(_segCur);
 				healthCoverage.ListHealthCoveragePolicyNumbers.Add(policyNum);
 				_segNum++;
 				if(policyNum.ReferenceIdQualifier=="17") {//Client Reporting Category
@@ -1261,7 +1260,7 @@ namespace OpenDentBusiness {
 			while(_segCur.IsType("LX") && (_segNum+1) < _listSegments.Count 
 				&& _listSegments[_segNum+1].IsType("NM1","1X","3D","80","FA","OD","P3","QA","QN","Y2"))
 			{
-				Hx834_Provider prov=new Hx834_Provider();
+				var prov=new Hx834_Provider();
 				ReadLoop2310_LX(prov);
 				ReadLoop2310_NM1(prov);
 				ReadLoop2310_N3(prov);
@@ -1328,7 +1327,7 @@ namespace OpenDentBusiness {
 		private void ReadLoop2320(Hx834_HealthCoverage healthCoverage) {
 			healthCoverage.ListCoordinationOfBeneifts.Clear();
 			while(_segCur.IsType("COB")) {
-				Hx834_Cob cob=new Hx834_Cob();
+				var cob=new Hx834_Cob();
 				ReadLoop2320_COB(cob);
 				ReadLoop2320_REF(cob);
 				ReadLoop2320_DTP(cob);
@@ -1369,7 +1368,7 @@ namespace OpenDentBusiness {
 		private void ReadLoop2330(Hx834_Cob cob) {
 			cob.ListCobRelatedEntities.Clear();
 			while(_segCur.IsType("NM1","36","GW","IN")) {
-				Hx834_CobRelatedEntity cobre=new Hx834_CobRelatedEntity();
+				var cobre=new Hx834_CobRelatedEntity();
 				ReadLoop2330_NM1(cobre);
 				ReadLoop2330_N3(cobre);
 				ReadLoop2330_N4(cobre);
@@ -1427,7 +1426,7 @@ namespace OpenDentBusiness {
 		private void ReadLoop2700(Hx834_Member member) {
 			member.ListMemberReportingCategories.Clear();
 			while(_segCur.IsType("LX")) {
-				Hx834_MemberReportingCategory mrc=new Hx834_MemberReportingCategory();
+				var mrc=new Hx834_MemberReportingCategory();
 				ReadLoop2700_LX(mrc);
 				ReadLoop2750(mrc);
 				member.ListMemberReportingCategories.Add(mrc);
@@ -1717,7 +1716,7 @@ namespace OpenDentBusiness {
 
 		///<summary>Copies the data from applicable member fields into the given patDb and updates patDb in the database.</summary>
 		public Patient MergePatientIntoDbPatient(Patient patDb) {
-			Patient patDbOld=patDb.Copy();
+			var patDbOld=patDb.Copy();
 			if(Pat.StudentStatus!=null) {//Student status is situational information.  Only overwrite existing value if a new value was specified.
 				patDb.StudentStatus=Pat.StudentStatus;
 			}

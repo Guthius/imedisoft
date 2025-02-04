@@ -57,7 +57,7 @@ public class LanguagePats
     public static List<string> GetLanguagesForCombo()
     {
         var listLangsFromPref = PrefC.GetString(PrefName.LanguagesUsedByPatients)
-            .Split(new[] {','}, StringSplitOptions.RemoveEmptyEntries).ToList()
+            .Split([','], StringSplitOptions.RemoveEmptyEntries).ToList()
             .FindAll(x => x != Patients.LanguageDeclinedToSpecify);
         //Example: "Declined to Specify,spa,fra,Tahitian"
         //Would result at this point in three items in the list: spa,fra,Tahitian
@@ -80,7 +80,7 @@ public class LanguagePats
     public static string GetLang3LetterFromDisplay(string languageDisplay)
     {
         var listLangsFromPref = PrefC.GetString(PrefName.LanguagesUsedByPatients)
-            .Split(new[] {','}, StringSplitOptions.RemoveEmptyEntries).ToList()
+            .Split([','], StringSplitOptions.RemoveEmptyEntries).ToList()
             .FindAll(x => x != Patients.LanguageDeclinedToSpecify);
         //Example: "Declined to Specify,spa,fra,Tahitian"
         //Would result at this point in three items in the list: spa,fra,Tahitian
@@ -99,9 +99,9 @@ public class LanguagePats
         return null; //language wasn't found within LanguagesUsedByPatients pref.
     }
 
-    public static bool SyncRadioButtonTranslations(EFormField eFormField)
+    public static void SyncRadioButtonTranslations(EFormField eFormField)
     {
-        if (eFormField.FieldType != EnumEFormFieldType.RadioButtons) return false;
+        if (eFormField.FieldType != EnumEFormFieldType.RadioButtons) return;
         var listDisplayLanguages = GetLanguagesForCombo(); //get all languages set up in pref.
         var listVisOrig = eFormField.PickListVis.Split('|').ToList();
         var isChangedLanCache = false;
@@ -129,7 +129,6 @@ public class LanguagePats
         }
 
         if (isChangedLanCache) RefreshCache();
-        return isChangedLanCache;
     }
 
     private class LanguagePatCache : CacheListAbs<LanguagePat>
@@ -203,7 +202,7 @@ public class LanguagePats
 
     public static List<LanguagePat> GetListPrefTranslationsFromDb(List<string> listStrPrefNames, List<string> listLanguages)
     {
-        if (listStrPrefNames.IsNullOrEmpty() || listLanguages.IsNullOrEmpty()) return new List<LanguagePat>();
+        if (listStrPrefNames.IsNullOrEmpty() || listLanguages.IsNullOrEmpty()) return [];
 
         var command = "SELECT * FROM languagepat "
                       + "WHERE PrefName IN (" + string.Join(",", listStrPrefNames.Select(x => $"'{SOut.String(x)}'")) + ") "
@@ -242,13 +241,13 @@ public class LanguagePats
 
     public static void DeleteForEFormFieldDef(long eFormFieldDefNum)
     {
-        var command = "DELETE FROM languagepat WHERE EFormFieldDefNum=" + SOut.Long(eFormFieldDefNum);
+        var command = "DELETE FROM languagepat WHERE EFormFieldDefNum=" + (eFormFieldDefNum);
         var count = Db.NonQ(command);
     }
 
     public static void Delete(long languagePatNum)
     {
-        var command = "DELETE FROM languagepat WHERE LanguagePatNum=" + SOut.Long(languagePatNum);
+        var command = "DELETE FROM languagepat WHERE LanguagePatNum=" + (languagePatNum);
         var count = Db.NonQ(command);
     }
 }

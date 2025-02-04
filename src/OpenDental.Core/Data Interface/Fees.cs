@@ -14,7 +14,7 @@ public class Fees
     public static void Update(Fee fee, Fee feeOld = null, bool doCheckFeeSchedGroups = true)
     {
         //Check if this fee is associated to a FeeSchedGroup and update the rest of the group as needed.
-        if (PrefC.GetBool(PrefName.ShowFeeSchedGroups) && doCheckFeeSchedGroups) FeeSchedGroups.UpsertGroupFees(new List<Fee> {fee});
+        if (PrefC.GetBool(PrefName.ShowFeeSchedGroups) && doCheckFeeSchedGroups) FeeSchedGroups.UpsertGroupFees([fee]);
         if (feeOld != null)
             FeeCrud.Update(fee, feeOld);
         else
@@ -23,13 +23,13 @@ public class Fees
     
     public static List<Fee> GetByClinicNum(long clinicNum)
     {
-        var command = "SELECT * FROM fee WHERE ClinicNum = " + SOut.Long(clinicNum);
+        var command = "SELECT * FROM fee WHERE ClinicNum = " + (clinicNum);
         return FeeCrud.SelectMany(command);
     }
 
     public static int GetCountByFeeSchedNum(long feeSchedNum)
     {
-        var command = "SELECT COUNT(*) FROM fee WHERE FeeSched =" + SOut.Long(feeSchedNum);
+        var command = "SELECT COUNT(*) FROM fee WHERE FeeSched =" + (feeSchedNum);
         return SIn.Int(Db.GetCount(command));
     }
 
@@ -54,16 +54,16 @@ public class Fees
         if (exactMatchForApi)
             command += @"SELECT fee.*
 				FROM fee
-				WHERE fee.CodeNum=" + SOut.Long(codeNum) + @"
-				AND fee.FeeSched=" + SOut.Long(feeSchedNum) + @"
-				AND fee.ClinicNum=" + SOut.Long(clinicNum) + @"
-				AND fee.ProvNum=" + SOut.Long(provNum) + @"
+				WHERE fee.CodeNum=" + (codeNum) + @"
+				AND fee.FeeSched=" + (feeSchedNum) + @"
+				AND fee.ClinicNum=" + (clinicNum) + @"
+				AND fee.ProvNum=" + (provNum) + @"
 				AND fee.DateEffective=" + SOut.Date(dateEffective);
         else
             command = "SELECT fee1.* FROM fee fee1 "
                       + "INNER JOIN (SELECT FeeSched, CodeNum, ClinicNum, ProvNum, MAX(DateEffective+INTERVAL 100 YEAR)-INTERVAL 100 YEAR MaxDateEffective FROM fee "
-                      + "WHERE DateEffective<=" + SOut.Date(dateEffective) + " AND FeeSched=" + SOut.Long(feeSchedNum) + " AND CodeNum=" + SOut.Long(codeNum) + " "
-                      + "AND ClinicNum=" + SOut.Long(clinicNum) + " AND ProvNum=" + SOut.Long(provNum) + " "
+                      + "WHERE DateEffective<=" + SOut.Date(dateEffective) + " AND FeeSched=" + (feeSchedNum) + " AND CodeNum=" + (codeNum) + " "
+                      + "AND ClinicNum=" + (clinicNum) + " AND ProvNum=" + (provNum) + " "
                       + "GROUP BY FeeSched, CodeNum, ClinicNum, ProvNum) fee2 "
                       + "ON fee1.CodeNum=fee2.CodeNum AND fee1.FeeSched=fee2.FeeSched AND fee1.ClinicNum=fee2.ClinicNum AND fee1.ProvNum=fee2.ProvNum "
                       + "WHERE fee1.DateEffective=fee2.MaxDateEffective";
@@ -72,8 +72,8 @@ public class Fees
         command += " UNION ALL "
                    + "SELECT fee1.* FROM fee fee1 "
                    + "INNER JOIN (SELECT FeeSched, CodeNum, ClinicNum, ProvNum, MAX(DateEffective+INTERVAL 100 YEAR)-INTERVAL 100 YEAR MaxDateEffective FROM fee "
-                   + "WHERE DateEffective<=" + SOut.Date(dateEffective) + " AND FeeSched=" + SOut.Long(feeSchedNum) + " AND CodeNum=" + SOut.Long(codeNum) + " "
-                   + "AND ClinicNum=0 AND ProvNum=" + SOut.Long(provNum) + " "
+                   + "WHERE DateEffective<=" + SOut.Date(dateEffective) + " AND FeeSched=" + (feeSchedNum) + " AND CodeNum=" + (codeNum) + " "
+                   + "AND ClinicNum=0 AND ProvNum=" + (provNum) + " "
                    + "GROUP BY FeeSched, CodeNum, ClinicNum, ProvNum) fee2 "
                    + "ON fee1.CodeNum=fee2.CodeNum AND fee1.FeeSched=fee2.FeeSched AND fee1.ClinicNum=fee2.ClinicNum AND fee1.ProvNum=fee2.ProvNum "
                    + "WHERE fee1.DateEffective=fee2.MaxDateEffective";
@@ -81,8 +81,8 @@ public class Fees
         command += " UNION ALL "
                    + "SELECT fee1.* FROM fee fee1 "
                    + "INNER JOIN (SELECT FeeSched, CodeNum, ClinicNum, ProvNum, MAX(DateEffective+INTERVAL 100 YEAR)-INTERVAL 100 YEAR MaxDateEffective FROM fee "
-                   + "WHERE DateEffective<=" + SOut.Date(dateEffective) + " AND FeeSched=" + SOut.Long(feeSchedNum) + " AND CodeNum=" + SOut.Long(codeNum) + " "
-                   + "AND ClinicNum=" + SOut.Long(clinicNum) + " AND ProvNum=0 "
+                   + "WHERE DateEffective<=" + SOut.Date(dateEffective) + " AND FeeSched=" + (feeSchedNum) + " AND CodeNum=" + (codeNum) + " "
+                   + "AND ClinicNum=" + (clinicNum) + " AND ProvNum=0 "
                    + "GROUP BY FeeSched, CodeNum, ClinicNum, ProvNum) fee2 "
                    + "ON fee1.CodeNum=fee2.CodeNum AND fee1.FeeSched=fee2.FeeSched AND fee1.ClinicNum=fee2.ClinicNum AND fee1.ProvNum=fee2.ProvNum "
                    + "WHERE fee1.DateEffective=fee2.MaxDateEffective";
@@ -90,7 +90,7 @@ public class Fees
         command += " UNION ALL "
                    + "SELECT fee1.* FROM fee fee1 "
                    + "INNER JOIN (SELECT FeeSched, CodeNum, ClinicNum, ProvNum, MAX(DateEffective+INTERVAL 100 YEAR)-INTERVAL 100 YEAR MaxDateEffective FROM fee "
-                   + "WHERE DateEffective<=" + SOut.Date(dateEffective) + " AND FeeSched=" + SOut.Long(feeSchedNum) + " AND CodeNum=" + SOut.Long(codeNum) + " "
+                   + "WHERE DateEffective<=" + SOut.Date(dateEffective) + " AND FeeSched=" + (feeSchedNum) + " AND CodeNum=" + (codeNum) + " "
                    + "AND ClinicNum=0 AND ProvNum=0 "
                    + "GROUP BY FeeSched, CodeNum, ClinicNum, ProvNum) fee2 "
                    + "ON fee1.CodeNum=fee2.CodeNum AND fee1.FeeSched=fee2.FeeSched AND fee1.ClinicNum=fee2.ClinicNum AND fee1.ProvNum=fee2.ProvNum "
@@ -144,16 +144,16 @@ public class Fees
     public static List<Fee> GetAllFeesForClinics(long codeNum, long feeSchedNum, long provNum, List<long> listClinicNums)
     {
         var command = "SELECT fee.* FROM fee "
-                      + "WHERE fee.CodeNum=" + SOut.Long(codeNum) + " "
-                      + "AND fee.FeeSched=" + SOut.Long(feeSchedNum) + " "
-                      + "AND fee.ProvNum=" + SOut.Long(provNum);
-        if (!listClinicNums.IsNullOrEmpty()) command += " AND fee.ClinicNum IN(" + string.Join(",", listClinicNums.Select(SOut.Long)) + ")";
+                      + "WHERE fee.CodeNum=" + (codeNum) + " "
+                      + "AND fee.FeeSched=" + (feeSchedNum) + " "
+                      + "AND fee.ProvNum=" + (provNum);
+        if (!listClinicNums.IsNullOrEmpty()) command += " AND fee.ClinicNum IN(" + string.Join(",", listClinicNums) + ")";
         return FeeCrud.SelectMany(command);
     }
 
     public static List<Fee> GetListForScheds(long feeSched1, long clinicNum1 = 0, long provNum1 = 0, long feeSched2 = 0, long clinicNum2 = 0, long provNum2 = 0, long feeSched3 = 0, long clinicNum3 = 0, long provNum3 = 0, DateTime dateEffective = new())
     {
-        return GetListForSchedsAndClinics(feeSched1, new List<long> {clinicNum1}, provNum1, feeSched2, new List<long> {clinicNum2}, provNum2, feeSched3, new List<long> {clinicNum3}, provNum3, dateEffective);
+        return GetListForSchedsAndClinics(feeSched1, [clinicNum1], provNum1, feeSched2, [clinicNum2], provNum2, feeSched3, [clinicNum3], provNum3, dateEffective);
     }
 
     public static List<Fee> GetListForSchedsAndClinics(long feeSched1, List<long> listClinics1 = null, long provNum1 = 0, long feeSched2 = 0, List<long> listClinics2 = null, long provNum2 = 0, long feeSched3 = 0, List<long> listClinics3 = null, long provNum3 = 0, DateTime dateEffective = new())
@@ -163,8 +163,8 @@ public class Fees
         if (!listClinics1.IsNullOrEmpty()) listClinicNums.AddRange(listClinics1);
         var command = "SELECT fee1.* FROM fee fee1 "
                       + "INNER JOIN (SELECT FeeSched, CodeNum, ClinicNum, ProvNum, MAX(DateEffective+INTERVAL 100 YEAR)-INTERVAL 100 YEAR MaxDateEffective FROM fee "
-                      + "WHERE DateEffective<=" + SOut.Date(dateEffective) + " AND FeeSched=" + SOut.Long(feeSched1) + " "
-                      + "AND ClinicNum IN (" + string.Join(",", listClinicNums.Select(x => SOut.Long(x))) + ") AND ProvNum=" + SOut.Long(provNum1) + " "
+                      + "WHERE DateEffective<=" + SOut.Date(dateEffective) + " AND FeeSched=" + (feeSched1) + " "
+                      + "AND ClinicNum IN (" + string.Join(",", listClinicNums.Select(x => (x))) + ") AND ProvNum=" + (provNum1) + " "
                       + "GROUP BY FeeSched, CodeNum, ClinicNum, ProvNum) fee2 "
                       + "ON fee1.CodeNum=fee2.CodeNum AND fee1.FeeSched=fee2.FeeSched AND fee1.ClinicNum=fee2.ClinicNum AND fee1.ProvNum=fee2.ProvNum "
                       + "WHERE fee1.DateEffective=fee2.MaxDateEffective";
@@ -175,8 +175,8 @@ public class Fees
             if (!listClinics2.IsNullOrEmpty()) listClinicNums.AddRange(listClinics2);
             command += " UNION SELECT fee1.* FROM fee fee1 "
                        + "INNER JOIN (SELECT FeeSched, CodeNum, ClinicNum, ProvNum, MAX(DateEffective+INTERVAL 100 YEAR)-INTERVAL 100 YEAR MaxDateEffective FROM fee "
-                       + "WHERE DateEffective<=" + SOut.Date(dateEffective) + " AND FeeSched=" + SOut.Long(feeSched2) + " "
-                       + "AND ClinicNum IN (" + string.Join(",", listClinicNums.Select(x => SOut.Long(x))) + ") AND ProvNum=" + SOut.Long(provNum2) + " "
+                       + "WHERE DateEffective<=" + SOut.Date(dateEffective) + " AND FeeSched=" + (feeSched2) + " "
+                       + "AND ClinicNum IN (" + string.Join(",", listClinicNums.Select(x => (x))) + ") AND ProvNum=" + (provNum2) + " "
                        + "GROUP BY FeeSched, CodeNum, ClinicNum, ProvNum) fee2 "
                        + "ON fee1.CodeNum=fee2.CodeNum AND fee1.FeeSched=fee2.FeeSched AND fee1.ClinicNum=fee2.ClinicNum AND fee1.ProvNum=fee2.ProvNum "
                        + "WHERE fee1.DateEffective=fee2.MaxDateEffective";
@@ -189,8 +189,8 @@ public class Fees
             if (!listClinics3.IsNullOrEmpty()) listClinicNums.AddRange(listClinics3);
             command += " UNION SELECT fee1.* FROM fee fee1 "
                        + "INNER JOIN (SELECT FeeSched, CodeNum, ClinicNum, ProvNum, MAX(DateEffective+INTERVAL 100 YEAR)-INTERVAL 100 YEAR MaxDateEffective FROM fee "
-                       + "WHERE DateEffective<=" + SOut.Date(dateEffective) + " AND FeeSched=" + SOut.Long(feeSched3) + " "
-                       + "AND ClinicNum IN (" + string.Join(",", listClinicNums.Select(x => SOut.Long(x))) + ") AND ProvNum=" + SOut.Long(provNum3) + " "
+                       + "WHERE DateEffective<=" + SOut.Date(dateEffective) + " AND FeeSched=" + (feeSched3) + " "
+                       + "AND ClinicNum IN (" + string.Join(",", listClinicNums.Select(x => (x))) + ") AND ProvNum=" + (provNum3) + " "
                        + "GROUP BY FeeSched, CodeNum, ClinicNum, ProvNum) fee2 "
                        + "ON fee1.CodeNum=fee2.CodeNum AND fee1.FeeSched=fee2.FeeSched AND fee1.ClinicNum=fee2.ClinicNum AND fee1.ProvNum=fee2.ProvNum "
                        + "WHERE fee1.DateEffective=fee2.MaxDateEffective";
@@ -212,7 +212,7 @@ public class Fees
         //In that case, it's common to leave listProvNumsTreat null because we clearly do not have any of those providers set yet.
 
         if (dateEffective == DateTime.MinValue) dateEffective = DateTime.Today;
-        if (listProcedureCodes == null) return new List<Fee>();
+        if (listProcedureCodes == null) return [];
         var listCodeNumsOut = new List<long>();
         for (var i = 0; i < listProcedureCodes.Count; i++)
         {
@@ -252,41 +252,41 @@ public class Fees
         var listFeeScheds = new List<long>();
         //Add feesched for first provider (See Claims.CalculateAndUpdate)---------------------------------------------------------------------
         var provFirst = Providers.GetFirst();
-        if (provFirst != null && provFirst.FeeSched != 0 && !listFeeScheds.Contains(provFirst.FeeSched)) listFeeScheds.Add(provFirst.FeeSched);
+        if (provFirst != null && provFirst.FeeScheduleId.HasValue && !listFeeScheds.Contains(provFirst.FeeScheduleId.Value)) listFeeScheds.Add(provFirst.FeeScheduleId.Value);
         //Add feesched for PracticeDefaultProv------------------------------------------------------------------------------------------------
-        var provPracticeDefault = Providers.GetProv(PrefC.GetLong(PrefName.PracticeDefaultProv));
-        if (provPracticeDefault != null && provPracticeDefault.FeeSched != 0 && !listFeeScheds.Contains(provPracticeDefault.FeeSched)) listFeeScheds.Add(provPracticeDefault.FeeSched);
+        var provPracticeDefault = Providers.GetById(PrefC.GetLong(PrefName.PracticeDefaultProv));
+        if (provPracticeDefault != null && provPracticeDefault.FeeScheduleId.HasValue && !listFeeScheds.Contains(provPracticeDefault.FeeScheduleId.Value)) listFeeScheds.Add(provPracticeDefault.FeeScheduleId.Value);
         //Add feescheds for all treating providers---------------------------------------------------------------------------------------------
         if (listProvNumsTreat != null)
             for (var i = 0; i < listProvNumsTreat.Count; i++)
             {
-                var provTreat = Providers.GetProv(listProvNumsTreat[i]);
-                if (provTreat != null && provTreat.FeeSched != 0 && !listFeeScheds.Contains(provTreat.FeeSched)) listFeeScheds.Add(provTreat.FeeSched); //treating provs fee scheds
+                var provTreat = Providers.GetById(listProvNumsTreat[i]);
+                if (provTreat != null && provTreat.FeeScheduleId.HasValue && !listFeeScheds.Contains(provTreat.FeeScheduleId.Value)) listFeeScheds.Add(provTreat.FeeScheduleId.Value); //treating provs fee scheds
             }
 
         //Add feescheds for the patient's primary and secondary providers----------------------------------------------------------------------
-        var providerPatPri = Providers.GetProv(patPriProv);
-        if (providerPatPri != null && providerPatPri.FeeSched != 0 && !listFeeScheds.Contains(providerPatPri.FeeSched)) listFeeScheds.Add(providerPatPri.FeeSched);
-        var providerPatSec = Providers.GetProv(patSecProv);
-        if (providerPatSec != null && providerPatSec.FeeSched != 0 && !listFeeScheds.Contains(providerPatSec.FeeSched)) listFeeScheds.Add(providerPatSec.FeeSched);
+        var providerPatPri = Providers.GetById(patPriProv);
+        if (providerPatPri != null && providerPatPri.FeeScheduleId.HasValue && !listFeeScheds.Contains(providerPatPri.FeeScheduleId.Value)) listFeeScheds.Add(providerPatPri.FeeScheduleId.Value);
+        var providerPatSec = Providers.GetById(patSecProv);
+        if (providerPatSec != null && providerPatSec.FeeScheduleId.HasValue && !listFeeScheds.Contains(providerPatSec.FeeScheduleId.Value)) listFeeScheds.Add(providerPatSec.FeeScheduleId.Value);
         //Add feescheds for all procedurecode.ProvNumDefaults---------------------------------------------------------------------------------
         for (var i = 0; i < listProcedureCodes.Count; i++)
         {
             if (listProcedureCodes[i] == null) continue;
             var provNumDefault = listProcedureCodes[i].ProvNumDefault;
             if (provNumDefault == 0) continue;
-            var provDefault = Providers.GetProv(provNumDefault);
-            if (provDefault != null && provDefault.FeeSched != 0 && !listFeeScheds.Contains(provDefault.FeeSched)) listFeeScheds.Add(provDefault.FeeSched);
+            var provDefault = Providers.GetById(provNumDefault);
+            if (provDefault != null && provDefault.FeeScheduleId.HasValue && !listFeeScheds.Contains(provDefault.FeeScheduleId.Value)) listFeeScheds.Add(provDefault.FeeScheduleId.Value);
         }
 
         //Add feescheds for appointment providers---------------------------------------------------------------------------------------------
         if (listAppointments != null)
             for (var i = 0; i < listAppointments.Count; i++)
             {
-                var provAppt = Providers.GetProv(listAppointments[i].ProvNum);
-                if (provAppt != null && provAppt.FeeSched != 0 && !listFeeScheds.Contains(provAppt.FeeSched)) listFeeScheds.Add(provAppt.FeeSched);
-                var provApptHyg = Providers.GetProv(listAppointments[i].ProvHyg);
-                if (provApptHyg != null && provApptHyg.FeeSched != 0 && !listFeeScheds.Contains(provApptHyg.FeeSched)) listFeeScheds.Add(provApptHyg.FeeSched);
+                var provAppt = Providers.GetById(listAppointments[i].ProvNum);
+                if (provAppt != null && provAppt.FeeScheduleId.HasValue && !listFeeScheds.Contains(provAppt.FeeScheduleId.Value)) listFeeScheds.Add(provAppt.FeeScheduleId.Value);
+                var provApptHyg = Providers.GetById(listAppointments[i].ProvHyg);
+                if (provApptHyg != null && provApptHyg.FeeScheduleId.HasValue && !listFeeScheds.Contains(provApptHyg.FeeScheduleId.Value)) listFeeScheds.Add(provApptHyg.FeeScheduleId.Value);
             }
 
         //Add feesched for patient.  Rare. --------------------------------------------------------------------------------------------------
@@ -317,14 +317,14 @@ public class Fees
                 if (listClinicNums[i] != 0 && !listClinicNumsOut.Contains(listClinicNums[i]))
                     listClinicNumsOut.Add(listClinicNums[i]); //proc ClinicNums
 
-        if (listFeeScheds.Count == 0 || listProcedureCodes.Count == 0) return new List<Fee>();
+        if (listFeeScheds.Count == 0 || listProcedureCodes.Count == 0) return [];
         var command = "SELECT fee1.* FROM fee fee1 "
                       + "INNER JOIN (SELECT FeeSched, CodeNum, ClinicNum, ProvNum, MAX(DateEffective+INTERVAL 100 YEAR)-INTERVAL 100 YEAR MaxDateEffective FROM fee "
                       + "WHERE DateEffective<=" + SOut.Date(dateEffective) + " AND ClinicNum IN (0";
-        if (listClinicNumsOut.Count != 0) command += "," + string.Join(",", listClinicNumsOut.Select(x => SOut.Long(x)));
+        if (listClinicNumsOut.Count != 0) command += "," + string.Join(",", listClinicNumsOut.Select(x => (x)));
         command += ")";
-        if (listFeeScheds.Count != 0) command += " AND FeeSched IN(" + string.Join(",", listFeeScheds.Select(x => SOut.Long(x))) + ")";
-        if (listCodeNumsOut.Count != 0) command += " AND CodeNum IN(" + string.Join(",", listCodeNumsOut.Select(x => SOut.Long(x))) + ")";
+        if (listFeeScheds.Count != 0) command += " AND FeeSched IN(" + string.Join(",", listFeeScheds.Select(x => (x))) + ")";
+        if (listCodeNumsOut.Count != 0) command += " AND CodeNum IN(" + string.Join(",", listCodeNumsOut.Select(x => (x))) + ")";
         command += " GROUP BY FeeSched, CodeNum, ClinicNum, ProvNum) fee2 "
                    + "ON fee1.CodeNum=fee2.CodeNum AND fee1.FeeSched=fee2.FeeSched AND fee1.ClinicNum=fee2.ClinicNum AND fee1.ProvNum=fee2.ProvNum "
                    + "WHERE fee1.DateEffective=fee2.MaxDateEffective";
@@ -336,8 +336,8 @@ public class Fees
         if (dateEffective == DateTime.MinValue) dateEffective = DateTime.Today;
         var command = "SELECT fee1.* FROM fee fee1 "
                       + "INNER JOIN (SELECT FeeSched, CodeNum, ClinicNum, ProvNum, MAX(DateEffective+INTERVAL 100 YEAR)-INTERVAL 100 YEAR MaxDateEffective FROM fee "
-                      + "WHERE DateEffective<=" + SOut.Date(dateEffective) + " AND FeeSched=" + SOut.Long(feeSched) + " "
-                      + "AND ClinicNum=" + SOut.Long(clinicNum) + " AND ProvNum=" + SOut.Long(provNum) + " "
+                      + "WHERE DateEffective<=" + SOut.Date(dateEffective) + " AND FeeSched=" + (feeSched) + " "
+                      + "AND ClinicNum=" + (clinicNum) + " AND ProvNum=" + (provNum) + " "
                       + "GROUP BY FeeSched, CodeNum, ClinicNum, ProvNum) fee2 "
                       + "ON fee1.CodeNum=fee2.CodeNum AND fee1.FeeSched=fee2.FeeSched AND fee1.ClinicNum=fee2.ClinicNum AND fee1.ProvNum=fee2.ProvNum "
                       + "WHERE fee1.DateEffective=fee2.MaxDateEffective";
@@ -346,29 +346,29 @@ public class Fees
 
     public static List<Fee> GetListExact(long feeSched, List<long> listClinicNums, long provNum, DateTime dateEffective = new())
     {
-        if (listClinicNums.IsNullOrEmpty()) return new List<Fee>();
+        if (listClinicNums.IsNullOrEmpty()) return [];
 
         if (dateEffective == DateTime.MinValue) dateEffective = DateTime.Today;
         var command = "SELECT fee1.* FROM fee fee1 "
                       + "INNER JOIN (SELECT FeeSched, CodeNum, ClinicNum, ProvNum, MAX(DateEffective+INTERVAL 100 YEAR)-INTERVAL 100 YEAR MaxDateEffective FROM fee "
-                      + "WHERE DateEffective<=" + SOut.Date(dateEffective) + " AND FeeSched=" + SOut.Long(feeSched) + " "
-                      + "AND ClinicNum IN (" + string.Join(",", listClinicNums.Select(x => SOut.Long(x))) + ") AND ProvNum=" + SOut.Long(provNum) + " "
+                      + "WHERE DateEffective<=" + SOut.Date(dateEffective) + " AND FeeSched=" + (feeSched) + " "
+                      + "AND ClinicNum IN (" + string.Join(",", listClinicNums.Select(x => (x))) + ") AND ProvNum=" + (provNum) + " "
                       + "GROUP BY FeeSched, CodeNum, ClinicNum, ProvNum) fee2 "
                       + "ON fee1.CodeNum=fee2.CodeNum AND fee1.FeeSched=fee2.FeeSched AND fee1.ClinicNum=fee2.ClinicNum AND fee1.ProvNum=fee2.ProvNum "
                       + "WHERE fee1.DateEffective=fee2.MaxDateEffective";
         return FeeCrud.SelectMany(command);
     }
 
-    public static bool SynchList(List<Fee> listFeesNew, List<Fee> listFeesDb, bool doCheckFeeSchedGroups = true)
+    public static void SynchList(List<Fee> listFeesNew, List<Fee> listFeesDb, bool doCheckFeeSchedGroups = true)
     {
         if (PrefC.GetBool(PrefName.ShowFeeSchedGroups) && doCheckFeeSchedGroups) FeeSchedGroups.SyncGroupFees(listFeesNew, listFeesDb);
-        return FeeCrud.Sync(listFeesNew, listFeesDb, Security.CurUser.UserNum);
+        FeeCrud.Sync(listFeesNew, listFeesDb, Security.CurUser.UserNum);
     }
 
     public static List<Fee> GetFeesForCode(long codeNum, List<long> listClinicNums = null)
     {
-        var command = "SELECT * FROM fee WHERE CodeNum=" + SOut.Long(codeNum) + " ";
-        if (listClinicNums != null && listClinicNums.Count > 0) command += "AND ClinicNum IN(" + string.Join(",", listClinicNums.Select(x => SOut.Long(x))) + ")";
+        var command = "SELECT * FROM fee WHERE CodeNum=" + (codeNum) + " ";
+        if (listClinicNums != null && listClinicNums.Count > 0) command += "AND ClinicNum IN(" + string.Join(",", listClinicNums.Select(x => (x))) + ")";
         //ordering was being done in the form. Easier to do it here.
         command += " ORDER BY ClinicNum,ProvNum";
         return FeeCrud.SelectMany(command);
@@ -376,7 +376,7 @@ public class Fees
 
     public static List<Fee> GetFeesForCodeNoOverrides(long codeNum)
     {
-        var command = "SELECT * FROM fee WHERE CodeNum=" + SOut.Long(codeNum) + " "
+        var command = "SELECT * FROM fee WHERE CodeNum=" + (codeNum) + " "
                       + "AND ClinicNum=0 AND ProvNum=0";
         return FeeCrud.SelectMany(command);
     }
@@ -402,12 +402,12 @@ public class Fees
         return FeeCrud.SelectMany(command);
     }
 
-    public static long Insert(Fee fee, bool doCheckFeeSchedGroups = true)
+    public static void Insert(Fee fee, bool doCheckFeeSchedGroups = true)
     {
         //Security.CurUser.UserNum gets set on MT by the DtoProcessor so it matches the user from the client WS.
         fee.SecUserNumEntry = Security.CurUser.UserNum;
-        if (PrefC.GetBool(PrefName.ShowFeeSchedGroups) && doCheckFeeSchedGroups) FeeSchedGroups.UpsertGroupFees(new List<Fee> {fee});
-        return FeeCrud.Insert(fee);
+        if (PrefC.GetBool(PrefName.ShowFeeSchedGroups) && doCheckFeeSchedGroups) FeeSchedGroups.UpsertGroupFees([fee]);
+        FeeCrud.Insert(fee);
     }
 
     public static void InsertMany(List<Fee> listFees, bool doCheckFeeSchedGroups = true)
@@ -425,7 +425,7 @@ public class Fees
         if (PrefC.GetBool(PrefName.ShowFeeSchedGroups) && doCheckFeeSchedGroups)
             //If this fee isn't in a group don't bother checking.
             if (FeeSchedGroups.GetOneForFeeSchedAndClinic(fee.FeeSched, fee.ClinicNum) != null)
-                FeeSchedGroups.DeleteGroupFees(new List<long> {fee.FeeNum});
+                FeeSchedGroups.DeleteGroupFees([fee.FeeNum]);
 
         Delete(fee.FeeNum);
     }
@@ -450,7 +450,7 @@ public class Fees
     public static void DeleteFees(long feeSched, long clinicNum, long provNum, DateTime dateEffective = new())
     {
         var command = "DELETE FROM fee WHERE "
-                      + "FeeSched=" + SOut.Long(feeSched) + " AND ClinicNum=" + SOut.Long(clinicNum) + " AND ProvNum=" + SOut.Long(provNum);
+                      + "FeeSched=" + (feeSched) + " AND ClinicNum=" + (clinicNum) + " AND ProvNum=" + (provNum);
         if (dateEffective != DateTime.MinValue) command += " AND DateEffective<=" + SOut.Date(dateEffective);
         Db.NonQ(command);
     }
@@ -511,8 +511,8 @@ public class Fees
 
     public static bool CheckForDuplicate(Fee fee, DateTime dateEffective)
     {
-        var command = "SELECT COUNT(*) FROM fee WHERE FeeNum!=" + SOut.Long(fee.FeeNum) + " AND FeeSched=" + SOut.Long(fee.FeeSched) + " AND CodeNum=" + SOut.Long(fee.CodeNum)
-                      + " AND ClinicNum=" + SOut.Long(fee.ClinicNum) + " AND ProvNum=" + SOut.Long(fee.ProvNum) + " AND DateEffective=" + SOut.Date(dateEffective);
+        var command = "SELECT COUNT(*) FROM fee WHERE FeeNum!=" + (fee.FeeNum) + " AND FeeSched=" + (fee.FeeSched) + " AND CodeNum=" + (fee.CodeNum)
+                      + " AND ClinicNum=" + (fee.ClinicNum) + " AND ProvNum=" + (fee.ProvNum) + " AND DateEffective=" + SOut.Date(dateEffective);
         if (Db.GetLong(command) > 0) return true;
         return false;
     }

@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Drawing;
-using System.Data;
 using System.Linq;
 using System.Text;
 using System.Windows.Forms;
@@ -19,7 +17,7 @@ namespace OpenDental;
 ///Since users are used to seeing text message threads on cell phones, this control will be intuitive to users.</summary>
 public partial class SmsThreadView:UserControl {
 
-	public LayoutManagerForms LayoutManager=new LayoutManagerForms();
+	
 	private List<SmsThreadMessage> _listSmsThreadMessages=null;
 	///<summary>Keeps track of what page we're on.</summary>
 	private int _smsThreadPage=1;
@@ -65,12 +63,12 @@ public partial class SmsThreadView:UserControl {
 		panelScroll.Size=new Size(Width,Height-panelScroll.Location.Y);
 		panelScroll.Anchor=AnchorStyles.Left | AnchorStyles.Right | AnchorStyles.Top | AnchorStyles.Bottom;
 		panelScroll.AutoScroll=true;
-		LayoutManagerForms.Add(panelScroll,this);
+		Controls.Add(panelScroll);
 		Invalidate();
 		if(_listSmsThreadMessages==null || _listSmsThreadMessages.Count<1) {
 			listControls.ForEach(x => x.Dispose());
 			panelNavigation.Visible=false;
-			LayoutManagerForms.MoveLocation(panelScroll,new Point(0,0));
+			panelScroll.Location = new Point(0,0);
 			return;
 		}
 		var bodyWidth=GetBodyWidth();
@@ -94,7 +92,7 @@ public partial class SmsThreadView:UserControl {
 			}
 		}
 		foreach(var control in listControls) {
-			LayoutManagerForms.Add(control,panelScroll);
+			panelScroll.Controls.Add(control);
 		}
 		//Find last sms sent to mobile
 		var smsThreadMessageLastSent=_listSmsThreadToDisplay.FindAll(x => !x.IsAlignedLeft).LastOrDefault();
@@ -338,7 +336,7 @@ public partial class SmsThreadView:UserControl {
 		//Control name never changes once set on a control above.
 		var existingControl=panelScroll.Controls.Cast<Control>().FirstOrDefault(x => x.Name==control.Name);
 		if(existingControl==null) {
-			LayoutManagerForms.Add(control,panelScroll);
+			panelScroll.Controls.Add(control);
 			return control;
 		}
 		//The properties updated here must match any properties which can change from their original values above.

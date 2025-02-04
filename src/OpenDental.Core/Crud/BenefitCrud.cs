@@ -17,22 +17,23 @@ public class BenefitCrud
     public static List<Benefit> TableToList(DataTable table)
     {
         var retVal = new List<Benefit>();
-        Benefit benefit;
         foreach (DataRow row in table.Rows)
         {
-            benefit = new Benefit();
-            benefit.BenefitNum = SIn.Long(row["BenefitNum"].ToString());
-            benefit.PlanNum = SIn.Long(row["PlanNum"].ToString());
-            benefit.PatPlanNum = SIn.Long(row["PatPlanNum"].ToString());
-            benefit.CovCatNum = SIn.Long(row["CovCatNum"].ToString());
-            benefit.BenefitType = (InsBenefitType) SIn.Int(row["BenefitType"].ToString());
-            benefit.Percent = SIn.Int(row["Percent"].ToString());
-            benefit.MonetaryAmt = SIn.Double(row["MonetaryAmt"].ToString());
-            benefit.TimePeriod = (BenefitTimePeriod) SIn.Int(row["TimePeriod"].ToString());
-            benefit.QuantityQualifier = (BenefitQuantity) SIn.Int(row["QuantityQualifier"].ToString());
-            benefit.Quantity = SIn.Byte(row["Quantity"].ToString());
-            benefit.CodeNum = SIn.Long(row["CodeNum"].ToString());
-            benefit.CoverageLevel = (BenefitCoverageLevel) SIn.Int(row["CoverageLevel"].ToString());
+            var benefit = new Benefit
+            {
+                BenefitNum = SIn.Long(row["BenefitNum"].ToString()),
+                PlanNum = SIn.Long(row["PlanNum"].ToString()),
+                PatPlanNum = SIn.Long(row["PatPlanNum"].ToString()),
+                CovCatNum = SIn.Long(row["CovCatNum"].ToString()),
+                BenefitType = (InsBenefitType) SIn.Int(row["BenefitType"].ToString()),
+                Percent = SIn.Int(row["Percent"].ToString()),
+                MonetaryAmt = SIn.Double(row["MonetaryAmt"].ToString()),
+                TimePeriod = (BenefitTimePeriod) SIn.Int(row["TimePeriod"].ToString()),
+                QuantityQualifier = (BenefitQuantity) SIn.Int(row["QuantityQualifier"].ToString()),
+                Quantity = SIn.Byte(row["Quantity"].ToString()),
+                CodeNum = SIn.Long(row["CodeNum"].ToString()),
+                CoverageLevel = (BenefitCoverageLevel) SIn.Int(row["CoverageLevel"].ToString())
+            };
             SIn.DateTime(row["SecDateTEntry"].ToString());
             SIn.DateTime(row["SecDateTEdit"].ToString());
             benefit.CodeGroupNum = SIn.Long(row["CodeGroupNum"].ToString());
@@ -43,7 +44,7 @@ public class BenefitCrud
         return retVal;
     }
 
-    public static long Insert(Benefit benefit)
+    public static void Insert(Benefit benefit)
     {
         var command = "INSERT INTO benefit (";
 
@@ -68,7 +69,6 @@ public class BenefitCrud
         {
             benefit.BenefitNum = Db.NonQ(command, true, "BenefitNum", "benefit");
         }
-        return benefit.BenefitNum;
     }
 
     public static void Update(Benefit benefit, Benefit oldBenefit)

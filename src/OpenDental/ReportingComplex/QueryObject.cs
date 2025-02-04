@@ -97,7 +97,9 @@ public class QueryObject : ReportObject
         ODEvent.Fire(ODEventType.ReportComplex, "Adding Column To Table...");
 
         var grfx = Graphics.FromImage(new Bitmap(1, 1));
+        
         ArrDataFields.Add(dataField);
+        
         font ??= new Font("Tahoma", 9);
 
         var fontHeader = new Font(font.FontFamily, font.Size - 1, FontStyle.Bold);
@@ -118,7 +120,7 @@ public class QueryObject : ReportObject
         }
 
         QueryWidth += width;
-        //add textobject for column header
+        
         var sizeHeader = new Size((int) grfx.MeasureString(dataField, fontHeader, (int) (width / grfx.DpiX * 100 + 2)).Width, (int) grfx.MeasureString(dataField, fontHeader, (int) (width / grfx.DpiY * 100 + 2)).Height);
         var sizeDetail = new Size((int) grfx.MeasureString(dataField, font, (int) (width / grfx.DpiX * 100 + 2)).Width, (int) grfx.MeasureString(dataField, font, (int) (width / grfx.DpiY * 100 + 2)).Height);
         var sizeFooter = new Size((int) grfx.MeasureString(dataField, fontFooter, (int) (width / grfx.DpiX * 100 + 2)).Width, (int) grfx.MeasureString(dataField, fontFooter, (int) (width / grfx.DpiY * 100 + 2)).Height);
@@ -165,12 +167,11 @@ public class QueryObject : ReportObject
         font ??= new Font("Tahoma", 8, FontStyle.Bold);
 
         var location = GetObjectByName(columnName + "Header").Location;
-        var labelSize = new Size((int) (grfx.MeasureString(staticText, font).Width / grfx.DpiX * 100 + 2)
-            , (int) (grfx.MeasureString(staticText, font).Height / grfx.DpiY * 100 + 2));
+        var labelSize = new Size((int) (grfx.MeasureString(staticText, font).Width / grfx.DpiX * 100 + 2), (int) (grfx.MeasureString(staticText, font).Height / grfx.DpiY * 100 + 2));
         var i = ReportObjects.Add(new ReportObject(columnName + "GroupSummaryLabel", AreaSectionType.GroupFooter, new Point(location.X - labelSize.Width, 0), labelSize, staticText, font, ContentAlignment.MiddleRight, offSetX, offSetY));
         ReportObjects[i].DataField = dataFieldName;
         ReportObjects[i].SummaryGroups = queryGroupValues;
-        Sections[AreaSectionType.GroupFooter].Height += (int) ((grfx.MeasureString(staticText, font)).Height / grfx.DpiY * 100 + 2) + offSetY;
+        Sections[AreaSectionType.GroupFooter].Height += (int) (grfx.MeasureString(staticText, font).Height / grfx.DpiY * 100 + 2) + offSetY;
         i = ReportObjects.Add(new ReportObject(columnName + "GroupSummaryText", AreaSectionType.GroupFooter, location, new Size(0, 0), color, summaryOperation, columnName, font, ContentAlignment.MiddleLeft, dataFieldName, offSetX, offSetY, formatString));
         ReportObjects[i].SummaryGroups = queryGroupValues;
         grfx.Dispose();
@@ -286,13 +287,13 @@ public class QueryObject : ReportObject
                 var curCellHeight = 0;
                 if (isWrapping)
                 {
-                    curCellHeight = (int) ((g.MeasureString(displayText, reportObject.Font, (int) (reportObject.Size.Width),
-                        GetStringFormatAlignment(reportObject.ContentAlignment))).Height * (100f / 96f)); //due to pixel factor
+                    curCellHeight = (int) (g.MeasureString(displayText, reportObject.Font, (int) reportObject.Size.Width,
+                        GetStringFormatAlignment(reportObject.ContentAlignment)).Height * (100f / 96f)); //due to pixel factor
                 }
                 else
                 {
-                    curCellHeight = (int) ((g.MeasureString(displayText, reportObject.Font, 0,
-                        GetStringFormatAlignment(reportObject.ContentAlignment))).Height * (100f / 96f)); //due to pixel factor
+                    curCellHeight = (int) (g.MeasureString(displayText, reportObject.Font, 0,
+                        GetStringFormatAlignment(reportObject.ContentAlignment)).Height * (100f / 96f)); //due to pixel factor
                 }
 
                 if (curCellHeight > rowHeight)
@@ -501,7 +502,7 @@ public class QueryObject : ReportObject
         {
             try
             {
-                ReportTable = ReportsComplex.GetTable(_stringQuery);
+                ReportTable = DataCore.GetTable(_stringQuery);
             }
             catch (Exception)
             {

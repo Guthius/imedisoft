@@ -1,33 +1,20 @@
 #region using
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Data;
 using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Imaging;
-using System.Drawing.Design;
-using System.Drawing.Text;
 using System.Drawing.Drawing2D;
 using System.Drawing.Printing;
 using System.IO;
-using System.Net;
-using System.Resources;
-using System.Runtime.InteropServices;
-using System.Security.Cryptography;
-using System.Text;
 using System.Threading;
 using System.Windows.Forms;
 using OpenDental.UI;
 using OpenDentBusiness;
-using Tao.OpenGl;
 using CodeBase;
 using xImageDeviceManager;
-using System.Text.RegularExpressions;
 using System.Linq;
-using OpenDental.Bridges;
-using OpenDental.Thinfinity;
 using ImagingDeviceManager;
 using CodeBase.Controls;
 using DataConnectionBase;
@@ -42,7 +29,7 @@ namespace OpenDental;
 
 public partial class ControlImagesOld:System.Windows.Forms.UserControl {
 	#region Fields - Public
-	public LayoutManagerForms LayoutManager=new LayoutManagerForms();
+	
 	#endregion Fields - Public
 
 	#region Fields - Private
@@ -56,8 +43,7 @@ public partial class ControlImagesOld:System.Windows.Forms.UserControl {
 	private bool[] _boolArrayIdxsFlaggedForUpdate=null;
 	///<summary>If this is not zero, then this indicates a different mode special for claimpayment.</summary>
 	private long _claimPaymentNum;
-	///<summary>Tracker to keep track of how many pages are loaded on our webBrowser object.</summary>
-	private int _countWebBrowserLoads=0;
+
 	DateTime _dateTimeMouseMoved=new DateTime(1,1,1);
 	//private List<Def> DefListExpandedCats=new List<Def>();
 	///<summary>List of documents within the currently selected mount (if any).</summary>
@@ -69,8 +55,7 @@ public partial class ControlImagesOld:System.Windows.Forms.UserControl {
 	///<summary>Used as a thread-safe communication device between the main and worker threads.</summary>
 	private EventWaitHandle _eventWaitHandle=new EventWaitHandle(false,EventResetMode.AutoReset);
 	private Family _family;
-	///<summary>Used to flag when filling tree and also ImagesModuleTreeIsCollapsed=2. This lets us ignore the expand and collapse commands temporarily.</summary>
-	private bool _isFillingTreeWithPref;
+
 	///<summary>The idxSelectedInMount when it is copied.</summary>
 	private int _idxDocToCopy=-1;
 	///<summary>The index of the currently selected item within a mount.</summary>
@@ -87,13 +72,10 @@ public partial class ControlImagesOld:System.Windows.Forms.UserControl {
 	private int[] _intArrayHeightsImagesCur=new int[1];
 	///<summary>Starts out as false. It's only used when repainting the toolbar, not to test mode.</summary>
 	private bool _isCropMode;
-	/// <summary>Keep track of if image module is being refreshed so we know when to query the images again and refill the list.</summary>
-	private bool _isFillingXVWebFromThread=true;
+
 	private bool _isMouseDown;
 	///<summary>Set to true when the image in the picture box is currently being translated.</summary>
 	private bool _isDragging;
-	/// <summary>Copy of the image information that was recieved. Needed so we can refresh the image module and not have to query again.</summary>
-	private List<ApteryxImage>_listApteryxImagesDownload;
 	//<summary>A list of primary keys (defNums) of the ImageNodeIds that should be expanded when the image module is loaded.</summary>
 	private List<long> _listDefNumsExpandedCats= [];
 	///<summary>If a mount is currently selected, this is the list of the mount items on it.</summary>
@@ -110,7 +92,6 @@ public partial class ControlImagesOld:System.Windows.Forms.UserControl {
 	private string _patFolder;
 	///<summary>Prevents too many security logs for this patient.</summary>
 	private long _patNumLastSecurityLog;
-	private long _patNumPrev=0;
 	///<summary>When dragging on Picturebox, this is the starting point in PictureBox coordinates.</summary>
 	private Point _pointMouseDown;
 	///<summary>Used as a basis for calculating image translations.</summary>
@@ -122,12 +103,8 @@ public partial class ControlImagesOld:System.Windows.Forms.UserControl {
 	private Control _sigBoxTopaz;
 	///<summary>Used for performing an xRay image capture on an imaging device.</summary>
 	private SuniDeviceControl _suniDeviceControl=null;
-	///<summary>Used to download images from Apterxy</summary>
-	private ODThread _threadImageRequest;
 	///<summary>Thread to handle updating the graphical image to the screen when the current document is an image.</summary>
 	private Thread _threadImageUpdate=null;
-	///<summary>Tracks the last user to load ContrImages</summary>
-	private long _userNumPrev=-1;
 	///<summary>Displays PDFs.</summary>
 	private ODWebView2 _odWebView2=null;
 	///<summary>The location of the file that <see cref="_odWebView2" /> has navigated to.</summary>
@@ -182,7 +159,6 @@ public partial class ControlImagesOld:System.Windows.Forms.UserControl {
 		this._suniDeviceControl.OnCaptureReady+=new System.EventHandler(this.CaptureReady);
 		this._suniDeviceControl.OnCaptureComplete+=new System.EventHandler(this.CaptureComplete);
 		this._suniDeviceControl.OnCaptureFinalize+=new System.EventHandler(this.CaptureFinalize);
-		Logger.LogToPath();
 	}
 	#endregion Constructor
 
@@ -312,18 +288,11 @@ public partial class ControlImagesOld:System.Windows.Forms.UserControl {
 			//Specifically, multi-page faxes can be viewed more easily by one of our customers using the fax
 			//viewer. On Unix systems, it is imagined that an equivalent viewer will launch to allow the image
 			//to be viewed.
-			if(true) {
-				if(false) {
-					ThinfinityUtils.HandleFile(fullFilePath);
-				} 
-				else {
-					try {
-						Process.Start(fullFilePath);
-					} 
-					catch(Exception ex) {
-						ODMessageBox.Show(ex.Message);
-					}
-				}
+			try {
+				Process.Start(fullFilePath);
+			} 
+			catch(Exception ex) {
+				ODMessageBox.Show(ex.Message);
 			}
 		}
 	}
@@ -830,50 +799,6 @@ public partial class ControlImagesOld:System.Windows.Forms.UserControl {
 		e.HasMorePages=false;
 	}
 
-	private void menuMountItem_Opening(object sender,CancelEventArgs e) {
-		if(treeMain.SelectedNode==null) {
-			e.Cancel=true;
-			return;
-		}
-		var nodeIdTag=(NodeIdTag)treeMain.SelectedNode.Tag;
-		if(nodeIdTag.NodeType!=EnumNodeType.Mount) {
-			e.Cancel=true;
-			return;//No mount is currently selected so cancel the menu.
-		}
-		_idxSelectedInMount=GetIdxAtMountLocation(_pointMouseDown);
-		if(_idxSelectedInMount<0) {
-			e.Cancel=true;
-			return;//No mount item was clicked on, so cancel the menu.
-		}
-		System.Windows.IDataObject clipboard=null;
-		try {
-			clipboard=System.Windows.Clipboard.GetDataObject();//System.Windows.Forms.Clipboard fails for Thinfinity
-		}
-		catch(Exception ex) {
-			clipboard=null;
-		}
-		menuMountItem.Items.Clear();
-		//Only show the copy option in the mount menu if the item in the mount selected contains an image.
-		if(_documentArrayInMount[_idxSelectedInMount]!=null) {
-			menuMountItem.Items.Add("Copy",null,new System.EventHandler(MountMenuCopy_Click));
-		}
-		//Only show the paste option in the menu if an item is currently on the clipboard.
-		if(clipboard != null && clipboard.GetDataPresent(DataFormats.Bitmap)) {
-			menuMountItem.Items.Add("Paste",null,new System.EventHandler(MountMenuPaste_Click));
-		}
-		//Only show the swap item in the menu if the item on the clipboard exists in the current mount.
-		if(_idxDocToCopy>=0 && _documentArrayInMount[_idxSelectedInMount]!=null && _idxSelectedInMount!=_idxDocToCopy) {
-			menuMountItem.Items.Add("Swap",null,new System.EventHandler(MountMenuSwap_Click));
-		}
-		//Cancel the menu if no items have been added into it.
-		if(menuMountItem.Items.Count<1) {
-			e.Cancel=true;
-			return;
-		}
-		//Refresh the mount image, since the IdxSelectedInMount may have changed.
-		InvalidateSettings(ImageSettingFlags.ALL,false);
-	}
-
 	private void MountMenuCopy_Click(object sender,EventArgs e) {
 		ToolBarCopy_Click();
 		_idxDocToCopy=_idxSelectedInMount;
@@ -1029,9 +954,7 @@ public partial class ControlImagesOld:System.Windows.Forms.UserControl {
 		///<summary>PriKey is MountNum</summary>
 		Mount,
 		///<summary>PriKey is EobAttachNum</summary>
-		Eob,
-		///<summary>DEPRECATED. PriKey is 0. The ImgDownload field will have store any information needed.</summary>
-		ApteryxImage,
+		Eob
 	}
 	#endregion Enums
 
@@ -1224,7 +1147,7 @@ public partial class ControlImagesOld:System.Windows.Forms.UserControl {
 			_odWebView2=new ODWebView2();//Include a webBrowser object for loading .pdf files.
 			_odWebView2.Visible=false;
 			_odWebView2.Bounds=pictureBoxMain.Bounds;
-			LayoutManagerForms.Add(_odWebView2,this);
+			Controls.Add(_odWebView2);
 		}
 		contextTree.MenuItems.Clear();
 		contextTree.MenuItems.Add("Print",new System.EventHandler(menuTree_Click));
@@ -1288,7 +1211,7 @@ public partial class ControlImagesOld:System.Windows.Forms.UserControl {
 			button=new ODToolBarButton(Lan.g(this,"Templates"),-1,"","Forms");
 			button.Style=ODToolBarButtonStyle.DropDownButton;
 			menuForms=new ContextMenu();
-			var formDir=FileAtoZ.CombinePaths(ImageStore.GetDataFolder(),"Forms");
+			var formDir=Path.Combine(ImageStore.GetDataFolder(),"Forms");
 			if(Directory.Exists(formDir)) {
 				var dirInfo=new DirectoryInfo(formDir);
 				var fileInfos=dirInfo.GetFiles();
@@ -1480,9 +1403,6 @@ public partial class ControlImagesOld:System.Windows.Forms.UserControl {
 		else if(nodeIdTag.NodeType==EnumNodeType.Eob) {
 			var eob=EobAttaches.GetOne(nodeIdTag.PriKey);
 			Action actionCloseDownloadProgress=null;
-			if(false) {
-				actionCloseDownloadProgress=ODProgress.Show(startingMessage:Lan.g("ContrImages","Downloading..."));
-			}
 			try {
 				_bitmapArrayRaw=ImageStore.OpenImagesEob(eob);
 				actionCloseDownloadProgress?.Invoke();
@@ -1517,9 +1437,6 @@ public partial class ControlImagesOld:System.Windows.Forms.UserControl {
 			}
 			_idxSelectedInMount=0;
 			Action actionCloseDownloadProgress=null;
-			if(false) {
-				actionCloseDownloadProgress=ODProgress.Show(startingMessage:Lan.g("ContrImages","Downloading..."));
-			}
 			//ImagesCur contains BitMaps of selected images if they are found.  ImagesCur is used to display images in the main window in a later method.
 			//PDF files will always return null.
 			var listDocs=new List<Document> { _documentShowing };
@@ -1556,7 +1473,7 @@ public partial class ControlImagesOld:System.Windows.Forms.UserControl {
 		else if(nodeIdTag.NodeType==EnumNodeType.Mount) {
 			//not supported here
 		}
-		if(nodeIdTag.NodeType.In(EnumNodeType.Doc,EnumNodeType.Mount,EnumNodeType.Eob,EnumNodeType.ApteryxImage)) {
+		if(nodeIdTag.NodeType.In(EnumNodeType.Doc,EnumNodeType.Mount,EnumNodeType.Eob)) {
 			_intArrayWidthsImagesCur=new int[_bitmapArrayRaw.Length];
 			_intArrayHeightsImagesCur=new int[_bitmapArrayRaw.Length];
 			for(var i=0;i<_bitmapArrayRaw.Length;i++) {
@@ -1579,7 +1496,7 @@ public partial class ControlImagesOld:System.Windows.Forms.UserControl {
 			//	out _zoomLevel,out _zoomOverall,out _pointTranslation);
 			//RenderCurrentImage(new Document(),_bitmapShowing.Width,_bitmapShowing.Height,_zoomImage,_pointTranslation);
 		}
-		if(nodeIdTag.NodeType.In(EnumNodeType.Doc,EnumNodeType.Eob,EnumNodeType.ApteryxImage)) {
+		if(nodeIdTag.NodeType.In(EnumNodeType.Doc,EnumNodeType.Eob)) {
 			//Render the initial image within the current bounds of the picturebox (if the document is an image).
 			InvalidateSettings(ImageSettingFlags.ALL,true);
 		}
@@ -1594,10 +1511,6 @@ public partial class ControlImagesOld:System.Windows.Forms.UserControl {
 		}
 		if(ToolBarMain.Buttons["Capture"].IsTogglePushed) {
 			var nodeIdTag=(NodeIdTag)treeMain.SelectedNode.Tag;
-			if(nodeIdTag.NodeType==EnumNodeType.ApteryxImage) {
-				MsgBox.Show(this,"Cannot capture a read-only image. Please copy/paste or export/import the image you are trying to capture.");
-				return;
-			}
 			//ComputerPref computerPrefs=ComputerPrefs.GetForLocalComputer();
 			_suniDeviceControl.SensorType=ComputerPrefs.LocalComputer.SensorType;
 			_suniDeviceControl.PortNumber=ComputerPrefs.LocalComputer.SensorPort;
@@ -1683,14 +1596,14 @@ public partial class ControlImagesOld:System.Windows.Forms.UserControl {
 			bitmapCopy=ApplyDocumentSettingsToImage(Documents.GetByNum(nodeIdTag.PriKey),_bitmapShowing,
 				ImageSettingFlags.FLIP | ImageSettingFlags.ROTATE);
 		}
-		else if(nodeIdTag.NodeType.In(EnumNodeType.Eob,EnumNodeType.ApteryxImage)) {
+		else if(nodeIdTag.NodeType.In(EnumNodeType.Eob)) {
 			bitmapCopy=(Bitmap)_bitmapShowing.Clone();
 		}
 		if(bitmapCopy!=null) {
 			try {
 				System.Windows.Clipboard.SetDataObject(bitmapCopy);//System.Windows.Forms.Clipboard fails for Thinfinity
 			}
-			catch(Exception ex) {
+			catch {
 				MsgBox.Show(this,"Could not copy contents to the clipboard.  Please try again.");
 				return;
 			}
@@ -1702,13 +1615,7 @@ public partial class ControlImagesOld:System.Windows.Forms.UserControl {
 		if(_patient!=null) {
 			patNum=_patient.PatNum;
 		}
-		if(nodeIdTag.NodeType==EnumNodeType.ApteryxImage) {
-			SecurityLogs.MakeLogEntry(EnumPermType.Copy,patNum,"Patient image "+nodeIdTag.ApteryxImgDownload.AcquisitionDate.ToShortDateString()+" "
-			                                                   +nodeIdTag.ApteryxImgDownload.AdultTeeth+nodeIdTag.ApteryxImgDownload.DeciduousTeeth+" copied to clipboard");
-		}
-		else {
-			SecurityLogs.MakeLogEntry(EnumPermType.Copy,patNum,"Patient image "+Documents.GetByNum(nodeIdTag.PriKey).FileName+" copied to clipboard");
-		}
+		SecurityLogs.MakeLogEntry(EnumPermType.Copy,patNum,"Patient image "+Documents.GetByNum(nodeIdTag.PriKey).FileName+" copied to clipboard");
 		Cursor=Cursors.Default;
 	}
 
@@ -1749,7 +1656,7 @@ public partial class ControlImagesOld:System.Windows.Forms.UserControl {
 		var fileName="";
 		var dlg=new SaveFileDialog();
 		dlg.Title="Export a Document";
-		if(nodeIdTag.NodeType.In(EnumNodeType.Doc,EnumNodeType.ApteryxImage)) {
+		if(nodeIdTag.NodeType.In(EnumNodeType.Doc)) {
 			Document doc;
 			if(nodeIdTag.NodeType==EnumNodeType.Doc) {
 				doc=Documents.GetByNum(nodeIdTag.PriKey);
@@ -1852,9 +1759,6 @@ public partial class ControlImagesOld:System.Windows.Forms.UserControl {
 		if(_claimPaymentNum!=0) {//eob
 			EobAttach eob=null;
 			Action actionCloseUploadProgress=null;
-			if(false) {
-				actionCloseUploadProgress=ODProgress.Show(startingMessage:Lan.g("ContrImages","Uploading..."));
-			}
 			for(var i=0;i<fileNames.Count;i++) {
 				try {
 					eob=ImageStore.ImportEobAttach(fileNames[i],_claimPaymentNum);
@@ -1876,9 +1780,6 @@ public partial class ControlImagesOld:System.Windows.Forms.UserControl {
 		else {//regular Images module
 			Document doc=null;
 			Action actionCloseUploadProgress=null;
-			if(false) {
-				actionCloseUploadProgress=ODProgress.Show(startingMessage:Lan.g("ContrImages","Uploading..."));
-			}
 			for(var i=0;i<fileNames.Count;i++) {
 				try {
 					doc=ImageStore.Import(fileNames[i],GetCurrentCategory(),_patient);//Makes log
@@ -1927,19 +1828,7 @@ public partial class ControlImagesOld:System.Windows.Forms.UserControl {
 			//formMountEdit.ShowDialog();//Edits the MountSelected object directly and updates and changes to the database as well.
 			//FillTree(true);//Refresh tree in case description for the mount changed.}
 		}
-		if(nodeIdTag.NodeType==EnumNodeType.ApteryxImage) {
-			var doc=new Document();
-			doc.DateCreated=nodeIdTag.ApteryxImgDownload.AcquisitionDate;
-			doc.ToothNumbers=string.Join(",",nodeIdTag.ApteryxImgDownload.AdultTeeth,nodeIdTag.ApteryxImgDownload.DeciduousTeeth);
-			doc.DocCategory=GetCurrentCategory();
-			var frmDocInfo=new FrmDocInfo(_patient,doc,true);//disable ok button, they can't save anything. Image is just temp.
-			frmDocInfo.ShowDialog();
-			if(frmDocInfo.IsDialogCancel) {
-				return;
-			}
-			FillTree(false);
-		}
-		else if(nodeIdTag.NodeType==EnumNodeType.Doc) {
+		if(nodeIdTag.NodeType==EnumNodeType.Doc) {
 			//The FormDocInfo object updates the DocSelected and stores the changes in the database as well.
 			var frmDocInfo2=new FrmDocInfo(_patient,_documentShowing);
 			frmDocInfo2.ShowDialog();
@@ -1955,7 +1844,7 @@ public partial class ControlImagesOld:System.Windows.Forms.UserControl {
 		try {
 			bitmapPaste=ODClipboard.GetImage();
 		}
-		catch(Exception ex) {
+		catch {
 			MsgBox.Show(this,"Could not paste contents from the clipboard.  Please try again.");
 			return;
 		}
@@ -1964,7 +1853,7 @@ public partial class ControlImagesOld:System.Windows.Forms.UserControl {
 			try {
 				stringArrayFileNames=ODClipboard.GetFileDropList();
 			}
-			catch(Exception ex) {
+			catch {
 			}
 		}
 		var listFilePaths=stringArrayFileNames?.ToList();//Null if no files on clipboard
@@ -2068,10 +1957,6 @@ public partial class ControlImagesOld:System.Windows.Forms.UserControl {
 			string fileName=null;
 			string description=null;
 			var nodeIdTag=(NodeIdTag)treeMain.SelectedNode.Tag;
-			if(nodeIdTag.NodeType==EnumNodeType.ApteryxImage) {
-				MsgBox.Show(this,"Cannot print a read only file. Copy/paste or export/import the file for printing.");
-				return;
-			}
 			if(nodeIdTag.NodeType==EnumNodeType.Eob) {
 				fileName=EobAttaches.GetOne(nodeIdTag.PriKey).FileName;
 				description="";
@@ -2085,16 +1970,9 @@ public partial class ControlImagesOld:System.Windows.Forms.UserControl {
 				description=_documentShowing.Description;
 			}
 			if(Path.GetExtension(fileName).ToLower()==".pdf") {//Selected document is PDF, we handle differently than documents that aren't pdf.
-				if(false) {
-					ThinfinityUtils.HandleFile(_odWebView2FilePath);//This will do a PDF preview. _webBrowserDocument.ShowPrintPreviewDialog() doesn't work.
-				}
 				//Not needed for _odWebView2 as WebView2 will automatically show a print preview when printing
 			}
 			else {
-				if(/* ODEnvironment.IsCloudServer */ false) {
-					PrinterL.TryPrintOrDebugClassicPreview(printDocument_PrintPage,Lan.g(this,"Image printed."));
-					return;
-				}
 				var pd=new PrintDocument();//TODO: Implement ODprintout pattern
 				pd.PrintPage+=new PrintPageEventHandler(printDocument_PrintPage);
 				var dlg=new PrintDialog();
@@ -2792,7 +2670,7 @@ public partial class ControlImagesOld:System.Windows.Forms.UserControl {
 				_odWebView2.CoreWebView2.Navigate(_odWebView2FilePath);//The return status of this function doesn't seem to be helpful.
 			}
 		}
-		catch(Exception ex) {
+		catch {
 			//An exception can happen if they do not have Microsoft WebView2 Runtime installed.
 		}
 	}
@@ -2811,7 +2689,7 @@ public partial class ControlImagesOld:System.Windows.Forms.UserControl {
 				try {
 					File.Delete(pdfFilePath);//Delete temp file
 				}
-				catch (Exception ex) {
+				catch {
 					//Can happen if user is clicking around very quickly and EraseCurrentImages() hasn't quite freed up the file.
 					//Do nothing, worst case we orphan a temp pdf that will clean up next time it's previewed.
 				}
@@ -3095,7 +2973,7 @@ public partial class ControlImagesOld:System.Windows.Forms.UserControl {
 				return;
 			}
 		}
-		if(nodeIdTag.NodeType.In(EnumNodeType.Doc,EnumNodeType.Eob,EnumNodeType.ApteryxImage)) {
+		if(nodeIdTag.NodeType.In(EnumNodeType.Doc,EnumNodeType.Eob)) {
 			if(resetZoomTrans) {
 				//Resetting the image settings only happens when a new image is selected, pasted, scanned, etc...
 				//Therefore, the is no need for any current image processing anymore (it would be on a stale image).
@@ -3499,10 +3377,6 @@ public partial class ControlImagesOld:System.Windows.Forms.UserControl {
 					}
 					RenderCurrentImage(null,_intArrayWidthsImagesCur[_idxSelectedInMount],_intArrayHeightsImagesCur[_idxSelectedInMount],_zoomImage*_zoomOverall,_pointFTranslation);
 				}
-				else if(_enumNodeTypeForSettings==EnumNodeType.ApteryxImage) {
-					_bitmapShowing=_bitmapArrayRaw[_idxSelectedInMount];//no crop or color settings in an Apteryx image
-					RenderCurrentImage(new Document(),_bitmapShowing.Width,_bitmapShowing.Height,_zoomImage*_zoomOverall,_pointFTranslation);
-				}
 			}
 			catch(ThreadAbortException) {
 				return;	//Exit as requested. This can happen when the current document is being deleted, 
@@ -3614,7 +3488,6 @@ public partial class ControlImagesOld:System.Windows.Forms.UserControl {
 		public EnumNodeType NodeType;
 		///<summary>The table to which the primary key refers will differ based on the node type.</summary>
 		public long PriKey;
-		public ApteryxImage ApteryxImgDownload;
 		//could use an == overload here, but don't know syntax right now.
 	}
 	#endregion Structs

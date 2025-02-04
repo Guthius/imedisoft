@@ -8,8 +8,6 @@ namespace OpenDental;
 
 public partial class UserControlScreenTooth : UserControl
 {
-    public const bool IsScreening = true;
-
     public bool IsMolar = true;
     public bool IsLing;
     public bool IsRightSide;
@@ -40,11 +38,6 @@ public partial class UserControlScreenTooth : UserControl
 
     private void UserControlTooth_Load(object sender, EventArgs e)
     {
-        if (!IsScreening)
-        {
-            return;
-        }
-        
         if (IsPrimary || !IsMolar)
         {
             sheetComboBox1.Visible = false;

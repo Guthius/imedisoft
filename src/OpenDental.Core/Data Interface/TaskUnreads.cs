@@ -15,53 +15,74 @@ public class TaskUnreads
         TaskUnreadCrud.Insert(taskUnread);
     }
 
-    public static void InsertManyForTasks(List<Task> listTasks, long userNum)
+    public static void InsertManyForTasks(List<Task> tasks, long userNum)
     {
-        if (listTasks.IsNullOrEmpty() || userNum == 0)
-            //Do not insert any TaskUnreads if none given or invalid usernum.
-            return;
-
-        var listTaskUnreads = new List<TaskUnread>();
-        for (var i = 0; i < listTasks.Count; i++)
+        if (tasks.IsNullOrEmpty() || userNum == 0)
         {
-            var taskUnread = new TaskUnread();
-            taskUnread.TaskNum = listTasks[i].TaskNum;
-            taskUnread.UserNum = userNum;
-            listTaskUnreads.Add(taskUnread);
-            listTasks[i].IsUnread = true;
+            return;
         }
 
-        TaskUnreadCrud.InsertMany(listTaskUnreads);
+        var taskUnreads = new List<TaskUnread>();
+
+        foreach (var task in tasks)
+        {
+            taskUnreads.Add(new TaskUnread
+            {
+                TaskNum = task.TaskNum,
+                UserNum = userNum
+            });
+
+            task.IsUnread = true;
+        }
+
+        TaskUnreadCrud.InsertMany(taskUnreads);
     }
 
-    public static void SetRead(long userNum, params Task[] taskArray)
+    public static void SetRead(long userNum, params Task[] tasks)
     {
-        if (taskArray == null || taskArray.Length == 0) return;
-        for (var i = 0; i < taskArray.Length; i++) taskArray[i].IsUnread = false;
+        if (tasks == null || tasks.Length == 0)
+        {
+            return;
+        }
+        
+        foreach (var task in tasks)
+        {
+            task.IsUnread = false;
+        }
 
-        var command = "DELETE FROM taskunread WHERE UserNum = " + SOut.Long(userNum) + " "
-                      + "AND TaskNum IN (" + string.Join(",", taskArray.Select(x => SOut.Long(x.TaskNum))) + ")";
+        var command = "DELETE FROM taskunread WHERE UserNum = " + userNum + " AND TaskNum IN (" + string.Join(",", tasks.Select(x => x.TaskNum)) + ")";
+        
         Db.NonQ(command);
     }
 
-    public static void AddUnreads(Task task, long userNumOrig)
+    public static void AddUnreads(Task task, long originalUserNum)
     {
-        //if the task is done, don't add unreads
-        var command = "SELECT TaskStatus,UserNum,ReminderGroupId,DateTimeEntry," + "NOW()" + " DbTime "
-                      + "FROM task WHERE TaskNum = " + SOut.Long(task.TaskNum);
-        var table = DataCore.GetTable(command);
-        if (table.Rows.Count == 0) return;
-        var taskStatusEnum = (TaskStatusEnum) SIn.Int(table.Rows[0]["TaskStatus"].ToString());
-        var userNumOwner = SIn.Long(table.Rows[0]["UserNum"].ToString());
-        if (taskStatusEnum == TaskStatusEnum.Done) return;
-        //Set it unread for the original owner of the task.
-        if (userNumOwner != userNumOrig) //but only if it's some other user
-            SetUnread(userNumOwner, task);
-        //Set it for this user if a future repeating task, so it will be new when "due".  Doing this here so we don't check every row below.
-        //Only for future dates because we don't want to mark as new if it was already "due" and you added a note or something.
-        if (SIn.String(table.Rows[0]["ReminderGroupId"].ToString()) != "" //Is a reminder
-            && SIn.DateTime(table.Rows[0]["DateTimeEntry"].ToString()) > SIn.DateTime(table.Rows[0]["DbTime"].ToString())) //Is "due" in the future by DbTime 
-            SetUnread(userNumOrig, task); //Set unread for current user only, other users dealt with below.
+        var command = "SELECT TaskStatus,UserNum,ReminderGroupId,DateTimeEntry," + "NOW()" + " DbTime FROM task WHERE TaskNum = " + task.TaskNum;
+
+        var dataTable = DataCore.GetTable(command);
+        if (dataTable.Rows.Count == 0)
+        {
+            return;
+        }
+
+        var taskStatusEnum = (TaskStatusEnum) SIn.Int(dataTable.Rows[0]["TaskStatus"].ToString());
+        var ownerUserNum = SIn.Long(dataTable.Rows[0]["UserNum"].ToString());
+        if (taskStatusEnum == TaskStatusEnum.Done)
+        {
+            return;
+        }
+
+        if (ownerUserNum != originalUserNum)
+        {
+            SetUnread(ownerUserNum, task);
+        }
+
+        if (SIn.String(dataTable.Rows[0]["ReminderGroupId"].ToString()) != "" &&
+            SIn.DateTime(dataTable.Rows[0]["DateTimeEntry"].ToString()) > SIn.DateTime(dataTable.Rows[0]["DbTime"].ToString()))
+        {
+            SetUnread(originalUserNum, task);
+        }
+
         //Then, for anyone subscribed
         bool isUnread;
         //task subscriptions are not cached yet, so we use a query.
@@ -72,31 +93,36 @@ public class TaskUnreads
 				FROM tasksubscription
 				INNER JOIN tasklist ON tasksubscription.TaskListNum = tasklist.TaskListNum 
 				INNER JOIN taskancestor ON taskancestor.TaskListNum = tasklist.TaskListNum 
-				AND taskancestor.TaskNum = " + SOut.Long(task.TaskNum) + " ";
+				AND taskancestor.TaskNum = " + task.TaskNum + " ";
         command += "LEFT JOIN taskunread ON taskunread.UserNum = tasksubscription.UserNum AND taskunread.TaskNum=taskancestor.TaskNum";
-        table = DataCore.GetTable(command);
+        dataTable = DataCore.GetTable(command);
         var listUserNums = new List<long>();
-        for (var i = 0; i < table.Rows.Count; i++)
+        for (var i = 0; i < dataTable.Rows.Count; i++)
         {
-            var userNum = SIn.Long(table.Rows[i]["UserNum"].ToString());
-            isUnread = SIn.Bool(table.Rows[i]["IsUnread"].ToString());
-            if (userNum == userNumOwner //already set
-                || userNum == userNumOrig //If the current user is subscribed to this task. User has obviously already read it.
-                || listUserNums.Contains(userNum)
-                || isUnread) //Unread currently exists
+            var userNum = SIn.Long(dataTable.Rows[i]["UserNum"].ToString());
+            isUnread = SIn.Bool(dataTable.Rows[i]["IsUnread"].ToString());
+
+            if (userNum == ownerUserNum || userNum == originalUserNum || listUserNums.Contains(userNum) || isUnread)
+            {
                 continue;
+            }
+
             listUserNums.Add(userNum);
         }
 
-        SetUnreadMany(listUserNums, task); //This no longer results in duplicates like it used to
+        SetUnreadMany(listUserNums, task);
     }
 
     public static bool IsUnread(long userNum, Task task)
     {
         task.IsUnread = true;
-        var command = "SELECT COUNT(*) FROM taskunread WHERE UserNum = " + SOut.Long(userNum) + " "
-                      + "AND TaskNum = " + SOut.Long(task.TaskNum);
-        if (Db.GetCount(command) == "0") task.IsUnread = false;
+
+        var commandText = "SELECT COUNT(*) FROM taskunread WHERE UserNum = " + userNum + " AND TaskNum = " + task.TaskNum;
+        if (Db.GetCount(commandText) == "0")
+        {
+            task.IsUnread = false;
+        }
+
         return task.IsUnread;
     }
 
@@ -107,43 +133,53 @@ public class TaskUnreads
 				(CASE WHEN !ISNULL(taskunread.TaskNum) THEN 'Unread' ELSE 'Read' END) AS 'Unread' " +
                       "FROM tasksubscription " +
                       "INNER JOIN tasklist ON tasksubscription.TaskListNum=tasklist.TaskListNum " +
-                      $"INNER JOIN taskancestor ON taskancestor.TaskListNum=tasklist.TaskListNum AND taskancestor.TaskNum={SOut.Long(taskNum)} " +
+                      $"INNER JOIN taskancestor ON taskancestor.TaskListNum=tasklist.TaskListNum AND taskancestor.TaskNum={taskNum} " +
                       "INNER JOIN userod ON userod.UserNum=tasksubscription.UserNum " +
-                      $"LEFT JOIN taskunread ON taskunread.UserNum=tasksubscription.UserNum AND taskunread.TaskNum={SOut.Long(taskNum)} " +
-                      "WHERE userod.IsHidden=FALSE " + //Don't include hidden users
+                      $"LEFT JOIN taskunread ON taskunread.UserNum=tasksubscription.UserNum AND taskunread.TaskNum={taskNum} " +
+                      "WHERE userod.IsHidden=FALSE " +
                       "ORDER BY Unread,userod.UserName";
         return DataCore.GetTable(command);
     }
 
     public static void SetUnread(long userNum, Task task)
     {
-        if (IsUnread(userNum, task)) return; //Already set to unread, so nothing else to do
-        var taskUnread = new TaskUnread();
-        taskUnread.TaskNum = task.TaskNum;
-        taskUnread.UserNum = userNum;
-        task.IsUnread = true;
-        Insert(taskUnread);
-    }
-
-    public static void SetUnreadMany(List<long> listUserNums, Task task)
-    {
-        var listTaskUnreadsToInsert = new List<TaskUnread>();
-        for (var i = 0; i < listUserNums.Count; i++)
+        if (IsUnread(userNum, task))
         {
-            var taskUnread = new TaskUnread();
-            taskUnread.TaskNum = task.TaskNum;
-            taskUnread.UserNum = listUserNums[i];
-            listTaskUnreadsToInsert.Add(taskUnread);
+            return;
         }
 
-        TaskUnreadCrud.InsertMany(listTaskUnreadsToInsert);
-        if (listUserNums.Contains(Security.CurUser.UserNum)) //The IsUnread flag is only used for local refreshes.
+        task.IsUnread = true;
+
+        Insert(new TaskUnread
+        {
+            TaskNum = task.TaskNum,
+            UserNum = userNum
+        });
+    }
+
+    public static void SetUnreadMany(List<long> userNums, Task task)
+    {
+        var taskUnreadsToInsert = new List<TaskUnread>();
+
+        foreach (var userNum in userNums)
+        {
+            taskUnreadsToInsert.Add(new TaskUnread
+            {
+                TaskNum = task.TaskNum,
+                UserNum = userNum
+            });
+        }
+
+        TaskUnreadCrud.InsertMany(taskUnreadsToInsert);
+
+        if (userNums.Contains(Security.CurUser.UserNum))
+        {
             task.IsUnread = true;
+        }
     }
 
     public static void DeleteForTask(Task task)
     {
-        var command = "DELETE FROM taskunread WHERE TaskNum = " + SOut.Long(task.TaskNum);
-        Db.NonQ(command);
+        Db.NonQ("DELETE FROM taskunread WHERE TaskNum = " + task.TaskNum);
     }
 }

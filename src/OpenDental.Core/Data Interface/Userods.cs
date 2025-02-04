@@ -57,11 +57,6 @@ public class Userods
         return listUserods.FirstOrDefault(x => !x.IsHidden && x.UserName.ToLower() == userName.ToLower());
     }
 
-    public static Userod GetUserByUserNumNoCache(long userNum)
-    {
-        return UserodCrud.SelectOne(userNum);
-    }
-
     public static Userod GetUserByBadgeId(string badgeId)
     {
         var command = "SELECT * FROM userod WHERE BadgeId <> '' AND BadgeId = RIGHT('" + SOut.String(badgeId) + "', LENGTH(BadgeId))";
@@ -129,7 +124,7 @@ public class Userods
         return userod.UserName;
     }
 
-    public static bool IsUserCpoe(Userod userod)
+    public static bool IsUserCpoe()
     {
         return false;
     }
@@ -217,7 +212,7 @@ public class Userods
         var userodToUpdate = userod.Copy();
         userodToUpdate.SetPassword(passwordContainer);
         userodToUpdate.PasswordIsStrong = isPasswordStrong;
-        var listUserGroups = userodToUpdate.GetGroups(includeCEMT);
+        var listUserGroups = userodToUpdate.GetGroups();
         if (listUserGroups.Count < 1) throw new Exception(Lans.g("Userods", "The current user must be in at least one user group."));
 
         Validate(false, userodToUpdate, true, listUserGroups.Select(x => x.UserGroupNum).ToList());
@@ -226,7 +221,7 @@ public class Userods
 
     public static void DisassociateTaskListInBox(long taskListNum)
     {
-        var command = "UPDATE userod SET TaskListInBox=0 WHERE TaskListInBox=" + SOut.Long(taskListNum);
+        var command = "UPDATE userod SET TaskListInBox=0 WHERE TaskListInBox=" + (taskListNum);
         Db.NonQ(command);
     }
 
@@ -278,7 +273,7 @@ public class Userods
 
         //an admin user can never be hidden
         command = "SELECT COUNT(*) FROM grouppermission "
-                  + "WHERE PermType='" + SOut.Long((int) EnumPermType.SecurityAdmin) + "' "
+                  + "WHERE PermType='" + ((int) EnumPermType.SecurityAdmin) + "' "
                   + "AND UserGroupNum IN (" + string.Join(",", listUserGroupNums) + ") ";
         if (!isNew //Updating.
             && Db.GetCount(command) == "0" //if this user would not have admin
@@ -296,9 +291,9 @@ public class Userods
         var command = "SELECT COUNT(*) FROM userod "
                       + "INNER JOIN usergroupattach ON usergroupattach.UserNum=userod.UserNum "
                       + "INNER JOIN grouppermission ON usergroupattach.UserGroupNum=grouppermission.UserGroupNum "
-                      + "WHERE grouppermission.PermType='" + SOut.Long((int) EnumPermType.SecurityAdmin) + "'"
+                      + "WHERE grouppermission.PermType='" + ((int) EnumPermType.SecurityAdmin) + "'"
                       + " AND userod.IsHidden =0"
-                      + " AND userod.UserNum != " + SOut.Long(userod.UserNum);
+                      + " AND userod.UserNum != " + (userod.UserNum);
         if (Db.GetCount(command) == "0")
             //there are no other users with this permission
             return false;
@@ -321,7 +316,7 @@ public class Userods
         //Does not need to be tested under Oracle because eCW users do not use Oracle.
         //}
         command += "UserName='" + SOut.String(userName) + "' "
-                   + "AND UserNum !=" + SOut.Long(excludeUserNum) + " ";
+                   + "AND UserNum !=" + (excludeUserNum) + " ";
         if (excludeHiddenUsers) command += "AND IsHidden=0 "; //not hidden
 
         if (searchCEMTUsers) command += "AND UserNumCEMT!=0";
@@ -376,7 +371,7 @@ public class Userods
 
         var listAlertSubsUsers = AlertSubs.GetAllForUser(userod.UserNum);
         listAlertSubsUsers.ForEach(x => x.UserNum = userodCopy.UserNum);
-        AlertSubs.Sync(listAlertSubsUsers, new List<AlertSub>());
+        AlertSubs.Sync(listAlertSubsUsers, []);
 
         #endregion
 
@@ -397,7 +392,7 @@ public class Userods
                       + "HAVING Clinics = 1 "
                       + ") users "
                       + "INNER JOIN userclinic ON userclinic.UserNum = users.UserNum "
-                      + "AND userclinic.ClinicNum = " + SOut.Long(clinicNum) + " "
+                      + "AND userclinic.ClinicNum = " + (clinicNum) + " "
                       + "INNER JOIN userod ON userod.UserNum = userclinic.UserNum ";
         return UserodCrud.SelectMany(command);
     }
@@ -493,13 +488,13 @@ public class Userods
 
     public static Userod GetUserNoCache(long userNum)
     {
-        var command = "SELECT * FROM userod WHERE userod.UserNum=" + SOut.Long(userNum);
+        var command = "SELECT * FROM userod WHERE userod.UserNum=" + (userNum);
         return UserodCrud.SelectOne(command);
     }
 
     public static string GetUserNameNoCache(long userNum)
     {
-        var command = "SELECT userod.UserName FROM userod WHERE userod.UserNum=" + SOut.Long(userNum);
+        var command = "SELECT userod.UserName FROM userod WHERE userod.UserNum=" + (userNum);
         return DataCore.GetScalar(command);
     }
 

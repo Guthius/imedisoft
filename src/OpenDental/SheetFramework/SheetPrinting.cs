@@ -3,16 +3,14 @@ using System.Collections.Generic;
 using System.Data;
 using System.Drawing;
 using System.Drawing.Printing;
-using System.Text;
 using System.Windows.Forms;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Data;
 using Imedisoft.Core.Entities;
-using Imedisoft.Core.Features.Clinics;
+using OpenDental.Chart;
 using OpenDentBusiness;
 using PdfSharp.Drawing;
 using PdfSharp.Pdf;
-using SparksToothChart;
 
 namespace OpenDental;
 
@@ -20,16 +18,16 @@ public class SheetPrinting
 {
     public static Margins PrintMargin { get; } = new(0, 0, 40, 60);
 
-    public static void Print(Sheet sheet, int copies = 1, bool isRxControlled = false, Statement stmt = null, MedLab medLab = null, bool isPrintDocument = true, bool isPreviewMode = false, bool isPrintRemote = false, long printerNumOverride = 0)
+    public static void Print(Sheet sheet, int copies = 1, bool isRxControlled = false, Statement stmt = null, bool isPrintDocument = true, bool isPreviewMode = false, bool isPrintRemote = false, long printerNumOverride = 0)
     {
         var sheetPrintingJob = new SheetPrintingJob {IsRemotePrintingJob = isPrintRemote, PrinterNumOverride = printerNumOverride};
-        sheetPrintingJob.Print(sheet, copies, isRxControlled, stmt, medLab, isPrintDocument, isPreviewMode);
+        sheetPrintingJob.Print(sheet, copies, stmt, isPreviewMode);
     }
 
-    public static void Print(Sheet sheet, DataSet dataSet, int copies = 1, bool isRxControlled = false, Statement stmt = null, MedLab medLab = null, bool isPrintRemote = false, long printerNumOverride = 0)
+    public static void Print(Sheet sheet, DataSet dataSet, int copies = 1, bool isRxControlled = false, Statement stmt = null, bool isPrintRemote = false, long printerNumOverride = 0)
     {
         var sheetPrintingJob = new SheetPrintingJob {IsRemotePrintingJob = isPrintRemote, PrinterNumOverride = printerNumOverride};
-        sheetPrintingJob.Print(sheet, dataSet, copies, isRxControlled, stmt, medLab);
+        sheetPrintingJob.Print(sheet, dataSet, copies, stmt);
     }
 
     public static void PrintBatch(List<Sheet> sheetBatch)
@@ -38,67 +36,10 @@ public class SheetPrinting
         sheetPrintingJob.PrintBatch(sheetBatch);
     }
 
-    public static void PrintMultiRx(List<RxPat> listRxs)
-    {
-        var sheetPrintingJob = new SheetPrintingJob();
-        sheetPrintingJob.PrintMultiRx(listRxs);
-    }
-
-    public static bool PrintRx(Sheet sheet, RxPat rx, bool isRemotePrint = false, long printerNumOverride = 0)
-    {
-        var sheetPrintingJob = new SheetPrintingJob {IsRemotePrintingJob = isRemotePrint, PrinterNumOverride = printerNumOverride};
-        return sheetPrintingJob.PrintRx(sheet, rx);
-    }
-
-    public static string ValidateRxForSheet(RxPat rx)
-    {
-        if (!PrefC.GetBool(PrefName.RxHasProc))
-        {
-            return ""; //The global preference allows the user to completely disable Rx ProcCode validation, even if some Rx are flagged as required.
-        }
-
-        if (Clinics.ClinicNum != 0)
-        {
-            var clinic = Clinics.GetClinic(Clinics.ClinicNum);
-            if (!clinic.HasProceduresOnRx)
-            {
-                return "";
-            }
-        }
-
-        if (!rx.IsProcRequired)
-        {
-            return "";
-        }
-
-        var sb = new StringBuilder();
-        if (rx.ProcNum == 0)
-        {
-            if (sb.Length > 0)
-            {
-                sb.Append(", ");
-            }
-
-            sb.Append("Procedure");
-        }
-
-        if (rx.DaysOfSupply <= 0)
-        {
-            if (sb.Length > 0)
-            {
-                sb.Append(", ");
-            }
-
-            sb.Append("Days of Supply");
-        }
-
-        return sb.ToString();
-    }
-
-    public static void DrawFieldGrid(SheetField field, Sheet sheet, Graphics g, XGraphics gx, DataSet dataSet, Statement stmt, MedLab medLab, bool isPrinting = false, Patient pat = null, Patient patGuar = null, float scaleMS = 1)
+    public static void DrawFieldGrid(SheetField field, Sheet sheet, Graphics g, XGraphics gx, DataSet dataSet, Statement stmt, bool isPrinting = false, Patient pat = null, Patient patGuar = null, float scaleMS = 1)
     {
         var sheetDrawingJob = new SheetDrawingJob();
-        sheetDrawingJob.DrawFieldGrid(field, sheet, g, gx, dataSet, stmt, medLab, isPrinting, pat, patGuar, scaleMS);
+        sheetDrawingJob.DrawFieldGrid(field, sheet, g, gx, dataSet, stmt, isPrinting, pat, patGuar, scaleMS);
     }
 
     public static void DrawProcsGraphics(List<Procedure> procList, ToothChartRelay toothChartRelay, List<ToothInitial> toothInitialList, bool isInPatientDashboard, Patient patCur = null, List<Appointment> listAppts = null)
@@ -241,10 +182,10 @@ public class SheetPrinting
                     toothChartRelay.SetImplant(proc.ToothNum, cDark);
                     break;
                 case ToothPaintingType.PostBU:
-                    toothChartRelay.SetBU(proc.ToothNum, cDark);
+                    toothChartRelay.SetBu(proc.ToothNum, cDark);
                     break;
                 case ToothPaintingType.RCT:
-                    toothChartRelay.SetRCT(proc.ToothNum, cDark);
+                    toothChartRelay.SetRct(proc.ToothNum, cDark);
                     break;
                 case ToothPaintingType.RetainedRoot:
                     toothChartRelay.SetRetainedRoot(proc.ToothNum, cDark);
@@ -353,7 +294,7 @@ public class SheetPrinting
 
         Form formOldBitmap = null;
         var toothChartWrapper = new ToothChartWrapper();
-        var toothChartRelay = new ToothChartRelay(false);
+        var toothChartRelay = new ToothChartRelay();
         toothChartRelay.SetToothChartWrapper(toothChartWrapper);
         if (ToothChartRelay.IsSparks3DPresent)
         {
@@ -466,10 +407,10 @@ public class SheetPrinting
         }
     }
 
-    public static PdfDocument CreatePdf(Sheet sheet, string fullFileName = null, Statement stmt = null, MedLab medLab = null, DataSet dataSet = null, Patient pat = null, Patient patGuar = null, bool doSave = true)
+    public static PdfDocument CreatePdf(Sheet sheet, string fullFileName = null, Statement stmt = null, DataSet dataSet = null, Patient pat = null, Patient patGuar = null, bool doSave = true)
     {
         var sheetDrawingJob = new SheetDrawingJob();
-        var pdf = sheetDrawingJob.CreatePdf(sheet, stmt, medLab, dataSet, pat, patGuar);
+        var pdf = sheetDrawingJob.CreatePdf(sheet, stmt, dataSet, pat, patGuar);
         if (doSave)
         {
             SavePdfToFile(pdf, fullFileName);

@@ -3,15 +3,14 @@ using System.Collections.Generic;
 using System.Data;
 using System.Drawing;
 using System.Linq;
-using System.Text;
 using System.Windows.Forms;
 using OpenDental.ReportingComplex;
 using OpenDentBusiness;
-using CodeBase;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Entities;
 using Imedisoft.Core.Features.Clinics;
 using Imedisoft.Core.Features.Clinics.Dtos;
+using Imedisoft.Features.Providers.Dtos;
 
 namespace OpenDental;
 
@@ -20,46 +19,31 @@ public partial class FormRpBrokenAppointments:FormODBase {
 	private List<ClinicDto> _listClinics;
 	private List<Def> _listPosAdjTypes= [];
 	private List<BrokenApptProcedure> _listBrokenProcOptions= [];
-	private List<Provider> _listProviders;
-	private bool _hasClinicsEnabled;
-
+	private List<ProviderDto> _listProviders;
 		
 	public FormRpBrokenAppointments() {
 		InitializeComponent();
 	}
 
 	private void FormRpBrokenAppointments_Load(object sender,EventArgs e) {
-		if(true) {
-			_hasClinicsEnabled=true;
-		}
-		else {
-			_hasClinicsEnabled=false;
-		}
 		_listProviders=Providers.GetListReports();
 		dateStart.SelectionStart=DateTime.Today;
 		dateEnd.SelectionStart=DateTime.Today;
-		listProvs.Items.AddList(_listProviders,x => x.GetLongDesc());
-		if(!_hasClinicsEnabled) {
-			listClinics.Visible=false;
-			labelClinics.Visible=false;
-			checkAllClinics.Visible=false;
+		listProvs.Items.AddList(_listProviders,x => x.Description);
+		_listClinics=Clinics.GetForUserod(Security.CurUser);
+		if(!Security.CurUser.ClinicIsRestricted) {
+			listClinics.Items.Add(Lan.g(this,"Unassigned"));
+			listClinics.SetSelected(0);
 		}
-		else {
-			_listClinics=Clinics.GetForUserod(Security.CurUser);
-			if(!Security.CurUser.ClinicIsRestricted) {
-				listClinics.Items.Add(Lan.g(this,"Unassigned"));
-				listClinics.SetSelected(0);
+		for(var i=0;i<_listClinics.Count;i++) {
+			listClinics.Items.Add(_listClinics[i].Abbr);
+			if(Clinics.ClinicNum==0) {
+				listClinics.SetSelected(listClinics.Items.Count-1);
+				checkAllClinics.Checked=true;
 			}
-			for(var i=0;i<_listClinics.Count;i++) {
-				listClinics.Items.Add(_listClinics[i].Abbr);
-				if(Clinics.ClinicNum==0) {
-					listClinics.SetSelected(listClinics.Items.Count-1);
-					checkAllClinics.Checked=true;
-				}
-				if(_listClinics[i].Id==Clinics.ClinicNum) {
-					listClinics.SelectedIndices.Clear();
-					listClinics.SetSelected(listClinics.Items.Count-1);
-				}
+			if(_listClinics[i].Id==Clinics.ClinicNum) {
+				listClinics.SelectedIndices.Clear();
+				listClinics.SetSelected(listClinics.Items.Count-1);
 			}
 		}
 		var value=PrefC.GetInt(PrefName.BrokenApptProcedure);
@@ -169,7 +153,7 @@ public partial class FormRpBrokenAppointments:FormODBase {
 			MsgBox.Show(this,"At least one provider must be selected.");
 			return;
 		}
-		if(_hasClinicsEnabled) {
+		if(true) {
 			if(!checkAllClinics.Checked && listClinics.SelectedIndices.Count==0) {
 				MsgBox.Show(this,"At least one clinic must be selected.");
 				return;
@@ -203,12 +187,12 @@ public partial class FormRpBrokenAppointments:FormODBase {
 		var listProvNums=new List<long>();
 		if(checkAllProvs.Checked) {
 			for(var i = 0;i<_listProviders.Count;i++) {
-				listProvNums.Add(_listProviders[i].ProvNum);
+				listProvNums.Add(_listProviders[i].Id);
 			}
 		}
 		else {
 			for(var i=0;i<listProvs.SelectedIndices.Count;i++) {
-				listProvNums.Add(_listProviders[listProvs.SelectedIndices[i]].ProvNum);
+				listProvNums.Add(_listProviders[listProvs.SelectedIndices[i]].Id);
 			}
 		}
 		var listAdjDefNums=new List<long>();
@@ -224,7 +208,7 @@ public partial class FormRpBrokenAppointments:FormODBase {
 		var reportComplex=new ReportComplex(true,false);
 		var table = new DataTable();
 		table=RpBrokenAppointments.GetBrokenApptTable(dateStart.SelectionStart,dateEnd.SelectionStart,listProvNums,listClinicNums,listAdjDefNums,brokenApptSelection
-			,checkAllClinics.Checked,radioProcs.Checked,radioAptStatus.Checked,radioAdj.Checked,_hasClinicsEnabled);
+			,checkAllClinics.Checked,radioProcs.Checked,radioAptStatus.Checked,radioAdj.Checked,true);
 		var subtitleProvs="";
 		var subtitleClinics="";
 		if(checkAllProvs.Checked) {
@@ -238,7 +222,7 @@ public partial class FormRpBrokenAppointments:FormODBase {
 				subtitleProvs+=_listProviders[listProvs.SelectedIndices[i]].Abbr;
 			}
 		}
-		if(_hasClinicsEnabled) {
+		if(true) {
 			if(checkAllClinics.Checked) {
 				subtitleClinics=Lan.g(this,"All Clinics");
 			}
@@ -292,12 +276,7 @@ public partial class FormRpBrokenAppointments:FormODBase {
 		reportComplex.AddSubTitle("Providers",subtitleProvs,fontSubTitle);
 		reportComplex.AddSubTitle("Clinics",subtitleClinics,fontSubTitle);
 		QueryObject queryObject;
-		if(true) {//Split the query up by clinics.
-			queryObject=reportComplex.AddQuery(table,Lan.g(this,"Date")+": "+DateTime.Today.ToString("d"),"ClinicDesc",SplitByKind.Value,0,true);
-		}
-		else {
-			queryObject=reportComplex.AddQuery(table,Lan.g(this,"Date")+": "+DateTime.Today.ToString("d"),"",SplitByKind.None,0,true);
-		}
+		queryObject=reportComplex.AddQuery(table,Lan.g(this,"Date")+": "+DateTime.Today.ToString("d"),"ClinicDesc",SplitByKind.Value,0,true);
 		//Add columns to report
 		if(radioProcs.Checked) {//Report looking at ADA procedure code D9986 or D9987
 			queryObject.AddColumn(Lan.g(this,"Date"),85,FieldValueType.Date,font);

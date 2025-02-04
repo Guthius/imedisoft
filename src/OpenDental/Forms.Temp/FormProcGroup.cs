@@ -1,18 +1,9 @@
 using System;
-using System.Diagnostics;
 using System.Drawing;
-using System.Collections;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Globalization;
-using System.Runtime.InteropServices;
 using System.Windows.Forms;
-using System.Text;
-using System.Data;
-using Microsoft.Win32;
 using OpenDentBusiness;
 using CodeBase;
-using SparksToothChart;
 using OpenDental.UI;
 using System.Text.RegularExpressions;
 using Imedisoft.Core.Caching;
@@ -22,7 +13,6 @@ using Imedisoft.Core.Entities;
 namespace OpenDental;
 
 public partial class FormProcGroup:FormODBase {
-	private ErrorProvider _errorProvider=new ErrorProvider();
 	public List<ClaimProcHist> ListClaimProcHists;
 	public Procedure ProcedureGroup;
 	private Procedure _procedureGroupOld;
@@ -32,19 +22,11 @@ public partial class FormProcGroup:FormODBase {
 	///<summary>This keeps the noteChanged event from erasing the signature when first loading.</summary>
 	private bool _isStartingUp;
 	private bool _hasSigChanged;
-	private PatField[] _patFieldArray;
 	private Patient _patient;
-	private Family _family;
-	///<summary>Used when making an Rx.  Only used when the Rx button is pushed when Orion is enabled.</summary>
-	public static bool IsOpen;
-	///<summary>Used when making an Rx.  Only used when the Rx button is pushed when Orion is enabled.</summary>
-	public static long RxNum;
-	private DataTable _tablePlanned;
 	///<summary>Users can temporarily log in on this form.  Defaults to Security.CurUser.</summary>
 	private Userod _userod=Security.CurUser;
 	///<summary>True if the user clicked the Change User button.</summary>
 	private bool _hasUserChanged;
-	private List<PatFieldDef> _listPatFieldDefs;
 	///<summary>True if group note is attached to at least one completed proc.  Used for determining which permission to use.</summary>
 	private bool _attachedToCompletedProc;
 	private const string _autoNotePromptRegex=@"\[Prompt:""[a-zA-Z_0-9 ]+""\]";
@@ -52,26 +34,13 @@ public partial class FormProcGroup:FormODBase {
 	public FormProcGroup() {
 		InitializeComponent();
 	}
-
-	///<summary>Inserts are no longer done within this dialog, but must be done ahead of time from outside.You must specify a procedure to edit, and only the changes that are made in this dialog get saved.  Only used when double click in Account, Chart, TP, and in ContrChart.AddProcedure().  The procedure may be deleted if new, and user hits Cancel.</summary>
-
-	//Constructor from ProcEdit. Lots of this will need to be copied into the new Load function.
-	/*public FormProcGroup(long groupNum) {
-		GroupCur=Procedures.GetOneProc(groupNum,true);
-		ProcGroupItem=ProcGroupItems.Refresh(groupNum);
-		//Proc
-		InitializeComponent();
-		InitializeLayoutManager();
-
-	}*/
-
+	
 	private void FormProcGroup_Load(object sender, System.EventArgs e){
 		signatureBoxWrapper.SetAllowDigitalSig(true);
-		IsOpen=true;
 		_isStartingUp=true;
 		//ProcList gets set in ContrChart where this form is created.
 		_patient=Patients.GetPat(ProcedureGroup.PatNum);
-		_family=Patients.GetFamily(ProcedureGroup.PatNum);
+		Patients.GetFamily(ProcedureGroup.PatNum);
 		_procedureGroupOld=ProcedureGroup.Copy();
 		ListProceduresOld= [];
 		for(var i=0;i<ListProcedures.Count;i++){
@@ -156,7 +125,7 @@ public partial class FormProcGroup:FormODBase {
 			labelPermAlert.Visible=true;
 			labelPermAlert.Text=Lans.g("Notes can only be signed by providers.");
 		}
-		_listPatFieldDefs=PatFieldDefs.GetDeepCopy(true);
+		PatFieldDefs.GetDeepCopy(true);
 		textNotes.Select(textNotes.Text.Length,0);
 		_isStartingUp=false;
 		butEditAutoNote.Visible=HasAutoNotePrompt();
@@ -409,7 +378,6 @@ public partial class FormProcGroup:FormODBase {
 		}
 		Procedures.Update(ProcedureGroup,_procedureGroupOld);
 		DialogResult=DialogResult.OK;
-		IsOpen=false;
 	}
 
 	private void butDelete_Click(object sender, System.EventArgs e) {
@@ -437,7 +405,6 @@ public partial class FormProcGroup:FormODBase {
 				":"+ProcedureCodes.GetStringProcCode(ProcedureGroup.CodeNum)+" ("+ProcedureGroup.ProcStatus+"), "+ProcedureGroup.ProcDate.ToShortDateString());
 		}
 		DialogResult=DialogResult.OK;
-		IsOpen=false;
 	}		
 
 	private void butSave_Click(object sender,System.EventArgs e) {
@@ -483,7 +450,6 @@ public partial class FormProcGroup:FormODBase {
 		if(_procedureGroupOld.Note.Replace("\r","").Trim()!=textNotes.Text.Replace("\r","").Trim()) {
 			if(!MsgBox.Show(this,MsgBoxButtons.YesNo,"Note has been changed.  Unsaved changes will be lost.  Continue?")) {
 				e.Cancel=true;//Prevent the form from closing.
-				IsOpen=true;
 				return;
 			}
 		}
@@ -494,6 +460,5 @@ public partial class FormProcGroup:FormODBase {
 			}
 		}
 		DialogResult=DialogResult.Cancel;
-		IsOpen=false;
 	}
 }

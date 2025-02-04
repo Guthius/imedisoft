@@ -1,17 +1,13 @@
 using System;
-using System.Collections;
-using System.ComponentModel;
 using System.Drawing;
 using System.Drawing.Printing;
 using System.IO;
-using System.Runtime.InteropServices;
 using System.Windows.Forms;
 using OpenDentBusiness;
 using CodeBase;
-using CDT;
 using System.Collections.Generic;
-using System.Linq;
 using DataConnectionBase;
+using Imedisoft.Core.Data;
 using Imedisoft.Core.Entities;
 using OpenDental.Logic;
 
@@ -888,7 +884,7 @@ public partial class FormClaimFormEdit : FormODBase {
 				if(!_claimForm.PrintImages){
 					continue;
 				}
-				var fileName=FileAtoZ.CombinePaths(ImageStore.GetDataFolder(),_claimForm.Items[i].ImageFileName);
+				var fileName=Path.Combine(ImageStore.GetDataFolder(),_claimForm.Items[i].ImageFileName);
 				Image image=null;
 				switch(_claimForm.Items[i].ImageFileName) {
 					case "ADA2006.gif":

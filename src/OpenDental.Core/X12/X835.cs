@@ -2,9 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
-using System.IO;
 using System.Linq;
-using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Xml.Serialization;
@@ -13,7 +11,6 @@ using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Entities;
 using Newtonsoft.Json;
-using static PdfSharp.Pdf.PdfArray;
 
 namespace OpenDentBusiness {
 	///<summary>X12 835 Health Care Claim Payment/Advice. This transaction type is a response to an 837 claim submission. The 835 will always come after a 277 is received and a 277 will always come after a 999. Neither the 277 nor the 999 are required, so it is possible that an 835 will be received directly after the 837. The 835 is not required either, so it is possible that none of the 997, 999, 277 or 835 reports will be returned from the carrier.</summary>
@@ -185,7 +182,7 @@ namespace OpenDentBusiness {
 		}
 		
 		public X835 Copy(){
-			X835 x835=(X835)this.MemberwiseClone();
+			var x835=(X835)this.MemberwiseClone();
 			x835.ListProvAdjustments=ListProvAdjustments.Select(x => x.Copy()).ToList();
 			x835.ListClaimsPaid=ListClaimsPaid.Select(x => x.Copy()).ToList();
 			return x835;
@@ -195,21 +192,21 @@ namespace OpenDentBusiness {
 
 		///<summary>Some carriers split every claim into one claim for each procedure (ex Commonwealth of Massachussetts/EOHHS/Office of Medicaid).</summary>
 		private void DiscoverSplitClaims() {
-			foreach(Hx835_Claim claim in ListClaimsPaid) {
+			foreach(var claim in ListClaimsPaid) {
 				claim.ListOtherSplitClaims.Clear();
 				claim.IsSplitClaim=false;
 				//Do not treat reversals like a split claim.
 				if(claim.IsReversal) {
 					continue;
 				}
-				List<Hx835_Claim> listOtherSplitClaims=ListClaimsPaid.Where(
+				var listOtherSplitClaims=ListClaimsPaid.Where(
 					x => x!=claim
 					&& !x.ClaimTrackingNumber.In("0","")
 					&& x.ClaimTrackingNumber==claim.ClaimTrackingNumber
 					&& x.PatientName.Fname==claim.PatientName.Fname
 					&& x.PatientName.Lname==claim.PatientName.Lname
 				).ToList();
-				bool hasBatchReversal=listOtherSplitClaims.Any(x => x.IsReversal);
+				var hasBatchReversal=listOtherSplitClaims.Any(x => x.IsReversal);
 				listOtherSplitClaims.RemoveAll(x => x.IsReversal && !IsClp02Equivalent(x,claim));
 				//Multiple claims can be present with the same ClaimTrackingNumber especially when reading in 835 reports (multiple EOBs in one 835).
 				//Compare the Payer Control Number for each claim being considered if provided. When this number differs, the claims are not actually split.
@@ -258,8 +255,8 @@ namespace OpenDentBusiness {
 			//These items have the same; etransNum, claimNum and ClpSegmentIndex but different DateTimeEntry.
 			//The item with the earliest DateTimeEntry is the original claim associated to the Hx835_Claim and next is the split claim
 			//Given listAttached is ordered so that each Hx835_Claim is not associated to the split claim incorrectly.
-			foreach(Hx835_Claim claim in ListClaimsPaid) {
-				Etrans835Attach attach=listAttached.FirstOrDefault(x => x.ClpSegmentIndex==claim.ClpSegmentIndex && x.EtransNum==EtransSource.EtransNum);
+			foreach(var claim in ListClaimsPaid) {
+				var attach=listAttached.FirstOrDefault(x => x.ClpSegmentIndex==claim.ClpSegmentIndex && x.EtransNum==EtransSource.EtransNum);
 				if(attach!=null) {
 					claim.ClaimNum=attach.ClaimNum;
 					claim.IsAttachedToClaim=true;
@@ -276,7 +273,7 @@ namespace OpenDentBusiness {
 				listClaimNums=Claims.GetClaimFromX12(GetClaimMatches(listUnattached));
 			}
 			if(listClaimNums!=null) {
-				for(int i=0;i<listUnattached.Count;i++) {
+				for(var i=0;i<listUnattached.Count;i++) {
 					listUnattached[i].ClaimNum=listClaimNums[i];
 					listUnattached[i].IsAttachedToClaim=false;
 				}
@@ -284,7 +281,7 @@ namespace OpenDentBusiness {
 		}
 
 		public void RefreshAttachesAndClaimProcsFromDb(out List<Etrans835Attach> listAttaches,out List<Hx835_ShortClaimProc> listClaimProcs) {
-			List<long> listClaimNums=ListClaimsPaid.Select(x => x.ClaimNum).Where(x => x!=0).ToList();
+			var listClaimNums=ListClaimsPaid.Select(x => x.ClaimNum).Where(x => x!=0).ToList();
 			listAttaches=Etrans835Attaches.GetForEtransNumOrClaimNums(false,EtransSource.EtransNum,listClaimNums.ToArray());//Includes manually detached and split attaches.
 			//We have to add additional claimNums from listAttaches to account for claims split from their original ERA.
 			listClaimNums.AddRange(listAttaches.Where(x => x.ClaimNum!=0).Select(x => x.ClaimNum).Distinct());
@@ -293,12 +290,12 @@ namespace OpenDentBusiness {
 
 		///<summary>Returns a list of X12ClaimMatchs for unattached Hx835_Claims.</summary>
 		public List<X12ClaimMatch> GetClaimMatches(List<Hx835_Claim> listUnattached=null) {
-			List<X12ClaimMatch> listClaimMatches=new List<X12ClaimMatch>();
+			var listClaimMatches=new List<X12ClaimMatch>();
 			if(listUnattached==null) {
 				listUnattached=GetUnattached();
 			}
-			foreach(Hx835_Claim claim in listUnattached) {
-				X12ClaimMatch claimMatch=new X12ClaimMatch();
+			foreach(var claim in listUnattached) {
+				var claimMatch=new X12ClaimMatch();
 				claimMatch.ClaimIdentifier=claim.ClaimTrackingNumber;
 				claimMatch.ClaimFee=(double)claim.ClaimFee;
 				claimMatch.DateServiceStart=claim.DateServiceStart;
@@ -316,8 +313,8 @@ namespace OpenDentBusiness {
 		}
 
 		private List <Hx835_Claim> GetUnattached() {
-			List <Hx835_Claim> listUnattached=new List<Hx835_Claim>();
-			foreach(Hx835_Claim claim in ListClaimsPaid) {
+			var listUnattached=new List<Hx835_Claim>();
+			foreach(var claim in ListClaimsPaid) {
 				if(!claim.IsAttachedToClaim) {
 					listUnattached.Add(claim);
 				}
@@ -338,7 +335,7 @@ namespace OpenDentBusiness {
 			//ST: Transaction Set Header.  Required.  Repeat 1.  Guide page 68.  The GS segment contains exactly one ST segment below it.
 			_controlId=FunctGroups[0].Transactions[0].Header.Get(2);//ST02 (page 68) - Should always exist
 			_listSegments=FunctGroups[0].Transactions[0].Segments;
-			for(int i=1;i<FunctGroups[0].Transactions.Count;i++) {
+			for(var i=1;i<FunctGroups[0].Transactions.Count;i++) {
 				if(_tranSetId==FunctGroups[0].Transactions[i].Header.Get(2)) {
 					_controlId=_tranSetId;
 					_listSegments=FunctGroups[0].Transactions[i].Segments;
@@ -347,7 +344,7 @@ namespace OpenDentBusiness {
 			}
 			ProcessBPR(0);
 			ProcessTRN(1);
-			int segNum=2;
+			var segNum=2;
 			//CUR: Foreign Currency Information.  Situational.  Repeat 1.  Guide page 79.  We do not use.
 			if(segNum<_listSegments.Count && _listSegments[segNum].SegmentID=="CUR") {
 				segNum++;
@@ -415,7 +412,7 @@ namespace OpenDentBusiness {
 			//Table 2 - Detail
 			//Loop 2000 Header Number.  Repeat >1.  We do not need the information in this loop, because claim payments include the unique claim identifiers that we need to match to the claims one-by-one.
 			_listClaimsPaid=new List<Hx835_Claim>();
-			bool isLoop2000=true;
+			var isLoop2000=true;
 			while(isLoop2000) {
 				isLoop2000=false;
 				//2000 LX: Header Number.  Situational.  Repeat 1.  Guide page 111.  We do not use.
@@ -424,7 +421,7 @@ namespace OpenDentBusiness {
 					segNum++;
 				}
 				//2000 TS3: Provider Summary Information.  Repeat 1.  Guide page 112.
-				string npi="";
+				var npi="";
 				if(segNum<_listSegments.Count && _listSegments[segNum].SegmentID=="TS3") {
 					isLoop2000=true;
 					npi=_listSegments[segNum].Get(1);
@@ -438,7 +435,7 @@ namespace OpenDentBusiness {
 				//Loop 2100 Claim Payment Information.  Repeat 1.  Guide page 123.
 				if(segNum<_listSegments.Count && _listSegments[segNum].SegmentID=="CLP") {
 					isLoop2000=true;
-					Hx835_Claim claimPaid=ProcessCLP(segNum,npi);
+					var claimPaid=ProcessCLP(segNum,npi);
 					claimPaid.Era=this;
 					_listClaimsPaid.Add(claimPaid);
 					segNum+=claimPaid.SegmentCount;
@@ -458,8 +455,8 @@ namespace OpenDentBusiness {
 		///ERA claims that can not be matched to given listClaim options will have key of -1.
 		///All other matched ERAs claims in ListClaimsPaid will have a key in returned dictionary.</summary>
 		public Dictionary<long,List<Hx835_Claim>> GetClaimsPaidDict() {
-			Dictionary<long,List<Hx835_Claim>> dictMatchedEraClaims=new Dictionary<long, List<Hx835_Claim>>();
-			foreach(Hx835_Claim eraClaim in this.ListClaimsPaid) {
+			var dictMatchedEraClaims=new Dictionary<long, List<Hx835_Claim>>();
+			foreach(var eraClaim in this.ListClaimsPaid) {
 				long claimNum;//Either -1, 0 or valid ClaimNum
 				switch(eraClaim.ClaimStatus) {
 					#region set claimNum
@@ -485,11 +482,11 @@ namespace OpenDentBusiness {
 
 		///<summary>Given listClaims should be a list of claims that have been filtered down for this ERA using ListPaidClaims ClaimNums.</summary>
 		public List<X835ClaimData> GetClaimDataList(List<Hx835_ShortClaim> listClaims) {
-			List<long> listClaimNums=this.ListClaimsPaid.Select(x => x.ClaimNum).Where(x => x!=0).ToList();
-			List<ClaimProc> listClaimProcs = ClaimProcs.RefreshForClaims(listClaimNums).FindAll(x=>x.ClaimPaymentNum!=0);
-			Dictionary<long,List<Hx835_Claim>> dictMatchedEraClaims=GetClaimsPaidDict();
-			List<X835ClaimData> ListX835ClaimDatas=new List<X835ClaimData>();
-			for(int i=0;i<ListClaimsPaid.Count;i++) {
+			var listClaimNums=this.ListClaimsPaid.Select(x => x.ClaimNum).Where(x => x!=0).ToList();
+			var listClaimProcs = ClaimProcs.RefreshForClaims(listClaimNums).FindAll(x=>x.ClaimPaymentNum!=0);
+			var dictMatchedEraClaims=GetClaimsPaidDict();
+			var ListX835ClaimDatas=new List<X835ClaimData>();
+			for(var i=0;i<ListClaimsPaid.Count;i++) {
 				Hx835_ShortClaim hx835_ShortClaim;//Either null, manually detached or valid claim.
 				switch(ListClaimsPaid[i].ClaimStatus) {
 					default://Just in case.
@@ -508,28 +505,28 @@ namespace OpenDentBusiness {
 				if(hx835_ShortClaim!=null) {
 					claimNum=hx835_ShortClaim.ClaimNum;
 				}
-				List<Hx835_Claim> listhx835_Claims=new List<Hx835_Claim>();
+				var listhx835_Claims=new List<Hx835_Claim>();
 				if(dictMatchedEraClaims.ContainsKey(claimNum)) {
 					listhx835_Claims=dictMatchedEraClaims[claimNum];
 				}
-				bool hasPayment=listClaimProcs.Exists(x=>x.ClaimNum==claimNum);
+				var hasPayment=listClaimProcs.Exists(x=>x.ClaimNum==claimNum);
 				ListX835ClaimDatas.Add(new X835ClaimData(hx835_ShortClaim,hasPayment,listhx835_Claims));
 			}
 			return ListX835ClaimDatas;
 		}
 
 		public X835Status GetStatus(List<X835ClaimData> listClaimDatas,List<Hx835_ShortClaimProc> listAllClaimProcs,List<Etrans835Attach> listAllAttaches) { 
-			int countProcessed=0;
-			int countRevievedWithPay=0;
-			int countOther=0;
-			int countDetached=0;//Count of manually detached claims. These claims are not considered in status.
-			foreach(X835ClaimData claimData in listClaimDatas) {
+			var countProcessed=0;
+			var countRevievedWithPay=0;
+			var countOther=0;
+			var countDetached=0;//Count of manually detached claims. These claims are not considered in status.
+			foreach(var claimData in listClaimDatas) {
 				if(claimData.IsManuallyDetached) {//Manually detached claim created for claim that was unattached by user.
 					countDetached++;
 					continue;
 				}
 				else if(claimData.IsClaimReceived) {
-					long etransNum=this.EtransSource.EtransNum;
+					var etransNum=this.EtransSource.EtransNum;
 					Hx835_Claim hx835Claim;//Should always match at least one item.
 					if(claimData.TryGetEraClaim(etransNum,out hx835Claim) && hx835Claim.IsProcessed(listAllClaimProcs,listAllAttaches)) {
 						countProcessed++;
@@ -567,15 +564,15 @@ namespace OpenDentBusiness {
 
 		///<summary>Can derive the status from data held within this class but uses several queries.</summary>
 		public X835Status GetStatus() {
-			List<Hx835_ShortClaim> listAttachedClaims=RefreshClaims().Select(x => new Hx835_ShortClaim(x)).ToList();
-			RefreshAttachesAndClaimProcsFromDb(out List<Etrans835Attach> listAttaches,out List<Hx835_ShortClaimProc> listClaimProcs);
+			var listAttachedClaims=RefreshClaims().Select(x => new Hx835_ShortClaim(x)).ToList();
+			RefreshAttachesAndClaimProcsFromDb(out var listAttaches,out var listClaimProcs);
 			return GetStatus(GetClaimDataList(listAttachedClaims),listClaimProcs,listAttaches);
 		}
 
 		///<summary>Returns a list of claims from the DB that are attached to the current era claims.
 		///Going to the DB ensures that we are working with the most current claim information for validation.</summary>
 		public List<Claim> RefreshClaims() {
-			List<long> listClaimNums=this.ListClaimsPaid.Select(x => x.ClaimNum).Where(x => x!=0).ToList();
+			var listClaimNums=this.ListClaimsPaid.Select(x => x.ClaimNum).Where(x => x!=0).ToList();
 			return Claims.GetClaimsFromClaimNums(listClaimNums);
 		}
 
@@ -586,20 +583,20 @@ namespace OpenDentBusiness {
 			if(listClaimsFor835==null) {
 				listClaimsFor835=this.RefreshClaims();
 			}
-			List<Claim> listClaims=new List<Claim>();
-			List<Hx835_Claim> listSkippedPreauths=this.ListClaimsPaid.FindAll(x => x.IsPreauth && !x.IsAttachedToClaim);
-			for(int i=0;i<listSkippedPreauths.Count;i++) {
+			var listClaims=new List<Claim>();
+			var listSkippedPreauths=this.ListClaimsPaid.FindAll(x => x.IsPreauth && !x.IsAttachedToClaim);
+			for(var i=0;i<listSkippedPreauths.Count;i++) {
 				Etrans835Attaches.DetachEraClaim(listSkippedPreauths[i]);
 			}
-			for(int i=0;i<this.ListClaimsPaid.Count;i++) {
+			for(var i=0;i<this.ListClaimsPaid.Count;i++) {
 				if((this.ListClaimsPaid[i].IsAttachedToClaim && this.ListClaimsPaid[i].ClaimNum==0) //User manually detached claim.
 					|| this.ListClaimsPaid[i].IsPreauth)
 				{
 					continue;
 				}
 				listClaims.Add(listClaimsFor835.FirstOrDefault(x => x.ClaimNum==this.ListClaimsPaid[i].ClaimNum));//Can add nulls
-				int index=listClaims.Count-1;
-				Claim claimCur=listClaims[index];
+				var index=listClaims.Count-1;
+				var claimCur=listClaims[index];
 				if(claimCur==null) {//Claim wasn't found in DB.
 					claimCur=new Claim();//ClaimNum will be 0, indicating that this is not a real claim.
 					listClaims[index]=claimCur;
@@ -610,7 +607,7 @@ namespace OpenDentBusiness {
 		}
 
 		public static long GetInsurancePaymentTypeDefNum(string paymentMethodCode){
-			long defNumDefault=PrefC.GetLong(PrefName.EraDefaultPaymentType);
+			var defNumDefault=PrefC.GetLong(PrefName.EraDefaultPaymentType);
 			switch(paymentMethodCode){
 				case "CHK":
 					return GetInsurancePaymentTypeDefNumHelper(PrefName.EraChkPaymentType,defNumDefault,"Check");
@@ -624,7 +621,7 @@ namespace OpenDentBusiness {
 		}
 
 		private static long GetInsurancePaymentTypeDefNumHelper(PrefName prefName,long defNumDefault,string defItemName){
-			long defNum=PrefC.GetLong(prefName);
+			var defNum=PrefC.GetLong(prefName);
 			if(defNum!=0){
 				return defNum;
 			}
@@ -635,15 +632,15 @@ namespace OpenDentBusiness {
 		}
 
 		public string GetHumanReadable() {
-			StringBuilder retVal=new StringBuilder();
+			var retVal=new StringBuilder();
 			retVal.AppendLine("Claim Status Reponse From "+PayerName);
 			retVal.AppendLine("Effective Pay Date: "+DateEffective.ToShortDateString());
 			retVal.AppendLine("Amount: "+InsPaid);
 			retVal.AppendLine("Individual Claim Status List: ");
 			retVal.AppendLine("Status	ClaimFee	InsPaid	PatientResp		PayerControlNum");
-			List<Hx835_Claim> listClaimsPaid=_listClaimsPaid;
-			for(int i = 0;i<listClaimsPaid.Count;i++) {
-				Hx835_Claim claimPaid=listClaimsPaid[i];
+			var listClaimsPaid=_listClaimsPaid;
+			for(var i = 0;i<listClaimsPaid.Count;i++) {
+				var claimPaid=listClaimsPaid[i];
 				retVal.Append(claimPaid.StatusCodeDescript+"\t");
 				retVal.Append(claimPaid.ClaimFee.ToString("f2")+"\t");
 				retVal.Append(claimPaid.InsPaid.ToString("f2")+"\t");
@@ -669,8 +666,8 @@ namespace OpenDentBusiness {
 
 		///<summary>AMT segments are found both at the claim and procedure levels.</summary>
 		private Hx835_Info ProcessAMT(int segNum) {
-			X12Segment segAMT=_listSegments[segNum];
-			Hx835_Info info=new Hx835_Info();
+			var segAMT=_listSegments[segNum];
+			var info=new Hx835_Info();
 			info.FieldName=GetDescriptForAmountQualifierCode(segAMT.Get(1));
 			info.FieldValue=SIn.Decimal(segAMT.Get(2)).ToString("f2");
 			return info;
@@ -678,7 +675,7 @@ namespace OpenDentBusiness {
 
 		///<summary>BPR: Financial Information.  Required.  Repeat 1.  Guide page 69.</summary>
 		private void ProcessBPR(int segNum) {
-			X12Segment segBPR=_listSegments[segNum];
+			var segBPR=_listSegments[segNum];
 			//BPR01 Transaction Handling Code.  Required.
 			_transactionHandlingDescript=this.GetDescriptForTransactionHandlingCode(segBPR.Get(1));
 			//BPR02 Total Actual Provider Payment Amount.  Required.
@@ -715,17 +712,17 @@ namespace OpenDentBusiness {
 
 		///<summary>Converts a CAS segment into a list of up to 6 adjustments.</summary>
 		private List<Hx835_Adj> ProcessCAS(int segNum) {
-			X12Segment segCAS=_listSegments[segNum];
-			List<Hx835_Adj> listAdjustments=new List<Hx835_Adj>();
-			string adjCode=segCAS.Get(1);
-			string adjDescript=AdjCodeToAdjDescript(adjCode);
+			var segCAS=_listSegments[segNum];
+			var listAdjustments=new List<Hx835_Adj>();
+			var adjCode=segCAS.Get(1);
+			var adjDescript=AdjCodeToAdjDescript(adjCode);
 			//Each CAS segment can contain up to 6 adjustments of the same type.
-			for(int k=2;k<=17;k+=3) {
-				Hx835_Adj adj=new Hx835_Adj();
+			for(var k=2;k<=17;k+=3) {
+				var adj=new Hx835_Adj();
 				adj.AdjCode=adjCode;
 				adj.AdjustRemarks=adjDescript;
-				string strAdjReasonCode=segCAS.Get(k);
-				string strAmt=segCAS.Get(k+1);
+				var strAdjReasonCode=segCAS.Get(k);
+				var strAmt=segCAS.Get(k+1);
 				if(strAdjReasonCode=="" && strAmt=="") {
 					continue;
 				}
@@ -769,14 +766,14 @@ namespace OpenDentBusiness {
 
 		///<summary>2100 CLP: Claim Payment Information.  Required.  Repeat 1.  Guide page 123.</summary>
 		private Hx835_Claim ProcessCLP(int segNum,string npi) {
-			int segNumCLP=segNum;
-			Hx835_Claim retVal=new Hx835_Claim();
-			X12Segment segCLP=_listSegments[segNum];
+			var segNumCLP=segNum;
+			var retVal=new Hx835_Claim();
+			var segCLP=_listSegments[segNum];
 			retVal.ClpSegmentIndex=segCLP.SegmentIndex;
 			retVal.Npi=npi;
 			retVal.ClaimTrackingNumber=segCLP.Get(1);//CLP01
 			retVal.PayerControlNumber=segCLP.Get(7);//CLP07 Payer Claim Control Number
-			string clp02=segCLP.Get(2);
+			var clp02=segCLP.Get(2);
 			retVal.CodeClp02=clp02;
 			retVal.IsPreauth=(clp02=="25");
 			retVal.IsReversal=(clp02=="22");
@@ -843,8 +840,8 @@ namespace OpenDentBusiness {
 				segNum++;
 			}
 			retVal.IsSplitClaim=false;
-			for(int i=0;i<retVal.ListAdjudicationInfo.Count;i++) {
-				Hx835_Info info=retVal.ListAdjudicationInfo[i];
+			for(var i=0;i<retVal.ListAdjudicationInfo.Count;i++) {
+				var info=retVal.ListAdjudicationInfo[i];
 				if(info.IsRemarkCode && info.FieldValueRaw=="MA15") {
 					retVal.IsSplitClaim=true;
 					break;
@@ -910,13 +907,13 @@ namespace OpenDentBusiness {
 			//2110 SVC Service Payment Information.  Situational.  Repeat 999.  Guide page 186.
 			retVal.ListProcs=new List<Hx835_Proc>();
 			while(segNum<_listSegments.Count && _listSegments[segNum].SegmentID=="SVC") {
-				Hx835_Proc proc=ProcessSVC(segNum,retVal.DateServiceStart,retVal.DateServiceEnd);
+				var proc=ProcessSVC(segNum,retVal.DateServiceStart,retVal.DateServiceEnd);
 				proc.ClaimPaid=retVal;
 				retVal.ListProcs.Add(proc);
 				segNum+=proc.SegmentCount;
 			}
-			bool areIdentifiersValid=true;
-			for(int i=0;i<retVal.ListProcs.Count;i++) {
+			var areIdentifiersValid=true;
+			for(var i=0;i<retVal.ListProcs.Count;i++) {
 				//If any proc has same procnum as any other proc AND a different ProcCodeBilled
 				if(retVal.ListProcs.Any(x=>x.ProcNum==retVal.ListProcs[i].ProcNum && x.ProcCodeBilled!=retVal.ListProcs[i].ProcCodeBilled)) {
 					areIdentifiersValid=false;
@@ -933,7 +930,7 @@ namespace OpenDentBusiness {
 			if(!areIdentifiersValid) {
 				//If any procedure identifiers are invalid, we can't trust the format used by the carrier, so we zero the ProcNum
 				//and insurance plan information. Secondary matching logic will be used when payment is proceseed.
-				for(int i=0;i<retVal.ListProcs.Count;i++) {
+				for(var i=0;i<retVal.ListProcs.Count;i++) {
 					retVal.ListProcs[i].ProcNum=0;
 					retVal.ListProcs[i].PlanOrdinal=0;
 					retVal.ListProcs[i].PartialPlanNum=0;
@@ -946,7 +943,7 @@ namespace OpenDentBusiness {
 			retVal.PreAuthInsEst=0;
 			//"Amounts in CLP05 must have supporting adjustments reflected in CAS segments at the 2100 (CLP) or 2110 (SVC) loop level with a
 			//Claim Adjustment Group (CAS01) code or PR (Patient Responsibility)"
-			foreach(Hx835_Adj adj in retVal.ListClaimAdjustments) {//Sum claim level adjustments.
+			foreach(var adj in retVal.ListClaimAdjustments) {//Sum claim level adjustments.
 				if(adj.AdjCode=="CO") {//Contractual Obligations (writeoffs).  Guide page 198.
 					//"Use thie code when a joint payer/payee agreement or a regulatory requirement has resulted in an adjustment."
 					retVal.WriteoffAmt+=adj.AdjAmt;
@@ -970,15 +967,15 @@ namespace OpenDentBusiness {
 					}
 				}
 			}
-			foreach(Hx835_Proc proc in retVal.ListProcs) {//Add sum of procedure level adjustments to claim level adjustments.
+			foreach(var proc in retVal.ListProcs) {//Add sum of procedure level adjustments to claim level adjustments.
 				retVal.PatientDeductAmt+=proc.DeductibleAmt;
 				retVal.PatientPortionAmt+=proc.PatientPortionAmt;
 				retVal.WriteoffAmt+=proc.WriteoffAmt;
 				retVal.PreAuthInsEst+=proc.PreAuthInsEst;
 			}
 			//Now modify the claim dates to encompass the procedure dates.  This step causes procedure dates to bubble up to the claim level when only service line dates are provided.
-			for(int i=0;i<retVal.ListProcs.Count;i++) {
-				Hx835_Proc proc=retVal.ListProcs[i];
+			for(var i=0;i<retVal.ListProcs.Count;i++) {
+				var proc=retVal.ListProcs[i];
 				if(retVal.DateServiceStart.Year<1880) {
 					retVal.DateServiceStart=proc.DateServiceStart;
 				}
@@ -999,8 +996,8 @@ namespace OpenDentBusiness {
 
 		///<summary>The LQ segment contains remark codes that must be converted into human readable text for it to be usable.</summary>
 		private string ProcessLQ(int segNum) {
-			X12Segment segLQ=_listSegments[segNum];
-			string code=segLQ.Get(2);
+			var segLQ=_listSegments[segNum];
+			var code=segLQ.Get(2);
 			if(segLQ.Get(1)=="HE") {//Claim Payment Remark Codes
 				return GetDescriptFrom411(code);
 			}
@@ -1015,13 +1012,13 @@ namespace OpenDentBusiness {
 
 		///<summary>The MIA segment is for Medicare inpatient adjudication information.</summary>
 		private List<Hx835_Info> ProcessMIA(int segNum) {
-			X12Segment segMIA=_listSegments[segNum];
-			List<Hx835_Info> listAdjudicationInfo=new List<Hx835_Info>();
-			for(int i=1;i<=24;i++) {
+			var segMIA=_listSegments[segNum];
+			var listAdjudicationInfo=new List<Hx835_Info>();
+			for(var i=1;i<=24;i++) {
 				if(segMIA.Get(i)=="") {
 					continue;
 				}
-				Hx835_Info info=new Hx835_Info();
+				var info=new Hx835_Info();
 				info.FieldValueRaw=segMIA.Get(i);
 				info.IsRemarkCode=false;
 				if(i==1) {
@@ -1132,13 +1129,13 @@ namespace OpenDentBusiness {
 
 		///<summary>The MOA segment is for Medicare outpatient adjudication information.</summary>
 		private List<Hx835_Info> ProcessMOA(int segNum) {
-			X12Segment segMOA=_listSegments[segNum];
-			List<Hx835_Info> listAdjudicationInfo=new List<Hx835_Info>();
-			for(int i=1;i<=9;i++) {
+			var segMOA=_listSegments[segNum];
+			var listAdjudicationInfo=new List<Hx835_Info>();
+			for(var i=1;i<=9;i++) {
 				if(segMOA.Get(i)=="") {
 					continue;
 				}
-				Hx835_Info info=new Hx835_Info();
+				var info=new Hx835_Info();
 				info.FieldValueRaw=segMOA.Get(i);
 				info.IsRemarkCode=false;
 				if(i==1) {
@@ -1189,7 +1186,7 @@ namespace OpenDentBusiness {
 
 		///<summary>1000A N1*PR: Payer Identification.  Required.  Repeat 1.  Guide page 87.</summary>
 		private void ProcessN1_PR(int segNum) {
-			X12Segment segN1_PR=_listSegments[segNum];
+			var segN1_PR=_listSegments[segNum];
 			//N101 Entity Identifier Code.  Required.  Always PR=Payer.
 			//N102 Payer Name.  Required.
 			_payerName=segN1_PR.Get(2);
@@ -1202,13 +1199,13 @@ namespace OpenDentBusiness {
 
 		///<summary>1000B N1*PE: Payee identification.  Required.  Repeat 1.  Guide page 102.  We include this information because it could be helpful for those customers who are using clinics.</summary>
 		private void ProcessN1_PE(int segNum) {
-			X12Segment segN1_PE=_listSegments[segNum];
+			var segN1_PE=_listSegments[segNum];
 			//N101 Entity Identifier Code.  Required.  Always PE.
 			//N102 Payee Name.  Required.
 			_payeeName=segN1_PE.Get(2);
 			//N103 Identification Code Qualifier.  Required.
 			_payeeIdType="";
-			string qualifier=segN1_PE.Get(3);
+			var qualifier=segN1_PE.Get(3);
 			if(qualifier=="FI") {
 				_payeeIdType="TIN";
 			}
@@ -1226,11 +1223,11 @@ namespace OpenDentBusiness {
 
 		///<summary>1000A N3: Payer Address.  Required.  Repeat 1.  Guide page 89.</summary>
 		private void ProcessN3_PR(int segNum) {
-			X12Segment segN3=_listSegments[segNum];
+			var segN3=_listSegments[segNum];
 			//N301 Payer Address Line 1.  Required
-			string address1=segN3.Get(1);
+			var address1=segN3.Get(1);
 			//N301 Payer Address Line 2.  Situational.
-			string address2=segN3.Get(2);
+			var address2=segN3.Get(2);
 			if(address2=="") {
 				_payerAddress=address1;
 			}
@@ -1241,7 +1238,7 @@ namespace OpenDentBusiness {
 
 		///<summary>1000A N4: Payer City, State, ZIP Code.  Required.  Repeat 1.  Guide page 90.</summary>
 		private void ProcessN4_PR(int segNum) {
-			X12Segment segN4=_listSegments[segNum];
+			var segN4=_listSegments[segNum];
 			//N401 City Name.  Required
 			_payerCity=segN4.Get(1);
 			//N402 State or Province Code.  Situational.  Required for United States addresses.
@@ -1257,7 +1254,7 @@ namespace OpenDentBusiness {
 		///<summary>Converts an NM1 segment for a person into a name object including the full name and identifier.
 		///All fields are optional, thus this function returns what is available.</summary>
 		private Hx835_Name ProcessNM1_Person(int segNum) {
-			Hx835_Name name=new Hx835_Name();
+			var name=new Hx835_Name();
 			name.Fname=_listSegments[segNum].Get(4);
 			name.Mname=_listSegments[segNum].Get(5);
 			name.Lname=_listSegments[segNum].Get(3);
@@ -1271,8 +1268,8 @@ namespace OpenDentBusiness {
 		///Phone/email in PER04 or the contact phone/email in PER06 or both.
 		///If neither PER04 nor PER06 are present, then returns empty string.</summary>
 		private string ProcessPER(int segNum) {
-			X12Segment segPER_BL=_listSegments[segNum];
-			string contact_info=segPER_BL.Get(4);//Contact number 1.
+			var segPER_BL=_listSegments[segNum];
+			var contact_info=segPER_BL.Get(4);//Contact number 1.
 			if(segPER_BL.Get(6)!="") {//Contact number 2.
 				if(contact_info!="") {
 					contact_info+=" or ";
@@ -1290,15 +1287,15 @@ namespace OpenDentBusiness {
 
 		///<summary>PLB: Provider Admustment.  Situational.  Repeat >1.  Guide page 217.  Each PLB segment can return up to 6 adjustments.</summary>
 		private List<Hx835_ProvAdj> ProcessPLB(int segNum) {
-			List<Hx835_ProvAdj> retVal=new List<Hx835_ProvAdj>();
-			X12Segment segPLB=_listSegments[segNum];
-			string npi=segPLB.Get(1);//PLB01 is required.
-			string dateFiscalPeriodStr=segPLB.Get(2);//PLB02 is required.
-			DateTime dateFiscalPeriod=DateTime.MinValue;
+			var retVal=new List<Hx835_ProvAdj>();
+			var segPLB=_listSegments[segNum];
+			var npi=segPLB.Get(1);//PLB01 is required.
+			var dateFiscalPeriodStr=segPLB.Get(2);//PLB02 is required.
+			var dateFiscalPeriod=DateTime.MinValue;
 			try {
-				int dateEffectiveYear=int.Parse(dateFiscalPeriodStr.Substring(0,4));
-				int dateEffectiveMonth=int.Parse(dateFiscalPeriodStr.Substring(4,2));
-				int dateEffectiveDay=int.Parse(dateFiscalPeriodStr.Substring(6,2));
+				var dateEffectiveYear=int.Parse(dateFiscalPeriodStr.Substring(0,4));
+				var dateEffectiveMonth=int.Parse(dateFiscalPeriodStr.Substring(4,2));
+				var dateEffectiveDay=int.Parse(dateFiscalPeriodStr.Substring(6,2));
 				dateFiscalPeriod=new DateTime(dateEffectiveYear,dateEffectiveMonth,dateEffectiveDay);
 			}
 			catch {
@@ -1308,9 +1305,9 @@ namespace OpenDentBusiness {
 			//Each pair represents a single provider adjustment and reason for adjustment.  The provider is identified in PLB01 by NPI.
 			//There can be more than one PLB segment, therefore it is possible to create more than six adjustments for a single provider by creating more than one PLB segment.
 			//The loop below is intended to capture all adjustments within the current PLB segment.
-			int segNumAdjCode=3;//PLB03 and PLB04 are required.  We start at segment 3 and increment by 2 with each iteration of the loop.
+			var segNumAdjCode=3;//PLB03 and PLB04 are required.  We start at segment 3 and increment by 2 with each iteration of the loop.
 			while(segNumAdjCode<segPLB.Elements.Length) {
-				Hx835_ProvAdj provAdj=new Hx835_ProvAdj();
+				var provAdj=new Hx835_ProvAdj();
 				provAdj.Npi=npi;
 				provAdj.DateFiscalPeriod=dateFiscalPeriod;
 				provAdj.ReasonCode=segPLB.Get(segNumAdjCode,1);
@@ -1329,9 +1326,9 @@ namespace OpenDentBusiness {
 		}
 
 		private Hx835_Proc ProcessSVC(int segNum,DateTime dateClaimServiceStart,DateTime dateClaimServiceEnd) {
-			int segNumSVC=segNum;
-			X12Segment segSVC=_listSegments[segNum];
-			Hx835_Proc proc=new Hx835_Proc();
+			var segNumSVC=segNum;
+			var segSVC=_listSegments[segNum];
+			var proc=new Hx835_Proc();
 			proc.ProcCodeAdjudicated=segSVC.Get(1).Split(new string[] { Separators.Subelement },StringSplitOptions.None)[1];//SVC1-2
 			proc.ProcFee=SIn.Decimal(segSVC.Get(2));//SVC2
 			proc.InsPaid=SIn.Decimal(segSVC.Get(3));//SVC3
@@ -1346,7 +1343,7 @@ namespace OpenDentBusiness {
 			proc.DateServiceStart=dateClaimServiceStart;
 			proc.DateServiceEnd=dateClaimServiceEnd;
 			while(segNum<_listSegments.Count && _listSegments[segNum].SegmentID=="DTM") {
-				string dateStr=_listSegments[segNum].Get(2);
+				var dateStr=_listSegments[segNum].Get(2);
 				//Denti-cal and EDS have sent us invalid dates in the past.  Translate invalid dates 0/0/0 to 1/1/1.
 				if(dateStr=="00000000") {
 					dateStr="00010101";//Date expressed as CCYYMMDD where CC represents the first two digits of the calendar year.
@@ -1372,8 +1369,8 @@ namespace OpenDentBusiness {
 				segNum++;
 			}
 			proc.PatRespTotal=0;
-			for(int i=0;i<proc.ListProcAdjustments.Count;i++) {
-				Hx835_Adj adj=proc.ListProcAdjustments[i];
+			for(var i=0;i<proc.ListProcAdjustments.Count;i++) {
+				var adj=proc.ListProcAdjustments[i];
 				if(adj.AdjCode=="CO"){//Contractual Obligations (writeoffs).  Guide page 198.
 					//"Use thie code when a joint payer/payee agreement or a regulatory requirement has resulted in an adjustment."
 					proc.WriteoffAmt+=adj.AdjAmt;
@@ -1407,9 +1404,9 @@ namespace OpenDentBusiness {
 			//2110 REF: HealthCare Policy Identification.  Situational.  Repeat 5.  Guide page 209.  We do not use.
 			while(segNum<_listSegments.Count && _listSegments[segNum].SegmentID=="REF") {//4 segment types clumped together, but we only care about REF*6R.
 				if(_listSegments[segNum].Get(1)=="6R") {
-					string strRef02=_listSegments[segNum].Get(2).ToLower();//Our outgoing values are always lowercase, but some clearinghouses change to uppercase.
+					var strRef02=_listSegments[segNum].Get(2).ToLower();//Our outgoing values are always lowercase, but some clearinghouses change to uppercase.
 					if(strRef02.StartsWith("y")) {
-						string[] arrayIdFields=strRef02.Split('/');
+						var arrayIdFields=strRef02.Split('/');
 						if(arrayIdFields.Length==3) {
 							proc.ProcNum=SIn.Long(arrayIdFields[0].Substring(1));//Ignores leading 'y'
 							proc.PlanOrdinal=SIn.Long(arrayIdFields[1]);
@@ -1420,7 +1417,7 @@ namespace OpenDentBusiness {
 						}
 					}
 					if(strRef02.StartsWith("x")) {
-						string[] arrayIdFields=strRef02.Split('/');
+						var arrayIdFields=strRef02.Split('/');
 						if(arrayIdFields.Length==3) {
 							proc.ProcNum=SIn.Long(arrayIdFields[0].Substring(1));//Ignores leading 'x'
 							proc.PlanOrdinal=SIn.Long(arrayIdFields[1]);
@@ -1451,9 +1448,9 @@ namespace OpenDentBusiness {
 			//2110 LQ: Health Care Remark Codes.  Repeat 99.  Guide page 215.
 			proc.ListRemarks=new List<Hx835_Remark>();
 			while(segNum<_listSegments.Count && _listSegments[segNum].SegmentID=="LQ") {
-				X12Segment segLQ=_listSegments[segNum];
-				string code=segLQ.Get(2);
-				string remark=ProcessLQ(segNum);
+				var segLQ=_listSegments[segNum];
+				var code=segLQ.Get(2);
+				var remark=ProcessLQ(segNum);
 				proc.ListRemarks.Add(new Hx835_Remark(code,remark));
 				segNum++;
 			}
@@ -1464,7 +1461,7 @@ namespace OpenDentBusiness {
 
 		///<summary>TRN: Reassociation Trace Number.  Required.  Repeat 1.  Guide page 77.</summary>
 		private void ProcessTRN(int segNum) {
-			X12Segment segTRN=_listSegments[segNum];
+			var segTRN=_listSegments[segNum];
 			//TRN01 Trace Type Code.  Required.  Always set to 1.  Not useful.  We do not use.
 			//TRN02 Check or EFT Trace Number.  Required.
 			_transRefNum=segTRN.Get(2);
@@ -1526,7 +1523,7 @@ namespace OpenDentBusiness {
 		}
 
 		private string GetDescriptForClaimStatusCode(string code) {
-			string claimStatusCodeDescript="";
+			var claimStatusCodeDescript="";
 			if(code=="1") {
 				claimStatusCodeDescript="Processed as Primary";
 			}
@@ -3436,7 +3433,7 @@ namespace OpenDentBusiness {
 		///<summary>Generates a fake 835 for testing purposes. We use a fake code of '0123456789ABCDEF' so that we can easily identify these fake 835s when reviewing for bug fixes.</summary>
 		public string GenerateMessageText() {
 			_sb=new StringBuilder();
-			int batchNum=ODRandom.Next(1,1000000);
+			var batchNum=ODRandom.Next(1,1000000);
 			//Interchange Control Header (Interchange number tracked separately from transactionNum)
 			//We set it to between 1 and 999 for simplicity
 			WriteSegment("ISA",
@@ -3468,9 +3465,9 @@ namespace OpenDentBusiness {
 		}
 
 		private void WriteFunctionalGroup(int batchNum) {
-			int transactionNum=1;//Gets incremented for each carrier. Can be reused in other functional groups and interchanges, so not persisted
-			string groupControlNumber=batchNum.ToString();//Must be unique within file.  We will use batchNum
-			string industryIdentifierCode="005010X221A1";
+			var transactionNum=1;//Gets incremented for each carrier. Can be reused in other functional groups and interchanges, so not persisted
+			var groupControlNumber=batchNum.ToString();//Must be unique within file.  We will use batchNum
+			var industryIdentifierCode="005010X221A1";
 			WriteSegment("GS",
 				"HP",//GS01 2/2 Functional Identifier Code: Health Care Claim Payment/Advice (835)
 				"0123456789ABCDEF",//GS02 2/15 Application Sender's Code:
@@ -3555,7 +3552,7 @@ namespace OpenDentBusiness {
 			//1000B N4: PAYEE CITY, STATE, ZIP CODE. Situational.
 			//1000B REF: 0B,D3,PQ,TJ PAYEE ADDITIONAL IDENTIFICATION. Situational.
 			//1000B RDM: BM,EM,FT,OL REMITTANCE DELIVERY METHOD. Situational.
-			for(int i=0;i<ListClaimsPaid.Count;i++) {
+			for(var i=0;i<ListClaimsPaid.Count;i++) {
 				//2000 LX: HEADER NUMBER. Situational.
 				//2000 TS3: PROVIDER SUMMARY INFORMATION. Situational.
 				//2000 TS2: PROVIDER SUPPLEMENTAL SUMMARY INFORMATION. Situational.
@@ -3636,9 +3633,9 @@ namespace OpenDentBusiness {
 				//2100 AMT: AU,D8,DY,F5,I,NL,T,T2,ZK,ZL,ZM,ZN,ZO CLAIM SUPPLEMENTAL INFORMATION. Situational.
 				//2100 QTY: CA,CD,LA,LE,NE,NR,OU,PS,VS,ZK,ZL,ZM,ZN,ZO CLAIM SUPPLEMENTAL INFORMATION QUANTITY. Situational.
 				//TODO: Implement the case where no SVC information is sent at all to see if OD can handle.
-				for(int j=0;j<ListClaimsPaid[i].ListProcs.Count;j++) {
+				for(var j=0;j<ListClaimsPaid[i].ListProcs.Count;j++) {
 					//2110 SVC: SERVICE PAYMENT INFORMATION. Situational. Required for all service lines priced at the service line level or whenever payment for any service line is different than the orignal claim.
-					X835Composite svc06=new X835Composite() { ArrayComponents=new string[0] };
+					var svc06=new X835Composite() { ArrayComponents=new string[0] };
 					if(ListClaimsPaid[i].ListProcs[j].ProcCodeBilled!=ListClaimsPaid[i].ListProcs[j].ProcCodeAdjudicated) {
 						svc06=CompositeElement(//Required when the procedure code in SVC01 is different than the submitted procedure code.
 							"AD",//SVC01-1 2/2 Product/Service ID Qualifier: AD=American Dental Association Codes
@@ -3733,8 +3730,8 @@ namespace OpenDentBusiness {
 
 		///<summary>Writes the given elements to the stringbuilder and ensures proper formatting for the segment.</summary>
 		private void WriteSegment(params object[] arrayElements) {
-			string[] arrayElementStrings=new string[arrayElements.Length];
-			for(int i=0;i<arrayElements.Length;i++) {
+			var arrayElementStrings=new string[arrayElements.Length];
+			for(var i=0;i<arrayElements.Length;i++) {
 				if(arrayElements[i] is string str) {
 					arrayElementStrings[i]=Sout(str,hasUnderscores:true,trimWhiteSpace:false);
 				}
@@ -3766,12 +3763,12 @@ namespace OpenDentBusiness {
 
 		///<summary>The last reported element in a segment (or component in a composite) must not be empty string according to the stardard.</summary>
 		private string[] RemoveTrailingEmpties(params string[] arrayStrings) {
-			int endIndex=arrayStrings.Length-1;
+			var endIndex=arrayStrings.Length-1;
 			while(endIndex>0 && arrayStrings[endIndex]=="") {
 				endIndex--;
 			}
-			string[] arrayShortStrings=new string[endIndex+1];
-			for(int i=0;i<=endIndex;i++) {
+			var arrayShortStrings=new string[endIndex+1];
+			for(var i=0;i<=endIndex;i++) {
 				arrayShortStrings[i]=arrayStrings[i];
 			}
 			return arrayShortStrings;
@@ -3785,7 +3782,7 @@ namespace OpenDentBusiness {
 			//The "Basic Character Set" is described in the standard on page 387 as: A...Z 0...9 ! & ( ) + * , - . / : ; ? = (space)
 			//The "Extended Character Set" is described in the standard on page 387 as: a...z % ~ @ [ ] _ { } \ | < > # $
 			//An X12 "String" is defined on page 393 as: "A string data element is a sequence of any characters from the basic or extended character sets."
-			string retStr=inputStr.ToUpper();
+			var retStr=inputStr.ToUpper();
 			retStr=retStr.Replace(s,"");//Remove any instances of data element separator in inputStr to protect integrity of overall output.
 			retStr=retStr.Replace(isa16,"");//Remove any instances of data component separator in inputStr to protect integrity of overall output.  Example: " for Dentical.
 			retStr=retStr.Replace(endSegment.Substring(0),"");//Remove any instances of segment separator in inputStr to protect integrity of overall output. The endSegment has \r\n tacked on end, so we only want Substring(0).
@@ -4002,25 +3999,25 @@ namespace OpenDentBusiness {
 		///We identify if a payment is supplemental based on if listAttaches contains an entry from a previous etrans/ERA for this.ClaimNum.
 		///Also attempts to match a by totals payment if a Hx835_Proc could not be matched.</summary>
 		public bool IsProcessed(List<Hx835_ShortClaimProc> listEraClaimProcs,List<Etrans835Attach> listAttaches) {
-			Etrans835Attach attach=listAttaches.FirstOrDefault(x => x.EtransNum==Era.EtransSource.EtransNum && x.ClaimNum==ClaimNum && x.ClpSegmentIndex==ClpSegmentIndex);
+			var attach=listAttaches.FirstOrDefault(x => x.EtransNum==Era.EtransSource.EtransNum && x.ClaimNum==ClaimNum && x.ClpSegmentIndex==ClpSegmentIndex);
 			if(ClaimNum==0 || attach==null) {
 				//Attaches are made after double clicking into the claim EOB on an ERA to process it or by auto-processing an ERA.
 				return false;
 			}
 			//List of claimNums for this ERA which were split from this ERA to a new claim.
-			List<long> listSplitClaimNums=listAttaches.Where(x => 
+			var listSplitClaimNums=listAttaches.Where(x => 
 				x.EtransNum==this.Era.EtransSource.EtransNum//Same ERA
 				&& x.ClpSegmentIndex==this.ClpSegmentIndex //Same claim
 				&& x.ClaimNum!=this.ClaimNum//Different claim, this was split from the original ERA payment window
 			).Select(x => x.ClaimNum).ToList();
-			List<Hx835_ShortClaimProc> listClaimProcsForEraProcs=GetClaimProcsForEraProcs(listEraClaimProcs,listSplitClaimNums);
+			var listClaimProcsForEraProcs=GetClaimProcsForEraProcs(listEraClaimProcs,listSplitClaimNums);
 			if(listClaimProcsForEraProcs.Count==0) {
 				return false;
 			}
-			bool isEraClaimSupplemental=GetIsSupplemental(listAttaches,listClaimProcsForEraProcs);
-			List<Hx835_ShortClaimProc> listUnmatchedClaimProcsForEraProcs=new List<Hx835_ShortClaimProc>(listClaimProcsForEraProcs);
-			List<Hx835_Proc> listProcsNotMatched=new List<Hx835_Proc>();
-			foreach(Hx835_Proc proc in ListProcs) {
+			var isEraClaimSupplemental=GetIsSupplemental(listAttaches,listClaimProcsForEraProcs);
+			var listUnmatchedClaimProcsForEraProcs=new List<Hx835_ShortClaimProc>(listClaimProcsForEraProcs);
+			var listProcsNotMatched=new List<Hx835_Proc>();
+			foreach(var proc in ListProcs) {
 				Hx835_ShortClaimProc matchedClaimProc=null;
 				if(!proc.TryGetMatchedClaimProc(out matchedClaimProc,listUnmatchedClaimProcsForEraProcs,isEraClaimSupplemental)) {
 					listProcsNotMatched.Add(proc);
@@ -4035,23 +4032,23 @@ namespace OpenDentBusiness {
 				//In this case, we cannot verify that procedure amounts on the ERA match what is in our database because the procedure lines have been altered.
 				//We just want to ensure that the totals made it from the ERA to the claim in our database.
 				//This strategy also works for ERAs with By Total payments as well as supplemental claims.
-				double deductibleOnClaim=Math.Round(listClaimProcsForEraProcs.Sum(x => x.DedApplied),2);//ERAs are USA only, therefore round to 2 decimal places (cents)
-				double deductibleOnERA=(double)Math.Round(ListProcs.Sum(x => x.DeductibleAmt),2);//ERAs are USA only, therefore round to 2 decimal places (cents)
+				var deductibleOnClaim=Math.Round(listClaimProcsForEraProcs.Sum(x => x.DedApplied),2);//ERAs are USA only, therefore round to 2 decimal places (cents)
+				var deductibleOnERA=(double)Math.Round(ListProcs.Sum(x => x.DeductibleAmt),2);//ERAs are USA only, therefore round to 2 decimal places (cents)
 				if(deductibleOnClaim!=deductibleOnERA) {
 					return false;
 				}
-				double paidOnClaim=Math.Round(listClaimProcsForEraProcs.Sum(x => x.InsPayAmt),2);//ERAs are USA only, therefore round to 2 decimal places (cents)
-				double paidOnERA=(double)Math.Round(ListProcs.Sum(x => x.InsPaid),2);//ERAs are USA only, therefore round to 2 decimal places (cents)
+				var paidOnClaim=Math.Round(listClaimProcsForEraProcs.Sum(x => x.InsPayAmt),2);//ERAs are USA only, therefore round to 2 decimal places (cents)
+				var paidOnERA=(double)Math.Round(ListProcs.Sum(x => x.InsPaid),2);//ERAs are USA only, therefore round to 2 decimal places (cents)
 				if(paidOnClaim!=paidOnERA) {
 					return false;
 				}
-				double writeoffOnClaim=Math.Round(listClaimProcsForEraProcs.Sum(x => x.WriteOff),2);//ERAs are USA only, therefore round to 2 decimal places (cents)
-				double writeoffOnERA=(double)Math.Round(ListProcs.Sum(x => x.WriteoffAmt),2);//ERAs are USA only, therefore round to 2 decimal places (cents)
+				var writeoffOnClaim=Math.Round(listClaimProcsForEraProcs.Sum(x => x.WriteOff),2);//ERAs are USA only, therefore round to 2 decimal places (cents)
+				var writeoffOnERA=(double)Math.Round(ListProcs.Sum(x => x.WriteoffAmt),2);//ERAs are USA only, therefore round to 2 decimal places (cents)
 				if(writeoffOnClaim!=writeoffOnERA) {
 					return false;
 				}
-				double allowedOnClaim=Math.Round(listClaimProcsForEraProcs.Sum(x => x.AllowedOverride),2);//ERAs are USA only, therefore round to 2 decimal places (cents)
-				double allowedOnERA=(double)Math.Round(ListProcs.Sum(x => x.AllowedAmt),2);//ERAs are USA only, therefore round to 2 decimal places (cents)
+				var allowedOnClaim=Math.Round(listClaimProcsForEraProcs.Sum(x => x.AllowedOverride),2);//ERAs are USA only, therefore round to 2 decimal places (cents)
+				var allowedOnERA=(double)Math.Round(ListProcs.Sum(x => x.AllowedAmt),2);//ERAs are USA only, therefore round to 2 decimal places (cents)
 				if(allowedOnClaim!=allowedOnERA) {
 					return false;
 				}
@@ -4061,15 +4058,15 @@ namespace OpenDentBusiness {
 
 		///<summary>Returns all CARC codes for the claim or its procedures that we are not supposed to auto-process.</summary>
 		public List<string> GetCarcCodesNoAutoProcessForClaim() {
-			List<string> listCarcCodesNoAutoProcess=PrefC.GetString(PrefName.EraNoAutoProcessCarcCodes).Split(",",StringSplitOptions.RemoveEmptyEntries).Distinct().ToList();
-			List<string> listClaimCarcCodes=ListClaimAdjustments.Select(x => x.ReasonCode).ToList();
-			List<string> listProcedureCarcCodes=ListProcs.SelectMany(x => x.ListProcAdjustments).Select(x => x.ReasonCode).ToList();
+			var listCarcCodesNoAutoProcess=PrefC.GetString(PrefName.EraNoAutoProcessCarcCodes).Split(",",StringSplitOptions.RemoveEmptyEntries).Distinct().ToList();
+			var listClaimCarcCodes=ListClaimAdjustments.Select(x => x.ReasonCode).ToList();
+			var listProcedureCarcCodes=ListProcs.SelectMany(x => x.ListProcAdjustments).Select(x => x.ReasonCode).ToList();
 			return listCarcCodesNoAutoProcess.FindAll(x => listClaimCarcCodes.Contains(x) || listProcedureCarcCodes.Contains(x));
 		}
 		
 		private List<Hx835_ShortClaimProc> GetClaimProcsForEraProcs(List<Hx835_ShortClaimProc> listAllClaimProcs,List<long> listSplitClaimNums) {
-			List<Hx835_ShortClaimProc> listClaimProcs=new List<Hx835_ShortClaimProc>();
-			foreach(Hx835_ShortClaimProc claimProc in listAllClaimProcs) {
+			var listClaimProcs=new List<Hx835_ShortClaimProc>();
+			foreach(var claimProc in listAllClaimProcs) {
 				if(claimProc.ClaimNum==ClaimNum && claimProc.Status.In(ClaimProcStatus.Received,ClaimProcStatus.Supplemental,ClaimProcStatus.Preauth)) {
 					listClaimProcs.Add(claimProc);
 				}
@@ -4094,7 +4091,7 @@ namespace OpenDentBusiness {
 				return true;
 			}
 			//If there is another etrans/ERA in the past which has the same claim attached, then we assume supplemental.
-			List<Etrans835Attach> listOtherEtransAttaches=listAttaches.FindAll(x => x.EtransNum!=Era.EtransSource.EtransNum).ToList();
+			var listOtherEtransAttaches=listAttaches.FindAll(x => x.EtransNum!=Era.EtransSource.EtransNum).ToList();
 			if(listOtherEtransAttaches.Exists(x => x.ClaimNum==this.ClaimNum && x.DateTimeTrans<this.Era.EtransSource.DateTimeTrans)) {
 				return true;
 			}
@@ -4129,13 +4126,13 @@ namespace OpenDentBusiness {
 		///If there are no matches for a claimProc, then the list corresponding to that claimProc will be an empty list (not null).</summary>
 		public static List<List<Hx835_Proc>> GetPaymentsForClaimProcs(List<ClaimProc> listClaimProcs,List<Hx835_Proc> listProcsUnassigned) {
 			//This logic is mimiced for split claims in FormEtrans835Edit.EnterPayment(...)
-			List<List<Hx835_Proc>> retVal=new List<List<Hx835_Proc>>();
+			var retVal=new List<List<Hx835_Proc>>();
 			//First locate matches by unique identifier.  There may be no match for older procedures, because we did not always send the procedure identifiers in the 837s.
 			//This loop also ensures that every item of retVal contains an initialized list, although some lists may be empty.
-			for(int i=0;i<listClaimProcs.Count;i++) {
-				ClaimProc claimProc=listClaimProcs[i];
-				List<Hx835_Proc> listProcMatches=new List<Hx835_Proc>();
-				for(int j=listProcsUnassigned.Count-1;j>=0;j--) {//We go backward, so we can remove the current item without modifying j.
+			for(var i=0;i<listClaimProcs.Count;i++) {
+				var claimProc=listClaimProcs[i];
+				var listProcMatches=new List<Hx835_Proc>();
+				for(var j=listProcsUnassigned.Count-1;j>=0;j--) {//We go backward, so we can remove the current item without modifying j.
 					if(listProcsUnassigned[j].ProcNum!=claimProc.ProcNum) {
 						continue;
 					}
@@ -4148,13 +4145,13 @@ namespace OpenDentBusiness {
 			//For those claimprocs for which no match was found using the unique ID, 
 			//try to locate by procedure code and procedure fee.
 			//Unfortunately, this would not match split procedures which have no specified ProcNum.
-			for(int i=0;i<retVal.Count;i++) {
+			for(var i=0;i<retVal.Count;i++) {
 				if(retVal[i].Count>0) {
 					continue;//Already matched this claimProc by ProcNum.
 				}
-				ClaimProc claimProc=listClaimProcs[i];
-				for(int j=0;j<listProcsUnassigned.Count;j++) {
-					Hx835_Proc procPaid=listProcsUnassigned[j];
+				var claimProc=listClaimProcs[i];
+				for(var j=0;j<listProcsUnassigned.Count;j++) {
+					var procPaid=listProcsUnassigned[j];
 					if(procPaid.ProcFee!=(decimal)claimProc.FeeBilled) {
 						continue;
 					}
@@ -4171,12 +4168,12 @@ namespace OpenDentBusiness {
 
 		///<summary>Concats all adjustment descriptions from ListClaimAdjustments into a single string, separated by newlines.</summary>
 		public string GetRemarks() {
-			StringBuilder sb=new StringBuilder();
-			for(int i=0;i<ListClaimAdjustments.Count;i++) {
+			var sb=new StringBuilder();
+			for(var i=0;i<ListClaimAdjustments.Count;i++) {
 				if(i>0) {
 					sb.Append("\r\n");
 				}
-				Hx835_Adj adj=ListClaimAdjustments[i];
+				var adj=ListClaimAdjustments[i];
 				sb.Append(adj.AdjustRemarks+" - "+adj.ReasonDescript);
 			}
 			return sb.ToString();
@@ -4185,18 +4182,18 @@ namespace OpenDentBusiness {
 		///<summary>Returns true if the last name AND (first name OR partial first name) of the passed in patient don't match the name on this 835 claim.
 		///All names are converted to lower case and spaces are removed to improve matching.</summary>
 		public bool DoesPatientNameMatch(Patient pat) {
-			string patFName=pat.FName.Trim().ToLower();
-			string patLName=pat.LName.Trim().ToLower();
-			string patFNameOnClaim=this.PatientName.Fname.Trim().ToLower();
-			string patLNameOnClaim=this.PatientName.Lname.Trim().ToLower();
-			bool doesLNameMatch=patLName==patLNameOnClaim;
-			bool doesFNameMatch=patFName==patFNameOnClaim;
-			bool doesFNamePartiallyMatch=patFName.Length>1 && patFNameOnClaim.StartsWith(patFName);
+			var patFName=pat.FName.Trim().ToLower();
+			var patLName=pat.LName.Trim().ToLower();
+			var patFNameOnClaim=this.PatientName.Fname.Trim().ToLower();
+			var patLNameOnClaim=this.PatientName.Lname.Trim().ToLower();
+			var doesLNameMatch=patLName==patLNameOnClaim;
+			var doesFNameMatch=patFName==patFNameOnClaim;
+			var doesFNamePartiallyMatch=patFName.Length>1 && patFNameOnClaim.StartsWith(patFName);
 			return doesLNameMatch && (doesFNameMatch || doesFNamePartiallyMatch);
 		}
 
 		public Hx835_Claim Copy(){
-			Hx835_Claim claim=(Hx835_Claim)this.MemberwiseClone();
+			var claim=(Hx835_Claim)this.MemberwiseClone();
 			claim.ListClaimAdjustments=this.ListClaimAdjustments.Select(x => x.Copy()).ToList();
 			claim.ListAdjudicationInfo=this.ListAdjudicationInfo.Select(x => x.Copy()).ToList();
 			claim.ListSupplementalInfo=this.ListSupplementalInfo.Select(x => x.Copy()).ToList();
@@ -4280,15 +4277,15 @@ namespace OpenDentBusiness {
 
 		///<summary>Concats all remarks in ListRemarks into a single string.</summary>
 		public string GetRemarks() {
-			StringBuilder sb=new StringBuilder();
-			for(int i=0;i<ListProcAdjustments.Count;i++) {
+			var sb=new StringBuilder();
+			for(var i=0;i<ListProcAdjustments.Count;i++) {
 				if(i>0) {
 					sb.Append("\r\n");
 				}
-				Hx835_Adj adj=ListProcAdjustments[i];
+				var adj=ListProcAdjustments[i];
 				sb.Append(adj.AdjustRemarks+" - "+adj.ReasonDescript);
 			}
-			for(int i=0;i<ListRemarks.Count;i++) {
+			for(var i=0;i<ListRemarks.Count;i++) {
 				if(sb.Length > 0) {
 					sb.Append("\r\n");
 				}
@@ -4298,7 +4295,7 @@ namespace OpenDentBusiness {
 		}
 		
 		public Hx835_Proc Copy() {
-			Hx835_Proc proc=(Hx835_Proc)this.MemberwiseClone();
+			var proc=(Hx835_Proc)this.MemberwiseClone();
 			proc.ListProcAdjustments=this.ListProcAdjustments.Select(x => x.Copy()).ToList();
 			proc.ListSupplementalInfo=this.ListSupplementalInfo.Select(x => x.Copy()).ToList();
 			proc.ListRemarks=this.ListRemarks.Select(x => x.Copy()).ToList();
@@ -4311,7 +4308,7 @@ namespace OpenDentBusiness {
 		public bool TryGetMatchedClaimProc(out Hx835_ShortClaimProc matchedClaimProc,List<Hx835_ShortClaimProc> listClaimProcs,bool isSupplemental) {
 			//Mimics proc matching in claimPaid.GetPaymentsForClaimProcs(...)
 			matchedClaimProc=null;
-			foreach(Hx835_ShortClaimProc claimProc in listClaimProcs) {
+			foreach(var claimProc in listClaimProcs) {
 				if(!IsBasicMatch(claimProc,isSupplemental)) {
 					continue;
 				}
@@ -4353,7 +4350,7 @@ namespace OpenDentBusiness {
 
 		///<summary>Returns true if given claimProc has a matching InsPayAmt or InsPayEst if claimProc is preauth.</summary>
 		private bool IsPayAmountMatch(Hx835_ShortClaimProc claimProc) {
-			double payAmt=claimProc.InsPayAmt;
+			var payAmt=claimProc.InsPayAmt;
 			if(claimProc.Status==ClaimProcStatus.Preauth) {
 				payAmt=claimProc.InsPayEst;
 			}
@@ -4440,7 +4437,7 @@ namespace OpenDentBusiness {
 		}
 
 		public string ToString(bool isIdIncluded) {
-			string name=Fname;
+			var name=Fname;
 			if(Mname!="") {
 				if(name!="") {
 					name+=" ";
@@ -4503,20 +4500,20 @@ namespace OpenDentBusiness {
 				return new List<Hx835_ShortClaim>();
 			}
 			
-			string command=$"SELECT ClaimNum,ClinicNum,ClaimStatus,PlanNum,DateSent,ClaimType FROM claim WHERE ClaimNum IN ({string.Join(",",listClaimNums)})";
+			var command=$"SELECT ClaimNum,ClinicNum,ClaimStatus,PlanNum,DateSent,ClaimType FROM claim WHERE ClaimNum IN ({string.Join(",",listClaimNums)})";
 			return SelectMany(command);
 		}
 
 		///<summary>Mimics ClaimCrud.SelectMany().  Gets a list of Hx835_ShortClaim objects from the database using a query.</summary>
 		public static List<Hx835_ShortClaim> SelectMany(string command) {
 			
-			List<Hx835_ShortClaim> list=TableToList(DataCore.GetTable(command));
+			var list=TableToList(DataCore.GetTable(command));
 			return list;
 		}
 
 		///<summary>Mimics ClaimCrud.TableToList().  Converts a DataTable to a list of objects.</summary>
 		public static List<Hx835_ShortClaim> TableToList(DataTable table) {
-			List<Hx835_ShortClaim> retVal=new List<Hx835_ShortClaim>();
+			var retVal=new List<Hx835_ShortClaim>();
 			Hx835_ShortClaim claim;
 			foreach(DataRow row in table.Rows) {
 				claim=new Hx835_ShortClaim();
@@ -4590,9 +4587,9 @@ namespace OpenDentBusiness {
 				return new List<Hx835_ShortClaimProc>();
 			}
 			
-			string command="SELECT claimproc.* FROM claimproc "
-				+"INNER JOIN claim ON claimproc.ClaimNum=claim.ClaimNum AND claim.ClaimStatus IN('U','H','I','W') "//Only unsent, hold, or waiting to send statuses.
-				+$"WHERE claimproc.ProcNum IN({string.Join(",",listProcNums.Select(x => SOut.Long(x)))})";
+			var command="SELECT claimproc.* FROM claimproc "
+			            +"INNER JOIN claim ON claimproc.ClaimNum=claim.ClaimNum AND claim.ClaimStatus IN('U','H','I','W') "//Only unsent, hold, or waiting to send statuses.
+			            +$"WHERE claimproc.ProcNum IN({string.Join(",",listProcNums.Select(x => SOut.Long(x)))})";
 			return SelectMany(command);
 		}
 
@@ -4602,25 +4599,25 @@ namespace OpenDentBusiness {
 			if(listClaimNums.Count==0) {
 				return new List<Hx835_ShortClaimProc>();
 			}
-			List <string> listClaimNumStrs=listClaimNums.Select(x => SOut.Long(x)).ToList();
-			string command=
+			var listClaimNumStrs=listClaimNums.Select(x => SOut.Long(x)).ToList();
+			var command=
 				"SELECT ClaimProcNum,ProcNum,ClaimNum,FeeBilled,InsPayEst,DedApplied,Status,InsPayAmt,WriteOff,"
 				+"WriteOffEst,WriteOffEstOverride,CodeSent,AllowedOverride,SecDateEntry "
 				+"FROM claimproc "
-				+"WHERE ClaimNum IN("+String.Join(",",listClaimNumStrs)+")";
+				+"WHERE ClaimNum IN("+string.Join(",",listClaimNumStrs)+")";
 			return SelectMany(command);
 		}
 
 		///<summary>Mimics ClaimProcCrud.SelectMany().  Gets a list of ClaimProc objects from the database using a query.</summary>
 		public static List<Hx835_ShortClaimProc> SelectMany(string command) {
 			
-			List<Hx835_ShortClaimProc> list=TableToList(DataCore.GetTable(command));
+			var list=TableToList(DataCore.GetTable(command));
 			return list;
 		}
 
 		///<summary>Mimics ClaimProcCrud.TableToList().  Converts a DataTable to a list of objects.</summary>
 		public static List<Hx835_ShortClaimProc> TableToList(DataTable table) {
-			List<Hx835_ShortClaimProc> retVal=new List<Hx835_ShortClaimProc>();
+			var retVal=new List<Hx835_ShortClaimProc>();
 			Hx835_ShortClaimProc claimProc;
 			foreach(DataRow row in table.Rows) {
 				claimProc=new Hx835_ShortClaimProc();
@@ -4696,8 +4693,8 @@ namespace OpenDentBusiness {
 		public bool CanClaimBeAutoProcessed(bool isFullyAutomatic,Patient patient,InsPlan insPlan,Hx835_Claim claimPaid,List<PayPlan> listPayPlans,
 			List<Hx835_ShortClaimProc> listClaimProcsAll,List<Hx835_ShortClaimProc> listClaimProcsForClaim,List<Etrans835Attach> listAttaches)
 		{
-			StringBuilder stringBuilderErrorMessage=new StringBuilder();
-			List<string> listCarcCodesNoAutoProcessForClaim=claimPaid.GetCarcCodesNoAutoProcessForClaim();
+			var stringBuilderErrorMessage=new StringBuilder();
+			var listCarcCodesNoAutoProcessForClaim=claimPaid.GetCarcCodesNoAutoProcessForClaim();
 			if(!listCarcCodesNoAutoProcessForClaim.IsNullOrEmpty()) {
 				stringBuilderErrorMessage.AppendLine(Lans.g("X835","Payment information included the following Claim Adjustment Reason Codes:")+" "
 					+string.Join(", ",listCarcCodesNoAutoProcessForClaim)+". "
@@ -4708,7 +4705,7 @@ namespace OpenDentBusiness {
 				stringBuilderErrorMessage.AppendLine(Lans.g("X835","There are multiple insurance payment plans that this payment could be associated to. " +
 					"The claim must be processed manually so that an insurance payment plan can be chosen."));
 			}
-			Carrier carrier=Carriers.GetCarrier(insPlan.CarrierNum);
+			var carrier=Carriers.GetCarrier(insPlan.CarrierNum);
 			//Check if Carrier allows autoprocessing
 			if(isFullyAutomatic && carrier.GetEraAutomationMode()!=EraAutomationMode.FullyAutomatic) {
 				stringBuilderErrorMessage.AppendLine(Lans.g("X835","The carrier is not set to allow fully automated ERA processing."));
@@ -4717,18 +4714,18 @@ namespace OpenDentBusiness {
 				stringBuilderErrorMessage.AppendLine(Lans.g("X835","The carrier is not set to allow automated ERA processing."));
 			}
 			//Check if 835 claim is processed already
-			bool is835ClaimProcessed=claimPaid.IsProcessed(listClaimProcsAll,listAttaches);
+			var is835ClaimProcessed=claimPaid.IsProcessed(listClaimProcsAll,listAttaches);
 			if(is835ClaimProcessed) {
 				stringBuilderErrorMessage.AppendLine(Lans.g("X835","The claim is already processed."));
 			}
-			bool is835ClaimSupplemental=claimPaid.GetIsSupplemental(listAttaches,listClaimProcsAll);
-			bool areAnyClaimProcsReceived=listClaimProcsForClaim.Any(x => ClaimProcs.GetInsPaidStatuses().Contains(x.Status));
+			var is835ClaimSupplemental=claimPaid.GetIsSupplemental(listAttaches,listClaimProcsAll);
+			var areAnyClaimProcsReceived=listClaimProcsForClaim.Any(x => ClaimProcs.GetInsPaidStatuses().Contains(x.Status));
 			//Autoprocessing can only happen if payment is supplemental and claim is received OR payment is not supplemental and claim is not received.
 			if(!is835ClaimSupplemental && areAnyClaimProcsReceived) {
 				stringBuilderErrorMessage.AppendLine(Lans.g("X835","The ERA should be providing the initial payment, "
 					+"but some claim procedures are already marked received."));
 			}
-			bool areAnyClaimProcsUnreceived=listClaimProcsForClaim.Any(x => ClaimProcs.GetEstimatedStatuses().Contains(x.Status));
+			var areAnyClaimProcsUnreceived=listClaimProcsForClaim.Any(x => ClaimProcs.GetEstimatedStatuses().Contains(x.Status));
 			if(is835ClaimSupplemental && areAnyClaimProcsUnreceived) {
 				if(claimPaid.IsReversal) {
 					stringBuilderErrorMessage.AppendLine(Lans.g("X835","The ERA should be providing a reversal, but some claim procedures have not received an initial payment yet."));
@@ -4738,7 +4735,7 @@ namespace OpenDentBusiness {
 						Lans.g("X835","The ERA should be providing a supplemental payment, but some claim procedures have not received an initial payment yet."));
 				}
 			}
-			string errorMessage=stringBuilderErrorMessage.ToString();
+			var errorMessage=stringBuilderErrorMessage.ToString();
 			if(errorMessage.IsNullOrEmpty()) {
 				return true;//We can attempt to autoprocess the claim. Further criteria will be checked in EtransL.TryImportEraClaimData.
 			}
@@ -4748,38 +4745,38 @@ namespace OpenDentBusiness {
 
 		///<summary>Add the passed in error message to the ListClaimErrors. The patient name and a label are added above each error.</summary>
 		public void AddClaimError(Patient patient,string errorMessage) {
-			string errorsForClaim=Lans.g("X835","Errors For Claim:");
+			var errorsForClaim=Lans.g("X835","Errors For Claim:");
 			errorMessage=patient.GetNameFL()+"\r\n"+errorsForClaim+"\r\n"+errorMessage;
 			ListClaimErrors.Add(errorMessage);
 		}
 
 		///<summary>Get messages for claim errors as a single string.</summary>
 		private string GetMessageForClaimErrors(bool isForSingleEra) {
-			StringBuilder stringBuilderClaimErrors=new StringBuilder();
+			var stringBuilderClaimErrors=new StringBuilder();
 			if(isForSingleEra) {//If any claims are unprocessed and we are dealing with a single ERA, show claim error details.
 				if(ListPatNamesWithoutClaimMatch.Count>0) {
-					string claimsCouldNotBeMatched=Lans.g("X835","Claims could not be matched to payments for these patients:");
+					var claimsCouldNotBeMatched=Lans.g("X835","Claims could not be matched to payments for these patients:");
 					stringBuilderClaimErrors.AppendLine(claimsCouldNotBeMatched);
-					for(int i=0;i<ListPatNamesWithoutClaimMatch.Count;i++) {
+					for(var i=0;i<ListPatNamesWithoutClaimMatch.Count;i++) {
 						stringBuilderClaimErrors.AppendLine(ListPatNamesWithoutClaimMatch[i]);
 					}
 					stringBuilderClaimErrors.AppendLine();
 				}
 				if(ListClaimErrors.Count>0) {
-					string claimProcessingErrors=Lans.g("X835","Claims were matched to payments for these patients but could not be processed");
+					var claimProcessingErrors=Lans.g("X835","Claims were matched to payments for these patients but could not be processed");
 					stringBuilderClaimErrors.AppendLine(claimProcessingErrors+":");
-					for(int i=0;i<ListClaimErrors.Count;i++) {
+					for(var i=0;i<ListClaimErrors.Count;i++) {
 						stringBuilderClaimErrors.AppendLine(ListClaimErrors[i]);
 					}
 				}
 			}
 			else {//If we are processing a message for multiple ERAs, show claim error counts.
 				if(ListClaimErrors.Count>0) {
-					string unprocessedClaims=Lans.g("X835","Claims that could not be processed:");
+					var unprocessedClaims=Lans.g("X835","Claims that could not be processed:");
 					stringBuilderClaimErrors.AppendLine(unprocessedClaims+$" {ListClaimErrors.Count}");
 				}
 				if(ListPatNamesWithoutClaimMatch.Count>0) {
-					string unmatchedClaims=Lans.g("X835","Payments that we could not match to a claim:");
+					var unmatchedClaims=Lans.g("X835","Payments that we could not match to a claim:");
 					stringBuilderClaimErrors.AppendLine(unmatchedClaims+$" {ListPatNamesWithoutClaimMatch.Count}");
 				}
 			}
@@ -4788,33 +4785,33 @@ namespace OpenDentBusiness {
 
 		///<summary>Return the results message for display to the user.</summary>
 		public static string CreateMessage(List<EraAutomationResult> listAutomationResults,bool isForSingleEra) {
-			StringBuilder stringBuilderAutomationMessage=new StringBuilder();
+			var stringBuilderAutomationMessage=new StringBuilder();
 			//Show count of processed claims.
-			int countClaimsProcessed=listAutomationResults.Sum(x => x.CountClaimsProcessed);
-			string claimsProcessedSuccessfully=Lans.g("X835","Claims Processed Successfully:");
+			var countClaimsProcessed=listAutomationResults.Sum(x => x.CountClaimsProcessed);
+			var claimsProcessedSuccessfully=Lans.g("X835","Claims Processed Successfully:");
 			stringBuilderAutomationMessage.AppendLine(claimsProcessedSuccessfully+$" {countClaimsProcessed}");
 			//Show count of ERAs finalized or a message indicating that a single ERA was finalized.
-			int countPaymentsFinalized=listAutomationResults.Count(x => x.IsPaymentFinalized);
+			var countPaymentsFinalized=listAutomationResults.Count(x => x.IsPaymentFinalized);
 			if(isForSingleEra && countPaymentsFinalized==1) {//Don't show count if we are only dealing with one ERA and payment was finalized.
-				string paymentFinalized=Lans.g("X835","Payment Finalized Successfully.");
+				var paymentFinalized=Lans.g("X835","Payment Finalized Successfully.");
 				stringBuilderAutomationMessage.AppendLine(paymentFinalized);
 			}
 			else if(!isForSingleEra) {//For multiple ERAs, show the count finalized.
-				string paymentsFinalized=Lans.g("X835","Payments Finalized:");
+				var paymentsFinalized=Lans.g("X835","Payments Finalized:");
 				stringBuilderAutomationMessage.AppendLine(paymentsFinalized+$" {countPaymentsFinalized}");
 			}
-			for(int i=0;i<listAutomationResults.Count;i++) {
+			for(var i=0;i<listAutomationResults.Count;i++) {
 				if(listAutomationResults[i].Status==X835Status.Finalized) {
 					continue;//No error data to show for ERA.
 				}
 				if(!isForSingleEra) {//Add info for each ERA if dealing with multiple ERAs.
 					stringBuilderAutomationMessage.AppendLine();//Line added to separate each ERA in the error message.
-					X835 x835Cur=listAutomationResults[i].X835Cur;
-					string carrierName=Lans.g("X835","ERA Carrier Name:");
-					string date=Lans.g("X835","ERA Date:");
-					string amount=Lans.g("X835","ERA Amount:");
-					string transaction=Lans.g("X835","ERA Transaction");
-					string of=Lans.g("X835","of");
+					var x835Cur=listAutomationResults[i].X835Cur;
+					var carrierName=Lans.g("X835","ERA Carrier Name:");
+					var date=Lans.g("X835","ERA Date:");
+					var amount=Lans.g("X835","ERA Amount:");
+					var transaction=Lans.g("X835","ERA Transaction");
+					var of=Lans.g("X835","of");
 					stringBuilderAutomationMessage.AppendLine(carrierName+$" {x835Cur.PayerName}");
 					stringBuilderAutomationMessage.AppendLine(date+$" {x835Cur.EtransSource.DateTimeTrans}");
 					stringBuilderAutomationMessage.AppendLine(amount+$" {x835Cur.InsPaid}");
@@ -4834,7 +4831,7 @@ namespace OpenDentBusiness {
 					stringBuilderAutomationMessage.AppendLine(listAutomationResults[i].PaymentFinalizationError);
 				}
 				else {//if we get here, we must have at least one unmatched claim or claim error, otherwise we would have hit continue above.
-					string claimErrors=listAutomationResults[i].GetMessageForClaimErrors(isForSingleEra);
+					var claimErrors=listAutomationResults[i].GetMessageForClaimErrors(isForSingleEra);
 					stringBuilderAutomationMessage.Append(claimErrors);
 				}
 			}
@@ -4857,7 +4854,7 @@ namespace OpenDentBusiness {
 				automationNote=Lans.g("X835","Automatic processing attempted on");
 			}
 			automationNote+=" "+DateTime.Today.ToShortDateString();
-			string nameMismatchNote="";
+			var nameMismatchNote="";
 			if(countProcessedClaimsWithNameMismatches==1) {
 				nameMismatchNote="\r\n"+Lans.g("X835","1 claim was processed with a mismatched name.");
 			}

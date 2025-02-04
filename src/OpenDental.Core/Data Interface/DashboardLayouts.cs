@@ -26,37 +26,40 @@ public class DashboardLayouts
         return dashboardLayouts;
     }
 
-    public static void SetDashboardLayout(List<DashboardLayout> listDashboardLayouts, string dashboardGroupName)
+    public static void SetDashboardLayout(List<DashboardLayout> dashboardLayouts, string dashboardGroupName)
     {
-        //Get all old layouts.
-        var listDashboardLayoutsDbAll = GetDashboardLayout();
-        //Get all old layouts for this group.
-        var listDashboardLayoutsDbGroup = listDashboardLayoutsDbAll.FindAll(x => x.DashboardGroupName.ToLower() == dashboardGroupName.ToLower());
-        //Delete all cells from old dashboard group.
-        var listDashboardCells = listDashboardLayoutsDbGroup.SelectMany(x => x.Cells).ToList();
-        for (var i = 0; i < listDashboardCells.Count; i++) DashboardCellCrud.Delete(listDashboardCells[i].DashboardCellNum);
+        var dashboardLayoutsDbAll = GetDashboardLayout();
+        var dashboardLayoutsDbGroup = dashboardLayoutsDbAll.FindAll(x => string.Equals(x.DashboardGroupName, dashboardGroupName, StringComparison.CurrentCultureIgnoreCase));
 
-        //Delete all layouts from old dashboard group.
-        for (var i = 0; i < listDashboardLayoutsDbGroup.Count; i++) DashboardLayoutCrud.Delete(listDashboardLayoutsDbGroup[i].DashboardLayoutNum);
-
-        var listDashboardCellsDb = DashboardCells.GetAll();
-        for (var i = 0; i < listDashboardLayouts.Count; i++)
+        var dashboardCells = dashboardLayoutsDbGroup.SelectMany(x => x.Cells).ToList();
+        foreach (var dashboardCell in dashboardCells)
         {
-            listDashboardLayouts[i].DashboardGroupName = dashboardGroupName;
-            //Delete old tab if it exists.
-            listDashboardLayoutsDbAll
-                .FindAll(x => x.DashboardLayoutNum == listDashboardLayouts[i].DashboardLayoutNum)
+            DashboardCellCrud.Delete(dashboardCell.DashboardCellNum);
+        }
+
+        foreach (var dashboardLayout in dashboardLayoutsDbGroup)
+        {
+            DashboardLayoutCrud.Delete(dashboardLayout.DashboardLayoutNum);
+        }
+
+        var dashboardCellsDb = DashboardCells.GetAll();
+        foreach (var dashboardLayout in dashboardLayouts)
+        {
+            dashboardLayout.DashboardGroupName = dashboardGroupName;
+            dashboardLayoutsDbAll
+                .FindAll(x => x.DashboardLayoutNum == dashboardLayout.DashboardLayoutNum)
                 .ForEach(x => DashboardLayoutCrud.Delete(x.DashboardLayoutNum));
-            //Delete old cells which belonged to this tab if they exist.
-            listDashboardCellsDb
-                .FindAll(x => x.DashboardLayoutNum == listDashboardLayouts[i].DashboardLayoutNum)
+            
+            dashboardCellsDb
+                .FindAll(x => x.DashboardLayoutNum == dashboardLayout.DashboardLayoutNum)
                 .ForEach(x => DashboardCellCrud.Delete(x.DashboardCellNum));
-            //Insert new tab.
-            var layoutNumNew = DashboardLayoutCrud.Insert(listDashboardLayouts[i]);
-            //Insert link cells to new tab and insert.
-            listDashboardLayouts[i].Cells.ForEach(x =>
+            
+            var layoutNum = DashboardLayoutCrud.Insert(dashboardLayout);
+            
+            dashboardLayout.Cells.ForEach(x =>
             {
-                x.DashboardLayoutNum = layoutNumNew;
+                x.DashboardLayoutNum = layoutNum;
+                
                 DashboardCellCrud.Insert(x);
             });
         }

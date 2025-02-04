@@ -2,9 +2,6 @@
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
-using System.Text;
-using System.Windows.Forms;
-using CodeBase;
 using DataConnectionBase;
 using Imedisoft.Core.Data;
 using Imedisoft.Core.Entities;
@@ -15,13 +12,13 @@ namespace OpenDentBusiness {
 
 		///<summary>Returns a message string used to place a patient or guarantor account with TSI for collection.</summary>
 		public static string GeneratePlacement(PatAging patAge,string clientID,TsiServiceType serviceType) {
-			Family fam=Patients.GetFamily(patAge.PatNum);
-			Patient pat=fam.ListPats.FirstOrDefault(x => x.PatNum==patAge.PatNum);
-			Patient guar=fam.ListPats[0];
+			var fam=Patients.GetFamily(patAge.PatNum);
+			var pat=fam.ListPats.FirstOrDefault(x => x.PatNum==patAge.PatNum);
+			var guar=fam.ListPats[0];
 			if(pat==null || guar==null) {
 				throw new ApplicationException("Invalid PatNum.  Please contact support.");
 			}
-			string[] fieldVals=new string[33] {
+			var fieldVals=new string[33] {
 				clientID,
 				"",//since PatNums can be larger than 10 digits, we will send in field 3 which can hold up to 20 digits
 				SOut.Long(patAge.Guarantor),
@@ -59,7 +56,7 @@ namespace OpenDentBusiness {
 		}
 
 		public static string GenerateUpdate(long patNum,string clientID,TsiTransType transType,double transAmount,double newBal) {
-			string[] fieldVals=new string[6] {
+			var fieldVals=new string[6] {
 				clientID,
 				SOut.Long(patNum),
 				transType.ToString(),
@@ -73,9 +70,9 @@ namespace OpenDentBusiness {
 		///<summary>0=self or default,1=spouse or significant other,2=parent or guardian,3=child,4=other.
 		///Defaults to 4 - other if not able to determine pat relationship to guar.</summary>
 		private static string gGetPatType(Patient guar,Patient pat) {
-			string retval="";
-			List<Guardian> listGuardians=Guardians.Refresh(pat.PatNum);
-			Guardian guard=listGuardians.Find(x => x.PatNumGuardian==guar.PatNum);
+			var retval="";
+			var listGuardians=Guardians.Refresh(pat.PatNum);
+			var guard=listGuardians.Find(x => x.PatNumGuardian==guar.PatNum);
 			if(guard!=null) {
 				switch(guard.Relationship) {
 					case GuardianRelationship.Self:
@@ -136,8 +133,8 @@ namespace OpenDentBusiness {
 
 		///<summary>Returns display name of 3 letter language abbr or custom language name if not found.  Will return empty string, not null.</summary>
 		private static string gGetLanguageString(string language) {
-			string retval="";
-			CultureInfo culture=CodeBase.MiscUtils.GetCultureFromThreeLetter(language);
+			var retval="";
+			var culture=CodeBase.MiscUtils.GetCultureFromThreeLetter(language);
 			if(culture==null) {//custom language or language is null or empty
 				retval=language;
 			}

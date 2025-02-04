@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using DataConnectionBase;
 
@@ -14,11 +13,11 @@ namespace OpenDentBusiness{
 			if(this.FunctGroups[0].Transactions.Count!=1) {
 				return 0;
 			}
-			X12Segment seg=FunctGroups[0].Transactions[0].GetSegmentByID("AK1");
+			var seg=FunctGroups[0].Transactions[0].GetSegmentByID("AK1");
 			if(seg==null) {
 				return 0;
 			}
-			string num=seg.Get(2);
+			var num=seg.Get(2);
 			try{
 				return SIn.Int(num);
 			}
@@ -29,10 +28,10 @@ namespace OpenDentBusiness{
 
 		///<summary>Do this first to get a list of all trans nums that are contained within this 999.  Then, for each trans num, we can later retrieve the AckCode for that single trans num.</summary>
 		public List<int> GetTransNums(){
-			List<int> retVal=new List<int>();
+			var retVal=new List<int>();
 			X12Segment seg;
-			int transNum=0;
-			for(int i=0;i<FunctGroups[0].Transactions[0].Segments.Count;i++){
+			var transNum=0;
+			for(var i=0;i<FunctGroups[0].Transactions[0].Segments.Count;i++){
 				seg=FunctGroups[0].Transactions[0].Segments[i];
 				if(seg.SegmentID=="AK2"){
 					transNum=0;
@@ -53,16 +52,16 @@ namespace OpenDentBusiness{
 		///<summary>Use after GetTransNums.  Will return A=Accepted, R=Rejected, or "" if can't determine.</summary>
 		public string GetAckForTrans(int transNum){
 			X12Segment seg;
-			bool foundTransNum=false;
-			int thisTransNum=0;
-			for(int i=0;i<FunctGroups[0].Transactions[0].Segments.Count;i++){
+			var foundTransNum=false;
+			var thisTransNum=0;
+			for(var i=0;i<FunctGroups[0].Transactions[0].Segments.Count;i++){
 				seg=FunctGroups[0].Transactions[0].Segments[i];
 				if(foundTransNum){
 					if(seg.SegmentID!="IK5"){
 						continue;
 					}
-					string code=seg.Get(1);
-					string ack="";
+					var code=seg.Get(1);
+					var ack="";
 					if(code=="A" || code=="E") {//Accepted or accepted with Errors.
 						ack="A";
 					}
@@ -92,12 +91,12 @@ namespace OpenDentBusiness{
 			if(this.FunctGroups[0].Transactions.Count!=1){
 				return "";
 			}
-			X12Segment seg=FunctGroups[0].Transactions[0].GetSegmentByID("AK9");
+			var seg=FunctGroups[0].Transactions[0].GetSegmentByID("AK9");
 			if(seg==null){
 				return "";
 			}
-			string code=seg.Get(1);
-			string ack="";
+			var code=seg.Get(1);
+			var ack="";
 			if(code=="A" || code=="E"){//Accepted or accepted with Errors.
 				ack="A";
 			}
@@ -112,8 +111,8 @@ namespace OpenDentBusiness{
 
 		
 		public string GetHumanReadable() {
-			string retVal="";
-			for(int i=0;i<Segments.Count;i++) {
+			var retVal="";
+			for(var i=0;i<Segments.Count;i++) {
 				if(Segments[i].SegmentID!="IK3"
 					&& Segments[i].SegmentID!="IK4") {
 					continue;

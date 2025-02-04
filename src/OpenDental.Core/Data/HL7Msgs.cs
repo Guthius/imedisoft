@@ -10,11 +10,6 @@ namespace Imedisoft.Core.Data;
 
 public static class HL7Msgs
 {
-    public static List<HL7Msg> GetOnePending()
-    {
-        return HL7MsgCrud.SelectMany("SELECT * FROM hl7msg WHERE HL7Status = " + (int) HL7MessageStatus.OutPending + " LIMIT 1");
-    }
-
     public static HL7Msg GetOne(long hl7MsgNum)
     {
         return HL7MsgCrud.SelectOne("SELECT * FROM hl7msg WHERE HL7MsgNum = " + hl7MsgNum);
@@ -128,11 +123,6 @@ public static class HL7Msgs
     public static bool MessageWasSent(long aptNum)
     {
         return Db.GetCount("SELECT COUNT(*) FROM hl7msg WHERE AptNum = " + aptNum + " AND (HL7Status = " + (int) HL7MessageStatus.OutSent + " OR HL7Status = " + (int) HL7MessageStatus.OutPending + ")") != "0";
-    }
-
-    public static void DeleteOldMsgText()
-    {
-        Db.NonQ("UPDATE hl7msg SET MsgText = '' WHERE DateTStamp < ADDDATE(CURDATE(), INTERVAL -4 MONTH)");
     }
 
     public static List<HL7Msg> GetOneExisting(HL7Msg hL7Msg)

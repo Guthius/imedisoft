@@ -1,35 +1,14 @@
-#region
-
 using System.Collections.Generic;
 using System.Data;
-using System.Linq;
 using System.Text;
 using DataConnectionBase;
 using Imedisoft.Core.Entities;
 using OpenDentBusiness;
 
-#endregion
-
 namespace Imedisoft.Core.Crud;
 
 public class SmsToMobileCrud
 {
-    public static SmsToMobile SelectOne(long smsToMobileNum)
-    {
-        var command = "SELECT * FROM smstomobile "
-                      + "WHERE SmsToMobileNum = " + SOut.Long(smsToMobileNum);
-        var list = TableToList(DataCore.GetTable(command));
-        if (list.Count == 0) return null;
-        return list[0];
-    }
-
-    public static SmsToMobile SelectOne(string command)
-    {
-        var list = TableToList(DataCore.GetTable(command));
-        if (list.Count == 0) return null;
-        return list[0];
-    }
-
     public static List<SmsToMobile> SelectMany(string command)
     {
         var list = TableToList(DataCore.GetTable(command));
@@ -39,107 +18,36 @@ public class SmsToMobileCrud
     public static List<SmsToMobile> TableToList(DataTable table)
     {
         var retVal = new List<SmsToMobile>();
-        SmsToMobile smsToMobile;
         foreach (DataRow row in table.Rows)
         {
-            smsToMobile = new SmsToMobile();
-            smsToMobile.SmsToMobileNum = SIn.Long(row["SmsToMobileNum"].ToString());
-            smsToMobile.PatNum = SIn.Long(row["PatNum"].ToString());
-            smsToMobile.GuidMessage = SIn.String(row["GuidMessage"].ToString());
-            smsToMobile.GuidBatch = SIn.String(row["GuidBatch"].ToString());
-            smsToMobile.SmsPhoneNumber = SIn.String(row["SmsPhoneNumber"].ToString());
-            smsToMobile.MobilePhoneNumber = SIn.String(row["MobilePhoneNumber"].ToString());
-            smsToMobile.IsTimeSensitive = SIn.Bool(row["IsTimeSensitive"].ToString());
-            smsToMobile.MsgType = (SmsMessageSource) SIn.Int(row["MsgType"].ToString());
-            smsToMobile.MsgText = SIn.String(row["MsgText"].ToString());
-            smsToMobile.SmsStatus = (SmsDeliveryStatus) SIn.Int(row["SmsStatus"].ToString());
-            smsToMobile.MsgParts = SIn.Int(row["MsgParts"].ToString());
-            smsToMobile.MsgChargeUSD = SIn.Float(row["MsgChargeUSD"].ToString());
-            smsToMobile.ClinicNum = SIn.Long(row["ClinicNum"].ToString());
-            smsToMobile.CustErrorText = SIn.String(row["CustErrorText"].ToString());
-            smsToMobile.DateTimeSent = SIn.DateTime(row["DateTimeSent"].ToString());
-            smsToMobile.DateTimeTerminated = SIn.DateTime(row["DateTimeTerminated"].ToString());
-            smsToMobile.IsHidden = SIn.Bool(row["IsHidden"].ToString());
-            smsToMobile.MsgDiscountUSD = SIn.Float(row["MsgDiscountUSD"].ToString());
-            smsToMobile.SecDateTEdit = SIn.DateTime(row["SecDateTEdit"].ToString());
+            var smsToMobile = new SmsToMobile
+            {
+                SmsToMobileNum = SIn.Long(row["SmsToMobileNum"].ToString()),
+                PatNum = SIn.Long(row["PatNum"].ToString()),
+                GuidMessage = SIn.String(row["GuidMessage"].ToString()),
+                GuidBatch = SIn.String(row["GuidBatch"].ToString()),
+                SmsPhoneNumber = SIn.String(row["SmsPhoneNumber"].ToString()),
+                MobilePhoneNumber = SIn.String(row["MobilePhoneNumber"].ToString()),
+                IsTimeSensitive = SIn.Bool(row["IsTimeSensitive"].ToString()),
+                MsgType = (SmsMessageSource) SIn.Int(row["MsgType"].ToString()),
+                MsgText = SIn.String(row["MsgText"].ToString()),
+                SmsStatus = (SmsDeliveryStatus) SIn.Int(row["SmsStatus"].ToString()),
+                MsgParts = SIn.Int(row["MsgParts"].ToString()),
+                MsgChargeUSD = SIn.Float(row["MsgChargeUSD"].ToString()),
+                ClinicNum = SIn.Long(row["ClinicNum"].ToString()),
+                CustErrorText = SIn.String(row["CustErrorText"].ToString()),
+                DateTimeSent = SIn.DateTime(row["DateTimeSent"].ToString()),
+                DateTimeTerminated = SIn.DateTime(row["DateTimeTerminated"].ToString()),
+                IsHidden = SIn.Bool(row["IsHidden"].ToString()),
+                MsgDiscountUSD = SIn.Float(row["MsgDiscountUSD"].ToString())
+            };
             retVal.Add(smsToMobile);
         }
 
         return retVal;
     }
 
-    public static DataTable ListToTable(List<SmsToMobile> listSmsToMobiles, string tableName = "")
-    {
-        if (string.IsNullOrEmpty(tableName)) tableName = "SmsToMobile";
-        var table = new DataTable(tableName);
-        table.Columns.Add("SmsToMobileNum");
-        table.Columns.Add("PatNum");
-        table.Columns.Add("GuidMessage");
-        table.Columns.Add("GuidBatch");
-        table.Columns.Add("SmsPhoneNumber");
-        table.Columns.Add("MobilePhoneNumber");
-        table.Columns.Add("IsTimeSensitive");
-        table.Columns.Add("MsgType");
-        table.Columns.Add("MsgText");
-        table.Columns.Add("SmsStatus");
-        table.Columns.Add("MsgParts");
-        table.Columns.Add("MsgChargeUSD");
-        table.Columns.Add("ClinicNum");
-        table.Columns.Add("CustErrorText");
-        table.Columns.Add("DateTimeSent");
-        table.Columns.Add("DateTimeTerminated");
-        table.Columns.Add("IsHidden");
-        table.Columns.Add("MsgDiscountUSD");
-        table.Columns.Add("SecDateTEdit");
-        foreach (var smsToMobile in listSmsToMobiles)
-            table.Rows.Add(SOut.Long(smsToMobile.SmsToMobileNum), SOut.Long(smsToMobile.PatNum), smsToMobile.GuidMessage, smsToMobile.GuidBatch, smsToMobile.SmsPhoneNumber, smsToMobile.MobilePhoneNumber, SOut.Bool(smsToMobile.IsTimeSensitive), SOut.Int((int) smsToMobile.MsgType), smsToMobile.MsgText, SOut.Int((int) smsToMobile.SmsStatus), SOut.Int(smsToMobile.MsgParts), SOut.Float(smsToMobile.MsgChargeUSD), SOut.Long(smsToMobile.ClinicNum), smsToMobile.CustErrorText, SOut.DateTime(smsToMobile.DateTimeSent, false), SOut.DateTime(smsToMobile.DateTimeTerminated, false), SOut.Bool(smsToMobile.IsHidden), SOut.Float(smsToMobile.MsgDiscountUSD), SOut.DateTime(smsToMobile.SecDateTEdit, false));
-        return table;
-    }
-
-    public static long Insert(SmsToMobile smsToMobile)
-    {
-        return Insert(smsToMobile, false);
-    }
-
-    public static long Insert(SmsToMobile smsToMobile, bool useExistingPK)
-    {
-        var command = "INSERT INTO smstomobile (";
-
-        command += "PatNum,GuidMessage,GuidBatch,SmsPhoneNumber,MobilePhoneNumber,IsTimeSensitive,MsgType,MsgText,SmsStatus,MsgParts,MsgChargeUSD,ClinicNum,CustErrorText,DateTimeSent,DateTimeTerminated,IsHidden,MsgDiscountUSD) VALUES(";
-
-        command +=
-            SOut.Long(smsToMobile.PatNum) + ","
-                                          + "'" + SOut.String(smsToMobile.GuidMessage) + "',"
-                                          + "'" + SOut.String(smsToMobile.GuidBatch) + "',"
-                                          + "'" + SOut.String(smsToMobile.SmsPhoneNumber) + "',"
-                                          + "'" + SOut.String(smsToMobile.MobilePhoneNumber) + "',"
-                                          + SOut.Bool(smsToMobile.IsTimeSensitive) + ","
-                                          + SOut.Int((int) smsToMobile.MsgType) + ","
-                                          + DbHelper.ParamChar + "paramMsgText,"
-                                          + SOut.Int((int) smsToMobile.SmsStatus) + ","
-                                          + SOut.Int(smsToMobile.MsgParts) + ","
-                                          + SOut.Float(smsToMobile.MsgChargeUSD) + ","
-                                          + SOut.Long(smsToMobile.ClinicNum) + ","
-                                          + "'" + SOut.String(smsToMobile.CustErrorText) + "',"
-                                          + SOut.DateTime(smsToMobile.DateTimeSent) + ","
-                                          + SOut.DateTime(smsToMobile.DateTimeTerminated) + ","
-                                          + SOut.Bool(smsToMobile.IsHidden) + ","
-                                          + SOut.Float(smsToMobile.MsgDiscountUSD) + ")";
-        //SecDateTEdit can only be set by MySQL
-        if (smsToMobile.MsgText == null) smsToMobile.MsgText = "";
-        var paramMsgText = new OdSqlParameter("paramMsgText", SOut.StringNote(smsToMobile.MsgText));
-        {
-            smsToMobile.SmsToMobileNum = Db.NonQ(command, true, "SmsToMobileNum", "smsToMobile", paramMsgText);
-        }
-        return smsToMobile.SmsToMobileNum;
-    }
-
-    public static void InsertMany(List<SmsToMobile> listSmsToMobiles)
-    {
-        InsertMany(listSmsToMobiles, false);
-    }
-
-    public static void InsertMany(List<SmsToMobile> listSmsToMobiles, bool useExistingPK)
+    public static void InsertMany(List<SmsToMobile> listSmsToMobiles, bool useExistingPK = false)
     {
         StringBuilder sbCommands = null;
         var index = 0;
@@ -219,74 +127,7 @@ public class SmsToMobileCrud
         }
     }
 
-    public static long InsertNoCache(SmsToMobile smsToMobile)
-    {
-        return InsertNoCache(smsToMobile, false);
-    }
-
-    public static long InsertNoCache(SmsToMobile smsToMobile, bool useExistingPK)
-    {
-        const bool isRandomKeys = false;
-        var command = "INSERT INTO smstomobile (";
-        if (isRandomKeys || useExistingPK) command += "SmsToMobileNum,";
-        command += "PatNum,GuidMessage,GuidBatch,SmsPhoneNumber,MobilePhoneNumber,IsTimeSensitive,MsgType,MsgText,SmsStatus,MsgParts,MsgChargeUSD,ClinicNum,CustErrorText,DateTimeSent,DateTimeTerminated,IsHidden,MsgDiscountUSD) VALUES(";
-        if (isRandomKeys || useExistingPK) command += SOut.Long(smsToMobile.SmsToMobileNum) + ",";
-        command +=
-            SOut.Long(smsToMobile.PatNum) + ","
-                                          + "'" + SOut.String(smsToMobile.GuidMessage) + "',"
-                                          + "'" + SOut.String(smsToMobile.GuidBatch) + "',"
-                                          + "'" + SOut.String(smsToMobile.SmsPhoneNumber) + "',"
-                                          + "'" + SOut.String(smsToMobile.MobilePhoneNumber) + "',"
-                                          + SOut.Bool(smsToMobile.IsTimeSensitive) + ","
-                                          + SOut.Int((int) smsToMobile.MsgType) + ","
-                                          + DbHelper.ParamChar + "paramMsgText,"
-                                          + SOut.Int((int) smsToMobile.SmsStatus) + ","
-                                          + SOut.Int(smsToMobile.MsgParts) + ","
-                                          + SOut.Float(smsToMobile.MsgChargeUSD) + ","
-                                          + SOut.Long(smsToMobile.ClinicNum) + ","
-                                          + "'" + SOut.String(smsToMobile.CustErrorText) + "',"
-                                          + SOut.DateTime(smsToMobile.DateTimeSent) + ","
-                                          + SOut.DateTime(smsToMobile.DateTimeTerminated) + ","
-                                          + SOut.Bool(smsToMobile.IsHidden) + ","
-                                          + SOut.Float(smsToMobile.MsgDiscountUSD) + ")";
-        //SecDateTEdit can only be set by MySQL
-        if (smsToMobile.MsgText == null) smsToMobile.MsgText = "";
-        var paramMsgText = new OdSqlParameter("paramMsgText", SOut.StringNote(smsToMobile.MsgText));
-        if (useExistingPK || isRandomKeys)
-            Db.NonQ(command, paramMsgText);
-        else
-            smsToMobile.SmsToMobileNum = Db.NonQ(command, true, "SmsToMobileNum", "smsToMobile", paramMsgText);
-        return smsToMobile.SmsToMobileNum;
-    }
-
-    public static void Update(SmsToMobile smsToMobile)
-    {
-        var command = "UPDATE smstomobile SET "
-                      + "PatNum            =  " + SOut.Long(smsToMobile.PatNum) + ", "
-                      + "GuidMessage       = '" + SOut.String(smsToMobile.GuidMessage) + "', "
-                      + "GuidBatch         = '" + SOut.String(smsToMobile.GuidBatch) + "', "
-                      + "SmsPhoneNumber    = '" + SOut.String(smsToMobile.SmsPhoneNumber) + "', "
-                      + "MobilePhoneNumber = '" + SOut.String(smsToMobile.MobilePhoneNumber) + "', "
-                      + "IsTimeSensitive   =  " + SOut.Bool(smsToMobile.IsTimeSensitive) + ", "
-                      + "MsgType           =  " + SOut.Int((int) smsToMobile.MsgType) + ", "
-                      + "MsgText           =  " + DbHelper.ParamChar + "paramMsgText, "
-                      + "SmsStatus         =  " + SOut.Int((int) smsToMobile.SmsStatus) + ", "
-                      + "MsgParts          =  " + SOut.Int(smsToMobile.MsgParts) + ", "
-                      + "MsgChargeUSD      =  " + SOut.Float(smsToMobile.MsgChargeUSD) + ", "
-                      + "ClinicNum         =  " + SOut.Long(smsToMobile.ClinicNum) + ", "
-                      + "CustErrorText     = '" + SOut.String(smsToMobile.CustErrorText) + "', "
-                      + "DateTimeSent      =  " + SOut.DateTime(smsToMobile.DateTimeSent) + ", "
-                      + "DateTimeTerminated=  " + SOut.DateTime(smsToMobile.DateTimeTerminated) + ", "
-                      + "IsHidden          =  " + SOut.Bool(smsToMobile.IsHidden) + ", "
-                      + "MsgDiscountUSD    =  " + SOut.Float(smsToMobile.MsgDiscountUSD) + " "
-                      //SecDateTEdit can only be set by MySQL
-                      + "WHERE SmsToMobileNum = " + SOut.Long(smsToMobile.SmsToMobileNum);
-        if (smsToMobile.MsgText == null) smsToMobile.MsgText = "";
-        var paramMsgText = new OdSqlParameter("paramMsgText", SOut.StringNote(smsToMobile.MsgText));
-        Db.NonQ(command, paramMsgText);
-    }
-
-    public static bool Update(SmsToMobile smsToMobile, SmsToMobile oldSmsToMobile)
+    public static void Update(SmsToMobile smsToMobile, SmsToMobile oldSmsToMobile)
     {
         var command = "";
         if (smsToMobile.PatNum != oldSmsToMobile.PatNum)
@@ -392,50 +233,11 @@ public class SmsToMobileCrud
         }
 
         //SecDateTEdit can only be set by MySQL
-        if (command == "") return false;
+        if (command == "") return;
         if (smsToMobile.MsgText == null) smsToMobile.MsgText = "";
         var paramMsgText = new OdSqlParameter("paramMsgText", SOut.StringNote(smsToMobile.MsgText));
         command = "UPDATE smstomobile SET " + command
                                             + " WHERE SmsToMobileNum = " + SOut.Long(smsToMobile.SmsToMobileNum);
         Db.NonQ(command, paramMsgText);
-        return true;
-    }
-
-    public static bool UpdateComparison(SmsToMobile smsToMobile, SmsToMobile oldSmsToMobile)
-    {
-        if (smsToMobile.PatNum != oldSmsToMobile.PatNum) return true;
-        if (smsToMobile.GuidMessage != oldSmsToMobile.GuidMessage) return true;
-        if (smsToMobile.GuidBatch != oldSmsToMobile.GuidBatch) return true;
-        if (smsToMobile.SmsPhoneNumber != oldSmsToMobile.SmsPhoneNumber) return true;
-        if (smsToMobile.MobilePhoneNumber != oldSmsToMobile.MobilePhoneNumber) return true;
-        if (smsToMobile.IsTimeSensitive != oldSmsToMobile.IsTimeSensitive) return true;
-        if (smsToMobile.MsgType != oldSmsToMobile.MsgType) return true;
-        if (smsToMobile.MsgText != oldSmsToMobile.MsgText) return true;
-        if (smsToMobile.SmsStatus != oldSmsToMobile.SmsStatus) return true;
-        if (smsToMobile.MsgParts != oldSmsToMobile.MsgParts) return true;
-        if (smsToMobile.MsgChargeUSD != oldSmsToMobile.MsgChargeUSD) return true;
-        if (smsToMobile.ClinicNum != oldSmsToMobile.ClinicNum) return true;
-        if (smsToMobile.CustErrorText != oldSmsToMobile.CustErrorText) return true;
-        if (smsToMobile.DateTimeSent != oldSmsToMobile.DateTimeSent) return true;
-        if (smsToMobile.DateTimeTerminated != oldSmsToMobile.DateTimeTerminated) return true;
-        if (smsToMobile.IsHidden != oldSmsToMobile.IsHidden) return true;
-        if (smsToMobile.MsgDiscountUSD != oldSmsToMobile.MsgDiscountUSD) return true;
-        //SecDateTEdit can only be set by MySQL
-        return false;
-    }
-
-    public static void Delete(long smsToMobileNum)
-    {
-        var command = "DELETE FROM smstomobile "
-                      + "WHERE SmsToMobileNum = " + SOut.Long(smsToMobileNum);
-        Db.NonQ(command);
-    }
-
-    public static void DeleteMany(List<long> listSmsToMobileNums)
-    {
-        if (listSmsToMobileNums == null || listSmsToMobileNums.Count == 0) return;
-        var command = "DELETE FROM smstomobile "
-                      + "WHERE SmsToMobileNum IN(" + string.Join(",", listSmsToMobileNums.Select(x => SOut.Long(x))) + ")";
-        Db.NonQ(command);
     }
 }

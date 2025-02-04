@@ -1,14 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Data;
-using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Drawing2D;
-using System.Linq;
-using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace OpenDental.UI;
@@ -17,7 +11,7 @@ namespace OpenDental.UI;
 public partial class FormComboPicker : Form{
 	#region Fields - Public
 	///<summary>Just used to draw the drop down arrow. Passed in from parent because this is not a FormODBase.</summary>
-	public LayoutManagerForms LayoutManager=new LayoutManagerForms();
+	
 	///<summary>The strings to show in the listbox.</summary>
 	public List<string> ListStrings;
 	///<summary>Required, but can be the same as ListStrings.  These strings are used in the summary at the top of the listbox.</summary>

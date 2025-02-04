@@ -40,9 +40,9 @@ public static class UserGroupAttaches
 
     private static readonly UserGroupAttachCache Cache = new();
 
-    public static List<UserGroupAttach> GetWhere(Predicate<UserGroupAttach> match, bool isShort = false)
+    public static List<UserGroupAttach> GetWhere(Predicate<UserGroupAttach> predicate, bool shortList = false)
     {
-        return Cache.GetWhere(match, isShort);
+        return Cache.GetWhere(predicate, shortList);
     }
 
     public static DataTable GetTableFromCache(bool refreshCache)

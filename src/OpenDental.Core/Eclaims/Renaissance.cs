@@ -1,9 +1,7 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Windows.Forms;
-using OpenDentBusiness;
 using System.Linq;
 using Imedisoft.Core.Entities;
 
@@ -26,7 +24,7 @@ namespace OpenDentBusiness.Eclaims{
 		public static string SendBatch(Clearinghouse clearinghouseClin,List<ClaimSendQueueItem> queueItems,int batchNum,IFormClaimFormItemEdit formCFI,
 			FillRenaissanceDelegate fillRenaissance) 
 		{
-			for(int i=0;i<queueItems.Count;i++) {
+			for(var i=0;i<queueItems.Count;i++) {
 				_clearinghouseClin=clearinghouseClin;
 				if(!CreateClaim(queueItems[i].PatNum,queueItems[i].ClaimNum,batchNum,formCFI,fillRenaissance)) {
 					return "";
@@ -297,7 +295,7 @@ namespace OpenDentBusiness.Eclaims{
 
 		private static void Fill(int index,string fieldName,string formatString){
 			if(fieldName!=""){
-				for(int i=0;i<FormCFI.FieldNames.Length;i++){
+				for(var i=0;i<FormCFI.FieldNames.Length;i++){
 					if(FormCFI.FieldNames[i]==fieldName){
 						break;
 					}
@@ -319,13 +317,13 @@ namespace OpenDentBusiness.Eclaims{
 		private static void SaveFile(int batchNum){
 			//this actually gets the current batch number since it was already incremented
 			//int batchNum=PIn.PInt(((Pref)PrefC.HList["RenaissanceLastBatchNumber"]).ValueString);
-			for(int i=0;i<DisplayStrings.GetLength(0);i++){//usually 1, but sometimes 2 or 3
-				string uploadPath=_clearinghouseClin.ExportPath;//@"C:\Program Files\Renaissance\dotr\upload\";
+			for(var i=0;i<DisplayStrings.GetLength(0);i++){//usually 1, but sometimes 2 or 3
+				var uploadPath=_clearinghouseClin.ExportPath;//@"C:\Program Files\Renaissance\dotr\upload\";
 				if(!Directory.Exists(uploadPath)){
 					MessageBox.Show("Error. "+uploadPath+" is invalid. Go to Setup, Family/Insurance, Clearinghouses, and double-click the desired clearinghouse to update the path.");
 					return;
 				}
-				int fileEnd=1;
+				var fileEnd=1;
 				string fileName;
 				try {
 					do{//loop to find the next available filename
@@ -334,8 +332,8 @@ namespace OpenDentBusiness.Eclaims{
 						fileEnd++;
 					}
 					while(File.Exists(uploadPath+fileName));//Since this is a windows program, no need to use ODFileUtils.CombinePaths()
-					using (StreamWriter sw = new StreamWriter(uploadPath+fileName)){
-						for(int ii=1;ii<DisplayStrings[i].Length;ii++){
+					using (var sw = new StreamWriter(uploadPath+fileName)){
+						for(var ii=1;ii<DisplayStrings[i].Length;ii++){
 							sw.WriteLine(ii.ToString().PadLeft(3,'0')+":"+DisplayStrings[i][ii]);
 						}
 					}

@@ -1,15 +1,12 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Data;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Linq;
-using System.Reflection;
-using System.Text;
 using System.Windows.Forms;
 using Imedisoft.Core.Entities;
+using Imedisoft.Features.Providers.Dtos;
 using OpenDentBusiness;
 
 namespace OpenDental.UI;
@@ -83,7 +80,7 @@ namespace OpenDental.UI;
 public partial class ComboBox : Control{
 	#region Fields - public
 	///<summary>Just holds the scaling factor.</summary>
-	public LayoutManagerForms LayoutManager=new LayoutManagerForms();
+	
 	#endregion Fields - public
 
 	#region Fields - Private Static
@@ -218,7 +215,6 @@ public partial class ComboBox : Control{
 		_formComboPicker=new FormComboPicker();
 		_formComboPicker.Font=this.Font;
 		_formComboPicker.HeightCombo=this.Height;
-		_formComboPicker.LayoutManager=LayoutManager;
 		_formComboPicker.FormClosing += _formComboPicker_FormClosing;
 		var listStrings=new List<string>();
 		var listAbbrevs=new List<string>();
@@ -1021,13 +1017,13 @@ public partial class ComboBox : Control{
 		}
 
 		///<summary>Adds a list of Providers to the items. Does not Clear first.  Providers will show as Abbr with (hidden) if applicable.</summary>
-		public void AddProvsAbbr(List<Provider> listProviders){
-			AddList(listProviders,x=>x.GetAbbr(),x=>x.GetAbbr());
+		public void AddProvsAbbr(List<ProviderDto> listProviders){
+			AddList(listProviders,x=>x.Abbr,x=>x.Abbr);
 		}
 
 		///<summary>Adds a list of Providers to the items. Does not Clear first.  Providers will show with Long Descriptions.</summary>
-		public void AddProvsFull(List<Provider> listProviders){
-			AddList(listProviders,x=>x.GetLongDesc(),x=>x.GetAbbr());
+		public void AddProvsFull(List<ProviderDto> listProviders){
+			AddList(listProviders,x=>x.Description,x=>x.Abbr);
 		}
 
 		public void Clear(){

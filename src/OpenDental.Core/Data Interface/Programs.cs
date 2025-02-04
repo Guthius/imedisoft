@@ -6,7 +6,6 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using CodeBase;
-using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Crud;
 using Imedisoft.Core.Entities;
@@ -15,8 +14,8 @@ namespace OpenDentBusiness;
 
 public class Programs
 {
-    private static readonly List<string> LIST_TIGERVIEW_PHI_FIELDS = new()
-    {
+    private static readonly List<string> LIST_TIGERVIEW_PHI_FIELDS =
+    [
         "PatientID",
         "FirstName",
         "LastName",
@@ -34,7 +33,7 @@ public class Programs
         "addrCity",
         "addrState",
         "addrZip"
-    };
+    ];
     
     public static bool IsEnabledByHq(Program program, out string err)
     {
@@ -44,32 +43,7 @@ public class Programs
             err = Lans.g("Programs", "The currently selected program could not be found.");
             return false;
         }
-
-        if (DoUseCacheValues(program))
-        {
-            err = program.CustErr;
-            if (string.IsNullOrWhiteSpace(err)) //if the CustErr wasn't set at HQ then we assume a customer is not able to use this program because they are not on support
-                err = Lans.g("Program", "You must be on support to use this program.");
-            return !program.IsDisabledByHq;
-        }
-
-        var hqProgram = HqProgram.GetAll().FirstOrDefault(x => x.ProgramNameAsString.Trim() == program.ProgName.Trim());
-        if (hqProgram == null)
-        {
-            err = Lans.g("Programs", "The currently selected HQ program could not be found.");
-            return false;
-        }
-
-        if (!hqProgram.IsEnabled)
-        {
-            err = hqProgram.CustErr;
-            //Delete all programs disabled by HQ
-            ProgramProperties.GetForProgram(program.ProgramNum).ForEach(x => ProgramProperties.Delete(x));
-            Delete(program);
-            if (string.IsNullOrWhiteSpace(err)) err = Lans.g("Program", program.ProgName + " has been removed.");
-            return false;
-        }
-
+        
         return true;
     }
     
@@ -78,15 +52,8 @@ public class Programs
         var progCur = GetCur(progName);
         return IsEnabledByHq(progCur, out err);
     }
-
-    private static bool DoUseCacheValues(Program prog)
-    {
-        //Is not an OD defined program name or is not a program HQ is concerned with enabling/disabling.
-        return !Enum.TryParse(prog.ProgName, out ProgramName progName)
-               || !(HqProgram.IsInitialized() && HqProgram.GetAll().Any(x => x.ProgramNameAsString.Trim() == progName.ToString()));
-    }
     
-    public static bool Update(Program cur, Program old = null)
+    public static void Update(Program cur, Program old = null)
     {
         var isRefreshNeeded = false;
 
@@ -99,18 +66,16 @@ public class Programs
         {
             isRefreshNeeded = ProgramCrud.Update(cur, old);
         }
-
-        return isRefreshNeeded;
     }
     
-    public static long Insert(Program Cur)
+    public static void Insert(Program Cur)
     {
-        return ProgramCrud.Insert(Cur);
+        ProgramCrud.Insert(Cur);
     }
 
     public static void Delete(Program prog)
     {
-        var command = "DELETE from toolbutitem WHERE ProgramNum = " + SOut.Long(prog.ProgramNum);
+        var command = "DELETE from toolbutitem WHERE ProgramNum = " + (prog.ProgramNum);
         Db.NonQ(command);
         command = "DELETE from program WHERE ProgramNum = '" + prog.ProgramNum + "'";
         Db.NonQ(command);
@@ -147,7 +112,7 @@ public class Programs
 
     public static List<string> GetListDisabledForWeb()
     {
-        return PrefC.GetString(PrefName.ProgramLinksDisabledForWeb).Split(new[] {","}, StringSplitOptions.RemoveEmptyEntries).ToList();
+        return PrefC.GetString(PrefName.ProgramLinksDisabledForWeb).Split([","], StringSplitOptions.RemoveEmptyEntries).ToList();
     }
 
     public static bool UsingEcwTightMode()
@@ -384,11 +349,6 @@ public class Programs
         }.Count(x => x) >= 2;
     }
 
-    public static void SendEnabledProgramsToHQ()
-    {
-        CustomerUpdatesProxy.SendAndReceiveUpdateRequestXml(); //Piggy back on this, we don't do anything with result just want to trigger some code.
-    }
-
     public static void RemoveLinkageXMLFile(Program program)
     {
         if (program == null || !program.Enabled) return;
@@ -455,11 +415,6 @@ public class Programs
     public static Program GetFirstOrDefault(Func<Program, bool> match, bool isShort = false)
     {
         return Cache.GetFirstOrDefault(match, isShort);
-    }
-
-    public static List<Program> GetWhere(Predicate<Program> match, bool isShort = false)
-    {
-        return Cache.GetWhere(match, isShort);
     }
 
     public static void RefreshCache()

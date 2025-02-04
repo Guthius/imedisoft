@@ -66,19 +66,13 @@ public class Prefs
         return UpdateLong(prefName, newValue);
     }
 
-    public static void UpdateIntNoCache(PrefName prefName, int newValue)
-    {
-        var command = "UPDATE preference SET ValueString='" + SOut.Long(newValue) + "' WHERE PrefName='" + SOut.String(prefName.ToString()) + "'";
-        Db.NonQ(command);
-    }
-
     public static bool UpdateLong(PrefName prefName, long newValue)
     {
         //Very unusual.  Involves cache, so Meth is used further down instead of here at the top.
         var curValue = PrefC.GetLong(prefName);
         if (curValue == newValue) return false; //no change needed
         var command = "UPDATE preference SET "
-                      + "ValueString = '" + SOut.Long(newValue) + "' "
+                      + "ValueString = '" + (newValue) + "' "
                       + "WHERE PrefName = '" + SOut.String(prefName.ToString()) + "'";
         var retVal = true;
         Db.NonQ(command);
@@ -198,23 +192,22 @@ public class Prefs
 
     public static List<Pref> GetInsHistPrefs()
     {
-        return GetPrefs(new List<string>
-        {
+        return GetPrefs([
             PrefName.InsHistBWCodes.ToString(), PrefName.InsHistDebridementCodes.ToString(),
             PrefName.InsHistExamCodes.ToString(), PrefName.InsHistPanoCodes.ToString(), PrefName.InsHistPerioLLCodes.ToString(),
             PrefName.InsHistPerioLRCodes.ToString(), PrefName.InsHistPerioMaintCodes.ToString(), PrefName.InsHistPerioULCodes.ToString(),
             PrefName.InsHistPerioURCodes.ToString(), PrefName.InsHistProphyCodes.ToString()
-        });
+        ]);
     }
 
     public static List<PrefName> GetInsHistPrefNames()
     {
-        return new List<PrefName>
-        {
+        return
+        [
             PrefName.InsHistBWCodes, PrefName.InsHistPanoCodes, PrefName.InsHistExamCodes, PrefName.InsHistProphyCodes,
             PrefName.InsHistPerioURCodes, PrefName.InsHistPerioULCodes, PrefName.InsHistPerioLRCodes, PrefName.InsHistPerioLLCodes,
             PrefName.InsHistPerioMaintCodes, PrefName.InsHistDebridementCodes
-        };
+        ];
     }
 
     private class PrefCache : CacheDictNonPkAbs<Pref, string, Pref>
@@ -332,7 +325,7 @@ public class Prefs
 
     public static List<Pref> GetPrefs(List<string> listPrefNames)
     {
-        if (listPrefNames == null || listPrefNames.Count == 0) return new List<Pref>();
+        if (listPrefNames == null || listPrefNames.Count == 0) return [];
         return PrefCaches.GetWhere(x => listPrefNames.Contains(x.PrefName));
     }
 

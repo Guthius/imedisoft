@@ -25,18 +25,19 @@ public class FamAgingCrud
     public static List<FamAging> TableToList(DataTable table)
     {
         var retVal = new List<FamAging>();
-        FamAging famAging;
         foreach (DataRow row in table.Rows)
         {
-            famAging = new FamAging();
-            famAging.PatNum = SIn.Long(row["PatNum"].ToString());
-            famAging.Bal_0_30 = SIn.Double(row["Bal_0_30"].ToString());
-            famAging.Bal_31_60 = SIn.Double(row["Bal_31_60"].ToString());
-            famAging.Bal_61_90 = SIn.Double(row["Bal_61_90"].ToString());
-            famAging.BalOver90 = SIn.Double(row["BalOver90"].ToString());
-            famAging.InsEst = SIn.Double(row["InsEst"].ToString());
-            famAging.BalTotal = SIn.Double(row["BalTotal"].ToString());
-            famAging.PayPlanDue = SIn.Double(row["PayPlanDue"].ToString());
+            var famAging = new FamAging
+            {
+                PatNum = SIn.Long(row["PatNum"].ToString()),
+                Bal_0_30 = SIn.Double(row["Bal_0_30"].ToString()),
+                Bal_31_60 = SIn.Double(row["Bal_31_60"].ToString()),
+                Bal_61_90 = SIn.Double(row["Bal_61_90"].ToString()),
+                BalOver90 = SIn.Double(row["BalOver90"].ToString()),
+                InsEst = SIn.Double(row["InsEst"].ToString()),
+                BalTotal = SIn.Double(row["BalTotal"].ToString()),
+                PayPlanDue = SIn.Double(row["PayPlanDue"].ToString())
+            };
             retVal.Add(famAging);
         }
 

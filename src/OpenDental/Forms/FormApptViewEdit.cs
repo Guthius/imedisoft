@@ -9,6 +9,7 @@ using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Data;
 using Imedisoft.Core.Entities;
+using Imedisoft.Features.Providers.Dtos;
 using OpenDental.UI;
 using OpenDentBusiness;
 
@@ -23,13 +24,12 @@ public partial class FormApptViewEdit : FormODBase
     private List<long> _patFieldDefNums;
     private List<ApptViewItem> _apptViewItemsDisplayedAll;
     private List<ApptViewItem> _apptViewItemsDisplayedMain;
-    private List<ApptViewItem> _mobileApptViewItems;
     private List<ApptViewItem> _apptViewItemsDisplayedUr;
     private List<ApptViewItem> _apptViewItemsDisplayedLr;
     private List<ApptViewItem> _apptViewItems;
     private List<ApptViewItem> _apptViewItemsDef;
     private List<long> _opNums;
-    private List<Provider> _providers;
+    private List<ProviderDto> _providers;
 
     public FormApptViewEdit(ApptView apptView, long clinicNum)
     {
@@ -72,7 +72,7 @@ public partial class FormApptViewEdit : FormODBase
         UpdateDisplayFilterGroup();
 
         _apptViewItems = ApptViewItems.GetWhere(x => x.ApptViewNum == _apptView.ApptViewNum && !x.IsMobile);
-        _mobileApptViewItems = ApptViewItems.GetWhere(x => x.ApptViewNum == _apptView.ApptViewNum && x.IsMobile);
+        ApptViewItems.GetWhere(x => x.ApptViewNum == _apptView.ApptViewNum && x.IsMobile);
         _apptViewItemsDef = _apptViewItems.FindAll(x => x.OpNum == 0 && x.ProvNum == 0);
 
         FillOperatories();
@@ -81,8 +81,8 @@ public partial class FormApptViewEdit : FormODBase
 
         for (var i = 0; i < _providers.Count; i++)
         {
-            listProv.Items.Add(_providers[i].GetLongDesc());
-            if (_apptViewItems.Select(x => x.ProvNum).Contains(_providers[i].ProvNum))
+            listProv.Items.Add(_providers[i].Description);
+            if (_apptViewItems.Select(x => x.ProvNum).Contains(_providers[i].Id))
             {
                 listProv.SetSelected(i);
             }
@@ -440,7 +440,6 @@ public partial class FormApptViewEdit : FormODBase
 
     public void UpdateMobileViewList(List<ApptViewItem> apptViewItems)
     {
-        _mobileApptViewItems = apptViewItems;
     }
 
     private void ButtonLeft_Click(object sender, EventArgs e)
@@ -1000,8 +999,6 @@ public partial class FormApptViewEdit : FormODBase
         ApptViewItems.DeleteAllForView(_apptView, isMobile: true);
         ApptViewItem apptViewItem;
 
-        var isClinicMobile = MobileAppDevices.IsClinicSignedUpForMobileWeb(comboClinic.ClinicNumSelected);
-
         for (var i = 0; i < _opNums.Count; i++)
         {
             if (!listOps.SelectedIndices.Contains(i))
@@ -1016,14 +1013,6 @@ public partial class FormApptViewEdit : FormODBase
                 IsMobile = false
             };
             ApptViewItems.Insert(apptViewItem);
-
-            if (!isClinicMobile || _mobileApptViewItems.Count == 0)
-            {
-                continue;
-            }
-
-            apptViewItem.IsMobile = true;
-            ApptViewItems.Insert(apptViewItem);
         }
 
         for (var i = 0; i < _providers.Count; i++)
@@ -1036,18 +1025,10 @@ public partial class FormApptViewEdit : FormODBase
             apptViewItem = new ApptViewItem
             {
                 ApptViewNum = _apptView.ApptViewNum,
-                ProvNum = _providers[i].ProvNum,
+                ProvNum = _providers[i].Id,
                 IsMobile = false
             };
 
-            ApptViewItems.Insert(apptViewItem);
-
-            if (!isClinicMobile || _mobileApptViewItems.Count == 0)
-            {
-                continue;
-            }
-
-            apptViewItem.IsMobile = true;
             ApptViewItems.Insert(apptViewItem);
         }
 
@@ -1079,25 +1060,6 @@ public partial class FormApptViewEdit : FormODBase
             apptViewItem.ElementOrder = (byte) i;
             apptViewItem.IsMobile = false;
             ApptViewItems.Insert(apptViewItem);
-        }
-
-        if (isClinicMobile)
-        {
-            for (var i = 0; i < _mobileApptViewItems.Count; i++)
-            {
-                if (_mobileApptViewItems[i].ProvNum != 0 || _mobileApptViewItems[i].OpNum != 0)
-                {
-                    continue;
-                }
-
-                var apptViewItemMobile = _mobileApptViewItems[i];
-
-                apptViewItemMobile.ApptViewNum = _apptView.ApptViewNum;
-                apptViewItemMobile.ElementOrder = (byte) i;
-                apptViewItemMobile.IsMobile = true;
-
-                ApptViewItems.Insert(apptViewItemMobile);
-            }
         }
 
         _apptView.WaitingRmName = listWaitingRmNameFormat.GetSelected<EnumWaitingRmName>();

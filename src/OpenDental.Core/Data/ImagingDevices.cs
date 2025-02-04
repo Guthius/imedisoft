@@ -59,9 +59,9 @@ public static class ImagingDevices
 
     private static readonly ImagingDeviceCache Cache = new();
 
-    public static List<ImagingDevice> GetDeepCopy(bool isShort = false)
+    public static List<ImagingDevice> GetDeepCopy(bool shortList = false)
     {
-        return Cache.GetDeepCopy(isShort);
+        return Cache.GetDeepCopy(shortList);
     }
 
     public static void RefreshCache()
@@ -69,9 +69,9 @@ public static class ImagingDevices
         GetTableFromCache(true);
     }
 
-    public static DataTable GetTableFromCache(bool doRefreshCache)
+    public static DataTable GetTableFromCache(bool refreshCache)
     {
-        return Cache.GetTableFromCache(doRefreshCache);
+        return Cache.GetTableFromCache(refreshCache);
     }
 
     public static void ClearCache()

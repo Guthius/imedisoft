@@ -1,36 +1,23 @@
-﻿using System;
-using System.Drawing;
-using System.Xml.Serialization;
+﻿using System.Drawing;
 using OpenDentBusiness;
 
 namespace Imedisoft.Core.Entities;
 
-///<summary>An individual procedure code color range.</summary>
-[Serializable]
-public class ProcApptColor : TableBase{
-	///<summary>Primary key.</summary>
-	[CrudColumn(IsPriKey=true)]
-	public long ProcApptColorNum;
-	///<summary>Procedure code range defined by user.  Includes commas and dashes, but no spaces.  The codes need not be valid since they are ranges.</summary>
-	public string CodeRange;
-	///<summary>Adds most recent completed date to ProcsColored</summary>
-	public bool ShowPreviousDate;
-	///<summary>Color that shows in appointments</summary>
-	[XmlIgnore]
-	public Color ColorText;
+public class ProcApptColor : TableBase
+{
+    [CrudColumn(IsPriKey = true)]
+    public long ProcApptColorNum;
 
-	///<summary>Used only for serialization purposes</summary>
-	[XmlElement("ColorText",typeof(int))]
-	public int ColorTextXml {
-		get {
-			return ColorText.ToArgb();
-		}
-		set {
-			ColorText=Color.FromArgb(value);
-		}
-	}
+    ///<summary>Procedure code range defined by user.  Includes commas and dashes, but no spaces.  The codes need not be valid since they are ranges.</summary>
+    public string CodeRange;
 
-	public ProcApptColor Copy() {
-		return (ProcApptColor)MemberwiseClone();
-	}	
+    ///<summary>Adds most recent completed date to ProcsColored</summary>
+    public bool ShowPreviousDate;
+
+    public Color ColorText;
+
+    public ProcApptColor Copy()
+    {
+        return (ProcApptColor) MemberwiseClone();
+    }
 }

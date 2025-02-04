@@ -26,24 +26,25 @@ public class EmployeeCrud
     public static List<Employee> TableToList(DataTable table)
     {
         var retVal = new List<Employee>();
-        Employee employee;
         foreach (DataRow row in table.Rows)
         {
-            employee = new Employee();
-            employee.EmployeeNum = SIn.Long(row["EmployeeNum"].ToString());
-            employee.LName = SIn.String(row["LName"].ToString());
-            employee.FName = SIn.String(row["FName"].ToString());
-            employee.MiddleI = SIn.String(row["MiddleI"].ToString());
-            employee.IsHidden = SIn.Bool(row["IsHidden"].ToString());
-            employee.ClockStatus = SIn.String(row["ClockStatus"].ToString());
-            employee.PhoneExt = SIn.Int(row["PhoneExt"].ToString());
-            employee.PayrollID = SIn.String(row["PayrollID"].ToString());
-            employee.WirelessPhone = SIn.String(row["WirelessPhone"].ToString());
-            employee.EmailWork = SIn.String(row["EmailWork"].ToString());
-            employee.EmailPersonal = SIn.String(row["EmailPersonal"].ToString());
-            employee.IsFurloughed = SIn.Bool(row["IsFurloughed"].ToString());
-            employee.IsWorkingHome = SIn.Bool(row["IsWorkingHome"].ToString());
-            employee.ReportsTo = SIn.Long(row["ReportsTo"].ToString());
+            var employee = new Employee
+            {
+                EmployeeNum = SIn.Long(row["EmployeeNum"].ToString()),
+                LName = SIn.String(row["LName"].ToString()),
+                FName = SIn.String(row["FName"].ToString()),
+                MiddleI = SIn.String(row["MiddleI"].ToString()),
+                IsHidden = SIn.Bool(row["IsHidden"].ToString()),
+                ClockStatus = SIn.String(row["ClockStatus"].ToString()),
+                PhoneExt = SIn.Int(row["PhoneExt"].ToString()),
+                PayrollID = SIn.String(row["PayrollID"].ToString()),
+                WirelessPhone = SIn.String(row["WirelessPhone"].ToString()),
+                EmailWork = SIn.String(row["EmailWork"].ToString()),
+                EmailPersonal = SIn.String(row["EmailPersonal"].ToString()),
+                IsFurloughed = SIn.Bool(row["IsFurloughed"].ToString()),
+                IsWorkingHome = SIn.Bool(row["IsWorkingHome"].ToString()),
+                ReportsTo = SIn.Long(row["ReportsTo"].ToString())
+            };
             retVal.Add(employee);
         }
 

@@ -22,15 +22,15 @@ public static class AlertItems
         });
     }
 
-    public static List<AlertItem> RefreshForClinicAndTypes(long clinicNum, List<AlertType> listAlertTypes = null)
+    public static List<AlertItem> RefreshForClinicAndTypes(long clinicNum, List<AlertType> alertTypes = null)
     {
-        if (listAlertTypes == null || listAlertTypes.Count == 0)
+        if (alertTypes == null || alertTypes.Count == 0)
         {
             return [];
         }
 
         long provNum = 0;
-        if (Security.CurUser != null && Userods.IsUserCpoe(Security.CurUser))
+        if (Security.CurUser != null && Userods.IsUserCpoe())
         {
             provNum = Security.CurUser.ProvNum;
         }
@@ -40,10 +40,10 @@ public static class AlertItems
         {
             userNum = Security.CurUser.UserNum;
         }
-        
+
         return AlertItemCrud.SelectMany(
             "SELECT * FROM alertitem " +
-            "WHERE Type IN (" + string.Join(",", listAlertTypes.Cast<int>()) + ") " +
+            "WHERE Type IN (" + string.Join(",", alertTypes.Cast<int>()) + ") " +
             "AND (UserNum=0 OR UserNum=" + userNum + ") " +
             "AND (CASE TYPE WHEN " + (int) AlertType.RadiologyProcedures + " THEN FKey=" + provNum + " " +
             "ELSE ClinicNum = " + clinicNum + " OR ClinicNum=-1 END)");
@@ -64,13 +64,13 @@ public static class AlertItems
         AlertItemCrud.Insert(alertItem);
     }
 
-    public static void DeleteFor(AlertType alertType, List<long> listFKeys = null)
+    public static void DeleteFor(AlertType alertType, List<long> fkeys = null)
     {
         var alerts = RefreshForType(alertType);
 
-        if (listFKeys != null)
+        if (fkeys != null)
         {
-            alerts = alerts.FindAll(x => listFKeys.Contains(x.FKey));
+            alerts = alerts.FindAll(x => fkeys.Contains(x.FKey));
         }
 
         foreach (var alert in alerts) Delete(alert.AlertItemNum);
@@ -91,27 +91,6 @@ public static class AlertItems
         AlertReads.DeleteForAlertItems(alertItemNums);
 
         Db.NonQ("DELETE FROM alertitem WHERE AlertItemNum IN (" + string.Join(",", alertItemNums) + ")");
-    }
-
-    public static void CheckOdServiceHeartbeat()
-    {
-        if (IsOdServiceRunning())
-        {
-            return;
-        }
-
-        var alertItemsOld = RefreshForType(AlertType.OpenDentalServiceDown);
-        if (alertItemsOld.Count == 0)
-        {
-            Insert(new AlertItem
-            {
-                Actions = ActionType.MarkAsRead,
-                ClinicNum = -1,
-                Description = "No instance of Open Dental Service is running.",
-                Type = AlertType.OpenDentalServiceDown,
-                Severity = SeverityType.Medium
-            });
-        }
     }
 
     public static bool IsOdServiceRunning()

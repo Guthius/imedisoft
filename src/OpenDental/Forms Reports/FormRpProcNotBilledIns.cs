@@ -1,14 +1,10 @@
 using System;
-using System.Drawing;
-using System.Collections;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Windows.Forms;
 using OpenDentBusiness;
 using System.Data;
 using OpenDental.ReportingComplex;
 using OpenDental.UI;
-using System.Drawing.Printing;
 using System.Globalization;
 using System.Linq;
 using CodeBase;
@@ -232,7 +228,7 @@ public partial class FormRpProcNotBilledIns : FormODBase {
 		List<InsPlan> listInsPlans=null;
 		//find the date user is restricted by for this permission so it doesn't get called in a loop. General permission was already checked.
 		var dateRestricted=GroupPermissions.GetDateRestrictedForPermission(EnumPermType.NewClaimsProcNotBilled,
-			Security.CurUser.GetGroups(true).Select(x => x.UserGroupNum).ToList());
+			Security.CurUser.GetGroups().Select(x => x.UserGroupNum).ToList());
 		//Table rows need to be 1:1 with gridMain rows due to logic in ContrAccount.toolBarButIns_Click(...).
 		var table=new DataTable();
 		//Required columns as mentioned by ContrAccount.toolBarButIns_Click().
@@ -329,12 +325,8 @@ public partial class FormRpProcNotBilledIns : FormODBase {
 				procNotBilled=listProcs[0];
 				//Update listProcs to reflect those that match the procNotBilled values.
 				listProcs=listProcs.FindAll(x => x.HasPriClaim==procNotBilled.HasPriClaim && x.HasSecClaim==procNotBilled.HasSecClaim && x.HasTertiaryClaim==procNotBilled.HasTertiaryClaim);
-				if(true) {//Group by clinic only if clinics enabled.
-					listProcs=listProcs.FindAll(x => x.ClinicNum==procNotBilled.ClinicNum);
-				}
-				else if(!PrefC.GetBool(PrefName.EasyHidePublicHealth)) {//Group by Place of Service only if Public Health feature is enabled.
-					listProcs=listProcs.FindAll(x => x.PlaceService==procNotBilled.PlaceService);
-				}
+				//Group by clinic only if clinics enabled.
+				listProcs=listProcs.FindAll(x => x.ClinicNum==procNotBilled.ClinicNum);
 			}
 			GetUniqueDiagnosticCodes(listProcs,listPatientProcs,listPatPlans,listInsSubs,listInsPlans);
 			if(listProcs.Count>7 && CultureInfo.CurrentCulture.Name.EndsWith("CA")) {//Canadian. en-CA or fr-CA

@@ -1,151 +1,161 @@
 using System;
-using System.Drawing;
-using System.Collections;
-using System.ComponentModel;
 using System.Windows.Forms;
-using CodeBase;
-using DataConnectionBase;
 using Imedisoft.Core.Entities;
 using OpenDental.Forms;
 using OpenDentBusiness;
 
 namespace OpenDental;
 
-public partial class FormJournalEntryEdit : FormODBase {
-		
-	public bool IsNew;
-	//private ArrayList PosIndex=new ArrayList();
-	//private ArrayList NegIndex=new ArrayList();
-		
-	public JournalEntry JournalEntryCur;
-	private Account _accountPicked;
+public partial class FormJournalEntryEdit : FormODBase
+{
+    private readonly JournalEntry _journalEntry;
+    private Account _accountPicked;
 
-		
-	public FormJournalEntryEdit(){
-		InitializeComponent();
-	}
+    public FormJournalEntryEdit(JournalEntry journalEntry)
+    {
+        _journalEntry = journalEntry;
 
-	private void FormJournalEntryEdit_Load(object sender, System.EventArgs e) {
-		if(JournalEntryCur==null){
-			ODMessageBox.Show("Entry cannot be null.");
-		}
-		_accountPicked=Accounts.GetAccount(JournalEntryCur.AccountNum);//might be null
-		/*
-		for(int i=0;i<Accounts.ListShort.Length;i++) {
-			comboAccount.Items.Add(Accounts.ListShort[i].Description);
-			if(Accounts.ListShort[i].AccountNum==EntryCur.AccountNum){
-				comboAccount.SelectedIndex=i;
-			}
-		}
-		if(EntryCur.AccountNum !=0 && comboAccount.SelectedIndex==-1){//must be an inactive account
+        InitializeComponent();
+    }
 
-		}*/
-		FillAccount();
-		if(JournalEntryCur.DebitAmt>0){
-			textDebit.Text=JournalEntryCur.DebitAmt.ToString("n");
-		}
-		if(JournalEntryCur.CreditAmt>0) {
-			textCredit.Text=JournalEntryCur.CreditAmt.ToString("n");
-		}
-		textMemo.Text=JournalEntryCur.Memo;
-		textCheckNumber.Text=JournalEntryCur.CheckNumber;
-		if(JournalEntryCur.ReconcileNum==0){//not attached
-			labelReconcile.Visible=false;
-			textReconcile.Visible=false;
-			return;
-		}
-		//attached
-		textReconcile.Text=Reconciles.GetOne(JournalEntryCur.ReconcileNum).DateReconcile.ToShortDateString();
-		textDebit.ReadOnly=true;
-		textCredit.ReadOnly=true;
-		butDelete.Enabled=false;
-		butChange.Enabled=false;
-	}
+    private void FormJournalEntryEdit_Load(object sender, EventArgs e)
+    {
+        _accountPicked = Accounts.GetAccount(_journalEntry.AccountNum);
 
-	///<summary>Need to set AccountPicked before calling this.</summary>
-	private void FillAccount(){
-		if(_accountPicked==null){
-			textAccount.Text="";
-			butChange.Text=Lan.g(this,"Pick");
-			labelDebit.Text=Lan.g(this,"Debit");
-			labelCredit.Text=Lan.g(this,"Credit");
-			return;
-		}
-		//AccountCur=Accounts.ListShort[comboAccount.SelectedIndex];
-		textAccount.Text=_accountPicked.Description;
-		butChange.Text=Lan.g(this,"Change");
-		if(Accounts.DebitIsPos(_accountPicked.AcctType)) {
-			labelDebit.Text=Lan.g(this,"Debit")+Lan.g(this,"(+)");
-			labelCredit.Text=Lan.g(this,"Credit")+Lan.g(this,"(-)");
-			return;
-		}
-		labelDebit.Text=Lan.g(this,"Debit")+Lan.g(this,"(-)");
-		labelCredit.Text=Lan.g(this,"Credit")+Lan.g(this,"(+)");
-	}
+        FillAccount();
 
-	/*private void comboAccount_SelectedIndexChanged(object sender,EventArgs e) {
-		FillAccount();
-	}*/
+        if (_journalEntry.DebitAmt > 0)
+        {
+            textDebit.Text = _journalEntry.DebitAmt.ToString("n");
+        }
 
-	private void butChange_Click(object sender,EventArgs e) {
-		using var formAccountPick=new FormAccountPick();
-		formAccountPick.ShowDialog();
-		if(formAccountPick.DialogResult!=DialogResult.OK){
-			return;
-		}
-		_accountPicked=formAccountPick.SelectedAccount;
-		FillAccount();
-	}
+        if (_journalEntry.CreditAmt > 0)
+        {
+            textCredit.Text = _journalEntry.CreditAmt.ToString("n");
+        }
 
-	private void butDelete_Click(object sender,System.EventArgs e) {
-		JournalEntryCur=null;
-		if(IsNew) {
-			DialogResult=DialogResult.Cancel;
-			return;
-		}
-		DialogResult=DialogResult.OK;
-	}
+        textMemo.Text = _journalEntry.Memo;
+        textCheckNumber.Text = _journalEntry.CheckNumber;
 
-	private void butSave_Click(object sender, System.EventArgs e) {
-		if(!textDebit.IsValid() || !textCredit.IsValid()) {
-			MsgBox.Show(this,"Please fix data entry errors first.");
-			return;
-		}
-		/*if(comboAccount.SelectedIndex==-1){
-			MsgBox.Show(this,"Please select an account first.");
-			return;
-		}*/
-		if(SIn.Double(textDebit.Text)<0 || SIn.Double(textCredit.Text)<0){
-			MsgBox.Show(this,"Both amounts not allowed to be less than 0.");
-			return;
-		}
-		if(SIn.Double(textDebit.Text)==0 && SIn.Double(textCredit.Text)==0) {
-			MsgBox.Show(this,"One amount must be filled in.");
-			return;
-		}
-		if(SIn.Double(textDebit.Text)>0 && SIn.Double(textCredit.Text)>0) {
-			MsgBox.Show(this,"Only one amount can be filled in.");
-			return;
-		}
-		if(_accountPicked==null || _accountPicked.AccountNum==0) {
-			MsgBox.Show(this,"Please select an account.");
-			return;
-		}
-		JournalEntryCur.AccountNum=_accountPicked.AccountNum;
-		JournalEntryCur.DebitAmt=SIn.Double(textDebit.Text);
-		JournalEntryCur.CreditAmt=SIn.Double(textCredit.Text);
-		JournalEntryCur.Memo=textMemo.Text;
-		JournalEntryCur.CheckNumber=textCheckNumber.Text;
-		DialogResult=DialogResult.OK;
-	}
+        if (_journalEntry.ReconcileNum == 0)
+        {
+            labelReconcile.Visible = false;
+            textReconcile.Visible = false;
+            return;
+        }
 
-	private void FormJournalEntryEdit_FormClosing(object sender,FormClosingEventArgs e) {
-		if(DialogResult!=DialogResult.Cancel) {
-			return;
-		}
-		if(IsNew){
-			JournalEntryCur=null;
-		}
-	}
+        textReconcile.Text = Reconciles.GetOne(_journalEntry.ReconcileNum).DateReconcile.ToShortDateString();
+        textDebit.ReadOnly = true;
+        textCredit.ReadOnly = true;
 
+        butDelete.Enabled = false;
+        butChange.Enabled = false;
+    }
+
+    private void FormJournalEntryEdit_FormClosing(object sender, FormClosingEventArgs e)
+    {
+        if (DialogResult != DialogResult.Cancel)
+        {
+            return;
+        }
+
+        if (_journalEntry.JournalEntryNum == 0)
+        {
+            DialogResult = DialogResult.Abort;
+        }
+    }
+
+    private void FillAccount()
+    {
+        if (_accountPicked is null)
+        {
+            textAccount.Text = "";
+            butChange.Text = "Pick";
+            labelDebit.Text = "Debit";
+            labelCredit.Text = "Credit";
+            return;
+        }
+
+        textAccount.Text = _accountPicked.Description;
+
+        butChange.Text = "Change";
+
+        if (Accounts.DebitIsPos(_accountPicked.AcctType))
+        {
+            labelDebit.Text = "Debit(+)";
+            labelCredit.Text = "Credit(-)";
+            return;
+        }
+
+        labelDebit.Text = "Debit(-)";
+        labelCredit.Text = "Credit(+)";
+    }
+
+    private void ButtonChange_Click(object sender, EventArgs e)
+    {
+        using var formAccountPick = new FormAccountPick();
+
+        if (formAccountPick.ShowDialog() != DialogResult.OK)
+        {
+            return;
+        }
+
+        _accountPicked = formAccountPick.SelectedAccount;
+
+        FillAccount();
+    }
+
+    private void ButtonDelete_Click(object sender, EventArgs e)
+    {
+        if (_journalEntry.JournalEntryNum == 0)
+        {
+            DialogResult = DialogResult.Cancel;
+            
+            return;
+        }
+
+        DialogResult = DialogResult.Abort;
+    }
+
+    private void ButtonSave_Click(object sender, EventArgs e)
+    {
+        if (!double.TryParse(textDebit.Text, out var debit) ||
+            !double.TryParse(textCredit.Text, out var credit))
+        {
+            ShowError("Please fix data entry errors first.");
+            return;
+        }
+
+        if (debit < 0 || credit < 0)
+        {
+            ShowError("Both amounts not allowed to be less than 0.");
+            return;
+        }
+
+        if (debit == 0 && credit == 0)
+        {
+            ShowError("One amount must be filled in.");
+            return;
+        }
+
+        if (debit > 0 && credit > 0)
+        {
+            ShowError("Only one amount can be filled in.");
+            return;
+        }
+
+        if (_accountPicked is null || _accountPicked.AccountNum == 0)
+        {
+            ShowError("Please select an account.");
+            return;
+        }
+
+        _journalEntry.AccountNum = _accountPicked.AccountNum;
+        _journalEntry.DebitAmt = debit;
+        _journalEntry.CreditAmt = credit;
+        _journalEntry.Memo = textMemo.Text;
+        _journalEntry.CheckNumber = textCheckNumber.Text;
+
+        DialogResult = DialogResult.OK;
+    }
 }

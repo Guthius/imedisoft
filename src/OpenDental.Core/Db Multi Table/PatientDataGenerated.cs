@@ -206,8 +206,8 @@ public partial class PatientData
             throw new ApplicationException("Set PatNum first.");
         }
 
-        List<EnumPdTable> listPdTablesFiltered = FilterPdTables(pdTableArray);
-        PatientData patientData = GetFromDb(PatNum, listPdTablesFiltered);
+        var listPdTablesFiltered = FilterPdTables(pdTableArray);
+        var patientData = GetFromDb(PatNum, listPdTablesFiltered);
         CopyDataToOurPd(patientData, listPdTablesFiltered);
     }
 
@@ -219,8 +219,8 @@ public partial class PatientData
             throw new ApplicationException("Set PatNum first.");
         }
 
-        List<EnumPdTable> listPdTablesFiltered = FilterPdTables(pdTableArray);
-        PatientData patientData = GetFromDbChartProgNotes(PatNum, listPdTablesFiltered, isAuditMode, chartModuleFilters);
+        var listPdTablesFiltered = FilterPdTables(pdTableArray);
+        var patientData = GetFromDbChartProgNotes(PatNum, listPdTablesFiltered, isAuditMode, chartModuleFilters);
         CopyDataToOurPd(patientData, listPdTablesFiltered);
     }
         
@@ -231,14 +231,14 @@ public partial class PatientData
             return new PatientData();
         }
 
-        PatientData patientData = new PatientData();
+        var patientData = new PatientData();
         GetFromDbSimple(patNum, listPdTables, patientData);
         return patientData;
     }
 
     public static PatientData GetFromDbChartProgNotes(long patNum, List<EnumPdTable> listPdTables, bool isAuditMode, ChartModuleFilters chartModuleFilters)
     {
-        PatientData patientData = new PatientData();
+        var patientData = new PatientData();
         patientData.TableProgNotes = ChartModules.GetProgNotes(patNum, isAuditMode, chartModuleFilters); //this must come before ChartModules.GetPlannedApt
         GetFromDbSimple(patNum, listPdTables, patientData);
         return patientData;
@@ -395,16 +395,11 @@ public partial class PatientData
         {
             patientData.ListToothInitials = ToothInitials.GetPatientData(patNum);
         }
-
-        if (listPdTables.Contains(EnumPdTable.UserWebHasPortalAccess))
-        {
-            patientData.UserWebHasPortalAccess = UserWebs.HasPatientPortalAccess(patNum);
-        }
     }
         
     private List<EnumPdTable> FilterPdTables(EnumPdTable[] pdTableArray)
     {
-        List<EnumPdTable> listPdTables = new List<EnumPdTable>();
+        var listPdTables = new List<EnumPdTable>();
         if (pdTableArray.Contains(EnumPdTable.Patient) && ListPatients is null)
         {
             listPdTables.Add(EnumPdTable.Patient);
@@ -717,11 +712,6 @@ public partial class PatientData
         if (listPdTables.Contains(EnumPdTable.ToothInitial))
         {
             ListToothInitials = new List<ToothInitial>(patientData.ListToothInitials);
-        }
-
-        if (listPdTables.Contains(EnumPdTable.UserWebHasPortalAccess))
-        {
-            UserWebHasPortalAccess = patientData.UserWebHasPortalAccess;
         }
     }
 }

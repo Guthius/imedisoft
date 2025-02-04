@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using System.Text;
-using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Crud;
 using Imedisoft.Core.Data;
@@ -25,16 +24,17 @@ public class TimeCardRules
     
     public static void Delete(long timeCardRuleNum)
     {
-        var command = "DELETE FROM timecardrule WHERE TimeCardRuleNum = " + SOut.Long(timeCardRuleNum);
-        Db.NonQ(command);
+        Db.NonQ("DELETE FROM timecardrule WHERE TimeCardRuleNum = " + timeCardRuleNum);
     }
 
-    public static void DeleteMany(List<long> listTimeCardRuleNums)
+    public static void DeleteMany(List<long> timeCardRuleNums)
     {
-        if (listTimeCardRuleNums == null || listTimeCardRuleNums.Count == 0) return;
+        if (timeCardRuleNums == null || timeCardRuleNums.Count == 0)
+        {
+            return;
+        }
 
-        var command = "DELETE FROM timecardrule WHERE TimeCardRuleNum IN (" + string.Join(",", listTimeCardRuleNums.Select(x => SOut.Long(x))) + ")";
-        Db.NonQ(command);
+        Db.NonQ("DELETE FROM timecardrule WHERE TimeCardRuleNum IN (" + string.Join(",", timeCardRuleNums) + ")");
     }
 
     public static string ValidatePayPeriod(Employee employee, DateTime dateStart, DateTime dateStop)
@@ -150,22 +150,23 @@ public class TimeCardRules
 
     public static void ClearManual(long employeeNum, DateTime dateStart, DateTime dateStop)
     {
-        var listClockEvents = ClockEvents.GetSimpleList(employeeNum, dateStart, dateStop);
-        for (var i = 0; i < listClockEvents.Count; i++)
+        var clockEvents = ClockEvents.GetSimpleList(employeeNum, dateStart, dateStop);
+        
+        foreach (var clockEvent in clockEvents)
         {
-            listClockEvents[i].Adjust = TimeSpan.Zero;
-            listClockEvents[i].AdjustIsOverridden = false;
-            listClockEvents[i].OTimeHours = TimeSpan.FromHours(-1);
-            listClockEvents[i].Rate2Hours = TimeSpan.FromHours(-1);
-            listClockEvents[i].Rate3Hours = TimeSpan.FromHours(-1);
-            ClockEvents.Update(listClockEvents[i]);
+            clockEvent.Adjust = TimeSpan.Zero;
+            clockEvent.AdjustIsOverridden = false;
+            clockEvent.OTimeHours = TimeSpan.FromHours(-1);
+            clockEvent.Rate2Hours = TimeSpan.FromHours(-1);
+            clockEvent.Rate3Hours = TimeSpan.FromHours(-1);
+            ClockEvents.Update(clockEvent);
         }
     }
 
     public static TimeCardRule GetTimeCardRule(Employee employee)
     {
         //Validate Rules---------------------------------------------------------------------------------------------------------------
-        var errors = ValidateOvertimeRules(new List<long> {employee.EmployeeNum});
+        var errors = ValidateOvertimeRules([employee.EmployeeNum]);
         if (errors.Length > 0) throw new Exception(errors);
         //Build return value ----------------------------------------------------------------------------------------------------------
         var listTimeCardRulesEmp = GetWhere(x => x.EmployeeNum == 0 || x.EmployeeNum == employee.EmployeeNum);
@@ -488,10 +489,7 @@ public class TimeCardRules
         //Visual representation
         //ClockEvent1:            o----------------o
         //ClockEvent2:o---------------o   or  o-------------------o
-        if (clockEvent2.TimeDisplayed2 > clockEvent1.TimeDisplayed1
-            && clockEvent2.TimeDisplayed1 < clockEvent1.TimeDisplayed2)
-            return true;
-        return false;
+        return clockEvent2.TimeDisplayed2 > clockEvent1.TimeDisplayed1 && clockEvent2.TimeDisplayed1 < clockEvent1.TimeDisplayed2;
     }
 
     public static void CalculateWeeklyOvertime(Employee employee, PayPeriod payPeriod)
@@ -655,7 +653,7 @@ public class TimeCardRules
 
         if (hasCreatedTimeAdjust)
         {
-            var logText = Lans.g("TimeCardRules", "Weekly overtime was calculated. Time Card Adjustment created for Employee:") + " " + Employees.GetName(employee);
+            var logText = "Weekly overtime was calculated. Time Card Adjustment created for Employee: " + Employees.GetName(employee);
             SecurityLogs.MakeLogEntry(EnumPermType.TimeAdjustEdit, 0, logText);
         }
     }
@@ -676,8 +674,7 @@ public class TimeCardRules
     {
         protected override List<TimeCardRule> GetCacheFromDb()
         {
-            var command = "SELECT * FROM timecardrule";
-            return TimeCardRuleCrud.SelectMany(command);
+            return TimeCardRuleCrud.SelectMany("SELECT * FROM timecardrule");
         }
 
         protected override List<TimeCardRule> TableToList(DataTable dataTable)
@@ -703,14 +700,14 @@ public class TimeCardRules
 
     private static readonly TimeCardRuleCache Cache = new();
 
-    public static List<TimeCardRule> GetDeepCopy(bool isShort = false)
+    public static List<TimeCardRule> GetDeepCopy(bool shortList = false)
     {
-        return Cache.GetDeepCopy(isShort);
+        return Cache.GetDeepCopy(shortList);
     }
 
-    public static List<TimeCardRule> GetWhere(Predicate<TimeCardRule> match, bool isShort = false)
+    public static List<TimeCardRule> GetWhere(Predicate<TimeCardRule> predicate, bool shortList = false)
     {
-        return Cache.GetWhere(match, isShort);
+        return Cache.GetWhere(predicate, shortList);
     }
 
     public static void RefreshCache()

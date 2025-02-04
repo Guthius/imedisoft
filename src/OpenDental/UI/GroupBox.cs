@@ -1,13 +1,7 @@
 ﻿using OpenDentBusiness;
-using System;
-using System.Collections.Generic;
 using System.ComponentModel;
-using System.Data;
 using System.Drawing;
 using System.Drawing.Drawing2D;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace OpenDental.UI;
@@ -15,7 +9,7 @@ namespace OpenDental.UI;
 
 ///<summary>Use this instead of MS GroupBox.  Supports our custom drawing and scaling.  Has rounded corners and a darker border.</summary>
 public partial class GroupBox : System.Windows.Forms.ContainerControl{
-	public LayoutManagerForms LayoutManager=new LayoutManagerForms();
+	
 	private bool _drawBorder=true;
 	private Color _colorBackLabel=Color.Empty;
 	private Color _backColor=Color.Empty;

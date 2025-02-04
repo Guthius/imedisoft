@@ -85,9 +85,6 @@ public partial class FormTimeCard:FormODBase {
 		if(Security.IsAuthorized(EnumPermType.TimecardsEditAll,true)) {
 			groupEmployee.Visible=true;
 		}
-		if(false) {
-			butBenefits.Visible=true;
-		}
 	}
 
 	public void SortEmployeeList() {
@@ -303,10 +300,6 @@ public partial class FormTimeCard:FormODBase {
 		gridMain.Columns.Add(col);
 		col=new GridColumn(Lan.g(this,"PL"),45,HorizontalAlignment.Right);
 		gridMain.Columns.Add(col);
-		if(false) {
-			col=new GridColumn(Lan.g(this,"WFH"),35,HorizontalAlignment.Center);
-			gridMain.Columns.Add(col);
-		}
 		col=new GridColumn(Lan.g(this,"Day"),50,HorizontalAlignment.Right);
 		gridMain.Columns.Add(col);
 		col=new GridColumn(Lan.g(this,"Week"),50,HorizontalAlignment.Right);
@@ -471,14 +464,6 @@ public partial class FormTimeCard:FormODBase {
 				row.Cells.Add("");//No PL should exist, leave blank
 
 				//Column 12 - WFH Working From Home ------------------------------
-				if(false) {
-					if(IsBreaks || !clockEvent.IsWorkingHome){
-						row.Cells.Add("");//Not Working from home, leave blank
-					}
-					else {
-						row.Cells.Add("X");
-					}
-				}
 				//Column 13 (or 12 if no WFH) - Day (daily total)-----------------
 				//if this is the last entry for a given date
 				if(i==_arrayListMerged.Count-1//if this is the last row
@@ -585,9 +570,6 @@ public partial class FormTimeCard:FormODBase {
 					row.Cells.Add("");
 				}
 				//Column 12 - WFH Working From Home ------------------------------
-				if(false) {
-					row.Cells.Add("");
-				}
 				//Column 13 (or 12 if no WFH) - Day (daily total)-----------------
 				//if this is the last entry for a given date
 				if(i==_arrayListMerged.Count-1//if this is the last row
@@ -824,14 +806,11 @@ public partial class FormTimeCard:FormODBase {
 		SaveNoteToDb();
 		_linesPrinted=0;
 		var printoutOrientation=PrintoutOrientation.Portrait;
-		if(false) {
-			printoutOrientation=PrintoutOrientation.Landscape; //Switching for extra WFH column
-		}
 		PrinterL.TryPrintOrDebugClassicPreview(pd_PrintPage,
 			Lan.g(this,"Time card for")+" "+EmployeeCur.LName+","+EmployeeCur.FName+" "+Lan.g(this,"printed"),
 			new Margins(0,0,0,0),
-			printoutOrigin:PrintoutOrigin.AtMargin,
-			printoutOrientation:printoutOrientation
+			printoutOrigin: PrintoutOrigin.AtMargin,
+			printoutOrientation: printoutOrientation
 		);
 	}
 
@@ -861,9 +840,7 @@ public partial class FormTimeCard:FormODBase {
 		if(true || false) {
 			intArrayColW=new int[15];
 		}
-		if(true && false) {
-			intArrayColW=new int[16];
-		}
+
 		intArrayColW[0]=70;//Date
 		intArrayColW[1]=45;//Day: Column starts to wrap at 32 pixels, however added padding to 45 to allow room for language translations
 		intArrayColW[2]=60;//In/Out
@@ -878,32 +855,18 @@ public partial class FormTimeCard:FormODBase {
 		intArrayColW[11]=45;//Day
 		intArrayColW[12]=50;//Week
 		intArrayColW[13]=130;//Note
-		if(false) {
-			intArrayColW[11]=45;//WFH
-			intArrayColW[12]=45;//Day
-			intArrayColW[13]=50;//Week
-			intArrayColW[14]=300;//Note
-		}
-		else if(true) {
+		if(true) {
 			intArrayColW[13]=50;//Clinic
 			intArrayColW[14]=80;//Note: Reduce width when Clinic column is added so that we do not exceed the margin.
 		}
-		if(true && false) {
-			intArrayColW[14]=100;//Clinic
-			intArrayColW[15]=200;//Note: Reduce width when Clinic column is added so that we do not exceed the margin.
-		}
+
 		var intArrayColPos=new int[intArrayColW.Length+1];
 		intArrayColPos[0]=45;
 		for(var i=1;i<intArrayColPos.Length;i++) {
 			intArrayColPos[i]=intArrayColPos[i-1]+intArrayColW[i-1];
 		}
 		var stringArrayColCaption=new string[14];
-		if(true || false) {
-			stringArrayColCaption=new string[15];
-		}
-		if(true && false) {
-			stringArrayColCaption=new string[16];
-		}
+		stringArrayColCaption=new string[15];
 		stringArrayColCaption[0]=Lan.g(this,"Date");
 		stringArrayColCaption[1]=Lan.g(this,"Day");
 		if(radioBreaks.Checked) {
@@ -924,20 +887,9 @@ public partial class FormTimeCard:FormODBase {
 		stringArrayColCaption[11]=Lan.g(this,"Day");
 		stringArrayColCaption[12]=Lan.g(this,"Week");
 		stringArrayColCaption[13]=Lan.g(this,"Note");
-		if(false) {
-			stringArrayColCaption[11]=Lan.g(this,"WFH");
-			stringArrayColCaption[12]=Lan.g(this,"Day");
-			stringArrayColCaption[13]=Lan.g(this,"Week");
-			stringArrayColCaption[14]=Lan.g(this,"Note");
-		}
-		else if(true) {
-			stringArrayColCaption[13]=Lan.g(this,"Clinic");
-			stringArrayColCaption[14]=Lan.g(this,"Note");
-		}
-		if(true && false) {
-			stringArrayColCaption[14]=Lan.g(this,"Clinic");
-			stringArrayColCaption[15]=Lan.g(this,"Note");
-		}
+		stringArrayColCaption[13]=Lan.g(this,"Clinic");
+		stringArrayColCaption[14]=Lan.g(this,"Note");
+
 		//column headers-----------------------------------------------------------------------------------------
 		e.Graphics.FillRectangle(Brushes.LightGray,intArrayColPos[0],yPos,intArrayColPos[intArrayColPos.Length-1]-intArrayColPos[0],18);
 		e.Graphics.DrawRectangle(pen,intArrayColPos[0],yPos,intArrayColPos[intArrayColPos.Length-1]-intArrayColPos[0],18);

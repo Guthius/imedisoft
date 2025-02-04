@@ -1,7 +1,3 @@
-using System;
-using System.Windows.Media;
-using OpenDentBusiness;
-
 namespace WpfControls.UI{
 	
 	public class Gen_ScanMulti{

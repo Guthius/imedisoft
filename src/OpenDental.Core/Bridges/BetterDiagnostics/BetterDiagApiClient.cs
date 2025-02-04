@@ -1,12 +1,8 @@
 ﻿using CodeBase;
-using Newtonsoft.Json;
 using System;
 using System.Drawing;
-using System.Drawing.Imaging;
 using System.IO;
-using System.Linq;
 using System.Net.Http;
-using System.Net.Http.Headers;
 using Imedisoft.Core.Entities;
 
 namespace OpenDentBusiness.BetterDiag {
@@ -22,8 +18,8 @@ namespace OpenDentBusiness.BetterDiag {
 			if(bitmap==null) {
 				return null;
 			}
-			string apiKeyEncrypted="";
-			if(!CDT.Class1.Decrypt(apiKeyEncrypted,out string apiKeyDecrypted)) {
+			var apiKeyEncrypted="";
+			if(!CDT.Class1.Decrypt(apiKeyEncrypted,out var apiKeyDecrypted)) {
 				return null;
 			}
 			if(!_httpClient.DefaultRequestHeaders.Contains("accept")) {
@@ -33,19 +29,19 @@ namespace OpenDentBusiness.BetterDiag {
 				_httpClient.DefaultRequestHeaders.Add("x-api-key",apiKeyDecrypted);
 			}
 			//Create the form data
-			long programNum=Programs.GetProgramNum(ProgramName.BetterDiagnostics);
+			var programNum=Programs.GetProgramNum(ProgramName.BetterDiagnostics);
 			if(programNum==0) {
 				return null;
 			}
-			string practiceId=ProgramProperties.GetPropForProgByDesc(programNum,"Practice ID").PropertyValue;
+			var practiceId=ProgramProperties.GetPropForProgByDesc(programNum,"Practice ID").PropertyValue;
 			if(practiceId.IsNullOrEmpty()) {
 				//Practice ID not set, create alert here?
 				return null;
 			}
-			string tempPath=Path.Combine(Path.GetTempPath(),"opendental",document.FileName);
+			var tempPath=Path.Combine(Path.GetTempPath(),"opendental",document.FileName);
 			ImageStore.SaveBitmap(bitmap,tempPath,quality:100);//sets mime type
-			string mimeType=System.Web.MimeMapping.GetMimeMapping(tempPath);
-			MultipartFormDataContent formData=new MultipartFormDataContent();
+			var mimeType=System.Web.MimeMapping.GetMimeMapping(tempPath);
+			var formData=new MultipartFormDataContent();
 			formData.Add(new StringContent(patient.PatNum.ToString()),"patient_id");
 			formData.Add(new StringContent(practiceId),"practice_id");
 			formData.Add(new StringContent("1"),"business_id");//have not been given a business_id for Open Dental.
@@ -53,8 +49,8 @@ namespace OpenDentBusiness.BetterDiag {
 			formData.Add(new StringContent("True"),"co_or");
 			BetterDiagResponse response;
 			//Create temp image file for API call to read from
-			using(FileStream tempFileStream=new FileStream(tempPath,FileMode.Open)) {
-				StreamContent streamContent=new StreamContent(tempFileStream);
+			using(var tempFileStream=new FileStream(tempPath,FileMode.Open)) {
+				var streamContent=new StreamContent(tempFileStream);
 				streamContent.Headers.Add("type",mimeType);
 				formData.Add(streamContent,"images",document.FileName);
 				response=APIRequest.Inst.SendRequest<BetterDiagResponse,MultipartFormDataContent>(

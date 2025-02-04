@@ -36,8 +36,8 @@ namespace OpenDentBusiness.HL7 {
 				def.IsQuadAsToothNum=false;
 			}
 			def.hl7DefMessages=new List<HL7DefMessage>();
-			HL7DefMessage msg=new HL7DefMessage();
-			HL7DefSegment seg=new HL7DefSegment();
+			var msg=new HL7DefMessage();
+			var seg=new HL7DefSegment();
 			#region Outbound Messages
 				#region DFT - Detailed Financial Transaction
 				//=======================================================================================================================

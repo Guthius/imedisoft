@@ -29,9 +29,9 @@ public static class Certs
         return CertCrud.SelectOne(certNum);
     }
 
-    public static long Insert(Cert cert)
+    public static void Insert(Cert cert)
     {
-        return CertCrud.Insert(cert);
+        CertCrud.Insert(cert);
     }
 
     public static void Update(Cert cert)

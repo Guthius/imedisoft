@@ -177,7 +177,7 @@ public class Ledgers
         command = "";
         var isAllPats = string.IsNullOrWhiteSpace(familyPatNums); //true if guarantor==0 or invalid, meaning for all patients not just one family
         //Negative adjustments can optionally be overridden in order to ignore the global preference.
-        var isAgedByProc = PrefC.GetYN(PrefName.AgingProcLifo);
+        var isAgedByProc = PrefC.GetYn(PrefName.AgingProcLifo);
         if (isWoAged || isAgedByProc)
         {
             //WriteoffOrig and/or negative Adjs are included in the charges buckets.  Since that could reduce a bucket to less than 0 we need to move any

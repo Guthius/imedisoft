@@ -144,9 +144,6 @@ public partial class UserControlFamilyGeneral:UserControl {
 		//textClaimSnapshotRunTime.Text=PrefC.GetDateT(PrefName.ClaimSnapshotRunTime).ToShortTimeString();
 		checkPreferredReferrals.Checked=PrefC.GetBool(PrefName.ShowPreferedReferrals);
 		checkAutoFillPatEmail.Checked=PrefC.GetBool(PrefName.AddFamilyInheritsEmail);
-		if(!true) {
-			checkAllowPatsAtHQ.Visible=false;
-		}
 		checkAllowPatsAtHQ.Checked=PrefC.GetBool(PrefName.ClinicAllowPatientsAtHeadquarters);
 		checkPatientSSNMasked.Checked=PrefC.GetBool(PrefName.PatientSSNMasked);
 		if(CultureInfo.CurrentCulture.Name.EndsWith("CA")) {//Canadian. en-CA or fr-CA

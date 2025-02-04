@@ -15,7 +15,7 @@ namespace OpenDentBusiness.Bridges {
 		///<summary>Generates all the xml up to the point where the first statement would go.</summary>
 		public static void GeneratePracticeInfo(XmlWriter writer,long clinicNum) {
 			var clinic=Clinics.GetClinic(clinicNum);
-			Ebill eBillClinic=Ebills.GetForClinic(clinicNum);
+			var eBillClinic=Ebills.GetForClinic(clinicNum);
 			if(eBillClinic==null) {
 				eBillClinic=Ebills.GetForClinic(0);
 			}
@@ -60,7 +60,7 @@ namespace OpenDentBusiness.Bridges {
 		public static void GenerateOneStatement(XmlWriter writer,Statement stmt,Patient pat,Family fam,DataSet dataSet) {
 			writer.WriteStartElement("Statement");
 			writer.WriteStartElement("RecipientAddress");
-			Patient guar=fam.ListPats[0];
+			var guar=fam.ListPats[0];
 			writer.WriteElementString("Name",guar.GetNameFLFormal());
 			if(PrefC.GetBool(PrefName.StatementAccountsUseChartNumber)) {
 				writer.WriteElementString("Account",guar.ChartNumber);
@@ -73,8 +73,8 @@ namespace OpenDentBusiness.Bridges {
 			writer.WriteElementString("City",guar.City);
 			writer.WriteElementString("State",guar.State);
 			writer.WriteElementString("Zip",guar.Zip);
-			string email="";
-			Def billingDef=Defs.GetDef(DefCat.BillingTypes,guar.BillingType);
+			var email="";
+			var billingDef=Defs.GetDef(DefCat.BillingTypes,guar.BillingType);
 			if(billingDef.ItemValue=="E") {
 				email=guar.Email;
 			}
@@ -97,26 +97,26 @@ namespace OpenDentBusiness.Bridges {
 			writer.WriteElementString("DueDate",dueDate.ToString("MM/dd/yyyy"));
 			writer.WriteElementString("StatementDate",stmt.DateSent.ToString("MM/dd/yyyy"));
 			double balanceForward=0;
-			for(int r=0;r<dataSet.Tables["misc"].Rows.Count;r++) {
+			for(var r=0;r<dataSet.Tables["misc"].Rows.Count;r++) {
 				if(dataSet.Tables["misc"].Rows[r]["descript"].ToString()=="balanceForward") {
 					balanceForward=SIn.Double(dataSet.Tables["misc"].Rows[r]["value"].ToString());
 				}
 			}
 			writer.WriteElementString("PriorBalance",balanceForward.ToString("F2"));
 			DataTable tableAccount=null;
-			for(int i=0;i<dataSet.Tables.Count;i++) {
+			for(var i=0;i<dataSet.Tables.Count;i++) {
 				if(dataSet.Tables[i].TableName.StartsWith("account")) {
 					tableAccount=dataSet.Tables[i];
 				}
 			}
 			double credits=0;
-			for(int i=0;i<tableAccount.Rows.Count;i++) {
+			for(var i=0;i<tableAccount.Rows.Count;i++) {
 				credits+=SIn.Double(tableAccount.Rows[i]["creditsDouble"].ToString());
 			}
 			writer.WriteElementString("Credits",credits.ToString("F2"));
 			decimal payPlanDue=0;
-			double amountDue=guar.BalTotal;
-			for(int m=0;m<dataSet.Tables["misc"].Rows.Count;m++) {
+			var amountDue=guar.BalTotal;
+			for(var m=0;m<dataSet.Tables["misc"].Rows.Count;m++) {
 				if(dataSet.Tables["misc"].Rows[m]["descript"].ToString()=="payPlanDue") {
 					payPlanDue+=SIn.Decimal(dataSet.Tables["misc"].Rows[m]["value"].ToString());//This will be an option once more users are using it.
 				}
@@ -129,7 +129,7 @@ namespace OpenDentBusiness.Bridges {
 				writer.WriteElementString("EstInsPayments",guar.InsEst.ToString("F2"));//optional.
 				amountDue-=guar.InsEst;
 			}
-			InstallmentPlan installPlan=InstallmentPlans.GetOneForFam(guar.PatNum);
+			var installPlan=InstallmentPlans.GetOneForFam(guar.PatNum);
 			if(installPlan!=null) {
 				//show lesser of normal total balance or the monthly payment amount.
 				if(installPlan.MonthlyPayment < amountDue) {
@@ -166,8 +166,8 @@ namespace OpenDentBusiness.Bridges {
 			string[] lineArray;
 			List<string> lines;
 			DateTime date;
-			int seq=0;
-			for(int i=0;i<tableAccount.Rows.Count;i++) {
+			var seq=0;
+			for(var i=0;i<tableAccount.Rows.Count;i++) {
 				date=(DateTime)tableAccount.Rows[i]["DateTime"];
 				//Cory Shields from Claim X called in on behalf of customer 23270 and told us that dates of 01/01/0001 are not acceptable.
 				//Currently 'Balance Forward' and payment plan summaries are the only rows with explicit dates of 01/01/0001.
@@ -192,11 +192,11 @@ namespace OpenDentBusiness.Bridges {
 				//The specs say that the line limit is 30 char.  But in testing, it will take 50 char.
 				//We will use 40 char to be safe.
 				if(lines[0].Length>40) {
-					string newline=lines[0].Substring(40);
+					var newline=lines[0].Substring(40);
 					lines[0]=lines[0].Substring(0,40);//first half
 					lines.Insert(1,newline);//second half
 				}
-				for(int li=0;li<lines.Count;li++) {
+				for(var li=0;li<lines.Count;li++) {
 					writer.WriteStartElement("DetailItem");//has a child item. We won't add optional child note
 					writer.WriteAttributeString("sequence",seq.ToString());
 					writer.WriteElementString("ProcCode",procCode);

@@ -1,8 +1,5 @@
 using System;
-using System.Drawing;
-using System.Collections;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Windows.Forms;
 using OpenDentBusiness;
 using System.Linq;
@@ -11,6 +8,7 @@ using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Entities;
 using Imedisoft.Core.Features.Clinics;
+using Imedisoft.Features.Providers.Dtos;
 using OpenDental.Forms;
 
 namespace OpenDental;
@@ -232,7 +230,7 @@ public partial class FormPaySplitEdit : FormODBase {
 	}
 
 	private void butPickProv_Click(object sender,EventArgs e) {
-		var frmProviderPick = new FrmProviderPick(comboProvider.Items.GetAll<Provider>());
+		var frmProviderPick = new FrmProviderPick(comboProvider.Items.GetAll<ProviderDto>());
 		frmProviderPick.ProvNumSelected=PaySplitCur.ProvNum;
 		frmProviderPick.ShowDialog();
 		if(!frmProviderPick.IsDialogOK) {

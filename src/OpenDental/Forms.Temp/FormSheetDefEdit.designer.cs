@@ -63,7 +63,6 @@ namespace OpenDental{
 			this.panelRight = new System.Windows.Forms.Panel();
 			this.groupShowField = new OpenDental.UI.GroupBox();
 			this.checkShowMobileHeader = new OpenDental.UI.CheckBox();
-			this.checkShowScreenChart = new OpenDental.UI.CheckBox();
 			this.checkShowGrid = new OpenDental.UI.CheckBox();
 			this.checkShowSpecial = new OpenDental.UI.CheckBox();
 			this.checkShowSigBoxPractice = new OpenDental.UI.CheckBox();
@@ -82,7 +81,6 @@ namespace OpenDental{
 			this.checkBlue = new OpenDental.UI.CheckBox();
 			this.groupAddField = new OpenDental.UI.GroupBox();
 			this.labelMobileHeader = new System.Windows.Forms.Label();
-			this.butScreenChart = new OpenDental.UI.Button();
 			this.butSpecial = new OpenDental.UI.Button();
 			this.butGrid = new OpenDental.UI.Button();
 			this.butSigBox = new OpenDental.UI.Button();
@@ -421,7 +419,6 @@ namespace OpenDental{
 			// groupShowField
 			// 
 			this.groupShowField.Controls.Add(this.checkShowMobileHeader);
-			this.groupShowField.Controls.Add(this.checkShowScreenChart);
 			this.groupShowField.Controls.Add(this.checkShowGrid);
 			this.groupShowField.Controls.Add(this.checkShowSpecial);
 			this.groupShowField.Controls.Add(this.checkShowSigBoxPractice);
@@ -452,16 +449,6 @@ namespace OpenDental{
 			this.checkShowMobileHeader.Size = new System.Drawing.Size(20, 18);
 			this.checkShowMobileHeader.TabIndex = 119;
 			this.checkShowMobileHeader.Click += new System.EventHandler(this.checkShowMobileHeader_Click);
-			// 
-			// checkShowScreenChart
-			// 
-			this.checkShowScreenChart.Checked = true;
-			this.checkShowScreenChart.CheckState = System.Windows.Forms.CheckState.Checked;
-			this.checkShowScreenChart.Location = new System.Drawing.Point(13, 437);
-			this.checkShowScreenChart.Name = "checkShowScreenChart";
-			this.checkShowScreenChart.Size = new System.Drawing.Size(20, 18);
-			this.checkShowScreenChart.TabIndex = 118;
-			this.checkShowScreenChart.Click += new System.EventHandler(this.checkShowScreenChart_Click);
 			// 
 			// checkShowGrid
 			// 
@@ -625,7 +612,6 @@ namespace OpenDental{
 			// groupAddField
 			// 
 			this.groupAddField.Controls.Add(this.labelMobileHeader);
-			this.groupAddField.Controls.Add(this.butScreenChart);
 			this.groupAddField.Controls.Add(this.butSpecial);
 			this.groupAddField.Controls.Add(this.butGrid);
 			this.groupAddField.Controls.Add(this.butSigBox);
@@ -653,18 +639,6 @@ namespace OpenDental{
 			this.labelMobileHeader.TabIndex = 125;
 			this.labelMobileHeader.Text = "MobileHeader";
 			this.labelMobileHeader.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
-			// 
-			// butScreenChart
-			// 
-			this.butScreenChart.ImageAlign = System.Drawing.ContentAlignment.MiddleLeft;
-			this.butScreenChart.Location = new System.Drawing.Point(2, 378);
-			this.butScreenChart.Name = "butScreenChart";
-			this.butScreenChart.Size = new System.Drawing.Size(75, 24);
-			this.butScreenChart.TabIndex = 124;
-			this.butScreenChart.TabStop = false;
-			this.butScreenChart.Text = "ScreenChart";
-			this.butScreenChart.Visible = false;
-			this.butScreenChart.Click += new System.EventHandler(this.butScreenChart_Click);
 			// 
 			// butSpecial
 			// 
@@ -897,12 +871,10 @@ namespace OpenDental{
 		private UI.Button butRectangle;
 		private UI.Button butSigBox;
 		private UI.Button butSigBoxPractice;
-		private UI.Button butScreenChart;
 		private UI.Button butSpecial;
 		private UI.Button butGrid;
 		private OpenDental.UI.CheckBox checkBlue;
 		private UI.GroupBox groupShowField;
-		private OpenDental.UI.CheckBox checkShowScreenChart;
 		private OpenDental.UI.CheckBox checkShowGrid;
 		private OpenDental.UI.CheckBox checkShowSpecial;
 		private OpenDental.UI.CheckBox checkShowSigBoxPractice;

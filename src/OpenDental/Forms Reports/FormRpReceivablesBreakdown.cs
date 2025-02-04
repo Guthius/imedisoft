@@ -12,23 +12,20 @@
 using System;
 using System.Data;
 using System.Drawing;
-using System.Collections;
-using System.ComponentModel;
-using System.Globalization;
 using System.Linq;
 using System.Windows.Forms;
 using OpenDentBusiness;
 using System.Collections.Generic;
 using OpenDental.ReportingComplex;
-using CodeBase;
 using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Entities;
+using Imedisoft.Features.Providers.Dtos;
 
 namespace OpenDental;
 
 public partial class FormRpReceivablesBreakdown:FormODBase {
-	private List<Provider> _listProvs;
+	private List<ProviderDto> _listProvs;
 
 		
 	public FormRpReceivablesBreakdown() {
@@ -40,7 +37,7 @@ public partial class FormRpReceivablesBreakdown:FormODBase {
 		radioWriteoffPay.Checked = true;
 		listProv.Items.Add(Lan.g(this,"Practice"));
 		for(var i=0;i<_listProvs.Count;i++) {
-			listProv.Items.Add(_listProvs[i].GetLongDesc());
+			listProv.Items.Add(_listProvs[i].Description);
 		}
 		listProv.SetSelected(0);
 		//if(PrefC.GetBool(PrefName.EasyNoClinics")){
@@ -92,7 +89,7 @@ public partial class FormRpReceivablesBreakdown:FormODBase {
 		if(listProv.SelectedIndices[0]!=0) {
 			for(var i=0;i<listProv.SelectedIndices.Count;i++) {
 				//Minus 1 due to the 'Practice' option.
-				listProvNums.Add(_listProvs[listProv.SelectedIndices[i]-1].ProvNum);
+				listProvNums.Add(_listProvs[listProv.SelectedIndices[i]-1].Id);
 			}
 		}
 		bool isPayPlan2;

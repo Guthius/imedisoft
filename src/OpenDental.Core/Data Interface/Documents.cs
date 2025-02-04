@@ -23,58 +23,43 @@ public class Documents
     public static Document InsertAndGet(Document document, Patient patient)
     {
         Insert(document, patient);
+        
         return GetByNum(document.DocNum);
     }
 
     public static Document[] GetAllWithPat(long patNum)
     {
-        var command = "SELECT * FROM document WHERE PatNum=" + SOut.Long(patNum) + " ORDER BY DateCreated";
-        var table = DataCore.GetTable(command);
-        return DocumentCrud.TableToList(table).ToArray();
+        var dataTable = DataCore.GetTable("SELECT * FROM document WHERE PatNum = " + patNum + " ORDER BY DateCreated");
+        
+        return DocumentCrud.TableToList(dataTable).ToArray();
     }
 
     public static List<Document> GetPatientData(long patNum)
     {
-        var command = "SELECT * FROM document WHERE PatNum=" + SOut.Long(patNum) + " ORDER BY DateCreated";
-        var table = DataCore.GetTable(command);
-        return DocumentCrud.TableToList(table);
-    }
-
-    public static List<Document> GetOcrDocumentsForPat(long patNum)
-    {
-        var command = "SELECT * FROM document WHERE PatNum=" + SOut.Long(patNum) + " AND ImageCaptureType > 0 ORDER BY DateCreated DESC";
-        return DocumentCrud.SelectMany(command);
+        var dataTable = DataCore.GetTable("SELECT * FROM document WHERE PatNum = " + patNum + " ORDER BY DateCreated");
+        
+        return DocumentCrud.TableToList(dataTable);
     }
 
     public static Document GetByNum(long docNum, bool doReturnNullIfNotFound = false)
     {
         Document document = null;
-        if (docNum != 0) document = DocumentCrud.SelectOne(docNum);
-        if (document == null && !doReturnNullIfNotFound) return new Document();
+        if (docNum != 0)
+        {
+            document = DocumentCrud.SelectOne(docNum);
+        }
+        
+        if (document is null && !doReturnNullIfNotFound)
+        {
+            return new Document();
+        }
+        
         return document;
     }
 
-    public static List<Document> GetByNums(List<long> listDocNums)
+    public static Document[] Fill(DataTable dataTable)
     {
-        if (listDocNums.Count < 1) return new List<Document>();
-        var command = "SELECT * FROM document WHERE DocNum IN(" + string.Join(",", listDocNums) + ")";
-        return DocumentCrud.SelectMany(command);
-    }
-
-    public static Document[] Fill(DataTable table)
-    {
-        if (table == null) return new Document[0];
-        var listDocuments = DocumentCrud.TableToList(table);
-        return listDocuments.ToArray();
-    }
-
-    public static string GetUniqueFileNameForPatient(Patient patient, long docNum, string fileExtension)
-    {
-        var fileName = new string((patient.LName + patient.FName).Where(x => char.IsLetter(x)).ToArray()) + docNum + fileExtension; //ensures unique name
-        //there is still a slight chance that someone manually added a file with this name, so quick fix:
-        var listUsedNames = GetAllWithPat(patient.PatNum).Select(x => x.FileName).ToList();
-        while (listUsedNames.Contains(fileName)) fileName = "x" + fileName;
-        return fileName;
+        return dataTable is null ? [] : DocumentCrud.TableToList(dataTable).ToArray();
     }
 
     public static long Insert(Document document, Patient patient)
@@ -84,7 +69,7 @@ public class Documents
         //If the current filename is just an extension, then assign it a unique name.
         document.FileName = GenerateUniqueFileName(document.FileName, patient, document.DocNum.ToString());
         //there is still a slight chance that someone manually added a file with this name, so quick fix:
-        var command = "SELECT FileName FROM document WHERE PatNum=" + SOut.Long(document.PatNum);
+        var command = "SELECT FileName FROM document WHERE PatNum=" + document.PatNum;
         var table = DataCore.GetTable(command);
         var listUsedNames = new List<string>();
         for (var i = 0; i < table.Rows.Count; i++) listUsedNames.Add(SIn.String(table.Rows[i][0].ToString()));
@@ -156,7 +141,7 @@ public class Documents
 
     public static List<string> GetPaths(List<long> listDocNums, string atoZPath)
     {
-        if (listDocNums.Count == 0) return new List<string>();
+        if (listDocNums.Count == 0) return [];
         var command = "SELECT document.DocNum,document.FileName,patient.ImageFolder "
                       + "FROM document "
                       + "LEFT JOIN patient ON patient.PatNum=document.PatNum "
@@ -172,13 +157,11 @@ public class Documents
             //making it impossible to launch the form image viewer (the only place this
             //function is called from).
             hashtable.Add(SIn.Long(table.Rows[i][0].ToString()),
-                ODFileUtils.CombinePaths(new[]
-                {
+                Path.Combine(
                     atoZPath,
                     SIn.String(table.Rows[i][2].ToString()).Substring(0, 1).ToUpper(),
                     SIn.String(table.Rows[i][2].ToString()),
-                    SIn.String(table.Rows[i][1].ToString())
-                }));
+                    SIn.String(table.Rows[i][1].ToString())));
         var listStrings = new List<string>();
         for (var i = 0; i < listDocNums.Count; i++) listStrings.Add((string) hashtable[listDocNums[i]]);
         return listStrings;
@@ -200,8 +183,8 @@ public class Documents
             return null;
         //then find, limit 1 to get the most recent
         var command = "SELECT * FROM document "
-                      + "WHERE document.PatNum=" + SOut.Long(patNum)
-                      + " AND document.DocCategory=" + SOut.Long(defNumPicts)
+                      + "WHERE document.PatNum=" + patNum
+                      + " AND document.DocCategory=" + defNumPicts
                       + " ORDER BY DateCreated DESC";
         command = DbHelper.LimitOrderBy(command, 1);
         var table = DataCore.GetTable(command);
@@ -248,7 +231,7 @@ public class Documents
                 return NoAvailablePhoto();
             }
 
-        var fileNameThumb = ODFileUtils.CombinePaths(patFolder, "Thumbnails", fileName);
+        var fileNameThumb = Path.Combine(patFolder, "Thumbnails", fileName);
         //Use the existing thumbnail if it already exists and it was created after the last document modification.
         if (true && File.Exists(fileNameThumb))
             try
@@ -323,8 +306,8 @@ public class Documents
 
     public static Document[] GetDocumentsForMountItems(List<MountItem> listMountItems)
     {
-        if (listMountItems == null || listMountItems.Count < 1) return new Document[0];
-        var strMountItemNums = string.Join(",", listMountItems.Select(x => SOut.Long(x.MountItemNum)));
+        if (listMountItems == null || listMountItems.Count < 1) return [];
+        var strMountItemNums = string.Join(",", listMountItems.Select(x => x.MountItemNum));
         var command = "SELECT * FROM document WHERE MountItemNum IN(" + strMountItemNums + ")";
         var table = DataCore.GetTable(command);
         var listDocuments = DocumentCrud.TableToList(table);
@@ -335,7 +318,7 @@ public class Documents
 
     public static Document GetDocumentForMountItem(long mountItemNum)
     {
-        var command = "SELECT * FROM document WHERE MountItemNum='" + SOut.Long(mountItemNum) + "'";
+        var command = "SELECT * FROM document WHERE MountItemNum='" + mountItemNum + "'";
         var document = DocumentCrud.SelectOne(command);
         return document;
     }
@@ -432,11 +415,11 @@ public class Documents
         //Why would a DocCategory ever be set to -1?  Where does that happen?
         //Also finds all document rows for the patient where the DocCategory is not a valid Image Category
         var listDefs = Defs.GetCatList((int) DefCat.ImageCats).ToList();
-        command = "SELECT DocNum FROM document WHERE PatNum=" + SOut.Long(patNum) + " AND (DocCategory NOT IN (";
+        command = "SELECT DocNum FROM document WHERE PatNum=" + patNum + " AND (DocCategory NOT IN (";
         for (var i = 0; i < listDefs.Count; i++)
         {
             if (i > 0) command += ",";
-            command += SOut.Long(listDefs[i].DefNum);
+            command += listDefs[i].DefNum;
         }
 
         command += ") OR DocCategory < 0)";
@@ -445,7 +428,7 @@ public class Documents
         {
             //Are there any invisible documents?
             command = "UPDATE document SET DocCategory='" + Defs.GetFirstForCategory(DefCat.ImageCats, true).DefNum
-                                                          + "' WHERE PatNum='" + SOut.Long(patNum) + "' AND (";
+                                                          + "' WHERE PatNum='" + patNum + "' AND (";
             for (var i = 0; i < tableRaw.Rows.Count; i++)
             {
                 command += "DocNum='" + SIn.Long(tableRaw.Rows[i]["DocNum"].ToString()) + "' ";
@@ -457,7 +440,7 @@ public class Documents
         }
 
         //Load all documents into the result table.
-        command = "SELECT DocNum,DocCategory,DateCreated,Description,ImgType,MountItemNum FROM document WHERE PatNum='" + SOut.Long(patNum) + "'";
+        command = "SELECT DocNum,DocCategory,DateCreated,Description,ImgType,MountItemNum FROM document WHERE PatNum='" + patNum + "'";
         tableRaw = dataConnection.GetTable(command);
         for (var i = 0; i < tableRaw.Rows.Count; i++)
         {
@@ -479,14 +462,14 @@ public class Documents
 
         //Move all mounts which are invisible to the first document category.
         //Why would a DocCategory ever be set to -1?  Where does that happen?
-        command = "SELECT MountNum FROM mount WHERE PatNum='" + SOut.Long(patNum) + "' AND "
+        command = "SELECT MountNum FROM mount WHERE PatNum='" + patNum + "' AND "
                   + "DocCategory<0";
         tableRaw = dataConnection.GetTable(command);
         if (tableRaw.Rows.Count > 0)
         {
             //Are there any invisible mounts?
             command = "UPDATE mount SET DocCategory='" + Defs.GetFirstForCategory(DefCat.ImageCats, true).DefNum
-                                                       + "' WHERE PatNum='" + SOut.Long(patNum) + "' AND (";
+                                                       + "' WHERE PatNum='" + patNum + "' AND (";
             for (var i = 0; i < tableRaw.Rows.Count; i++)
             {
                 command += "MountNum='" + SIn.Long(tableRaw.Rows[i]["MountNum"].ToString()) + "' ";
@@ -498,7 +481,7 @@ public class Documents
         }
 
         //Load all mounts into the result table.
-        command = "SELECT MountNum,DocCategory,DateCreated,Description FROM mount WHERE PatNum='" + SOut.Long(patNum) + "'";
+        command = "SELECT MountNum,DocCategory,DateCreated,Description FROM mount WHERE PatNum='" + patNum + "'";
         tableRaw = dataConnection.GetTable(command);
         for (var i = 0; i < tableRaw.Rows.Count; i++)
         {
@@ -553,9 +536,9 @@ public class Documents
     public static void MergePatientDocument(long patNumFrom, long patNumTo, string fileNameOld, string fileNameNew)
     {
         var command = "UPDATE document"
-                      + " SET PatNum=" + SOut.Long(patNumTo) + ","
+                      + " SET PatNum=" + patNumTo + ","
                       + " FileName='" + SOut.String(fileNameNew) + "'"
-                      + " WHERE PatNum=" + SOut.Long(patNumFrom)
+                      + " WHERE PatNum=" + patNumFrom
                       + " AND FileName='" + SOut.String(fileNameOld) + "'";
         Db.NonQ(command);
     }
@@ -563,8 +546,8 @@ public class Documents
     public static void MergePatientDocuments(long patNumFrom, long patNumTo)
     {
         var command = "UPDATE document"
-                      + " SET PatNum=" + SOut.Long(patNumTo)
-                      + " WHERE PatNum=" + SOut.Long(patNumFrom);
+                      + " SET PatNum=" + patNumTo
+                      + " WHERE PatNum=" + patNumFrom;
         Db.NonQ(command);
     }
 
@@ -646,7 +629,7 @@ public class Documents
             }
 
             tempPath = ODFileUtils.CombinePaths(PrefC.GetTempFolderPath(), statement.PatNum + ".pdf");
-            SheetPrinting.CreatePdf(sheet, tempPath, statement, dataSet, null);
+            SheetPrinting.CreatePdf(sheet, tempPath, statement, dataSet);
         }
         else
         {

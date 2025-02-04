@@ -17,19 +17,20 @@ public class ClaimFormItemCrud
     public static List<ClaimFormItem> TableToList(DataTable table)
     {
         var retVal = new List<ClaimFormItem>();
-        ClaimFormItem claimFormItem;
         foreach (DataRow row in table.Rows)
         {
-            claimFormItem = new ClaimFormItem();
-            claimFormItem.ClaimFormItemNum = SIn.Long(row["ClaimFormItemNum"].ToString());
-            claimFormItem.ClaimFormNum = SIn.Long(row["ClaimFormNum"].ToString());
-            claimFormItem.ImageFileName = SIn.String(row["ImageFileName"].ToString());
-            claimFormItem.FieldName = SIn.String(row["FieldName"].ToString());
-            claimFormItem.FormatString = SIn.String(row["FormatString"].ToString());
-            claimFormItem.XPos = SIn.Float(row["XPos"].ToString());
-            claimFormItem.YPos = SIn.Float(row["YPos"].ToString());
-            claimFormItem.Width = SIn.Float(row["Width"].ToString());
-            claimFormItem.Height = SIn.Float(row["Height"].ToString());
+            var claimFormItem = new ClaimFormItem
+            {
+                ClaimFormItemNum = SIn.Long(row["ClaimFormItemNum"].ToString()),
+                ClaimFormNum = SIn.Long(row["ClaimFormNum"].ToString()),
+                ImageFileName = SIn.String(row["ImageFileName"].ToString()),
+                FieldName = SIn.String(row["FieldName"].ToString()),
+                FormatString = SIn.String(row["FormatString"].ToString()),
+                XPos = SIn.Float(row["XPos"].ToString()),
+                YPos = SIn.Float(row["YPos"].ToString()),
+                Width = SIn.Float(row["Width"].ToString()),
+                Height = SIn.Float(row["Height"].ToString())
+            };
             retVal.Add(claimFormItem);
         }
 
@@ -54,7 +55,7 @@ public class ClaimFormItemCrud
         return table;
     }
 
-    public static long Insert(ClaimFormItem claimFormItem)
+    public static void Insert(ClaimFormItem claimFormItem)
     {
         var command = "INSERT INTO claimformitem (";
 
@@ -72,7 +73,6 @@ public class ClaimFormItemCrud
         {
             claimFormItem.ClaimFormItemNum = Db.NonQ(command, true, "ClaimFormItemNum", "claimFormItem");
         }
-        return claimFormItem.ClaimFormItemNum;
     }
 
     public static void Update(ClaimFormItem claimFormItem)

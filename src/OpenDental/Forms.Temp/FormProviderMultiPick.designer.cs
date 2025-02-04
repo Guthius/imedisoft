@@ -38,7 +38,7 @@ namespace OpenDental{
 			this.butOK.Size = new System.Drawing.Size(75, 24);
 			this.butOK.TabIndex = 3;
 			this.butOK.Text = "&OK";
-			this.butOK.Click += new System.EventHandler(this.butOK_Click);
+			this.butOK.Click += new System.EventHandler(this.ButtonAccept_Click);
 			// 
 			// gridMain
 			// 
@@ -62,7 +62,7 @@ namespace OpenDental{
 			this.butProvHygenist.Size = new System.Drawing.Size(75, 24);
 			this.butProvHygenist.TabIndex = 90;
 			this.butProvHygenist.Text = "Hygienists";
-			this.butProvHygenist.Click += new System.EventHandler(this.butProvHygenist_Click);
+			this.butProvHygenist.Click += new System.EventHandler(this.ButtonProviderHygienist_Click);
 			// 
 			// butProvDentist
 			// 
@@ -73,7 +73,7 @@ namespace OpenDental{
 			this.butProvDentist.Size = new System.Drawing.Size(75, 24);
 			this.butProvDentist.TabIndex = 89;
 			this.butProvDentist.Text = "Providers";
-			this.butProvDentist.Click += new System.EventHandler(this.butProvDentist_Click);
+			this.butProvDentist.Click += new System.EventHandler(this.ButtonProviderDentist_Click);
 			// 
 			// FormProvidersMultiPick
 			// 

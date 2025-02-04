@@ -53,14 +53,14 @@ public static class AlertCategories
 
     private static readonly AlertCategoryCache Cache = new();
 
-    public static List<AlertCategory> GetDeepCopy(bool isShort = false)
+    public static List<AlertCategory> GetDeepCopy(bool shortList = false)
     {
-        return Cache.GetDeepCopy(isShort);
+        return Cache.GetDeepCopy(shortList);
     }
 
-    public static DataTable GetTableFromCache(bool doRefreshCache)
+    public static DataTable GetTableFromCache(bool refreshCache)
     {
-        return Cache.GetTableFromCache(doRefreshCache);
+        return Cache.GetTableFromCache(refreshCache);
     }
 
     public static void ClearCache()

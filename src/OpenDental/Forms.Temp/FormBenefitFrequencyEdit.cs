@@ -20,7 +20,7 @@ public partial class FormBenefitFrequencyEdit : FormODBase
 
     private void FormBenefitFrequencyEdit_Load(object sender, EventArgs e)
     {
-        var codeGroups = CodeGroups.GetDeepCopy(isShort: true);
+        var codeGroups = CodeGroups.GetDeepCopy(shortList: true);
         
         listBoxCodeGroup.Items.AddList(codeGroups, x => x.GroupName);
         
@@ -47,7 +47,7 @@ public partial class FormBenefitFrequencyEdit : FormODBase
         checkPat.Checked = BenefitCur.PatPlanNum != 0;
     }
 
-    private void butSave_Click(object sender, EventArgs e)
+    private void ButtonSave_Click(object sender, EventArgs e)
     {
         if (!textNumber.IsValid())
         {

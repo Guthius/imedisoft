@@ -1,13 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Data;
-using System.Linq;
-using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 using OpenDental.Forms;
-using OpenDentBusiness;
 
 namespace OpenDental;
 
@@ -29,9 +22,6 @@ public class FormLauncherHelper {
 				break;
 			case EnumFormName.FormDrCeph:
 				type=Type.GetType((typeof(FormDrCeph)).FullName);
-				break;
-			case EnumFormName.FormEServicesTexting:
-				type=Type.GetType((typeof(FormEServicesTexting)).FullName);
 				break;
 			case EnumFormName.FormHouseCalls:
 				type=Type.GetType((typeof(FormHouseCalls)).FullName);

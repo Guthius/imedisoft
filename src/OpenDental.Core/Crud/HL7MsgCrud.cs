@@ -24,17 +24,18 @@ public class HL7MsgCrud
     public static List<HL7Msg> TableToList(DataTable table)
     {
         var retVal = new List<HL7Msg>();
-        HL7Msg hL7Msg;
         foreach (DataRow row in table.Rows)
         {
-            hL7Msg = new HL7Msg();
-            hL7Msg.HL7MsgNum = SIn.Long(row["HL7MsgNum"].ToString());
-            hL7Msg.HL7Status = (HL7MessageStatus) SIn.Int(row["HL7Status"].ToString());
-            hL7Msg.MsgText = SIn.String(row["MsgText"].ToString());
-            hL7Msg.AptNum = SIn.Long(row["AptNum"].ToString());
-            hL7Msg.DateTStamp = SIn.DateTime(row["DateTStamp"].ToString());
-            hL7Msg.PatNum = SIn.Long(row["PatNum"].ToString());
-            hL7Msg.Note = SIn.String(row["Note"].ToString());
+            var hL7Msg = new HL7Msg
+            {
+                HL7MsgNum = SIn.Long(row["HL7MsgNum"].ToString()),
+                HL7Status = (HL7MessageStatus) SIn.Int(row["HL7Status"].ToString()),
+                MsgText = SIn.String(row["MsgText"].ToString()),
+                AptNum = SIn.Long(row["AptNum"].ToString()),
+                DateTStamp = SIn.DateTime(row["DateTStamp"].ToString()),
+                PatNum = SIn.Long(row["PatNum"].ToString()),
+                Note = SIn.String(row["Note"].ToString())
+            };
             retVal.Add(hL7Msg);
         }
 

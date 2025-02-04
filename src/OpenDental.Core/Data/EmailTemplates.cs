@@ -54,9 +54,9 @@ public static class EmailTemplates
 
     private static readonly EmailTemplateCache Cache = new();
 
-    public static List<EmailTemplate> GetDeepCopy(bool isShort = false)
+    public static List<EmailTemplate> GetDeepCopy(bool shortList = false)
     {
-        return Cache.GetDeepCopy(isShort);
+        return Cache.GetDeepCopy(shortList);
     }
 
     public static void RefreshCache()
@@ -64,9 +64,9 @@ public static class EmailTemplates
         GetTableFromCache(true);
     }
 
-    public static DataTable GetTableFromCache(bool doRefreshCache)
+    public static DataTable GetTableFromCache(bool refreshCache)
     {
-        return Cache.GetTableFromCache(doRefreshCache);
+        return Cache.GetTableFromCache(refreshCache);
     }
 
     public static void ClearCache()

@@ -358,7 +358,6 @@
 			this.groupBoxPendingPayment = new OpenDental.UI.GroupBox();
 			this.butInsuranceOverpaid = new OpenDental.UI.Button();
 			this.butInsuranceUnderpaid = new OpenDental.UI.Button();
-			this.warningIntegrity = new OpenDental.UI.WarningIntegrity();
 			this.groupFinalizePayment.SuspendLayout();
 			this.tabControlMain.SuspendLayout();
 			this.tabGeneral.SuspendLayout();
@@ -3640,18 +3639,10 @@
 			this.butInsuranceUnderpaid.Text = "&Ins Underpaid";
 			this.butInsuranceUnderpaid.Click += new System.EventHandler(this.butInsuranceUnderpaid_Click);
 			// 
-			// warningIntegrity
-			// 
-			this.warningIntegrity.Location = new System.Drawing.Point(2, 2);
-			this.warningIntegrity.Name = "warningIntegrity";
-			this.warningIntegrity.Size = new System.Drawing.Size(18, 18);
-			this.warningIntegrity.TabIndex = 269;
-			// 
 			// FormClaimEdit
 			// 
 			this.AutoScroll = true;
 			this.ClientSize = new System.Drawing.Size(1156, 696);
-			this.Controls.Add(this.warningIntegrity);
 			this.Controls.Add(this.groupBoxPendingPayment);
 			this.Controls.Add(this.textPatResp);
 			this.Controls.Add(this.comboClaimStatus);
@@ -4119,7 +4110,6 @@
 		private ODtextBox textEDSAttachmentID;
 		private System.Windows.Forms.Label label7;
 		private UI.GridOD gridEDSSent;
-		private UI.WarningIntegrity warningIntegrity;
 		private System.Windows.Forms.Label labelWorkflowMsg;
 	}
 }

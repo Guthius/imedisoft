@@ -1,8 +1,6 @@
 using System;
 using System.Collections.Generic;
-using System.Data;
 using System.Drawing;
-using System.Text;
 using System.Windows.Forms;
 using OpenDentBusiness;
 using OpenDental.UI;
@@ -15,8 +13,6 @@ namespace OpenDental;
 public partial class FormProcCodeEditMore:FormODBase {
 	private List<Fee> _listFees;
 	private ProcedureCode _procedureCode;
-	private List<FeeSched> _listFeeScheds;
-	private bool _isFeeChanged=false;
 
 	public FormProcCodeEditMore(ProcedureCode procedureCode) {
 		InitializeComponent();
@@ -25,7 +21,7 @@ public partial class FormProcCodeEditMore:FormODBase {
 	}
 
 	private void FormProcCodeEditMore_Load(object sender,EventArgs e) {
-		_listFeeScheds=FeeScheds.GetDeepCopy(true);//js not sure why this is being used at all.  Looks like it's supposed to show all fee scheds.
+		FeeScheds.GetDeepCopy(true);//js not sure why this is being used at all.  Looks like it's supposed to show all fee scheds.
 		FillAndSortListFees();
 		FillGrid();
 		if(!_listFees.Any(x => x.DateEffective>DateTime.MinValue)) {
@@ -43,20 +39,13 @@ public partial class FormProcCodeEditMore:FormODBase {
 		gridMain.BeginUpdate();
 		gridMain.Columns.Clear();
 		GridColumn col;
-		if(!true) {
-			col=new GridColumn(Lan.g("TableProcCodeEditMore","Schedule"),200);
-			gridMain.Columns.Add(col);
-			col=new GridColumn(Lan.g("TableProcCodeEditMore","Provider"),135);
-			gridMain.Columns.Add(col);
-		}
-		else {//Using clinics.
-			col=new GridColumn(Lan.g("TableProcCodeEditMore","Schedule"),130);
-			gridMain.Columns.Add(col);
-			col=new GridColumn(Lan.g("TableProcCodeEditMore","Clinic"),130);
-			gridMain.Columns.Add(col);
-			col=new GridColumn(Lan.g("TableProcCodeEditMore","Provider"),75);
-			gridMain.Columns.Add(col);
-		}
+		//Using clinics.
+		col=new GridColumn(Lan.g("TableProcCodeEditMore","Schedule"),130);
+		gridMain.Columns.Add(col);
+		col=new GridColumn(Lan.g("TableProcCodeEditMore","Clinic"),130);
+		gridMain.Columns.Add(col);
+		col=new GridColumn(Lan.g("TableProcCodeEditMore","Provider"),75);
+		gridMain.Columns.Add(col);
 		col=new GridColumn(Lan.g("TableProcCodeEditMore","Amount"),100,HorizontalAlignment.Right);
 		gridMain.Columns.Add(col);
 		col=new GridColumn(Lan.g("TableProcCodeEditMore","Date Effective"),100);
@@ -122,7 +111,6 @@ public partial class FormProcCodeEditMore:FormODBase {
 			//FormFE could have manipulated the fee.  Refresh our local cache and grids to reflect the changes.
 			FillAndSortListFees();
 			FillGrid();
-			_isFeeChanged=true;
 		}
 	}
 

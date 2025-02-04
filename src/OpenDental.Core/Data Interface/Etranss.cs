@@ -28,13 +28,13 @@ public class Etranss
                       + "LEFT JOIN clearinghouse ON clearinghouse.ClearinghouseNum=etrans.ClearinghouseNum WHERE "
                       + "DATE(DateTimeTrans) >= " + SOut.Date(dateFrom) + " AND "
                       + "DATE(DateTimeTrans) <= " + SOut.Date(dateTo) + " "
-                      + "AND Etype IN (" + SOut.Long((int) listEtransTypes[0]);
+                      + "AND Etype IN (" + ((int) listEtransTypes[0]);
         for (var i = 1; i < listEtransTypes.Count; i++) //String.Join doesn't work because there's no way to cast the enums to ints in the function, db uses longs.
-            command += ", " + SOut.Long((int) listEtransTypes[i]);
+            command += ", " + ((int) listEtransTypes[i]);
         command += ") "
                    //For Canada, when the undo button is used from Manage | Send Claims, the ClaimNum is set to 0 instead of deleting the etrans entry.
                    //For transaction types related to claims where the claimnum=0, we do not want them to show in the history section of Manage | Send Claims because they have been undone.
-                   + "AND (ClaimNum<>0 OR Etype NOT IN (" + SOut.Long((int) EtransType.Claim_CA) + "," + SOut.Long((int) EtransType.ClaimCOB_CA) + "," + SOut.Long((int) EtransType.Predeterm_CA) + "," + SOut.Long((int) EtransType.ClaimReversal_CA) + ")) "
+                   + "AND (ClaimNum<>0 OR Etype NOT IN (" + ((int) EtransType.Claim_CA) + "," + ((int) EtransType.ClaimCOB_CA) + "," + ((int) EtransType.Predeterm_CA) + "," + ((int) EtransType.ClaimReversal_CA) + ")) "
                    + "ORDER BY DateTimeTrans";
         var table = DataCore.GetTable(command);
         var tableHist = new DataTable("Table");
@@ -94,7 +94,7 @@ public class Etranss
     
     public static List<Etrans> GetHistoryOneClaim(long claimNum)
     {
-        var command = "SELECT * FROM etrans WHERE ClaimNum=" + SOut.Long(claimNum) + " "
+        var command = "SELECT * FROM etrans WHERE ClaimNum=" + (claimNum) + " "
                       + "AND (Etype=" + SOut.Int((int) EtransType.Claim_CA) + " "
                       + "OR Etype=" + SOut.Int((int) EtransType.ClaimCOB_CA) + " "
                       + "OR Etype=" + SOut.Int((int) EtransType.Predeterm_CA) + " "
@@ -108,20 +108,20 @@ public class Etranss
 
     public static List<Etrans> GetAllForOneClaim(long claimNum)
     {
-        var command = "SELECT * FROM etrans WHERE ClaimNum=" + SOut.Long(claimNum);
+        var command = "SELECT * FROM etrans WHERE ClaimNum=" + (claimNum);
         return EtransCrud.SelectMany(command);
     }
 
     public static Etrans GetEtrans(long etransNum)
     {
-        var command = "SELECT * FROM etrans WHERE EtransNum=" + SOut.Long(etransNum);
+        var command = "SELECT * FROM etrans WHERE EtransNum=" + (etransNum);
         return EtransCrud.SelectOne(command);
     }
     
     public static List<Etrans> GetMany(params long[] listEtransNums)
     {
-        if (listEtransNums.Length == 0) return new List<Etrans>();
-        var command = "SELECT * FROM etrans WHERE EtransNum IN (" + string.Join(",", listEtransNums.Select(x => SOut.Long(x))) + ")";
+        if (listEtransNums.Length == 0) return [];
+        var command = "SELECT * FROM etrans WHERE EtransNum IN (" + string.Join(",", listEtransNums.Select(x => (x))) + ")";
         return EtransCrud.SelectMany(command);
     }
 
@@ -129,7 +129,7 @@ public class Etranss
     {
         //The main goal of this check is to prevent null claimIdentifiers from causing an exception.
         //However, an empty claim identifier should also return an empty list because that is a terrible identifier IMO.
-        if (string.IsNullOrEmpty(claimIdentifier)) return new List<Etrans>();
+        if (string.IsNullOrEmpty(claimIdentifier)) return [];
 
         var claimId = claimIdentifier;
         if (claimId.Length > 16)
@@ -166,10 +166,10 @@ public class Etranss
 
     public static List<Etrans> GetList270ForPlan(long planNum, long insSubNum)
     {
-        var command = "SELECT * FROM etrans WHERE PlanNum=" + SOut.Long(planNum)
-                                                            + " AND InsSubNum=" + SOut.Long(insSubNum)
-                                                            + " AND (Etype=" + SOut.Long((int) EtransType.BenefitInquiry270)
-                                                            + " OR Etype=" + SOut.Long((int) EtransType.Eligibility_CA) + ")";
+        var command = "SELECT * FROM etrans WHERE PlanNum=" + (planNum)
+                                                            + " AND InsSubNum=" + (insSubNum)
+                                                            + " AND (Etype=" + ((int) EtransType.BenefitInquiry270)
+                                                            + " OR Etype=" + ((int) EtransType.Eligibility_CA) + ")";
         return EtransCrud.SelectMany(command);
     }
 
@@ -244,13 +244,13 @@ public class Etranss
 
         etrans.CarrierTransCounter = 0;
         command = "SELECT MAX(CarrierTransCounter) FROM etrans "
-                  + "WHERE CarrierNum=" + SOut.Long(etrans.CarrierNum);
+                  + "WHERE CarrierNum=" + (etrans.CarrierNum);
         table = DataCore.GetTable(command);
         var tempCounter = 0;
         if (table.Rows.Count > 0) tempCounter = SIn.Int(table.Rows[0][0].ToString());
         if (tempCounter > etrans.CarrierTransCounter) etrans.CarrierTransCounter = tempCounter;
         command = "SELECT MAX(CarrierTransCounter2) FROM etrans "
-                  + "WHERE CarrierNum2=" + SOut.Long(etrans.CarrierNum);
+                  + "WHERE CarrierNum2=" + (etrans.CarrierNum);
         table = DataCore.GetTable(command);
         if (table.Rows.Count > 0) tempCounter = SIn.Int(table.Rows[0][0].ToString());
         if (tempCounter > etrans.CarrierTransCounter) etrans.CarrierTransCounter = tempCounter;
@@ -266,12 +266,12 @@ public class Etranss
 
         etrans.CarrierTransCounter2 = 1;
         command = "SELECT MAX(CarrierTransCounter) FROM etrans "
-                  + "WHERE CarrierNum=" + SOut.Long(etrans.CarrierNum2);
+                  + "WHERE CarrierNum=" + (etrans.CarrierNum2);
         table = DataCore.GetTable(command);
         if (table.Rows.Count > 0) tempCounter = SIn.Int(table.Rows[0][0].ToString());
         if (tempCounter > etrans.CarrierTransCounter2) etrans.CarrierTransCounter2 = tempCounter;
         command = "SELECT MAX(CarrierTransCounter2) FROM etrans "
-                  + "WHERE CarrierNum2=" + SOut.Long(etrans.CarrierNum2);
+                  + "WHERE CarrierNum2=" + (etrans.CarrierNum2);
         table = DataCore.GetTable(command);
         if (table.Rows.Count > 0) tempCounter = SIn.Int(table.Rows[0][0].ToString());
         if (tempCounter > etrans.CarrierTransCounter2) etrans.CarrierTransCounter2 = tempCounter;
@@ -289,8 +289,8 @@ public class Etranss
         msg.MessageText = messageText;
         EtransMessageTexts.Insert(msg);
         //string command=
-        var command = "UPDATE etrans SET EtransMessageTextNum=" + SOut.Long(msg.EtransMessageTextNum) + " "
-                      + "WHERE EtransNum = '" + SOut.Long(etransNum) + "'";
+        var command = "UPDATE etrans SET EtransMessageTextNum=" + (msg.EtransMessageTextNum) + " "
+                      + "WHERE EtransNum = '" + (etransNum) + "'";
         Db.NonQ(command);
         return msg.EtransMessageTextNum;
     }
@@ -298,7 +298,7 @@ public class Etranss
     public static void Undo(long etransNum)
     {
         //see if it's a claim.
-        var command = "SELECT ClaimNum FROM etrans WHERE EtransNum=" + SOut.Long(etransNum);
+        var command = "SELECT ClaimNum FROM etrans WHERE EtransNum=" + (etransNum);
         var table = DataCore.GetTable(command);
         var claimNum = SIn.Long(table.Rows[0][0].ToString());
         if (claimNum == 0) //if no claim
@@ -307,7 +307,7 @@ public class Etranss
 
         //Change the claim back to W.
         var claimOld = Claims.GetClaim(claimNum);
-        command = "UPDATE claim SET ClaimStatus='W' WHERE ClaimNum=" + SOut.Long(claimNum);
+        command = "UPDATE claim SET ClaimStatus='W' WHERE ClaimNum=" + (claimNum);
         Db.NonQ(command);
         if (claimOld != null && Claims.IsClaimHashValid(claimOld))
         {
@@ -321,7 +321,7 @@ public class Etranss
 
     public static void Delete(long etransNum)
     {
-        var command = "DELETE FROM etrans WHERE EtransNum=" + SOut.Long(etransNum);
+        var command = "DELETE FROM etrans WHERE EtransNum=" + (etransNum);
         Db.NonQ(command);
     }
 
@@ -359,7 +359,7 @@ public class Etranss
                       + "LEFT JOIN carrier carrier1 ON carrier1.CarrierNum=insplan1.CarrierNum "
                       + "LEFT JOIN insplan insplan2 ON insplan2.PlanNum=claim.PlanNum2 "
                       + "LEFT JOIN carrier carrier2 ON carrier2.CarrierNum=insplan2.CarrierNum "
-                      + "WHERE claim.ClaimNum=" + SOut.Long(claimNum);
+                      + "WHERE claim.ClaimNum=" + (claimNum);
         var table = DataCore.GetTable(command);
         if (table.Rows.Count > 0)
         {
@@ -403,9 +403,9 @@ public class Etranss
                 {
                     //accepted or rejected
                     command = "UPDATE etrans SET AckCode='" + batchAck + "', "
-                              + "AckEtransNum=" + SOut.Long(etrans.EtransNum)
-                              + " WHERE BatchNumber=" + SOut.Long(etrans.BatchNumber)
-                              + " AND ClearinghouseNum=" + SOut.Long(hqClearinghouseNum)
+                              + "AckEtransNum=" + (etrans.EtransNum)
+                              + " WHERE BatchNumber=" + (etrans.BatchNumber)
+                              + " AND ClearinghouseNum=" + (hqClearinghouseNum)
                               + " AND DateTimeTrans > " + SOut.DateTime(dateTimeTrans.AddDays(-14))
                               + " AND DateTimeTrans < " + SOut.DateTime(dateTimeTrans.AddDays(1))
                               + " AND AckEtransNum=0";
@@ -423,10 +423,10 @@ public class Etranss
                         {
                             //accepted or rejected
                             command = "UPDATE etrans SET AckCode='" + ack + "', "
-                                      + "AckEtransNum=" + SOut.Long(etrans.EtransNum)
-                                      + " WHERE BatchNumber=" + SOut.Long(etrans.BatchNumber)
-                                      + " AND TransSetNum=" + SOut.Long(transNums[i])
-                                      + " AND ClearinghouseNum=" + SOut.Long(hqClearinghouseNum)
+                                      + "AckEtransNum=" + (etrans.EtransNum)
+                                      + " WHERE BatchNumber=" + (etrans.BatchNumber)
+                                      + " AND TransSetNum=" + (transNums[i])
+                                      + " AND ClearinghouseNum=" + (hqClearinghouseNum)
                                       + " AND DateTimeTrans > " + SOut.DateTime(dateTimeTrans.AddDays(-14))
                                       + " AND DateTimeTrans < " + SOut.DateTime(dateTimeTrans.AddDays(1))
                                       + " AND AckEtransNum=0";
@@ -447,9 +447,9 @@ public class Etranss
                 {
                     //accepted or rejected
                     command = "UPDATE etrans SET AckCode='" + batchAck + "', "
-                              + "AckEtransNum=" + SOut.Long(etrans.EtransNum)
-                              + " WHERE BatchNumber=" + SOut.Long(etrans.BatchNumber)
-                              + " AND ClearinghouseNum=" + SOut.Long(hqClearinghouseNum)
+                              + "AckEtransNum=" + (etrans.EtransNum)
+                              + " WHERE BatchNumber=" + (etrans.BatchNumber)
+                              + " AND ClearinghouseNum=" + (hqClearinghouseNum)
                               + " AND DateTimeTrans > " + SOut.DateTime(dateTimeTrans.AddDays(-14))
                               + " AND DateTimeTrans < " + SOut.DateTime(dateTimeTrans.AddDays(1))
                               + " AND AckEtransNum=0";
@@ -466,10 +466,10 @@ public class Etranss
                         if (ack != "A" && ack != "R") continue;
                         //accepted or rejected
                         command = "UPDATE etrans SET AckCode='" + ack + "', "
-                                  + "AckEtransNum=" + SOut.Long(etrans.EtransNum)
-                                  + " WHERE BatchNumber=" + SOut.Long(etrans.BatchNumber)
-                                  + " AND TransSetNum=" + SOut.Long(transNums[i])
-                                  + " AND ClearinghouseNum=" + SOut.Long(hqClearinghouseNum)
+                                  + "AckEtransNum=" + (etrans.EtransNum)
+                                  + " WHERE BatchNumber=" + (etrans.BatchNumber)
+                                  + " AND TransSetNum=" + (transNums[i])
+                                  + " AND ClearinghouseNum=" + (hqClearinghouseNum)
                                   + " AND DateTimeTrans > " + SOut.DateTime(dateTimeTrans.AddDays(-14))
                                   + " AND DateTimeTrans < " + SOut.DateTime(dateTimeTrans.AddDays(1))
                                   + " AND AckEtransNum=0";
@@ -499,7 +499,7 @@ public class Etranss
                     x12ClaimMatch.SubscriberId = SIn.String(stringClaimInfoArray[10]);
                     x12ClaimMatch.EtransNum = etrans.EtransNum;
                     var ack = stringClaimInfoArray[3];
-                    if (!dictionaryClaimMatchesByAck.ContainsKey(ack)) dictionaryClaimMatchesByAck.Add(ack, new List<X12ClaimMatch>());
+                    if (!dictionaryClaimMatchesByAck.ContainsKey(ack)) dictionaryClaimMatchesByAck.Add(ack, []);
                     dictionaryClaimMatchesByAck[ack].Add(x12ClaimMatch);
                 }
 
@@ -512,10 +512,10 @@ public class Etranss
                     //Locate the latest etrans entries for the claims based on DateTimeTrans with EType of ClaimSent or Claim_Ren and update the AckCode and AckEtransNum.
                     //We overwrite existing acks from 997s, 999s and older 277s.
                     command = "UPDATE etrans SET AckCode='" + ack + "', "
-                              + "AckEtransNum=" + SOut.Long(etrans.EtransNum)
+                              + "AckEtransNum=" + (etrans.EtransNum)
                               + " WHERE EType IN (" + SOut.Int((int) EtransType.ClaimSent) + "," + SOut.Int((int) EtransType.Claim_Ren) + ") "
-                              + " AND ClaimNum IN(" + string.Join(",", listClaimNums.Select(x => SOut.Long(x))) + ")"
-                              + " AND ClearinghouseNum=" + SOut.Long(hqClearinghouseNum)
+                              + " AND ClaimNum IN(" + string.Join(",", listClaimNums.Select(x => (x))) + ")"
+                              + " AND ClearinghouseNum=" + (hqClearinghouseNum)
                               + " AND DateTimeTrans > " + SOut.DateTime(dateTimeTrans.AddDays(-14))
                               + " AND DateTimeTrans < " + SOut.DateTime(dateTimeTrans.AddDays(1));
                     Db.NonQ(command);
@@ -564,10 +564,10 @@ public class Etranss
                     //Locate the latest etrans entries for the claim based on DateTimeTrans with EType of ClaimSent or Claim_Ren and update the AckCode and AckEtransNum.
                     //We overwrite existing acks from 997s, 999s, and 277s.
                     command = "UPDATE etrans SET AckCode='A', "
-                              + "AckEtransNum=" + SOut.Long(etrans.EtransNum)
+                              + "AckEtransNum=" + (etrans.EtransNum)
                               + " WHERE EType IN (0,3) " //ClaimSent and Claim_Ren
-                              + " AND ClaimNum IN(" + string.Join(",", listClaimNums.Select(x => SOut.Long(x))) + ")"
-                              + " AND ClearinghouseNum=" + SOut.Long(hqClearinghouseNum)
+                              + " AND ClaimNum IN(" + string.Join(",", listClaimNums.Select(x => (x))) + ")"
+                              + " AND ClearinghouseNum=" + (hqClearinghouseNum)
                               + " AND DateTimeTrans > " + SOut.DateTime(dateTimeTrans.AddDays(-14))
                               + " AND DateTimeTrans < " + SOut.DateTime(dateTimeTrans.AddDays(1));
                     Db.NonQ(command);
@@ -649,7 +649,7 @@ public class Etranss
         var command = "SELECT MAX(DateTimeTrans) FROM etrans "
                       + "WHERE (Etype=" + SOut.Int((int) EtransType.BenefitInquiry270) + " "
                       + "OR Etype=" + SOut.Int((int) EtransType.Eligibility_CA) + ") "
-                      + " AND PlanNum=" + SOut.Long(planNum);
+                      + " AND PlanNum=" + (planNum);
         return SIn.Date(DataCore.GetScalar(command));
     }
 
@@ -880,7 +880,7 @@ public class Etranss
         if (payPlanForClaim != null)
             //If we find an insurance payplan that has claimprocs from the claim attached to it,
             //it is the only payplan we need because a claim can only be associated to one payplan.
-            return new List<PayPlan> {payPlanForClaim};
+            return [payPlanForClaim];
         //The claim is not associated to a payplan yet, so we will return a list of payplans that are valid for it to associate to.
         var listPayPlansValidInsForClaim = new List<PayPlan>();
         var listPayPlanNumsForAllClaimProcs = listClaimProcsAlls.Select(x => x.PayPlanNum).ToList();
@@ -1246,7 +1246,7 @@ public class Etranss
         Claims.Update(claim);
         ClaimProcs.RemoveSupplementalTransfersForClaims(claim.ClaimNum);
         InsBlueBooks.SynchForClaimNums(claim.ClaimNum);
-        if (PrefC.GetBool(PrefName.ClaimPrimaryReceivedRecalcSecondary) && claim.ClaimStatus == "R" && claimOld.ClaimStatus != "R" && claim.ClaimType == "P") Claims.CalculateAndUpdateSecondariesFromPrimaries(new List<Claim> {claim});
+        if (PrefC.GetBool(PrefName.ClaimPrimaryReceivedRecalcSecondary) && claim.ClaimStatus == "R" && claimOld.ClaimStatus != "R" && claim.ClaimType == "P") Claims.CalculateAndUpdateSecondariesFromPrimaries([claim]);
         if (isAutomatic || Security.IsAuthorized(EnumPermType.PaymentCreate, DateTime.Today, true)) PaymentEdit.MakeIncomeTransferForClaimProcs(claim.PatNum, listClaimProcsForClaim);
     }
 

@@ -6,8 +6,8 @@ namespace Imedisoft.Core.Data;
 
 public static class FamAgings
 {
-    public static void InsertMany(List<FamAging> listFamAgings)
+    public static void InsertMany(List<FamAging> famAgings)
     {
-        FamAgingCrud.InsertMany(listFamAgings, true);
+        FamAgingCrud.InsertMany(famAgings, true);
     }
 }

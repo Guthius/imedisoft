@@ -9,6 +9,7 @@ using System.Xml.Serialization;
 using CodeBase;
 using DataConnectionBase;
 using Imedisoft.Core.Crud;
+using Imedisoft.Core.Data;
 using Imedisoft.Core.Entities;
 using OpenDentBusiness.Remoting;
 
@@ -31,7 +32,7 @@ public class SmsToMobiles
         if (patNum == -1)
         {
             //Only limit clinic if not searching for a particular PatNum.
-            if (listClinicNums.Count > 0) listCommandFilters.Add("ClinicNum IN (" + string.Join(",", listClinicNums.Select(x => SOut.Long(x))) + ")");
+            if (listClinicNums.Count > 0) listCommandFilters.Add("ClinicNum IN (" + string.Join(",", listClinicNums.Select(x => (x))) + ")");
         }
         else
         {
@@ -88,7 +89,7 @@ public class SmsToMobiles
 
     public static List<SmsToMobile> SendSmsMany(List<SmsToMobile> listSmsToMobilesMessages, bool makeCommLog = true, Userod userod = null, bool canCheckBal = true)
     {
-        if (listSmsToMobilesMessages == null || listSmsToMobilesMessages.Count == 0) return new List<SmsToMobile>();
+        if (listSmsToMobilesMessages == null || listSmsToMobilesMessages.Count == 0) return [];
         if (canCheckBal)
         {
             var listClinicNums = listSmsToMobilesMessages.Select(x => x.ClinicNum).ToList();

@@ -1,58 +1,48 @@
 using System;
-using System.Collections.Generic;
-using System.Data;
-using System.Linq;
-using System.Text;
-using System.Windows;
 using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using Imedisoft.Core.Data;
-using Imedisoft.Core.Entities;
+using Imedisoft.Features.Providers.Dtos;
 using OpenDentBusiness;
-using WpfControls.UI;
 
-namespace OpenDental {
-	public partial class FrmProviderIdentEdit : FrmODBase {
-		///<summary>Set this field externally before using this window.</summary>
-		public ProviderIdent ProviderIdentCur;
-		
-		public bool IsNew;
+namespace OpenDental;
 
-		
-		public FrmProviderIdentEdit()
-		{
-			InitializeComponent();
-			Load+=FrmProviderIdentEdit_Load;
-			PreviewKeyDown+=FrmProviderIdentEdit_PreviewKeyDown;
-		}
+public partial class FrmProviderIdentEdit : FrmODBase
+{
+    private readonly ProviderIdentityDto _providerIdentityDto;
+    
+    public FrmProviderIdentEdit(ProviderIdentityDto providerIdentityDto)
+    {
+        _providerIdentityDto = providerIdentityDto;
 
-		private void FrmProviderIdentEdit_Load(object sender,EventArgs e) {
-			Lang.F(this);
-			textPayorID.Text=ProviderIdentCur.PayorID;
-			listType.Items.AddEnums<ProviderSupplementalID>();
-			listType.SetSelectedEnum(ProviderIdentCur.SuppIDType);
-			textIDNumber.Text=ProviderIdentCur.IDNumber;
-		}
+        InitializeComponent();
 
-		private void FrmProviderIdentEdit_PreviewKeyDown(object sender,KeyEventArgs e) {
-			if(butSave.IsAltKey(Key.S,e)) {
-				butSave_Click(this,new EventArgs());
-			}
-		}
+        Load += FrmProviderIdentEdit_Load;
+        PreviewKeyDown += FrmProviderIdentEdit_PreviewKeyDown;
+    }
 
-		private void butSave_Click(object sender, System.EventArgs e) {
-			ProviderIdentCur.PayorID=textPayorID.Text;
-			ProviderIdentCur.SuppIDType=listType.GetSelected<ProviderSupplementalID>();
-			ProviderIdentCur.IDNumber=textIDNumber.Text;
-			if(IsNew){
-				ProviderIdents.Insert(ProviderIdentCur);
-			}
-			else{
-				ProviderIdents.Update(ProviderIdentCur);
-			}
-			IsDialogOK=true;
-		}
+    private void FrmProviderIdentEdit_Load(object sender, EventArgs e)
+    {
+        textPayorID.Text = _providerIdentityDto.PayorId;
 
-	}
+        listType.Items.AddEnums<ProviderSupplementalID>();
+        listType.SetSelectedEnum(_providerIdentityDto.Type);
+
+        textIDNumber.Text = _providerIdentityDto.Value;
+    }
+
+    private void FrmProviderIdentEdit_PreviewKeyDown(object sender, KeyEventArgs e)
+    {
+        if (butSave.IsAltKey(Key.S, e))
+        {
+            butSave_Click(this, EventArgs.Empty);
+        }
+    }
+
+    private void butSave_Click(object sender, EventArgs e)
+    {
+        _providerIdentityDto.PayorId = textPayorID.Text;
+        _providerIdentityDto.Type = listType.GetSelected<ProviderSupplementalID>().ToString();
+        _providerIdentityDto.Value = textIDNumber.Text;
+
+        IsDialogOK = true;
+    }
 }

@@ -62,13 +62,13 @@ public static class ReplicationServers
     
     private static readonly ReplicationServerCache Cache = new();
 
-    public static ReplicationServer GetFirstOrDefault(Func<ReplicationServer, bool> match, bool isShort = false)
+    public static ReplicationServer GetFirstOrDefault(Func<ReplicationServer, bool> predicate, bool shortList = false)
     {
-        return Cache.GetFirstOrDefault(match, isShort);
+        return Cache.GetFirstOrDefault(predicate, shortList);
     }
 
-    public static void GetTableFromCache(bool doRefreshCache)
+    public static void GetTableFromCache(bool refreshCache)
     {
-        Cache.GetTableFromCache(doRefreshCache);
+        Cache.GetTableFromCache(refreshCache);
     }
 }

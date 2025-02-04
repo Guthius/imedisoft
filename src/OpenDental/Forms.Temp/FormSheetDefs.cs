@@ -1,12 +1,6 @@
 using System;
-using System.Drawing;
-using System.Collections;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.IO;
 using System.Windows.Forms;
-using System.Xml;
-using System.Xml.Serialization;
 using OpenDentBusiness;
 using OpenDental.UI;
 using System.Linq;
@@ -112,7 +106,7 @@ public partial class FormSheetDefs:FormODBase {
 		try {
 			grid2.SetSelected(selectedIndex,true);
 		}
-		catch(Exception ex) {
+		catch {
 		}
 	}
 

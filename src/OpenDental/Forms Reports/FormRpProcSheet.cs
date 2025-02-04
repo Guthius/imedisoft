@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Data;
 using System.Drawing;
 using System.Windows.Forms;
@@ -31,11 +30,11 @@ public partial class FormRpProcSheet : FormODBase {
 		//If the user can reach this form, they either have ReportDailyAllProviders permission, or are a provider themselves.
 		//Therefore if they don't have daily report permission, then they must be a provider
 		if(!Security.IsAuthorized(EnumPermType.ReportDailyAllProviders,suppressMessage:true)) {
-			_listProviders=_listProviders.FindAll(x => x.ProvNum==Security.CurUser.ProvNum);
+			_listProviders=_listProviders.FindAll(x => x.Id==Security.CurUser.ProvNum);
 			comboProviders.IncludeAll=false;
 			comboProviders.IsAllSelected=false;
 		}
-		comboProviders.Items.AddList(_listProviders,x => x.GetLongDesc());
+		comboProviders.Items.AddList(_listProviders,x => x.Description);
 		if(comboProviders.Items.Count==1) {
 			comboProviders.SetSelected(0);
 		}
@@ -222,17 +221,10 @@ public partial class FormRpProcSheet : FormODBase {
 		
 	///<summary>Returns 'All Clinics' or comma separated string of clinics selected.</summary>
 	private string ConstructClinicSubtitle() {
-		var subtitleClinics="";
-		if(!true) {
-			return subtitleClinics;
-		}
 		return comboClinics.GetStringSelectedClinics();
 	}
 
 	private bool AnyClinicSelectedIsMedical() {
-		if(!true) {
-			return Clinics.IsMedicalPracticeOrClinic(0);//Check if the practice is medical
-		}
 		var listClincNumsSelected=comboClinics.ListClinicNumsSelected;
 		for(var i=0;i<listClincNumsSelected.Count;i++){
 			if(Clinics.IsMedicalPracticeOrClinic(listClincNumsSelected[i])){

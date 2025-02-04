@@ -1,19 +1,13 @@
 using System;
 using System.Collections.Generic;
-using System.Data;
 using System.Linq;
-using System.Text;
 using System.Windows;
 using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using CodeBase;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Entities;
 using Imedisoft.Core.Features.Clinics;
 using Imedisoft.Core.Features.Clinics.Dtos;
 using OpenDentBusiness;
-using WpfControls.UI;
 
 namespace OpenDental {
 	/// <summary></summary>
@@ -94,9 +88,9 @@ namespace OpenDental {
 				}
 			}
 			string providersUsingFee="";
-			List<Provider> listProviders=Providers.GetDeepCopy(true);
+			var listProviders=Providers.GetDeepCopy(true);
 			for(int i=0;i<listProviders.Count;i++) {
-				if(FeeSchedCur.FeeSchedNum==listProviders[i].FeeSched) {
+				if(FeeSchedCur.FeeSchedNum==listProviders[i].FeeScheduleId) {
 					if(providersUsingFee!=""){//There is a name before this on the list
 						providersUsingFee+=", ";
 					}

@@ -26,27 +26,28 @@ public class CommlogCrud
     public static List<Commlog> TableToList(DataTable table)
     {
         var retVal = new List<Commlog>();
-        Commlog commlog;
         foreach (DataRow row in table.Rows)
         {
-            commlog = new Commlog();
-            commlog.CommlogNum = SIn.Long(row["CommlogNum"].ToString());
-            commlog.PatNum = SIn.Long(row["PatNum"].ToString());
-            commlog.CommDateTime = SIn.DateTime(row["CommDateTime"].ToString());
-            commlog.CommType = SIn.Long(row["CommType"].ToString());
-            commlog.Note = SIn.String(row["Note"].ToString());
-            commlog.Mode_ = (CommItemMode) SIn.Int(row["Mode_"].ToString());
-            commlog.SentOrReceived = (CommSentOrReceived) SIn.Int(row["SentOrReceived"].ToString());
-            commlog.UserNum = SIn.Long(row["UserNum"].ToString());
-            commlog.Signature = SIn.String(row["Signature"].ToString());
-            commlog.SigIsTopaz = SIn.Bool(row["SigIsTopaz"].ToString());
-            commlog.DateTStamp = SIn.DateTime(row["DateTStamp"].ToString());
-            commlog.DateTimeEnd = SIn.DateTime(row["DateTimeEnd"].ToString());
-            commlog.CommSource = (CommItemSource) SIn.Int(row["CommSource"].ToString());
-            commlog.ProgramNum = SIn.Long(row["ProgramNum"].ToString());
-            commlog.DateTEntry = SIn.DateTime(row["DateTEntry"].ToString());
-            commlog.ReferralNum = SIn.Long(row["ReferralNum"].ToString());
-            commlog.CommReferralBehavior = (EnumCommReferralBehavior) SIn.Int(row["CommReferralBehavior"].ToString());
+            var commlog = new Commlog
+            {
+                CommlogNum = SIn.Long(row["CommlogNum"].ToString()),
+                PatNum = SIn.Long(row["PatNum"].ToString()),
+                CommDateTime = SIn.DateTime(row["CommDateTime"].ToString()),
+                CommType = SIn.Long(row["CommType"].ToString()),
+                Note = SIn.String(row["Note"].ToString()),
+                Mode_ = (CommItemMode) SIn.Int(row["Mode_"].ToString()),
+                SentOrReceived = (CommSentOrReceived) SIn.Int(row["SentOrReceived"].ToString()),
+                UserNum = SIn.Long(row["UserNum"].ToString()),
+                Signature = SIn.String(row["Signature"].ToString()),
+                SigIsTopaz = SIn.Bool(row["SigIsTopaz"].ToString()),
+                DateTStamp = SIn.DateTime(row["DateTStamp"].ToString()),
+                DateTimeEnd = SIn.DateTime(row["DateTimeEnd"].ToString()),
+                CommSource = (CommItemSource) SIn.Int(row["CommSource"].ToString()),
+                ProgramNum = SIn.Long(row["ProgramNum"].ToString()),
+                DateTEntry = SIn.DateTime(row["DateTEntry"].ToString()),
+                ReferralNum = SIn.Long(row["ReferralNum"].ToString()),
+                CommReferralBehavior = (EnumCommReferralBehavior) SIn.Int(row["CommReferralBehavior"].ToString())
+            };
             retVal.Add(commlog);
         }
 
@@ -113,7 +114,7 @@ public class CommlogCrud
         Db.NonQ(command, paramNote, paramSignature);
     }
 
-    public static bool Update(Commlog commlog, Commlog oldCommlog)
+    public static void Update(Commlog commlog, Commlog oldCommlog)
     {
         var command = "";
         if (commlog.PatNum != oldCommlog.PatNum)
@@ -202,7 +203,7 @@ public class CommlogCrud
             command += "CommReferralBehavior = " + SOut.Int((int) commlog.CommReferralBehavior) + "";
         }
 
-        if (command == "") return false;
+        if (command == "") return;
         if (commlog.Note == null) commlog.Note = "";
         var paramNote = new OdSqlParameter("paramNote", SOut.StringNote(commlog.Note));
         if (commlog.Signature == null) commlog.Signature = "";
@@ -210,7 +211,6 @@ public class CommlogCrud
         command = "UPDATE commlog SET " + command
                                         + " WHERE CommlogNum = " + SOut.Long(commlog.CommlogNum);
         Db.NonQ(command, paramNote, paramSignature);
-        return true;
     }
 
     public static void Delete(long commlogNum)

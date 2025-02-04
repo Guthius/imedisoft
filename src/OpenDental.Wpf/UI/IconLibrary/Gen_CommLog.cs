@@ -1,6 +1,3 @@
-using System;
-using OpenDentBusiness;
-
 namespace WpfControls.UI{
 	
 	public class Gen_CommLog{

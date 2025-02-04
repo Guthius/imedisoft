@@ -8,6 +8,7 @@ using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Entities;
 using Imedisoft.Core.Features.Clinics;
+using Imedisoft.Features.Providers.Dtos;
 using OpenDental.UI;
 using OpenDentBusiness;
 
@@ -123,13 +124,11 @@ public partial class FormAdjMulti : FormODBase
     {
         comboProv.Items.Clear();
 
-        List<Provider> providers =
+        List<ProviderDto> providers =
         [
             new()
             {
-                ProvNum = 0,
-                Abbr = "Inherit",
-                IsHidden = false,
+                Abbr = "Inherit"
             }
         ];
 
@@ -495,7 +494,7 @@ public partial class FormAdjMulti : FormODBase
 
     private void ButtonPickProv_Click(object sender, EventArgs e)
     {
-        var providers = comboProv.Items.GetAll<Provider>().FindAll(x => x.ProvNum > 0);
+        var providers = comboProv.Items.GetAll<ProviderDto>().FindAll(x => x.Id > 0);
         var frmProviderPick = new FrmProviderPick(providers);
 
         frmProviderPick.ShowDialog();

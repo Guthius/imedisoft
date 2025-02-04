@@ -1,6 +1,5 @@
 using CodeBase;
 using DataConnectionBase;
-using Microsoft.VisualBasic.ApplicationServices;
 using OpenDental.UI;
 using OpenDentBusiness;
 using System;
@@ -9,7 +8,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
-using System.Web.UI.WebControls;
 using System.Windows.Forms;
 using Imedisoft.Core.Data;
 using Imedisoft.Core.Entities;
@@ -272,10 +270,6 @@ public partial class FormQueryMonitor:FormODBase {
 			MsgBox.Show(this,"No queries in the Query Feed to log.");
 			return;
 		}
-		if(/* ODEnvironment.IsCloudServer */ false) {
-			MsgBox.Show(this,"Logging not supported while using Open Dental Cloud.");
-			return;
-		}
 		if(!MsgBox.Show(MsgBoxButtons.YesNo,Lan.g(this,"Log all queries to a file?  Total query count")+$": {_listDbQueryObjs.Count.ToString("N0")}")) {
 			return;
 		}
@@ -307,7 +301,7 @@ public partial class FormQueryMonitor:FormODBase {
 		//Dump the entire query history into the log file.
 		try{
 			OpenDentBusiness.FileIO.FileAtoZ.WriteAllTextRelative(logFolderPath,logFileName,
-				$"Query Monitor Log - {DateTime.Now.ToString()}, OD User: {Security.CurUser.UserName}, Computer: {ODEnvironment.MachineName}\r\n"+
+				$"Query Monitor Log - {DateTime.Now.ToString()}, OD User: {Security.CurUser.UserName}, Computer: {Environment.MachineName}\r\n"+
 				$"{string.Join("\r\n",_listDbQueryObjs)}");
 		}
 		catch(Exception ex) {
@@ -346,7 +340,7 @@ public partial class FormQueryMonitor:FormODBase {
 			ODClipboard.SetClipboard(_dbQueryObj.ToString());
 			MsgBox.Show(this,"Copied");
 		}
-		catch(Exception ex) {
+		catch {
 			MsgBox.Show(this,"Could not copy contents to clipboard.  Please try again.");
 		}
 	}

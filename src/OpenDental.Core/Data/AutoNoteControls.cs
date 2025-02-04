@@ -24,9 +24,9 @@ public static class AutoNoteControls
         {
             return;
         }
-        
+
         var autoNoteControls = new List<AutoNoteControl>();
-        
+
         foreach (var serializableAutoNoteControl in serializableAutoNoteControls)
         {
             autoNoteControls.Add(new AutoNoteControl
@@ -55,7 +55,7 @@ public static class AutoNoteControls
     {
         return GetFirstOrDefault(x => x.Descript == descript);
     }
-    
+
     public static List<SerializableAutoNoteControl> GetSerializableAutoNoteControls(List<AutoNoteControl> autoNoteControls)
     {
         return autoNoteControls.Select(x => new SerializableAutoNoteControl(x)).ToList();
@@ -65,19 +65,19 @@ public static class AutoNoteControls
     {
         var autoNoteControls = new List<AutoNoteControl>();
         var matches = new List<Match>();
-        
+
         foreach (var serializableAutoNote in serializableAutoNotes)
         {
             matches.AddRange(GetPrompts(serializableAutoNote.MainText));
         }
-        
+
         foreach (var match in matches)
         {
             var description = match.ToString();
-            
+
             description = description.Replace("[Prompt:\"", "");
             description = description.Replace("\"]", "");
-            
+
             var autoNoteControl = GetByDescript(description);
             if (autoNoteControl != null)
             {
@@ -96,34 +96,34 @@ public static class AutoNoteControls
     public static void RemoveDuplicatesFromList(List<SerializableAutoNoteControl> serializableAutoNoteControls, List<SerializableAutoNote> serializableAutoNotes)
     {
         var duplicates = new List<string>();
-        
+
         foreach (var serializableAutoNoteControl in serializableAutoNoteControls)
         {
             var nameChanged = false;
             var autoNoteControl = GetByDescript(serializableAutoNoteControl.Descript);
             var count = 0;
-            
-            var name = serializableAutoNoteControl.Descript; 
+
+            var name = serializableAutoNoteControl.Descript;
             while (true)
             {
                 if (autoNoteControl is null)
                 {
                     break;
                 }
-                
+
                 if (autoNoteControl.ControlOptions == serializableAutoNoteControl.ControlOptions &&
-                    autoNoteControl.ControlType == serializableAutoNoteControl.ControlType) 
+                    autoNoteControl.ControlType == serializableAutoNoteControl.ControlType)
                 {
                     duplicates.Add(serializableAutoNoteControl.Descript);
                     break;
                 }
 
                 count++;
-                
+
                 serializableAutoNoteControl.Descript = string.Join("_", name, count.ToString());
-                
+
                 nameChanged = true;
-                
+
                 autoNoteControl = GetByDescript(serializableAutoNoteControl.Descript);
             }
 
@@ -131,7 +131,7 @@ public static class AutoNoteControls
             {
                 continue;
             }
-            
+
             foreach (var serializableAutoNote in serializableAutoNotes)
             {
                 serializableAutoNote.MainText = serializableAutoNote.MainText.Replace("[Prompt:\"" + name + "\"]", "[Prompt:\"" + serializableAutoNoteControl.Descript + "\"]");
@@ -140,7 +140,7 @@ public static class AutoNoteControls
 
         serializableAutoNoteControls.RemoveAll(x => duplicates.Contains(x.Descript));
     }
-    
+
     private class AutoNoteControlCache : CacheListAbs<AutoNoteControl>
     {
         protected override List<AutoNoteControl> GetCacheFromDb()
@@ -171,14 +171,14 @@ public static class AutoNoteControls
 
     private static readonly AutoNoteControlCache Cache = new();
 
-    public static List<AutoNoteControl> GetDeepCopy(bool isShort = false)
+    public static List<AutoNoteControl> GetDeepCopy(bool shortList = false)
     {
-        return Cache.GetDeepCopy(isShort);
+        return Cache.GetDeepCopy(shortList);
     }
 
-    private static AutoNoteControl GetFirstOrDefault(Func<AutoNoteControl, bool> match, bool isShort = false)
+    private static AutoNoteControl GetFirstOrDefault(Func<AutoNoteControl, bool> predicate, bool shortList = false)
     {
-        return Cache.GetFirstOrDefault(match, isShort);
+        return Cache.GetFirstOrDefault(predicate, shortList);
     }
 
     public static void RefreshCache()
@@ -186,9 +186,9 @@ public static class AutoNoteControls
         GetTableFromCache(true);
     }
 
-    public static DataTable GetTableFromCache(bool doRefreshCache)
+    public static DataTable GetTableFromCache(bool refreshCache)
     {
-        return Cache.GetTableFromCache(doRefreshCache);
+        return Cache.GetTableFromCache(refreshCache);
     }
 
     public static void ClearCache()

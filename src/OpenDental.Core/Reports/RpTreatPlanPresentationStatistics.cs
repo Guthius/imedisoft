@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Reflection;
 using System.Linq;
 using CodeBase;
 using Imedisoft.Core.Entities;
@@ -11,11 +10,11 @@ namespace OpenDentBusiness {
 		///<summary>If not using clinics then supply an empty list of clinicNums.</summary>
 		public static DataTable GetTreatPlanPresentationStatistics(DateTime dateStart,DateTime dateEnd,bool isFirstPresented,bool hasAllClinics
 			,bool hasClinicsEnabled,bool isPresenter,bool isGross,bool hasAllUsers,List<long> listUserNums,List<long> listClinicNums) {
-			List<TreatPlan> listTreatPlansSaved=TreatPlans.GetAllSavedLim(dateStart,dateEnd);
-			List<long> listTreatPlanNums=listTreatPlansSaved.Select(x => x.TreatPlanNum).ToList();
-			List<ProcTP> listProcTPs=ProcTPs.GetAllLim(listTreatPlanNums);
-			List<ProcTpTreatPlan> listProcTPTreatPlans=new List<ProcTpTreatPlan>();
-			for(int i=0;i<listProcTPs.Count();i++) {
+			var listTreatPlansSaved=TreatPlans.GetAllSavedLim(dateStart,dateEnd);
+			var listTreatPlanNums=listTreatPlansSaved.Select(x => x.TreatPlanNum).ToList();
+			var listProcTPs=ProcTPs.GetAllLim(listTreatPlanNums);
+			var listProcTPTreatPlans=new List<ProcTpTreatPlan>();
+			for(var i=0;i<listProcTPs.Count();i++) {
 				listProcTPTreatPlans.Add(new ProcTpTreatPlan()
 				{
 					TreatPlanCur=listTreatPlansSaved.First(x => x.TreatPlanNum==listProcTPs[i].TreatPlanNum),
@@ -42,21 +41,21 @@ namespace OpenDentBusiness {
 				.ToList();
 			}
 			//Get the associated procedures, claimprocs, adjustments, users, appointments.
-			List<Procedure> listProcsForTreatPlans = Procedures.GetForProcTPs(listProcTPTreatPlans.Select(x => x.ProcTPCur).ToList(),ProcStat.C,ProcStat.TP);
+			var listProcsForTreatPlans = Procedures.GetForProcTPs(listProcTPTreatPlans.Select(x => x.ProcTPCur).ToList(),ProcStat.C,ProcStat.TP);
 			if(hasClinicsEnabled && !hasAllClinics) {
 				listProcsForTreatPlans=
 					listProcsForTreatPlans.FindAll(x => listClinicNums.Contains(x.ClinicNum));
 			}
-			List<ClaimProc> listClaimProcs=ClaimProcs.GetForProcs(listProcsForTreatPlans.Select(x => x.ProcNum).ToList(),
+			var listClaimProcs=ClaimProcs.GetForProcs(listProcsForTreatPlans.Select(x => x.ProcNum).ToList(),
 				new List<ClaimProcStatus> { ClaimProcStatus.CapComplete, ClaimProcStatus.NotReceived, ClaimProcStatus.Received, ClaimProcStatus.Supplemental, ClaimProcStatus.Estimate });
-			List<Adjustment> listAdjustments=Adjustments.GetForProcs(listProcsForTreatPlans.Select(x => x.ProcNum).ToList());
-			List<Userod> listUserods=Userods.GetAll();
-			List<TreatPlanPresenterEntry> listTreatPlanPresenterEntries=new List<TreatPlanPresenterEntry>();
-			List<ProcedureCode> listProcCodes=ProcedureCodes.GetCodesForCodeNums(listProcsForTreatPlans.Select(x => x.CodeNum).ToList());
-			List<Appointment> listApts=Appointments.GetMultApts(listProcsForTreatPlans.Select(x => x.AptNum).ToList());
-			foreach(Procedure procCur in listProcsForTreatPlans) {
-				double grossProd=procCur.ProcFeeTotal;
-				double writeOffs=listClaimProcs.Where(x => x.ProcNum == procCur.ProcNum)
+			var listAdjustments=Adjustments.GetForProcs(listProcsForTreatPlans.Select(x => x.ProcNum).ToList());
+			var listUserods=Userods.GetAll();
+			var listTreatPlanPresenterEntries=new List<TreatPlanPresenterEntry>();
+			var listProcCodes=ProcedureCodes.GetCodesForCodeNums(listProcsForTreatPlans.Select(x => x.CodeNum).ToList());
+			var listApts=Appointments.GetMultApts(listProcsForTreatPlans.Select(x => x.AptNum).ToList());
+			foreach(var procCur in listProcsForTreatPlans) {
+				var grossProd=procCur.ProcFeeTotal;
+				var writeOffs=listClaimProcs.Where(x => x.ProcNum == procCur.ProcNum)
 						.Where(x => x.Status == ClaimProcStatus.CapComplete)
 						.Sum(x => x.WriteOff);
 				grossProd-=writeOffs;
@@ -66,7 +65,7 @@ namespace OpenDentBusiness {
 						.Sum(x => x.WriteOff);
 				}
 				else {
-					foreach(ClaimProc claimProcCur in listClaimProcs.Where(x => x.ProcNum == procCur.ProcNum).Where(x => x.Status == ClaimProcStatus.Estimate)) {
+					foreach(var claimProcCur in listClaimProcs.Where(x => x.ProcNum == procCur.ProcNum).Where(x => x.Status == ClaimProcStatus.Estimate)) {
 						if(claimProcCur.WriteOffEstOverride == -1) {
 							if(claimProcCur.WriteOffEst!=-1) {
 								writeOffs+=claimProcCur.WriteOffEst;
@@ -80,9 +79,9 @@ namespace OpenDentBusiness {
 					//	.Where(x => x.Status == ClaimProcStatus.Estimate)
 					//	.Sum(x => x.WriteOffEstOverride == -1 ? (x.WriteOffEst == -1 ? 0 : x.WriteOffEst) : x.WriteOffEstOverride); //Allen won't let me commit this nested ternary :(
 				}
-				double adjustments=listAdjustments.Where(x => x.ProcNum == procCur.ProcNum).Sum(x => x.AdjAmt);
-				double netProd=grossProd-writeOffs+adjustments;
-				TreatPlan treatPlanCur=listProcTPTreatPlans.Where(x => x.ProcTPCur.ProcNumOrig == procCur.ProcNum).First().TreatPlanCur;
+				var adjustments=listAdjustments.Where(x => x.ProcNum == procCur.ProcNum).Sum(x => x.AdjAmt);
+				var netProd=grossProd-writeOffs+adjustments;
+				var treatPlanCur=listProcTPTreatPlans.Where(x => x.ProcTPCur.ProcNumOrig == procCur.ProcNum).First().TreatPlanCur;
 				Userod userPresenter;
 				if(isPresenter) {
 					userPresenter=listUserods.FirstOrDefault(x => x.UserNum == treatPlanCur.UserNumPresenter);
@@ -90,8 +89,8 @@ namespace OpenDentBusiness {
 				else { //radioEntryUser
 					userPresenter=listUserods.FirstOrDefault(x => x.UserNum == treatPlanCur.SecUserNumEntry);
 				}
-				ProcedureCode procCode=listProcCodes.First(x => x.CodeNum == procCur.CodeNum);
-				Appointment aptCur=listApts.FirstOrDefault(x => x.AptNum == procCur.AptNum);
+				var procCode=listProcCodes.First(x => x.CodeNum == procCur.CodeNum);
+				var aptCur=listApts.FirstOrDefault(x => x.AptNum == procCur.AptNum);
 				listTreatPlanPresenterEntries.Add(new TreatPlanPresenterEntry()
 				{
 					Presenter=userPresenter==null ? "" : userPresenter.UserName,
@@ -110,7 +109,7 @@ namespace OpenDentBusiness {
 					AptStatus=aptCur==null?ApptStatus.None:aptCur.AptStatus
 				});
 			}
-			DataTable table=new DataTable();
+			var table=new DataTable();
 			table.Columns.Add("Presenter");
 			table.Columns.Add("# of Plans");
 			table.Columns.Add("# of Procs");
@@ -133,7 +132,7 @@ namespace OpenDentBusiness {
 			listTreatPlanPresenterEntries
 				.GroupBy(x => x.Presenter).ToList().ForEach(x =>
 				{
-					DataRow row = table.NewRow();
+					var row = table.NewRow();
 					row["Presenter"] = x.First().Presenter=="" ? "None" : x.First().Presenter;
 					row["# of Plans"] = x.GroupBy(y => y.TreatPlanNum).Count();
 					row["# of Procs"] = x.Count();

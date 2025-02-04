@@ -1,15 +1,13 @@
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
 using System.Drawing;
 using System.Drawing.Printing;
-using System.Text;
 using System.Windows.Forms;
 using OpenDentBusiness;
 using OpenDental.UI;
 using CodeBase;
 using System.Linq;
+using Imedisoft.Core.Data;
 using Imedisoft.Core.Entities;
 using OpenDental.Logic;
 using OpenDentBusiness.Eclaims;
@@ -207,8 +205,8 @@ public partial class FormEtrans270Edit:FormODBase {
 		GridRow row;
 		for(var i=0;i<ListDTP271s.Count;i++) {
 			row=new GridRow();
-			row.Cells.Add(DTP271.GetDateStr(ListDTP271s[i].Segment.Get(2),ListDTP271s[i].Segment.Get(3)));
-			row.Cells.Add(DTP271.GetQualifierDescript(ListDTP271s[i].Segment.Get(1)));
+			row.Cells.Add(DTP271.GetDate(ListDTP271s[i].Segment.Get(2),ListDTP271s[i].Segment.Get(3)));
+			row.Cells.Add(DTP271.GetQualifierDescription(ListDTP271s[i].Segment.Get(1)));
 			gridDates.ListGridRows.Add(row);
 		}
 		gridDates.EndUpdate();

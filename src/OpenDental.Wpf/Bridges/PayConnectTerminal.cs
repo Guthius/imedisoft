@@ -3,7 +3,6 @@ using CodeBase;
 using DentalXChange.Dps.Pos;
 using Imedisoft.Core.Entities;
 using OpenDentBusiness;
-using OpenDentBusiness.PayConnectService;
 
 namespace OpenDental.Bridges {
 	///<summary>Methods that can be used when interacting with a PayConnect terminal.</summary>
@@ -101,7 +100,6 @@ namespace OpenDental.Bridges {
 				pcResponse.StatusCode=response.ResponseCode;
 				pcResponse.CardType=response.CardBrand;
 				pcResponse.Amount=response.Amount;
-				pcResponse.OriginalAmount=response.OriginalAmount;
 				pcResponse.EntryMode=response.EntryMode;
 				pcResponse.CardNumber=response.CardNumber;
 				pcResponse.MerchantId=response.MerchantId;

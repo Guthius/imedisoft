@@ -1,13 +1,8 @@
-#region
-
 using System.Collections.Generic;
 using System.Data;
-using System.Linq;
 using DataConnectionBase;
 using Imedisoft.Core.Entities;
 using OpenDentBusiness;
-
-#endregion
 
 namespace Imedisoft.Core.Crud;
 
@@ -38,25 +33,26 @@ public class EmailAddressCrud
     public static List<EmailAddress> TableToList(DataTable table)
     {
         var retVal = new List<EmailAddress>();
-        EmailAddress emailAddress;
         foreach (DataRow row in table.Rows)
         {
-            emailAddress = new EmailAddress();
-            emailAddress.EmailAddressNum = SIn.Long(row["EmailAddressNum"].ToString());
-            emailAddress.SMTPserver = SIn.String(row["SMTPserver"].ToString());
-            emailAddress.EmailUsername = SIn.String(row["EmailUsername"].ToString());
-            emailAddress.EmailPassword = SIn.String(row["EmailPassword"].ToString());
-            emailAddress.ServerPort = SIn.Int(row["ServerPort"].ToString());
-            emailAddress.UseSSL = SIn.Bool(row["UseSSL"].ToString());
-            emailAddress.SenderAddress = SIn.String(row["SenderAddress"].ToString());
-            emailAddress.Pop3ServerIncoming = SIn.String(row["Pop3ServerIncoming"].ToString());
-            emailAddress.ServerPortIncoming = SIn.Int(row["ServerPortIncoming"].ToString());
-            emailAddress.UserNum = SIn.Long(row["UserNum"].ToString());
-            emailAddress.AccessToken = SIn.String(row["AccessToken"].ToString());
-            emailAddress.RefreshToken = SIn.String(row["RefreshToken"].ToString());
-            emailAddress.DownloadInbox = SIn.Bool(row["DownloadInbox"].ToString());
-            emailAddress.QueryString = SIn.String(row["QueryString"].ToString());
-            emailAddress.AuthenticationType = (OAuthType) SIn.Int(row["AuthenticationType"].ToString());
+            var emailAddress = new EmailAddress
+            {
+                EmailAddressNum = SIn.Long(row["EmailAddressNum"].ToString()),
+                SMTPserver = SIn.String(row["SMTPserver"].ToString()),
+                EmailUsername = SIn.String(row["EmailUsername"].ToString()),
+                EmailPassword = SIn.String(row["EmailPassword"].ToString()),
+                ServerPort = SIn.Int(row["ServerPort"].ToString()),
+                UseSSL = SIn.Bool(row["UseSSL"].ToString()),
+                SenderAddress = SIn.String(row["SenderAddress"].ToString()),
+                Pop3ServerIncoming = SIn.String(row["Pop3ServerIncoming"].ToString()),
+                ServerPortIncoming = SIn.Int(row["ServerPortIncoming"].ToString()),
+                UserNum = SIn.Long(row["UserNum"].ToString()),
+                AccessToken = SIn.String(row["AccessToken"].ToString()),
+                RefreshToken = SIn.String(row["RefreshToken"].ToString()),
+                DownloadInbox = SIn.Bool(row["DownloadInbox"].ToString()),
+                QueryString = SIn.String(row["QueryString"].ToString()),
+                AuthenticationType = (OAuthType) SIn.Int(row["AuthenticationType"].ToString())
+            };
             retVal.Add(emailAddress);
         }
 
@@ -87,12 +83,7 @@ public class EmailAddressCrud
         return table;
     }
 
-    public static long Insert(EmailAddress emailAddress)
-    {
-        return Insert(emailAddress, false);
-    }
-
-    public static long Insert(EmailAddress emailAddress, bool useExistingPK)
+    public static void Insert(EmailAddress emailAddress)
     {
         var command = "INSERT INTO emailaddress (";
 
@@ -118,43 +109,6 @@ public class EmailAddressCrud
         {
             emailAddress.EmailAddressNum = Db.NonQ(command, true, "EmailAddressNum", "emailAddress", paramRefreshToken);
         }
-        return emailAddress.EmailAddressNum;
-    }
-
-    public static long InsertNoCache(EmailAddress emailAddress)
-    {
-        return InsertNoCache(emailAddress, false);
-    }
-
-    public static long InsertNoCache(EmailAddress emailAddress, bool useExistingPK)
-    {
-        const bool isRandomKeys = false;
-        var command = "INSERT INTO emailaddress (";
-        if (isRandomKeys || useExistingPK) command += "EmailAddressNum,";
-        command += "SMTPserver,EmailUsername,EmailPassword,ServerPort,UseSSL,SenderAddress,Pop3ServerIncoming,ServerPortIncoming,UserNum,AccessToken,RefreshToken,DownloadInbox,QueryString,AuthenticationType) VALUES(";
-        if (isRandomKeys || useExistingPK) command += SOut.Long(emailAddress.EmailAddressNum) + ",";
-        command +=
-            "'" + SOut.String(emailAddress.SMTPserver) + "',"
-            + "'" + SOut.String(emailAddress.EmailUsername) + "',"
-            + "'" + SOut.String(emailAddress.EmailPassword) + "',"
-            + SOut.Int(emailAddress.ServerPort) + ","
-            + SOut.Bool(emailAddress.UseSSL) + ","
-            + "'" + SOut.String(emailAddress.SenderAddress) + "',"
-            + "'" + SOut.String(emailAddress.Pop3ServerIncoming) + "',"
-            + SOut.Int(emailAddress.ServerPortIncoming) + ","
-            + SOut.Long(emailAddress.UserNum) + ","
-            + "'" + SOut.String(emailAddress.AccessToken) + "',"
-            + DbHelper.ParamChar + "paramRefreshToken,"
-            + SOut.Bool(emailAddress.DownloadInbox) + ","
-            + "'" + SOut.String(emailAddress.QueryString) + "',"
-            + SOut.Int((int) emailAddress.AuthenticationType) + ")";
-        if (emailAddress.RefreshToken == null) emailAddress.RefreshToken = "";
-        var paramRefreshToken = new OdSqlParameter("paramRefreshToken", SOut.StringParam(emailAddress.RefreshToken));
-        if (useExistingPK || isRandomKeys)
-            Db.NonQ(command, paramRefreshToken);
-        else
-            emailAddress.EmailAddressNum = Db.NonQ(command, true, "EmailAddressNum", "emailAddress", paramRefreshToken);
-        return emailAddress.EmailAddressNum;
     }
 
     public static void Update(EmailAddress emailAddress)
@@ -178,135 +132,5 @@ public class EmailAddressCrud
         if (emailAddress.RefreshToken == null) emailAddress.RefreshToken = "";
         var paramRefreshToken = new OdSqlParameter("paramRefreshToken", SOut.StringParam(emailAddress.RefreshToken));
         Db.NonQ(command, paramRefreshToken);
-    }
-
-    public static bool Update(EmailAddress emailAddress, EmailAddress oldEmailAddress)
-    {
-        var command = "";
-        if (emailAddress.SMTPserver != oldEmailAddress.SMTPserver)
-        {
-            if (command != "") command += ",";
-            command += "SMTPserver = '" + SOut.String(emailAddress.SMTPserver) + "'";
-        }
-
-        if (emailAddress.EmailUsername != oldEmailAddress.EmailUsername)
-        {
-            if (command != "") command += ",";
-            command += "EmailUsername = '" + SOut.String(emailAddress.EmailUsername) + "'";
-        }
-
-        if (emailAddress.EmailPassword != oldEmailAddress.EmailPassword)
-        {
-            if (command != "") command += ",";
-            command += "EmailPassword = '" + SOut.String(emailAddress.EmailPassword) + "'";
-        }
-
-        if (emailAddress.ServerPort != oldEmailAddress.ServerPort)
-        {
-            if (command != "") command += ",";
-            command += "ServerPort = " + SOut.Int(emailAddress.ServerPort) + "";
-        }
-
-        if (emailAddress.UseSSL != oldEmailAddress.UseSSL)
-        {
-            if (command != "") command += ",";
-            command += "UseSSL = " + SOut.Bool(emailAddress.UseSSL) + "";
-        }
-
-        if (emailAddress.SenderAddress != oldEmailAddress.SenderAddress)
-        {
-            if (command != "") command += ",";
-            command += "SenderAddress = '" + SOut.String(emailAddress.SenderAddress) + "'";
-        }
-
-        if (emailAddress.Pop3ServerIncoming != oldEmailAddress.Pop3ServerIncoming)
-        {
-            if (command != "") command += ",";
-            command += "Pop3ServerIncoming = '" + SOut.String(emailAddress.Pop3ServerIncoming) + "'";
-        }
-
-        if (emailAddress.ServerPortIncoming != oldEmailAddress.ServerPortIncoming)
-        {
-            if (command != "") command += ",";
-            command += "ServerPortIncoming = " + SOut.Int(emailAddress.ServerPortIncoming) + "";
-        }
-
-        if (emailAddress.UserNum != oldEmailAddress.UserNum)
-        {
-            if (command != "") command += ",";
-            command += "UserNum = " + SOut.Long(emailAddress.UserNum) + "";
-        }
-
-        if (emailAddress.AccessToken != oldEmailAddress.AccessToken)
-        {
-            if (command != "") command += ",";
-            command += "AccessToken = '" + SOut.String(emailAddress.AccessToken) + "'";
-        }
-
-        if (emailAddress.RefreshToken != oldEmailAddress.RefreshToken)
-        {
-            if (command != "") command += ",";
-            command += "RefreshToken = " + DbHelper.ParamChar + "paramRefreshToken";
-        }
-
-        if (emailAddress.DownloadInbox != oldEmailAddress.DownloadInbox)
-        {
-            if (command != "") command += ",";
-            command += "DownloadInbox = " + SOut.Bool(emailAddress.DownloadInbox) + "";
-        }
-
-        if (emailAddress.QueryString != oldEmailAddress.QueryString)
-        {
-            if (command != "") command += ",";
-            command += "QueryString = '" + SOut.String(emailAddress.QueryString) + "'";
-        }
-
-        if (emailAddress.AuthenticationType != oldEmailAddress.AuthenticationType)
-        {
-            if (command != "") command += ",";
-            command += "AuthenticationType = " + SOut.Int((int) emailAddress.AuthenticationType) + "";
-        }
-
-        if (command == "") return false;
-        if (emailAddress.RefreshToken == null) emailAddress.RefreshToken = "";
-        var paramRefreshToken = new OdSqlParameter("paramRefreshToken", SOut.StringParam(emailAddress.RefreshToken));
-        command = "UPDATE emailaddress SET " + command
-                                             + " WHERE EmailAddressNum = " + SOut.Long(emailAddress.EmailAddressNum);
-        Db.NonQ(command, paramRefreshToken);
-        return true;
-    }
-
-    public static bool UpdateComparison(EmailAddress emailAddress, EmailAddress oldEmailAddress)
-    {
-        if (emailAddress.SMTPserver != oldEmailAddress.SMTPserver) return true;
-        if (emailAddress.EmailUsername != oldEmailAddress.EmailUsername) return true;
-        if (emailAddress.EmailPassword != oldEmailAddress.EmailPassword) return true;
-        if (emailAddress.ServerPort != oldEmailAddress.ServerPort) return true;
-        if (emailAddress.UseSSL != oldEmailAddress.UseSSL) return true;
-        if (emailAddress.SenderAddress != oldEmailAddress.SenderAddress) return true;
-        if (emailAddress.Pop3ServerIncoming != oldEmailAddress.Pop3ServerIncoming) return true;
-        if (emailAddress.ServerPortIncoming != oldEmailAddress.ServerPortIncoming) return true;
-        if (emailAddress.UserNum != oldEmailAddress.UserNum) return true;
-        if (emailAddress.AccessToken != oldEmailAddress.AccessToken) return true;
-        if (emailAddress.RefreshToken != oldEmailAddress.RefreshToken) return true;
-        if (emailAddress.DownloadInbox != oldEmailAddress.DownloadInbox) return true;
-        if (emailAddress.QueryString != oldEmailAddress.QueryString) return true;
-        if (emailAddress.AuthenticationType != oldEmailAddress.AuthenticationType) return true;
-        return false;
-    }
-
-    public static void Delete(long emailAddressNum)
-    {
-        var command = "DELETE FROM emailaddress "
-                      + "WHERE EmailAddressNum = " + SOut.Long(emailAddressNum);
-        Db.NonQ(command);
-    }
-
-    public static void DeleteMany(List<long> listEmailAddressNums)
-    {
-        if (listEmailAddressNums == null || listEmailAddressNums.Count == 0) return;
-        var command = "DELETE FROM emailaddress "
-                      + "WHERE EmailAddressNum IN(" + string.Join(",", listEmailAddressNums.Select(x => SOut.Long(x))) + ")";
-        Db.NonQ(command);
     }
 }

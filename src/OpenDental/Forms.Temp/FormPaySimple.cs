@@ -1,13 +1,9 @@
 using System;
-using System.Collections.Generic;
-using System.Data;
 using System.Drawing;
-using System.Text;
 using System.Windows.Forms;
 using OpenDentBusiness;
 using System.Text.RegularExpressions;
 using System.Linq;
-using System.IO;
 using CodeBase;
 using DataConnectionBase;
 using Imedisoft.Core.Caching;
@@ -362,7 +358,7 @@ public partial class FormPaySimple:FormODBase {
 			}
 			else {
 				apiResponseRetVal=PaySimple.MakePaymentACH(_patient,_creditCard,SIn.Decimal(textAmountACH.Text),textRoutingNumber.Text,textCheckSaveNumber.Text,
-					textBankName.Text,radioCheckings.Checked,checkOneTimePaymentACH.Checked,_clinicNum);
+					textBankName.Text,radioCheckings.Checked,_clinicNum);
 			}
 		}
 		catch(PaySimpleException ex) {
@@ -453,11 +449,6 @@ public partial class FormPaySimple:FormODBase {
 		documentRenderer.PrepareDocument();
 		migraDocPrintDocument.Renderer=documentRenderer;
 		//TODO: Implement ODprintout pattern - MigraDoc
-		if(/* ODBuild.IsDebug() */ false) {
-			using var formRpPrintPreview=new FormRpPrintPreview(migraDocPrintDocument);
-			formRpPrintPreview.ShowDialog();
-			return;
-		}
 		if(PrinterL.SetPrinter(pd2,PrintSituation.Receipt,_patient.PatNum,"PaySimple receipt printed")) {
 			migraDocPrintDocument.PrinterSettings=pd2.PrinterSettings;
 			try {

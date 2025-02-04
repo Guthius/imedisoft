@@ -1,15 +1,10 @@
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
 using System.Drawing;
-using System.Drawing.Printing;
-using System.Text;
 using System.Windows.Forms;
 using System.IO;
 using System.Linq;
 using OpenDentBusiness;
-using System.Collections;
 using OpenDental.UI;
 using CodeBase;
 using DataConnectionBase;
@@ -17,7 +12,6 @@ using Imedisoft.Core.Caching;
 using Imedisoft.Core.Entities;
 using Imedisoft.Core.Features.Clinics;
 using OpenDental.Logic;
-using OpenDental.Thinfinity;
 
 namespace OpenDental;
 
@@ -228,7 +222,7 @@ public partial class FormRpOutstandingIns:FormODBase {
 				try {
 					dateSuppressed=claimCur.DateLog.AddDays(claimCur.DaysSuppressed);
 				}
-				catch(ArgumentOutOfRangeException ex) {//Custom Claim Tracking def.ValueString is way too big (observed bug) or way too small.
+				catch(ArgumentOutOfRangeException) {//Custom Claim Tracking def.ValueString is way too big (observed bug) or way too small.
 					dateSuppressed=DateTime.MaxValue;//Likely due to the Days Suppressed value intended to be some far off unimaginable day.
 				}
 				if(dateSuppressed>DateTime.Today) {
@@ -703,33 +697,27 @@ public partial class FormRpOutstandingIns:FormODBase {
 	private void butExport_Click(object sender,System.EventArgs e) {			
 		var fileName=Lan.g(this,"Outstanding Insurance Claims");
 		var filePath=ODFileUtils.CombinePaths(Path.GetTempPath(),fileName);
-		if(/* ODEnvironment.IsCloudServer */ false) {
-			//Thinfinity: file download dialog will come up later, after file is created. AppStream: File will be created in client's Downloads folder.
-			filePath+=".txt";//Provide the filepath an extension so that Thinfinity can offer as a download.
-		}
-		else {
-			var saveFileDialog=new SaveFileDialog();
-			saveFileDialog.AddExtension=true;
-			saveFileDialog.FileName=fileName;
-			if(!Directory.Exists(PrefC.GetString(PrefName.ExportPath))) {
-				try {
-					Directory.CreateDirectory(PrefC.GetString(PrefName.ExportPath));
-					saveFileDialog.InitialDirectory=PrefC.GetString(PrefName.ExportPath);
-				}
-				catch {
-					//initialDirectory will be blank
-				}
-			}
-			else {
+		var saveFileDialog=new SaveFileDialog();
+		saveFileDialog.AddExtension=true;
+		saveFileDialog.FileName=fileName;
+		if(!Directory.Exists(PrefC.GetString(PrefName.ExportPath))) {
+			try {
+				Directory.CreateDirectory(PrefC.GetString(PrefName.ExportPath));
 				saveFileDialog.InitialDirectory=PrefC.GetString(PrefName.ExportPath);
 			}
-			saveFileDialog.Filter="Text files(*.txt)|*.txt|Excel Files(*.xls)|*.xls|All files(*.*)|*.*";
-			saveFileDialog.FilterIndex=0;
-			if(saveFileDialog.ShowDialog()!=DialogResult.OK) {
-				return;
+			catch {
+				//initialDirectory will be blank
 			}
-			filePath=saveFileDialog.FileName;
 		}
+		else {
+			saveFileDialog.InitialDirectory=PrefC.GetString(PrefName.ExportPath);
+		}
+		saveFileDialog.Filter="Text files(*.txt)|*.txt|Excel Files(*.xls)|*.xls|All files(*.*)|*.*";
+		saveFileDialog.FilterIndex=0;
+		if(saveFileDialog.ShowDialog()!=DialogResult.OK) {
+			return;
+		}
+		filePath=saveFileDialog.FileName;
 		try {
 			using(var sw=new StreamWriter(filePath,false))
 				//new FileStream(,FileMode.Create,FileAccess.Write,FileShare.Read)))

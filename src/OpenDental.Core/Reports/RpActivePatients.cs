@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
-using System.Reflection;
 using DataConnectionBase;
 using Imedisoft.Core.Entities;
 using Imedisoft.Core.Features.Clinics;
@@ -13,11 +12,11 @@ namespace OpenDentBusiness {
 
 		///<summary>If not using clinics then supply an empty list of clinicNums. dateStart and dateEnd can be MinVal/MaxVal to indicate "forever".</summary>
 		public static DataTable GetActivePatientTable(DateTime dateStart,DateTime dateEnd,List<long> listProvNums,List<long> listClinicNums,List<long> listBillingTypes,List<long> listPatientStatuses,bool hasAllProvs,bool hasAllClinics,bool hasAllBilling) {
-			bool hasClinicsEnabled=true;
-			List<Provider> listProvs=Providers.GetAll();
-			List<Def> listDefs=Defs.GetDefsNoCache(DefCat.BillingTypes);
-			List<ClinicDto> listClinics=Clinics.GetDeepCopy();
-			DataTable table=new DataTable();
+			var hasClinicsEnabled=true;
+			var listProvs=Providers.GetAll();
+			var listDefs=Defs.GetDefsNoCache(DefCat.BillingTypes);
+			var listClinics=Clinics.GetDeepCopy();
+			var table=new DataTable();
 			table.Columns.Add("name");
 			table.Columns.Add("priProv");
 			table.Columns.Add("Address");
@@ -33,11 +32,11 @@ namespace OpenDentBusiness {
 			table.Columns.Add("secProv");
 			table.Columns.Add("clinic");
 			DataRow row;
-			string command=$@"
+			var command=$@"
 				SELECT patient.PatNum,patient.LName,patient.FName,patient.MiddleI,patient.Preferred,carrier.CarrierName,patient.BillingType,patient.PriProv,patient.SecProv,
 							patient.HmPhone,patient.WkPhone,patient.WirelessPhone,patient.Address,patient.Address2,patient.City,patient.State,patient.Zip,patient.ClinicNum,provider.Abbr
 				FROM procedurelog 
-				INNER JOIN patient ON patient.PatNum=procedurelog.PatNum AND PatStatus IN ({String.Join(",",listPatientStatuses)})
+				INNER JOIN patient ON patient.PatNum=procedurelog.PatNum AND PatStatus IN ({string.Join(",",listPatientStatuses)})
 				LEFT JOIN patplan ON patplan.PatNum=patient.PatNum AND patplan.Ordinal=1
 				LEFT JOIN inssub ON inssub.InsSubNum=patplan.InsSubNum
 				LEFT JOIN insplan ON insplan.PlanNum=inssub.PlanNum
@@ -46,12 +45,12 @@ namespace OpenDentBusiness {
 				WHERE procedurelog.ProcStatus="+SOut.Int((int)ProcStat.C)+@"
 					AND procedurelog.ProcDate BETWEEN "+SOut.DateTime(dateStart)+@" AND "+SOut.DateTime(dateEnd);
 			if(!hasAllProvs) {
-				command+=@" AND (patient.PriProv IN("+String.Join(",",listProvNums)+") OR patient.SecProv IN("+String.Join(",",listProvNums)+")) ";
+				command+=@" AND (patient.PriProv IN("+string.Join(",",listProvNums)+") OR patient.SecProv IN("+string.Join(",",listProvNums)+")) ";
 			}
 			if(listClinicNums.Count>0) {
-				command+="AND patient.ClinicNum IN("+String.Join(",",listClinicNums)+") ";
+				command+="AND patient.ClinicNum IN("+string.Join(",",listClinicNums)+") ";
 			}
-			command+="AND patient.BillingType IN("+String.Join(",",listBillingTypes)+") ";
+			command+="AND patient.BillingType IN("+string.Join(",",listBillingTypes)+") ";
 			command+="GROUP BY patient.PatNum";
 			if(!hasClinicsEnabled) {
 				command+=" ORDER BY provider.Abbr,patient.LName,patient.FName";
@@ -59,10 +58,10 @@ namespace OpenDentBusiness {
 			else {//Using clinics
 				command+=" ORDER BY patient.ClinicNum,provider.Abbr,patient.LName,patient.FName";
 			}
-			DataTable raw=ReportsComplex.GetTable(command);
+			var raw=DataCore.GetTable(command);
 			Patient pat;
-			for(int i=0;i<raw.Rows.Count;i++) {
-				Def billingType=listDefs.FirstOrDefault(x => x.DefNum==SIn.Long(raw.Rows[i]["BillingType"].ToString()));
+			for(var i=0;i<raw.Rows.Count;i++) {
+				var billingType=listDefs.FirstOrDefault(x => x.DefNum==SIn.Long(raw.Rows[i]["BillingType"].ToString()));
 				row=table.NewRow();
 				pat=new Patient();
 				pat.LName=raw.Rows[i]["LName"].ToString();
@@ -81,9 +80,9 @@ namespace OpenDentBusiness {
 				row["WkPhone"]=raw.Rows[i]["WkPhone"].ToString();
 				row["WirelessPhone"]=raw.Rows[i]["WirelessPhone"].ToString();
 				row["billingType"]=(billingType==null) ? "" : billingType.ItemValue;
-				row["secProv"]=Providers.GetLName(SIn.Long(raw.Rows[i]["SecProv"].ToString()),listProvs);
+				row["secProv"]=Providers.GetLastName(SIn.Long(raw.Rows[i]["SecProv"].ToString()),listProvs);
 				if(hasClinicsEnabled) {//Using clinics
-					string clinicDesc=Clinics.GetDesc(SIn.Long(raw.Rows[i]["ClinicNum"].ToString()),listClinics);
+					var clinicDesc=Clinics.GetDesc(SIn.Long(raw.Rows[i]["ClinicNum"].ToString()),listClinics);
 					row["clinic"]=(clinicDesc=="")?Lans.g("FormRpPayPlans","Unassigned"):clinicDesc;
 				}
 				table.Rows.Add(row);

@@ -16,20 +16,14 @@ namespace OpenDentBusiness;
 
 public class RepeatCharges
 {
-    ///<summary>Gets a list of all RepeatCharges for a given patient.  Supply 0 to get a list for all patients.</summary>
     public static RepeatCharge[] Refresh(long patNum)
     {
         var command = "SELECT * FROM repeatcharge";
-        if (patNum != 0) command += " WHERE PatNum = " + SOut.Long(patNum);
+        if (patNum != 0) command += " WHERE PatNum = " + (patNum);
         command += " ORDER BY DateStart";
         return RepeatChargeCrud.SelectMany(command).ToArray();
     }
 
-    /// <summary>
-    ///     Gets a list of all RepeatCharges based on super family patNum, procCode, chargeAmt and date.
-    ///     patNumSuperFamily=0 to get a list of all matching repeat charge patients by ProcCode. Used for
-    ///     FormRepeatChargeEditMulti.
-    /// </summary>
     public static List<RepeatCharge> GetRepeatChargesMulti(long patNumSuperFamily, string procCode, double chargeAmt, DateTime dateGreaterThan)
     {
         var command = "SELECT rc.* FROM repeatcharge rc ";
@@ -39,37 +33,30 @@ public class RepeatCharges
                        + "AND rc.DateStart>=" + SOut.DateTime(dateGreaterThan);
         else
             command += "INNER JOIN patient p ON p.PatNum=rc.PatNum "
-                       + "WHERE p.SuperFamily=" + SOut.Long(patNumSuperFamily) + " "
+                       + "WHERE p.SuperFamily=" + (patNumSuperFamily) + " "
                        + "AND rc.ProcCode='" + SOut.String(procCode) + "' "
                        + "AND rc.ChargeAmt=" + SOut.Double(chargeAmt) + " "
                        + "AND rc.DateStart>=" + SOut.DateTime(dateGreaterThan);
         return RepeatChargeCrud.SelectMany(command);
     }
 
-    /// <summary>
-    ///     doCheckIsResellerCustomer is harmless in any case when !false, but should only be true for HQ when updating
-    ///     directly from FormRepeatChargeEdit.
-    /// </summary>
-    public static void Update(RepeatCharge charge, bool doCheckIsResellerCustomer = false)
+    public static void Update(RepeatCharge charge)
     {
         RepeatChargeCrud.Update(charge);
     }
-
     
     public static long Insert(RepeatCharge charge)
     {
         return RepeatChargeCrud.Insert(charge);
     }
 
-    ///<summary>Called from FormRepeatCharge.</summary>
     public static void Delete(RepeatCharge charge)
     {
-        var command = "DELETE FROM repeatcharge WHERE RepeatChargeNum =" + SOut.Long(charge.RepeatChargeNum);
+        var command = "DELETE FROM repeatcharge WHERE RepeatChargeNum =" + (charge.RepeatChargeNum);
         Db.NonQ(command);
     }
 
-    public static void InsertRepeatChargeChangeSecurityLogEntry(RepeatCharge oldCharge, EnumPermType permType, Patient oldPat, RepeatCharge newCharge = null,
-        bool isAutomated = false, LogSources source = LogSources.None, Patient newPat = null)
+    public static void InsertRepeatChargeChangeSecurityLogEntry(RepeatCharge oldCharge, EnumPermType permType, Patient oldPat, RepeatCharge newCharge = null, bool isAutomated = false, LogSources source = LogSources.None, Patient newPat = null)
     {
         var hasChanges = false;
         var secLogText = "";
@@ -142,69 +129,16 @@ public class RepeatCharges
         return stringChange;
     }
 
-    ///<summary>For internal use only.  Returns all eRx repeating charges for all customers.</summary>
-    public static List<RepeatCharge> GetForErx()
-    {
-        //Does not need to be Oracle compatible because this is an internal tool only.
-        var command = "SELECT * FROM repeatcharge WHERE ProcCode REGEXP '^Z[0-9]{3,}$'";
-        return RepeatChargeCrud.SelectMany(command);
-    }
-
-    ///<summary>Get the list of all RepeatCharge rows. DO NOT REMOVE! Used by OD WebApps solution.</summary>
-    // ReSharper disable once UnusedMember.Global
-    public static List<RepeatCharge> GetAll()
-    {
-        return Refresh(0).ToList();
-    }
-
-    /// <summary>
-    ///     Gets all repeat charges for a family.  A family is currently defined as all accounts that share the same guarantor
-    ///     or are
-    ///     associated to the same super family.  This is used by the Reseller Portal to get all repeat charges linked to the
-    ///     given reseller.
-    ///     Optionally pass in a super family in order to broaden the family tree by also including accounts in the same super
-    ///     family.
-    /// </summary>
-    public static List<RepeatCharge> GetByGuarantorOrSuperFamily(long guarantor, long superFamily = 0)
-    {
-        var command = "SELECT rc.* FROM repeatcharge rc "
-                      + "INNER JOIN patient p ON p.PatNum=rc.PatNum "
-                      + "WHERE p.Guarantor=" + SOut.Long(guarantor) + " ";
-        if (superFamily > 0) command += "OR p.SuperFamily=" + SOut.Long(superFamily);
-        return RepeatChargeCrud.SelectMany(command);
-    }
-
-    ///<summary>Returns true if there are any active repeating charges on the patient's account, false if there are not.</summary>
     public static bool ActiveRepeatChargeExists(long patNum)
     {
         //Counts the number of repeat charges that a patient has with a valid start date in the past and no stop date or a stop date in the future
         var command = "SELECT COUNT(*) FROM repeatcharge "
-                      + "WHERE PatNum=" + SOut.Long(patNum) + " AND DateStart BETWEEN '1880-01-01' AND " + "CURDATE()" + " "
+                      + "WHERE PatNum=" + (patNum) + " AND DateStart BETWEEN '1880-01-01' AND " + "CURDATE()" + " "
                       + "AND (DateStop='0001-01-01' OR DateStop>=" + "CURDATE()" + ")";
         if (Db.GetCount(command) == "0") return false;
         return true;
     }
 
-    /// <summary>
-    ///     Returns true if the dates passed in from the corresponding repeat charge are active as of DateTime.Today.
-    ///     Mimics the logic within ActiveRepeatChargeExists() in the sense that dateStart is a valid date and is before or on
-    ///     DateTime.Today
-    ///     and that dateStop is either an invalid date (has yet to be set) OR is a valid date that is in the future.
-    /// </summary>
-    public static bool IsRepeatChargeActive(DateTime dateStart, DateTime dateStop)
-    {
-        if (dateStart.Year > 1880 && dateStart.Date <= DateTime.Today
-                                  && (dateStop.Year < 1880 || dateStop.Date > DateTime.Today))
-            return true;
-        return false;
-    }
-
-    /// <summary>
-    ///     Runs repeating charges for the date passed in, usually today. Can't use 'out' variables because this runs over
-    ///     Middle Tier.
-    ///     When doComputeAging=true, aging calculations will run for the families that had a repeating charge procedure added
-    ///     to the account.
-    /// </summary>
     public static RepeatChargeResult RunRepeatingCharges(DateTime dateRun, bool doComputeAging = true)
     {
         var result = new RepeatChargeResult();
@@ -328,7 +262,7 @@ public class RepeatCharges
                         var listFamilyPatNums = family.GetPatNums();
                         var listInsSubs = listAllInsSubs.FindAll(x => listFamilyPatNums.Contains(x.Subscriber));
                         var listInsPlans = listAllInsPlans.FindAll(x => listInsSubs.Select(x => x.PlanNum).Contains(x.PlanNum));
-                        listClaimsAdded = AddClaimsHelper(repeatCharge, procAdded, orthoCaseProcedureLinker, orthoProcLink, listPlansForPat, listInsSubs, listInsPlans);
+                        listClaimsAdded = AddClaimsHelper(procAdded, orthoCaseProcedureLinker, orthoProcLink, listPlansForPat, listInsSubs, listInsPlans);
                     }
 
                     AllocateUnearned(repeatCharge, procAdded, billingDate);
@@ -393,13 +327,7 @@ public class RepeatCharges
         return result;
     }
 
-    /// <summary>
-    ///     Do not call this until after determining if the repeate charge might generate a claim.  This function checks
-    ///     current insurance and
-    ///     may not add claims if no insurance is found.
-    /// </summary>
-    private static List<Claim> AddClaimsHelper(RepeatCharge repeateCharge, Procedure proc, OrthoCaseProcedureLinker orthoCaseProcedureLinker, OrthoProcLink orthoProcLink, List<PatPlan> patPlanList, List<InsSub> subList,
-        List<InsPlan> insPlanList)
+    private static List<Claim> AddClaimsHelper(Procedure proc, OrthoCaseProcedureLinker orthoCaseProcedureLinker, OrthoProcLink orthoProcLink, List<PatPlan> patPlanList, List<InsSub> subList, List<InsPlan> insPlanList)
     {
         var benefitList = Benefits.Refresh(patPlanList, subList);
         var retVal = new List<Claim>();
@@ -408,7 +336,7 @@ public class RepeatCharges
         if (patPlanList.Count == 0) //no current insurance, do not create a claim
             return retVal;
         //create the claimprocs
-        Procedures.ComputeEstimates(proc, proc.PatNum, new List<ClaimProc>(), true, insPlanList, patPlanList, benefitList, pat.Age, subList
+        Procedures.ComputeEstimates(proc, proc.PatNum, [], true, insPlanList, patPlanList, benefitList, pat.Age, subList
             , orthoProcLink, orthoCaseProcedureLinker.ActiveOrthoCase, orthoCaseProcedureLinker.OrthoSchedule
             , orthoCaseProcedureLinker.ListOrthoProcLinks);
         //get claimprocs for this proc, may be more than one
@@ -420,7 +348,7 @@ public class RepeatCharges
         claimProcList = ClaimProcs.Refresh(proc.PatNum);
         if (claimCur.ClaimNum == 0) return retVal;
         retVal.Add(claimCur);
-        Claims.CalculateAndUpdate(new List<Procedure> {proc}, insPlanList, claimCur, patPlanList, benefitList, pat, subList);
+        Claims.CalculateAndUpdate([proc], insPlanList, claimCur, patPlanList, benefitList, pat, subList);
         if (PatPlans.GetOrdinal(PriSecMed.Secondary, patPlanList, insPlanList, subList) > 0 //if there exists a secondary plan
             && !CultureInfo.CurrentCulture.Name.EndsWith("CA")) //and not canada (don't create secondary claim for canada)
         {
@@ -429,13 +357,12 @@ public class RepeatCharges
             retVal.Add(claimCur);
             ClaimProcs.Refresh(proc.PatNum);
             claimCur.ClaimStatus = "H";
-            Claims.CalculateAndUpdate(new List<Procedure> {proc}, insPlanList, claimCur, patPlanList, benefitList, pat, subList);
+            Claims.CalculateAndUpdate([proc], insPlanList, claimCur, patPlanList, benefitList, pat, subList);
         }
 
         return retVal;
     }
 
-    ///<summary>Returns 1 or 2 dates to be billed given the date range. Only filtering based on date range has been performed.</summary>
     public static List<DateTime> GetBillingDatesHelper(RepeatCharge repeatCharge, DateTime dateRun, int billingCycleDay = 0)
     {
         var retVal = new List<DateTime>();
@@ -508,14 +435,7 @@ public class RepeatCharges
         return retVal;
     }
 
-    /// <summary>
-    ///     Will throw exception if the repeatCharge.ProcCode is in a hidden category and not a Z-code.I nserts a procedure for
-    ///     the repeat charge.
-    ///     Set isNewCropInitial to true when adding repeat charge for the first time from FormNewCrop. Possibly will allocate
-    ///     prepayments to the procedure.
-    /// </summary>
-    public static Procedure AddProcForRepeatCharge(RepeatCharge repeatCharge, DateTime billingDate, DateTime dateNow
-        , OrthoCaseProcedureLinker orthoCaseProcedureLinker, bool isNewCropInitial = false, bool isNewCropFutureDated = false)
+    public static Procedure AddProcForRepeatCharge(RepeatCharge repeatCharge, DateTime billingDate, DateTime dateNow, OrthoCaseProcedureLinker orthoCaseProcedureLinker, bool isNewCropInitial = false, bool isNewCropFutureDated = false)
     {
         var procedure = new Procedure();
         var procCode = ProcedureCodes.GetProcCode(repeatCharge.ProcCode);
@@ -572,11 +492,6 @@ public class RepeatCharges
         return procedure;
     }
 
-    /// <summary>
-    ///     If there are unearned paysplits and the repeat charge is set to allocate unearned, creates a payments and allocates
-    ///     unearned
-    ///     paysplits to the new payment.
-    /// </summary>
     public static void AllocateUnearned(RepeatCharge repeatCharge, Procedure procedure, DateTime billingDate)
     {
         if (!repeatCharge.UsePrepay) return;
@@ -585,7 +500,7 @@ public class RepeatCharges
         if (!string.IsNullOrEmpty(repeatCharge.UnearnedTypes))
         {
             //This repeat charge is limited to certain unearned types. If repeatCharge.UnearnedTypes is empty, it is for all unearned types.
-            var listDefNumsUnearnedTypeCur = repeatCharge.UnearnedTypes.Split(new[] {','}, StringSplitOptions.RemoveEmptyEntries)
+            var listDefNumsUnearnedTypeCur = repeatCharge.UnearnedTypes.Split([','], StringSplitOptions.RemoveEmptyEntries)
                 .Select(x => SIn.Long(x, false)).ToList();
             listUnearnedSplits.RemoveAll(x => !listDefNumsUnearnedTypeCur.Contains(x.UnearnedType));
         }
@@ -595,7 +510,7 @@ public class RepeatCharges
             return;
         var amountUnearned = listUnearnedSplits.Sum(x => x.SplitAmt);
         if (CompareDouble.IsLessThanOrEqualToZero(amountUnearned)) return;
-        var listAccountEntries = PaymentEdit.CreateAccountEntries(new List<Procedure> {procedure});
+        var listAccountEntries = PaymentEdit.CreateAccountEntries([procedure]);
         amountUnearned = Math.Min((double) listAccountEntries.Sum(x => x.AmountEnd), amountUnearned);
         var listPaySplits = PaymentEdit.AllocateUnearned(0, amountUnearned, listAccountEntries, fam, true);
         if (listPaySplits == null || listPaySplits.Count == 0) return;
@@ -623,7 +538,6 @@ public class RepeatCharges
         Payments.Insert(payCur, listPaySplits);
     }
 
-    ///<summary>Returns true if the existing procedure was for the possibleBillingDate.</summary>
     private static bool IsRepeatDateHelper(RepeatCharge repeatCharge, DateTime possibleBillingDate, DateTime existingProcedureDate, Patient pat)
     {
         if (PrefC.GetBool(PrefName.BillingUseBillingCycleDay))
@@ -662,22 +576,12 @@ public class RepeatCharges
 
         return false;
     }
-
-    public static List<RepeatCharge> FilterRepeatingCharges(List<RepeatCharge> masterList, string procCode)
-    {
-        return masterList.FindAll(x => x.ProcCode == procCode && (x.DateStop == DateTime.MinValue || x.DateStop > DateTime.Now) && x.DateStart <= DateTime.Now).ToList();
-    }
 }
 
 public class RepeatChargeResult
 {
     public int ClaimsAddedCount;
 
-    /// <summary>
-    ///     Used to return an error message, e.g. enterprise aging blocked due to currently running calculations, so this
-    ///     message tells the user
-    ///     to run aging afterward.
-    /// </summary>
     public StringBuilder ErrorMsg = new();
 
     public int ProceduresAddedCount;

@@ -17,16 +17,17 @@ public class CovCatCrud
     public static List<CovCat> TableToList(DataTable table)
     {
         var retVal = new List<CovCat>();
-        CovCat covCat;
         foreach (DataRow row in table.Rows)
         {
-            covCat = new CovCat();
-            covCat.CovCatNum = SIn.Long(row["CovCatNum"].ToString());
-            covCat.Description = SIn.String(row["Description"].ToString());
-            covCat.DefaultPercent = SIn.Int(row["DefaultPercent"].ToString());
-            covCat.CovOrder = SIn.Int(row["CovOrder"].ToString());
-            covCat.IsHidden = SIn.Bool(row["IsHidden"].ToString());
-            covCat.EbenefitCat = (EbenefitCategory) SIn.Int(row["EbenefitCat"].ToString());
+            var covCat = new CovCat
+            {
+                CovCatNum = SIn.Long(row["CovCatNum"].ToString()),
+                Description = SIn.String(row["Description"].ToString()),
+                DefaultPercent = SIn.Int(row["DefaultPercent"].ToString()),
+                CovOrder = SIn.Int(row["CovOrder"].ToString()),
+                IsHidden = SIn.Bool(row["IsHidden"].ToString()),
+                EbenefitCat = (EbenefitCategory) SIn.Int(row["EbenefitCat"].ToString())
+            };
             retVal.Add(covCat);
         }
 
@@ -48,7 +49,7 @@ public class CovCatCrud
         return table;
     }
 
-    public static long Insert(CovCat covCat)
+    public static void Insert(CovCat covCat)
     {
         var command = "INSERT INTO covcat (";
 
@@ -63,7 +64,6 @@ public class CovCatCrud
         {
             covCat.CovCatNum = Db.NonQ(command, true, "CovCatNum", "covCat");
         }
-        return covCat.CovCatNum;
     }
 
     public static void Update(CovCat covCat)

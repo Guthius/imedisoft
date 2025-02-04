@@ -1,27 +1,24 @@
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Data;
 using System.Drawing;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Windows.Forms;
 using MigraDoc.DocumentObjectModel;
 using OpenDental.Bridges;
 using OpenDental.UI;
 using OpenDentBusiness;
 using OpenDentBusiness.HL7;
-using OpenDentBusiness.UI;
 using PdfSharp.Pdf;
 using CodeBase;
-using System.Collections;
 using System.Globalization;
 using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Data;
 using Imedisoft.Core.Entities;
 using Imedisoft.Core.Features.Clinics;
+using Imedisoft.Features.Providers.Dtos;
 using OpenDental.Forms;
 using OpenDental.Logic;
 
@@ -68,8 +65,6 @@ public partial class FormApptEdit:FormODBase {
 	private List<Appointment> _listAppointments;
 	///<summary>Stale deep copy of _listAppointments to use with sync.</summary>
 	private List<Appointment> _listAppointmentsOld;
-	///<summary>Matches list of appointments in comboAppointmentType. Does not include hidden types unless current appointment is of that type.</summary>
-	private List<AppointmentType> _listAppointmentTypes;
 	private List<Benefit> _listBenefits;
 	///<summary>A list of all ClaimProcs that are related to the patient's current procedures</summary>
 	private List<ClaimProc> _listClaimProcs;
@@ -152,11 +147,10 @@ public partial class FormApptEdit:FormODBase {
 				appointmentTypeNum=formApptTypes.SelectedAppointmentType.AppointmentTypeNum;
 			}
 		}
-		warningIntegrity1.SetTypeAndVisibility(EnumWarningIntegrityType.Appointment,Appointments.IsAppointmentHashValid(_appointment));
 		_isOnLoad=true;
 		_timerLockDelay=new Timer();
 		_timerLockDelay.Tick+=timerLockDelay_Tick;
-		_timerLockDelay.Interval=Math.Max((int)(TimeSpan.FromSeconds(PrefC.GetDouble(PrefName.FormClickDelay,doUseEnUSFormat: true)).TotalMilliseconds),1);
+		_timerLockDelay.Interval=Math.Max((int)(TimeSpan.FromSeconds(PrefC.GetDouble(PrefName.FormClickDelay,doUseEnUsFormat: true)).TotalMilliseconds),1);
 		_timerLockDelay.Start();
 		_loadData=ApptEdit.GetLoadData(_appointment);
 		_listProceduresForAppointment=_loadData.ListProceduresForAppointment;
@@ -314,7 +308,7 @@ public partial class FormApptEdit:FormODBase {
 		checkIsHygiene.Checked=_appointment.IsHygiene;
 		//Fill comboAssistant with employees and none option
 		comboAssistant.Items.AddNone<Employee>();
-		var listEmployees=Employees.GetDeepCopy(isShort: true);
+		var listEmployees=Employees.GetDeepCopy(shortList: true);
 		comboAssistant.Items.AddList(listEmployees,x=>x.FName);
 		if(_appointment.Assistant==0) {
 			comboAssistant.SetSelected(0);
@@ -360,43 +354,8 @@ public partial class FormApptEdit:FormODBase {
 		checkIsNewPatient.Checked=_appointment.IsNewPatient;
 		butColor.BackColor=_appointment.ColorOverride;
 		contrApptProvSlider.MinPerIncr=PrefC.GetInt(PrefName.AppointmentTimeIncrement);
-		if(Programs.UsingEcwTightOrFullMode() && !_isInsertRequired) {
-			//These buttons are ONLY for eCW, not any other HL7 interface.
-			butComplete.Visible=true;
-			butPDF.Visible=true;
-			//for eCW, we need to hide some things--------------------
-			if(Bridges.ECW.AptNum==_appointment.AptNum) {
-				butDelete.Visible=false;
-			}
-			butPin.Visible=false;
-			butTask.Visible=false;
-			butAddComm.Visible=false;
-			if(HL7Msgs.MessageWasSent(_appointment.AptNum)) {
-				_isEcwHL7Sent=true;
-				butComplete.Text="Revise";
-				//if(!Security.IsAuthorized(Permissions.Setup,suppressMessage: true)) {
-				//	butComplete.Enabled=false;
-				//	butPDF.Enabled=false;
-				//}
-				butSave.Enabled=false;
-				gridProc.Enabled=false;
-				listQuickAdd.Enabled=false;
-				butAdd.Enabled=false;
-				butDeleteProc.Enabled=false;
-			}
-			else {//hl7 was not sent for this appt
-				_isEcwHL7Sent=false;
-				butComplete.Text="Finish && Send";
-				if(Bridges.ECW.AptNum != _appointment.AptNum) {
-					butComplete.Enabled=false;
-				}
-				butPDF.Enabled=false;
-			}
-		}
-		else {
-			butComplete.Visible=false;
-			butPDF.Visible=false;
-		}
+		butComplete.Visible=false;
+		butPDF.Visible=false;
 		//Hide text message button sometimes
 		if(_patient.WirelessPhone=="" || (!Programs.IsEnabled(ProgramName.CallFire) && !SmsPhones.IsIntegratedTextingEnabled())) {
 			butText.Enabled=false;
@@ -620,7 +579,7 @@ public partial class FormApptEdit:FormODBase {
 	#region Methods - Event Handlers - Click - Center
 	//The following 9 methods are ordered by usage in the center of FormApptEdit.
 	private void butPickDentist_Click(object sender,EventArgs e) {
-		var frmProviderPick=new FrmProviderPick(comboProv.Items.GetAll<Provider>());
+		var frmProviderPick=new FrmProviderPick(comboProv.Items.GetAll<ProviderDto>());
 		frmProviderPick.ProvNumSelected=comboProv.GetSelectedProvNum();
 		frmProviderPick.ShowDialog();
 		if(!frmProviderPick.IsDialogOK) {
@@ -631,7 +590,7 @@ public partial class FormApptEdit:FormODBase {
 	}
 
 	private void butPickHyg_Click(object sender,EventArgs e) {
-		var frmProviderPick=new FrmProviderPick(comboProvHyg.Items.GetAll<Provider>());//none option will show.
+		var frmProviderPick=new FrmProviderPick(comboProvHyg.Items.GetAll<ProviderDto>());//none option will show.
 		frmProviderPick.ProvNumSelected=comboProvHyg.GetSelectedProvNum();
 		frmProviderPick.ShowDialog();
 		if(!frmProviderPick.IsDialogOK) {
@@ -1191,13 +1150,6 @@ public partial class FormApptEdit:FormODBase {
 			hl7Msg.MsgText=messageHL7.ToString();
 			hl7Msg.PatNum=_patient.PatNum;
 			HL7Msgs.Insert(hl7Msg);
-			if(/* ODBuild.IsDebug() */ false) {
-				ODMessageBox.Show(this,messageHL7.ToString());
-			}
-		}
-		else {
-			//Note: _appointment.ProvNum may not reflect the selected provider in comboProv. This is still the Provider that the appointment was last saved with.
-			Bridges.ECW.SendHL7(_appointment.AptNum,_appointment.ProvNum,_patient,pdfDataStr,"progressnotes",justPDF: true,listProcs: null);//justPDF, passing null proc list
 		}
 		MsgBox.Show(this,"Notes PDF sent.");
 	}
@@ -1271,9 +1223,6 @@ public partial class FormApptEdit:FormODBase {
 				hl7ProcAttach.ProcNum=listProceduresForAppts[i].ProcNum;
 				HL7ProcAttaches.Insert(hl7ProcAttach);
 			}
-		}
-		else {
-			Bridges.ECW.SendHL7(_appointment.AptNum,_appointment.ProvNum,_patient,pdfDataStr,"progressnotes",justPDF: false,listProceduresForAppts);
 		}
 		IsEcwCloseOD=true;
 		if(IsNew) {
@@ -1911,7 +1860,7 @@ public partial class FormApptEdit:FormODBase {
 		for(var i = 0;i<listProceduresForDay.Count;i++) {
 			var procedure=listProceduresForDay[i];
 			var procedureCode=ProcedureCodes.GetProcCode(procedure.CodeNum);
-			var provider=Providers.GetDeepCopy().First(x => x.ProvNum==procedure.ProvNum);
+			var provider=Providers.GetDeepCopy().First(x => x.Id==procedure.ProvNum);
 			var userod=Userods.GetUser(procedure.UserNum);
 			var row=new GridRow();
 			row.ColorLborder=System.Drawing.Color.Black;
@@ -2166,9 +2115,6 @@ public partial class FormApptEdit:FormODBase {
 					hl7Msg.MsgText=messageHL7.ToString();
 					hl7Msg.PatNum=_patient.PatNum;
 					HL7Msgs.Insert(hl7Msg);
-					if(/* ODBuild.IsDebug() */ false) {
-						ODMessageBox.Show(this,messageHL7.ToString());
-					}
 				}
 			}
 			if(_appointment.AptNum>0 && HieClinics.IsEnabled()) {//Ignore new appointment delete

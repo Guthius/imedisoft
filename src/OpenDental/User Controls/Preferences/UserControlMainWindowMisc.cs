@@ -1,12 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Data;
-using System.Drawing;
 using System.Globalization;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 using CodeBase;
 using DataConnectionBase;
@@ -140,10 +135,7 @@ public partial class UserControlMainWindowMisc:UserControl {
 		if(comboTrackClinic.SelectedIndex==-1) {
 			comboTrackClinic.SelectedIndex=0;
 		}
-		if(!true) {
-			labelTrackClinic.Visible=false;
-			comboTrackClinic.Visible=false;
-		}
+
 		checkSubmitExceptions.Checked=PrefC.GetBool(PrefName.SendUnhandledExceptionsToHQ);
 		textAuditEntries.Text=PrefC.GetString(PrefName.AuditTrailEntriesDisplayed);
 		//if(PrefC.GetString(PrefName.ReportingServerCompName)=="" && PrefC.GetString(PrefName.ReportingServerURI)=="") {

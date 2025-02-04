@@ -1,11 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Reflection;
 using System.Linq;
 using DataConnectionBase;
-using Imedisoft.Core.Data;
-using Imedisoft.Core.Entities;
 
 namespace OpenDentBusiness {
 	public class RpAppointments {
@@ -15,30 +12,28 @@ namespace OpenDentBusiness {
 			List<long> listConfirmationStatuses,string formSender) 
 		{
 			//Appointment status conditions
-			string whereApptStatus="";
+			var whereApptStatus="";
 			if(listApptStatusesToExclude.Count > 0) {
 				whereApptStatus+=" appointment.AptStatus NOT IN ("+string.Join(",",listApptStatusesToExclude.Select(x => SOut.Int((int)x)))+") AND ";
 			}
 			//Provider Conditions
-			string whereProv="";
+			var whereProv="";
 			if(listProvNums.Count > 0) {
 				whereProv+=" (appointment.ProvNum IN("+string.Join(",",listProvNums)+") "
 					+" OR appointment.ProvHyg IN("+string.Join(",",listProvNums)+")) AND ";
 			}
 			//Clinic Conditions
-			string whereClinics="";
+			var whereClinics="";
 			if(hasClinicsEnabled && listClinicNums.Count > 0) {
 				whereClinics+=" appointment.ClinicNum IN("+string.Join(",",listClinicNums)+") AND ";
 			}
 			//Appointment confirmation conditions
-			string whereConfStatus="";
+			var whereConfStatus="";
 			if(listConfirmationStatuses.Count > 0) {
 				whereConfStatus+=" appointment.Confirmed IN ("+string.Join(",",listConfirmationStatuses)+") AND ";
 			}
-			//WebSched Appointments
-			string innerJoinWebSchedBoth=BuildWebSchedInnerJoin(dateStart,isShowNewPat,isShowRecall,isShowASAP,isShowExistingPat);
 			//Query
-			string command = @"SELECT ";
+			var command = @"SELECT ";
 			if(sortBy==SortAndFilterBy.SecDateTEntry) {
 				command+="appointment.SecDateTEntry,";
 			}
@@ -59,8 +54,7 @@ namespace OpenDentBusiness {
 				appointment.Note,
 				appointment.AptNum
 				FROM appointment
-				INNER JOIN patient ON appointment.PatNum=patient.PatNum "
-				+innerJoinWebSchedBoth+
+				INNER JOIN patient ON appointment.PatNum=patient.PatNum "+
 				@" LEFT JOIN clinic ON appointment.ClinicNum=clinic.ClinicNum 
 				WHERE "
 				+whereApptStatus
@@ -75,49 +69,8 @@ namespace OpenDentBusiness {
 				command+=" appointment.AptDateTime BETWEEN "+SOut.Date(dateStart)+" AND "+SOut.Date(dateEnd.AddDays(1))
 					+" ORDER BY appointment.ClinicNum,appointment.AptDateTime,PatName";
 			}
-			DataTable table=ReportsComplex.GetTable(command);
+			var table=DataCore.GetTable(command);
 			return table;
-		}
-
-		///<summary>If the dateStart for the report is equal to or earlier than the date that they updated to or beyond version 21.1,
-		///we use the securitylog table to filter appointments in the query, otherwise, we use the eservicelog table. We want to
-		///get away from using the securitylog table, but didn't start collecting eservicelog data until version 21.1.</summary>
-		private static string BuildWebSchedInnerJoin(DateTime dateStart,bool isShowNewPat,bool isShowRecall,bool isShowASAP,bool isShowExistingPat) {
-			List<LogSources> listSources=new List<LogSources>();
-			List<eServiceType> listEserviceTypes=new List<eServiceType>();
-			if(isShowNewPat) {
-				listSources.Add(LogSources.WebSchedNewPatAppt);
-				listEserviceTypes.Add(eServiceType.WSNewPat);
-			}
-			if(isShowRecall) {
-				listSources.Add(LogSources.WebSched);
-				listEserviceTypes.Add(eServiceType.WSRecall);
-			}
-			if(isShowASAP) {
-				listSources.Add(LogSources.WebSchedASAP);
-				listEserviceTypes.Add(eServiceType.WSAsap);
-			}
-			if(isShowExistingPat) {
-				listSources.Add(LogSources.WebSchedExistingPatient);
-				listEserviceTypes.Add(eServiceType.WSExistingPat);
-			}
-			DateTime dateUpdateToVersion21_1=UpdateHistories.GetDateForVersion(new Version(21,1,0,0));
-			string innerJoinWebSchedBoth="";
-			if(dateStart.Date <= dateUpdateToVersion21_1.Date) {
-				if(listSources.Count>0) {
-					innerJoinWebSchedBoth=" INNER JOIN securitylog ON appointment.AptNum=securitylog.FKey"
-						+" AND securitylog.PermType="+SOut.Int((int)EnumPermType.AppointmentCreate)
-						+" AND securitylog.LogSource IN ("+string.Join(",",listSources.Select(x => (int)x))+") ";
-				}
-			}
-			else {
-				if(listEserviceTypes.Count>0) {
-					innerJoinWebSchedBoth=" INNER JOIN eservicelog ON appointment.AptNum=eservicelog.FKey"
-						+" AND eservicelog.EserviceAction="+SOut.Int((int)eServiceAction.WSAppointmentScheduledFromServer)
-						+" AND eservicelog.EServiceType IN ("+string.Join(",",listEserviceTypes.Select(x => (int)x))+") ";
-				}
-			}
-			return innerJoinWebSchedBoth;
 		}
 
 		///<summary>Set the date that RpAppointments.GetAppointmentTable will use to sort and filter results.</summary>

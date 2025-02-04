@@ -1,6 +1,3 @@
-using System;
-using System.Windows.Controls;
-
 namespace WpfControls.UI{
 	
 

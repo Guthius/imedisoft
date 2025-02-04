@@ -1,13 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Drawing;
 using System.Linq;
 using System.Windows.Forms;
 using OpenDentBusiness;
 using OpenDental.UI;
 using System.ComponentModel;
 using CodeBase;
-using Imedisoft.Core.Caching;
 using Imedisoft.Core.Data;
 using Imedisoft.Core.Entities;
 using Imedisoft.Core.Features.Clinics;
@@ -32,7 +30,7 @@ public partial class UserControlSecurityUserGroup:UserControl {
 	private ContextMenu contextMenuUsers;
 	#endregion
 	#region Public Variables/Events
-	public LayoutManagerForms LayoutManager=new LayoutManagerForms();
+	
 	///<summary>The form that implements this control should use their own Add and Edit User/UserGroup forms.</summary>
 	public delegate void SecurityTabsEventHandler(object sender,SecurityEventArgs e);
 	///<summary>An eventhandler that returns a DialogResult, so that the form that implements this security tree 
@@ -128,9 +126,6 @@ public partial class UserControlSecurityUserGroup:UserControl {
 	///<summary>Fills the filter comboboxes on the "Users" tab.</summary>
 	private void FillFilters() {
 		foreach(UserFilters filterCur in Enum.GetValues(typeof(UserFilters))) {
-			if(true && (filterCur == UserFilters.Students || filterCur == UserFilters.Instructors)) {
-				continue;
-			}
 			comboShowOnly.Items.Add(Lan.g(this,filterCur.GetDescription()),filterCur);
 		}
 		comboShowOnly.SelectedIndex=0;
@@ -156,7 +151,7 @@ public partial class UserControlSecurityUserGroup:UserControl {
 	private List<Userod> GetFilteredUsersHelper() {
 		var listUserOds = Userods.GetDeepCopy();
 		if(_dictProvNumProvs == null) { //fill the dictionary if needed
-			_dictProvNumProvs=Providers.GetMultProviders(Userods.GetDeepCopy().Select(x => x.ProvNum).ToList()).ToDictionary(x => x.ProvNum,x => x);
+			_dictProvNumProvs=Providers.GetManyByIdNoCache(Userods.GetDeepCopy().Select(x => x.ProvNum).ToList()).ToDictionary(x => x.ProvNum,x => x);
 		}
 		if(!checkShowHidden.Checked) {
 			listUserOds.RemoveAll(x => x.IsHidden);
@@ -168,19 +163,6 @@ public partial class UserControlSecurityUserGroup:UserControl {
 				break;
 			case UserFilters.Providers:
 				listUserOds.RemoveAll(x => x.ProvNum==0);
-				break;
-			case UserFilters.Students:
-				//might not count user as student if attached to invalid providers.
-				listUserOds.RemoveAll(x => !_dictProvNumProvs.ContainsKey(x.ProvNum) || _dictProvNumProvs[x.ProvNum].IsInstructor);
-				if(classNum>0) {
-					listUserOds.RemoveAll(x => _dictProvNumProvs[x.ProvNum].SchoolClassNum!=classNum);
-				}
-				break;
-			case UserFilters.Instructors:
-				listUserOds.RemoveAll(x => !_dictProvNumProvs.ContainsKey(x.ProvNum) || !_dictProvNumProvs[x.ProvNum].IsInstructor);
-				if(classNum>0) {
-					listUserOds.RemoveAll(x => _dictProvNumProvs[x.ProvNum].SchoolClassNum!=classNum);
-				}
 				break;
 			case UserFilters.Other:
 				listUserOds.RemoveAll(x => x.EmployeeNum!=0 || x.ProvNum!=0);
@@ -201,8 +183,6 @@ public partial class UserControlSecurityUserGroup:UserControl {
 					listUserOds.RemoveAll(x => !Employees.GetName(x.EmployeeNum).ToLower().Contains(textPowerSearch.Text.ToLower()));
 					break;
 				case UserFilters.Providers:
-				case UserFilters.Students:
-				case UserFilters.Instructors:
 					listUserOds.RemoveAll(x => !_dictProvNumProvs[x.ProvNum].GetLongDesc().ToLower().Contains(textPowerSearch.Text.ToLower()));
 					break;
 				case UserFilters.AllUsers:
@@ -252,8 +232,6 @@ public partial class UserControlSecurityUserGroup:UserControl {
 				filterType="Employee Name";
 				break;
 			case UserFilters.Providers:
-			case UserFilters.Students:
-			case UserFilters.Instructors:
 				filterType="Provider Name";
 				break;
 			case UserFilters.AllUsers:
@@ -444,8 +422,6 @@ public partial class UserControlSecurityUserGroup:UserControl {
 		AllUsers=0,
 		Providers,
 		Employees,
-		Students,
-		Instructors,
 		Other,
 	}
 

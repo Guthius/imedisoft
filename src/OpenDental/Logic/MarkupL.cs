@@ -11,8 +11,6 @@ namespace OpenDental;
 ///<summary>Used for wiki and HTML email editing.</summary>
 public class MarkupL
 {
-    private static string _lanThis = "MarkupEdit";
-
     public static void AddTag(string tagStart, string tagClose, ODcodeBox codeBox)
     {
         var startSelection = codeBox.SelectionStart;

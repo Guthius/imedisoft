@@ -1,14 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.ComponentModel;
 using System.Text.RegularExpressions;
 using System.Windows.Forms;
 using OpenDentBusiness;
 using CodeBase;
 using DataConnectionBase;
 using Imedisoft.Core.Caching;
-using Imedisoft.Core.Data;
 using Imedisoft.Core.Entities;
 
 namespace OpenDental;
@@ -22,26 +20,13 @@ public partial class FormRepeatChargeEdit :FormODBase{
 	private RepeatCharge _repeatCharge;
 	private RepeatCharge _repeatChargeOld;
 	private bool _isErx;
-
-	///<summary>The eService that this procedure is associated to if it associated to one.</summary>
-	private eServiceCode _eServiceCode;
-	private bool _isMassEmail;
-
-	private bool IsForZipwhip() {
-		return _eServiceCode.In(eServiceCode.IntegratedTexting,eServiceCode.ConfirmationRequest);
-	}
-
-		
+	
 	public FormRepeatChargeEdit(RepeatCharge repeatCur)
 	{
-		//
-		// Required for Windows Form Designer support
-		//
 		InitializeComponent();
 
 		_repeatCharge=repeatCur;
 		_repeatChargeOld=repeatCur.Copy();
-		_isMassEmail=_repeatCharge.ProcCode==ProcedureCodes.GetProcCodeForEService(eServiceCode.EmailMassUsage);
 	}
 
 	private void FormRepeatChargeEdit_Load(object sender,EventArgs e) {
@@ -114,62 +99,10 @@ public partial class FormRepeatChargeEdit :FormODBase{
 		}
 	}
 
-	///<summary>Recursively disables all controls for the control passed in by looping through any sub controls and disabling them.</summary>
-	private void SetFormReadOnly(Control controlsInput,params Control[] controlsToIgnore) {
-		for(var i=0;i<controlsInput.Controls.Count;i++) { 
-			for(var j=0;j<controlsInput.Controls[i].Controls.Count;j++) {
-				SetFormReadOnly(controlsInput.Controls[i].Controls[j]);
-			}
-			if(controlsToIgnore.Contains(controlsInput.Controls[i])) {
-				continue;
-			}
-			try {
-				controlsInput.Controls[i].Enabled=false;
-			}
-			catch(Exception e) {
-			}
-		}
-	}
-
 	private void SetPatient() {
 		//Set the title bar to show the patient's name much like the main screen does.
 		Text+=" - "+Patients.GetLim(_repeatCharge.PatNum).GetNameLF();
 		textPatNum.Text=_repeatCharge.PatNum.ToString();
-	}
-
-	///<summary>Adds the procedure code of the repeating charge to a credit card on the patient's account if the user okays it.</summary>
-	private void AddProcedureToCC() {
-		var listCreditCards=CreditCards.GetActiveCards(_repeatCharge.PatNum);
-		if(listCreditCards.Count==0) {
-			return;
-		}
-		CreditCard creditCard=null;
-		if(listCreditCards.Count==1) { //Only one active card so ask the user to add the procedure to that one
-			if(MsgBox.Show(this,MsgBoxButtons.YesNo,"There is one active credit card on this patient's account.\r\nDo you want to add this procedure to "+
-			                                        "that card?")) {
-				creditCard=listCreditCards[0];
-			}
-		}
-		else if(listCreditCards.FindAll(x => x.Procedures!="").Count==1) { //Only one card has procedures attached so ask the user to add to that card
-			if(MsgBox.Show(this,MsgBoxButtons.YesNo,"There is one active credit card on this patient's account with authorized procedures attached.\r\n"
-			                                        +"Do you want to add this procedure to that card?")) {
-				creditCard=listCreditCards.FirstOrDefault(x => x.Procedures!="");
-			}
-		}
-		else { //At least two cards have procedures attached to them or there are multiple active cards and none have procedures attached
-			MsgBox.Show(this,"If you would like to add this procedure to a credit card, go to Credit Card Manage to choose the card.");
-		}
-		if(creditCard==null) {
-			return;
-		}
-		//Check if the procedure is already attached to this card; CreditCard.Procedures is a comma delimited list.
-		var listProcsOnCard=creditCard.Procedures.Split([","],StringSplitOptions.RemoveEmptyEntries).ToList();
-		if(listProcsOnCard.Exists(x => x==_repeatCharge.ProcCode)) {
-			return;
-		}
-		listProcsOnCard.Add(_repeatCharge.ProcCode);
-		creditCard.Procedures=string.Join(",",listProcsOnCard);
-		CreditCards.Update(creditCard);
 	}
 
 	private void checkUseUnearned_CheckedChanged(object sender,EventArgs e) {
@@ -260,8 +193,7 @@ public partial class FormRepeatChargeEdit :FormODBase{
 		if(!textChargeAmt.IsValid()
 		   || !textDateStart.IsValid()
 		   || !textDateStop.IsValid()
-		   || !textBillingDay.IsValid()
-		   || (IsForZipwhip() && !textZipwhipChargeAmount.IsValid())) 
+		   || !textBillingDay.IsValid()) 
 		{
 			MsgBox.Show(this,"Please fix data entry errors first.");
 			return false;
@@ -297,14 +229,6 @@ public partial class FormRepeatChargeEdit :FormODBase{
 			MsgBox.Show(this,"Invalid ErxAccountId.");
 			return false;
 		}
-		if((IsForZipwhip() || _isMassEmail) && CompareDouble.IsGreaterThan(_repeatCharge.ChargeAmtAlt,-1) && textZipwhipChargeAmount.Text.Trim()=="") {
-			if(_isMassEmail) {
-				MsgBox.Show(this,"Usage Rate must not be blank when it was previously set.");
-				return false;
-			}
-			MsgBox.Show(this,"Zipwhip Amount must not be blank when it was previously set.");
-			return false;
-		}
 		repeatCharge.ProcCode=textCode.Text;
 		repeatCharge.ChargeAmt=SIn.Double(textChargeAmt.Text);
 		repeatCharge.Frequency=(EnumRepeatChargeFrequency)comboFrequencyTypes.SelectedItem;
@@ -321,9 +245,6 @@ public partial class FormRepeatChargeEdit :FormODBase{
 		repeatCharge.UnearnedTypes="";//If 'All' is selected. An empty database column indicates all unearned types are to be used.
 		if(!comboUnearnedTypes.IsAllSelected) {
 			repeatCharge.UnearnedTypes=string.Join(",",comboUnearnedTypes.GetListSelected<Def>().Select(x => x.DefNum));
-		}
-		if((IsForZipwhip() || _isMassEmail) && textZipwhipChargeAmount.Text.Trim()!="") {
-			repeatCharge.ChargeAmtAlt=Currency.Round(SIn.Double(textZipwhipChargeAmount.Text));
 		}
 		return true;
 	}
@@ -351,13 +272,10 @@ public partial class FormRepeatChargeEdit :FormODBase{
 			}
 			_repeatCharge.RepeatChargeNum=RepeatCharges.Insert(_repeatCharge);
 			RepeatCharges.InsertRepeatChargeChangeSecurityLogEntry(_repeatCharge,EnumPermType.RepeatChargeCreate,patientOldChange,isAutomated:false);
-			if(false) {
-				AddProcedureToCC();
-			}
 		}
 		else{ //not a new repeat charge
 			RepeatCharges.InsertRepeatChargeChangeSecurityLogEntry(_repeatChargeOld,EnumPermType.RepeatChargeUpdate,patientOldChange,newCharge:_repeatCharge,isAutomated:false,newPat:patientNewChange);
-			RepeatCharges.Update(_repeatCharge,true);
+			RepeatCharges.Update(_repeatCharge);
 		}
 		DialogResult=DialogResult.OK;
 	}

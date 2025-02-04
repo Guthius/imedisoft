@@ -1,5 +1,5 @@
 using System;
-using System.Collections.Generic;
+using System.ComponentModel;
 using System.Windows.Forms;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Data;
@@ -9,124 +9,170 @@ using OpenDentBusiness;
 
 namespace OpenDental;
 
-public partial class FormStateAbbrs:FormODBase {
-	private bool _isChanged;
-	public bool IsSelectionMode;
-	public StateAbbr StateAbbrSelected;
-		
-		
-	public FormStateAbbrs() {
-		InitializeComponent();
-	}
+public partial class FormStateAbbrs : FormODBase
+{
+    private bool _changed;
 
-	private void FormStateAbbrs_Load(object sender, System.EventArgs e) {
-		if(IsSelectionMode) {
-			butAdd.Visible=false;
-		}
-		if(PrefC.GetBool(PrefName.EnforceMedicaidIDLength)) {
-			this.Width+=100;//Also increases grid width due to anchoring.
-		}
-		FillGrid();
-	}
+    public bool IsSelectionMode { get; set; }
+    public StateAbbr SelectedStateAbbr { get; set; }
 
-	private void FillGrid(){
-		long stateAbbrNumPreviousSelected=-1;
-		var idxNewSelected=-1;
-		if(gridMain.GetSelectedIndex()!=-1){
-			stateAbbrNumPreviousSelected=((StateAbbr)gridMain.ListGridRows[gridMain.GetSelectedIndex()].Tag).StateAbbrNum;
-		}
-		gridMain.BeginUpdate();
-		gridMain.Columns.Clear();
-		var col=new GridColumn(Lan.g("FormStateAbbrs","Description"),175);
-		gridMain.Columns.Add(col);
-		col=new GridColumn(Lan.g("FormStateAbbrs","Abbr"),70);
-		gridMain.Columns.Add(col);
-		if(PrefC.GetBool(PrefName.EnforceMedicaidIDLength)) {
-			col=new GridColumn(Lan.g("FormStateAbbrs","Medicaid ID Length"),200);
-			gridMain.Columns.Add(col);
-		}
-		gridMain.ListGridRows.Clear();
-		GridRow row;
-		var listStateAbbrs=StateAbbrs.GetDeepCopy();
-		for(var i=0;i<listStateAbbrs.Count;i++) {
-			row=new GridRow();
-			row.Cells.Add(listStateAbbrs[i].Description);
-			row.Cells.Add(listStateAbbrs[i].Abbr);
-			if(PrefC.GetBool(PrefName.EnforceMedicaidIDLength)) {
-				if(listStateAbbrs[i].MedicaidIDLength==0) {
-					row.Cells.Add("");
-				}
-				else {
-					row.Cells.Add(listStateAbbrs[i].MedicaidIDLength.ToString());
-				}
-			}
-			row.Tag=listStateAbbrs[i];
-			gridMain.ListGridRows.Add(row);
-			if(listStateAbbrs[i].StateAbbrNum==stateAbbrNumPreviousSelected) {
-				idxNewSelected=i;
-			}
-		}
-		gridMain.EndUpdate();
-		gridMain.SetSelected(idxNewSelected,true);
-	}
+    public FormStateAbbrs()
+    {
+        InitializeComponent();
+    }
 
-	private void butAdd_Click(object sender, System.EventArgs e) {
-		if(!Security.IsAuthorized(EnumPermType.Setup)) {
-			return;
-		}
-		SecurityLogs.MakeLogEntry(EnumPermType.Setup,0,"StateAbbrs");
-		var stateAbbr=new StateAbbr();
-		stateAbbr.IsNew=true;
-		using var formStateAbbrEdit=new FormStateAbbrEdit(stateAbbr);
-		formStateAbbrEdit.ShowDialog();
-		if(formStateAbbrEdit.DialogResult!=DialogResult.OK) {
-			return;
-		}
-		_isChanged=true;
-		Cache.Refresh(InvalidType.StateAbbrs);
-		FillGrid();
-	}
+    private void FormStateAbbrs_Load(object sender, EventArgs e)
+    {
+        if (IsSelectionMode)
+        {
+            butAdd.Visible = false;
+        }
 
-	private void gridMain_CellDoubleClick(object sender,ODGridClickEventArgs e) {
-		if(gridMain.GetSelectedIndex()==-1) {
-			return;
-		}
-		if(!Security.IsAuthorized(EnumPermType.Setup)) {
-			return;
-		}
-		SecurityLogs.MakeLogEntry(EnumPermType.Setup,0,"StateAbbrs");
-		if(IsSelectionMode) {
-			StateAbbrSelected=(StateAbbr)gridMain.ListGridRows[gridMain.GetSelectedIndex()].Tag;
-			DialogResult=DialogResult.OK;
-			return;
-		}
-		using var formStateAbbrEdit=new FormStateAbbrEdit((StateAbbr)gridMain.ListGridRows[gridMain.GetSelectedIndex()].Tag);
-		formStateAbbrEdit.ShowDialog();
-		if(formStateAbbrEdit.DialogResult!=DialogResult.OK) {
-			return;
-		}
-		_isChanged=true;
-		Cache.Refresh(InvalidType.StateAbbrs);
-		FillGrid();
-	}
+        if (PrefC.GetBool(PrefName.EnforceMedicaidIDLength))
+        {
+            Width += 100;
+        }
 
-	private void butOK_Click(object sender,EventArgs e) {
-		if(!IsSelectionMode) {
-			DialogResult=DialogResult.OK;
-			return;
-		}
-		if(gridMain.GetSelectedIndex()==-1) {
-			MsgBox.Show(this,"Please select a state.");
-			return;
-		}
-		StateAbbrSelected=(StateAbbr)gridMain.ListGridRows[gridMain.GetSelectedIndex()].Tag;
-		DialogResult=DialogResult.OK;
-	}
+        FillGrid();
+    }
 
-	private void FormStateAbbrs_Closing(object sender, System.ComponentModel.CancelEventArgs e) {
-		if(_isChanged){
-			DataValid.SetInvalid(InvalidType.StateAbbrs);
-		}
-	}
+    private void FormStateAbbrs_Closing(object sender, CancelEventArgs e)
+    {
+        if (_changed)
+        {
+            DataValid.SetInvalid(InvalidType.StateAbbrs);
+        }
+    }
 
+    private void FillGrid()
+    {
+        long previousSelectedStateAbbrNum = -1;
+        
+        var newSelectedIndex = -1;
+        if (gridMain.GetSelectedIndex() != -1)
+        {
+            previousSelectedStateAbbrNum = ((StateAbbr) gridMain.ListGridRows[gridMain.GetSelectedIndex()].Tag).StateAbbrNum;
+        }
+
+        gridMain.BeginUpdate();
+
+        gridMain.Columns.Clear();
+        gridMain.Columns.Add(new GridColumn("Description", 175));
+        gridMain.Columns.Add(new GridColumn("Abbr", 70));
+
+        if (PrefC.GetBool(PrefName.EnforceMedicaidIDLength))
+        {
+            gridMain.Columns.Add(new GridColumn("Medicaid ID Length", 200));
+        }
+
+        gridMain.ListGridRows.Clear();
+
+        var stateAbbrs = StateAbbrs.GetDeepCopy();
+        for (var i = 0; i < stateAbbrs.Count; i++)
+        {
+            var gridRow = new GridRow();
+
+            gridRow.Cells.Add(stateAbbrs[i].Description);
+            gridRow.Cells.Add(stateAbbrs[i].Abbr);
+
+            if (PrefC.GetBool(PrefName.EnforceMedicaidIDLength))
+            {
+                gridRow.Cells.Add(stateAbbrs[i].MedicaidIDLength == 0 ? "" : stateAbbrs[i].MedicaidIDLength.ToString());
+            }
+
+            gridRow.Tag = stateAbbrs[i];
+
+            gridMain.ListGridRows.Add(gridRow);
+
+            if (stateAbbrs[i].StateAbbrNum == previousSelectedStateAbbrNum)
+            {
+                newSelectedIndex = i;
+            }
+        }
+
+        gridMain.EndUpdate();
+        gridMain.SetSelected(newSelectedIndex);
+    }
+
+    private void ButtonAdd_Click(object sender, EventArgs e)
+    {
+        if (!Security.IsAuthorized(EnumPermType.Setup))
+        {
+            return;
+        }
+
+        SecurityLogs.MakeLogEntry(EnumPermType.Setup, 0, "StateAbbrs");
+
+        var stateAbbr = new StateAbbr
+        {
+            IsNew = true
+        };
+
+        using var formStateAbbrEdit = new FormStateAbbrEdit(stateAbbr);
+
+        if (formStateAbbrEdit.ShowDialog() != DialogResult.OK)
+        {
+            return;
+        }
+
+        _changed = true;
+
+        Cache.Refresh(InvalidType.StateAbbrs);
+
+        FillGrid();
+    }
+
+    private void GridMain_CellDoubleClick(object sender, ODGridClickEventArgs e)
+    {
+        if (gridMain.GetSelectedIndex() == -1)
+        {
+            return;
+        }
+
+        if (!Security.IsAuthorized(EnumPermType.Setup))
+        {
+            return;
+        }
+
+        SecurityLogs.MakeLogEntry(EnumPermType.Setup, 0, "StateAbbrs");
+
+        if (IsSelectionMode)
+        {
+            SelectedStateAbbr = (StateAbbr) gridMain.ListGridRows[gridMain.GetSelectedIndex()].Tag;
+            DialogResult = DialogResult.OK;
+            return;
+        }
+
+        using var formStateAbbrEdit = new FormStateAbbrEdit((StateAbbr) gridMain.ListGridRows[gridMain.GetSelectedIndex()].Tag);
+
+        if (formStateAbbrEdit.ShowDialog() != DialogResult.OK)
+        {
+            return;
+        }
+
+        _changed = true;
+
+        Cache.Refresh(InvalidType.StateAbbrs);
+
+        FillGrid();
+    }
+
+    private void ButtonAccept_Click(object sender, EventArgs e)
+    {
+        if (!IsSelectionMode)
+        {
+            DialogResult = DialogResult.OK;
+            return;
+        }
+
+        if (gridMain.GetSelectedIndex() == -1)
+        {
+            ShowError("Please select a state.");
+            return;
+        }
+
+        SelectedStateAbbr = (StateAbbr) gridMain.ListGridRows[gridMain.GetSelectedIndex()].Tag;
+
+        DialogResult = DialogResult.OK;
+    }
 }

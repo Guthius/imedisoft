@@ -92,19 +92,19 @@ public static class DisplayReports
 
     private static readonly DisplayReportCache Cache = new();
 
-    public static List<DisplayReport> GetDeepCopy(bool isShort = false)
+    public static List<DisplayReport> GetDeepCopy(bool shortList = false)
     {
-        return Cache.GetDeepCopy(isShort);
+        return Cache.GetDeepCopy(shortList);
     }
 
-    public static List<DisplayReport> GetWhere(Predicate<DisplayReport> match, bool isShort = false)
+    public static List<DisplayReport> GetWhere(Predicate<DisplayReport> predicate, bool shortList = false)
     {
-        return Cache.GetWhere(match, isShort);
+        return Cache.GetWhere(predicate, shortList);
     }
 
-    public static DataTable GetTableFromCache(bool doRefreshCache)
+    public static DataTable GetTableFromCache(bool refreshCache)
     {
-        return Cache.GetTableFromCache(doRefreshCache);
+        return Cache.GetTableFromCache(refreshCache);
     }
 
     public static void ClearCache()

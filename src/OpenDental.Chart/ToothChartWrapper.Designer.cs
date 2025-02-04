@@ -1,4 +1,4 @@
-namespace SparksToothChart {
+namespace OpenDental.Chart {
 	partial class ToothChartWrapper {
 		/// <summary> 
 		/// Required designer variable.
@@ -23,7 +23,7 @@ namespace SparksToothChart {
 		/// the contents of this method with the code editor.
 		/// </summary>
 		private void InitializeComponent() {
-			this.toothChart2D = new SparksToothChart.ToothChart2D();
+			this.toothChart2D = new ToothChart2D();
 			this.SuspendLayout();
 			// 
 			// toothChart2D

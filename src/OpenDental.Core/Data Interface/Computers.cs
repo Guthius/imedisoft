@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Data;
-using CodeBase;
 using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Crud;
@@ -13,108 +12,97 @@ public class Computers
 {
     public static void Delete(Computer computer)
     {
-        //Delete any accociated printer settings from the printer table
-        var command = $"DELETE FROM printer WHERE ComputerNum={SOut.Long(computer.ComputerNum)}";
-        Db.NonQ(command);
-        command = $"DELETE FROM computer WHERE ComputerNum={SOut.Long(computer.ComputerNum)}";
-        Db.NonQ(command);
+        Db.NonQ($"DELETE FROM printer WHERE ComputerNum={computer.ComputerNum}");
+        Db.NonQ($"DELETE FROM computer WHERE ComputerNum={computer.ComputerNum}");
     }
 
     public static Computer GetCur()
     {
-        return GetFirstOrDefault(x => x.CompName.ToUpper() == ODEnvironment.MachineName.ToUpper());
+        return GetFirstOrDefault(x => string.Equals(x.CompName, Environment.MachineName, StringComparison.CurrentCultureIgnoreCase));
     }
 
-    public static void UpdateHeartBeat(string computerName, bool isStartup)
+    public static void UpdateHeartBeat(string computerName, bool startup)
     {
-        string command;
-        if (isStartup)
+        if (startup)
         {
-            command = "UPDATE computer SET LastHeartBeat=" + "NOW()" + " WHERE CompName = '" + SOut.String(computerName) + "'";
-            Db.NonQ(command);
+            Db.NonQ("UPDATE computer SET LastHeartBeat = NOW() WHERE CompName = '" + SOut.String(computerName) + "'");
             return;
         }
 
         if (Cache.ListIsNull() || !Cache.GetExists(x => x.CompName == computerName))
-            //RefreshCache if computer name doesn't exist in cache. Happens in cloud when a new computer connects to the db and is assigned the "UNKNOWN" name that is later updated
-            //when the ODCloudClient sets the ODEnvironment.MachineName property.   RefreshCache will insert the new computer row with CompName=ODEnvironment.MachineName.
-            RefreshCache(); //adds new computer to list
-        command = "SELECT LastHeartBeat<ADDDATE(NOW(), INTERVAL -3 MINUTE) FROM computer WHERE CompName='" + SOut.String(computerName) + "'";
-        if (!SIn.Bool(DataCore.GetScalar(command))) //no need to update if LastHeartBeat is already within the last 3 mins
-            return; //remote app servers with multiple connections would fight over the lock on a single row to update the heartbeat unnecessarily
-        command = "UPDATE computer SET LastHeartBeat=NOW() WHERE CompName = '" + SOut.String(computerName) + "'";
-        Db.NonQ(command);
+        {
+            RefreshCache();
+        }
+        
+        var commandText = "SELECT LastHeartBeat<ADDDATE(NOW(), INTERVAL -3 MINUTE) FROM computer WHERE CompName='" + SOut.String(computerName) + "'";
+        if (!SIn.Bool(DataCore.GetScalar(commandText)))
+        {
+            return;
+        }
+        
+        Db.NonQ("UPDATE computer SET LastHeartBeat=NOW() WHERE CompName = '" + SOut.String(computerName) + "'");
     }
 
     public static void ClearHeartBeat(string computerName)
     {
-        var command = "UPDATE computer SET LastHeartBeat=" + SOut.Date(new DateTime(0001, 1, 1), true) + " WHERE CompName = '" + SOut.String(computerName) + "'";
-        Db.NonQ(command);
+        Db.NonQ("UPDATE computer SET LastHeartBeat=" + SOut.Date(new DateTime(0001, 1, 1)) + " WHERE CompName = '" + SOut.String(computerName) + "'");
     }
 
     public static void ClearAllHeartBeats(string machineNameException)
     {
-        var command = "UPDATE computer SET LastHeartBeat=" + SOut.Date(new DateTime(0001, 1, 1), true) + " "
-                      + "WHERE CompName != '" + SOut.String(machineNameException) + "'";
-        Db.NonQ(command);
+        Db.NonQ("UPDATE computer SET LastHeartBeat=" + SOut.Date(new DateTime(0001, 1, 1)) + " WHERE CompName != '" + SOut.String(machineNameException) + "'");
     }
 
     public static List<string> GetServiceInfo()
     {
-        var listStringsServiceInfo = new List<string>();
-        var table = DataCore.GetTable("SHOW VARIABLES WHERE Variable_name='socket'"); //service name
-        if (table.Rows.Count > 0)
-            listStringsServiceInfo.Add(table.Rows[0]["VALUE"].ToString());
-        else
-            listStringsServiceInfo.Add("Not Found");
-        table = DataCore.GetTable("SHOW VARIABLES WHERE Variable_name='version_comment'"); //service comment
-        if (table.Rows.Count > 0)
-            listStringsServiceInfo.Add(table.Rows[0]["VALUE"].ToString());
-        else
-            listStringsServiceInfo.Add("Not Found");
-        table = null;
+        var serviceInfo = new List<string>();
+        
+        var dataTable = DataCore.GetTable("SHOW VARIABLES WHERE Variable_name='socket'");
+        
+        serviceInfo.Add(dataTable.Rows.Count > 0 ? dataTable.Rows[0]["VALUE"].ToString() : "Not Found");
+        
+        dataTable = DataCore.GetTable("SHOW VARIABLES WHERE Variable_name='version_comment'");
+        
+        serviceInfo.Add(dataTable.Rows.Count > 0 ? dataTable.Rows[0]["VALUE"].ToString() : "Not Found");
+
+        dataTable = null;
         try
         {
-            table = DataCore.GetTable("SELECT @@hostname"); //server name
+            dataTable = DataCore.GetTable("SELECT @@hostname");
         }
         catch
         {
-            listStringsServiceInfo.Add("Not Found"); //hostname variable doesn't exist
+            serviceInfo.Add("Not Found");
         }
 
-        if (table != null)
+        if (dataTable is not null)
         {
-            if (table.Rows.Count > 0)
-                listStringsServiceInfo.Add(table.Rows[0][0].ToString());
-            else
-                listStringsServiceInfo.Add("Not Found");
+            serviceInfo.Add(dataTable.Rows.Count > 0 ? dataTable.Rows[0][0].ToString() : "Not Found");
         }
 
-        listStringsServiceInfo.Add(MiscData.GetMySqlVersion());
-        var dbName = "";
+        serviceInfo.Add(MiscData.GetMySqlVersion());
+        string databaseName;
         try
         {
-            dbName = MiscData.GetCurrentDatabase(); //database name
+            databaseName = MiscData.GetCurrentDatabase();
         }
         catch
         {
-            listStringsServiceInfo.Add("Not Found."); //database variable doesn't exist
-            return listStringsServiceInfo;
+            serviceInfo.Add("Not Found.");
+            
+            return serviceInfo;
         }
 
-        if (string.IsNullOrEmpty(dbName))
-            listStringsServiceInfo.Add("Not Found");
-        else
-            listStringsServiceInfo.Add(dbName);
-        return listStringsServiceInfo;
+        serviceInfo.Add(string.IsNullOrEmpty(databaseName) ? "Not Found" : databaseName);
+        
+        return serviceInfo;
     }
     
     private class ComputerCache : CacheListAbs<Computer>
     {
         protected override List<Computer> GetCacheFromDb()
         {
-            var command = "SELECT * FROM computer ORDER BY CompName";
-            return ComputerCrud.SelectMany(command);
+            return ComputerCrud.SelectMany("SELECT * FROM computer ORDER BY CompName");
         }
 
         protected override List<Computer> TableToList(DataTable dataTable)
@@ -140,14 +128,14 @@ public class Computers
     
     private static readonly ComputerCache Cache = new();
 
-    public static List<Computer> GetDeepCopy(bool isShort = false)
+    public static List<Computer> GetDeepCopy(bool shortList = false)
     {
-        return Cache.GetDeepCopy(isShort);
+        return Cache.GetDeepCopy(shortList);
     }
 
-    public static Computer GetFirstOrDefault(Func<Computer, bool> match, bool isShort = false)
+    public static Computer GetFirstOrDefault(Func<Computer, bool> predicate, bool shortList = false)
     {
-        return Cache.GetFirstOrDefault(match, isShort);
+        return Cache.GetFirstOrDefault(predicate, shortList);
     }
 
     public static void RefreshCache()
@@ -155,9 +143,9 @@ public class Computers
         GetTableFromCache(true);
     }
 
-    public static DataTable GetTableFromCache(bool doRefreshCache)
+    public static DataTable GetTableFromCache(bool refreshCache)
     {
-        return Cache.GetTableFromCache(doRefreshCache);
+        return Cache.GetTableFromCache(refreshCache);
     }
 
     public static void ClearCache()

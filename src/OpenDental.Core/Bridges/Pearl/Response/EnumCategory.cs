@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace OpenDentBusiness.Pearl {
+﻿namespace OpenDentBusiness.Pearl {
 //Caries - Progressed or Caries - Incipient based depends if there exists dentin in the relationships metric_value
 
 	///<summary>Pearl's enum for annotation categories. This will be used to set the ImageDraw's PearlLayer using EnumCategoryOD when processing results.</summary>

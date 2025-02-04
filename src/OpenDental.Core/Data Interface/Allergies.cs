@@ -6,13 +6,8 @@ using Imedisoft.Core.Entities;
 
 namespace OpenDentBusiness;
 
-public class Allergies
+public static class Allergies
 {
-    public static List<Allergy> Refresh(long patNum)
-    {
-        return AllergyCrud.SelectMany("SELECT * FROM allergy WHERE PatNum = " + patNum);
-    }
-
     public static void Insert(Allergy allergy)
     {
         AllergyCrud.Insert(allergy);
@@ -23,21 +18,16 @@ public class Allergies
         AllergyCrud.Update(allergy);
     }
 
-    public static void Delete(long allergyNum)
-    {
-        Db.NonQ("DELETE FROM allergy WHERE AllergyNum = " + allergyNum);
-    }
-
     public static List<Allergy> GetAll(long patNum, bool showInactive)
     {
-        var command = "SELECT * FROM allergy WHERE PatNum = " + patNum;
+        var commandText = "SELECT * FROM allergy WHERE PatNum = " + patNum;
 
         if (!showInactive)
         {
-            command += " AND StatusIsActive<>0";
+            commandText += " AND StatusIsActive <> 0";
         }
 
-        return AllergyCrud.SelectMany(command);
+        return AllergyCrud.SelectMany(commandText);
     }
 
     public static List<Allergy> GetPatientData(long patNum)
@@ -49,8 +39,8 @@ public class Allergies
     {
         var dataTable = DataCore.GetTable(
             "SELECT CONCAT(CONCAT(CONCAT(CONCAT(LName, ', '), FName), ' '), Preferred) FROM allergy,patient " +
-            "WHERE allergy.PatNum=patient.PatNum " +
-            "AND allergy.AllergyDefNum=" + allergyDefNum);
+            "WHERE allergy.PatNum = patient.PatNum " +
+            "AND allergy.AllergyDefNum = " + allergyDefNum);
 
         var patNames = new string[dataTable.Rows.Count];
 
@@ -73,17 +63,5 @@ public class Allergies
             "SELECT DISTINCT PatNum FROM allergy " +
             "WHERE PatNum IN (" + string.Join(",", patNums) + ") " +
             "AND allergy.AllergyDefNum != " + PrefC.GetLong(PrefName.AllergiesIndicateNone));
-    }
-
-    public static void ResetTimeStamps(long patNum, bool onlyActive)
-    {
-        var command = "UPDATE allergy SET DateTStamp = CURRENT_TIMESTAMP WHERE PatNum =" + patNum;
-
-        if (onlyActive)
-        {
-            command += " AND StatusIsActive = 1";
-        }
-
-        Db.NonQ(command);
     }
 }

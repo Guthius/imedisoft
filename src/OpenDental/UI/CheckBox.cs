@@ -1,19 +1,9 @@
 ﻿using CodeBase;
-using Health.Direct.Common.Extensions;
-using OpenDentBusiness;
 using System;
-using System.Collections.Generic;
 using System.ComponentModel;
-using System.ComponentModel.Design.Serialization;
-using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Drawing2D;
-using System.Linq;
-using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
-using System.Windows.Markup;
 
 namespace OpenDental.UI;
 //Jordan is the only one allowed to edit this file.
@@ -23,7 +13,7 @@ namespace OpenDental.UI;
 ///<summary>Designed to replace the stock MS checkBox throughout OD.</summary>
 public partial class CheckBox : Control {
 	#region Fields - Public
-	public LayoutManagerForms LayoutManager=new LayoutManagerForms();
+	
 	public bool IsTextClickable=true;
 	#endregion Fields - Public
 
@@ -144,7 +134,7 @@ public partial class CheckBox : Control {
 	//[Category("Appearance")]
 	//[Description("The text associated with the control.")]
 	//[DefaultValue("")]
-	public string Text{
+	public new string Text{
 		get{
 			return base.Text;
 		}

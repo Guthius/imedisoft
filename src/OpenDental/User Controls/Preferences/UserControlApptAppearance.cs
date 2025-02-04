@@ -1,11 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 using CodeBase;
 using DataConnectionBase;
@@ -90,7 +85,7 @@ public partial class UserControlApptAppearance:UserControl {
 			else {
 				comboDelay.Items.Add(seconds.ToString("f1") + " "+Lan.g(this,"seconds"),seconds);
 			}
-			if(PrefC.GetDouble(PrefName.FormClickDelay,doUseEnUSFormat: true)==seconds) {
+			if(PrefC.GetDouble(PrefName.FormClickDelay,doUseEnUsFormat: true)==seconds) {
 				comboDelay.SelectedIndex=i;
 			}
 		}
@@ -121,10 +116,6 @@ public partial class UserControlApptAppearance:UserControl {
 		comboApptSchedEnforceSpecialty.Items.AddList(Enum.GetValues(typeof(ApptSchedEnforceSpecialty)).OfType<ApptSchedEnforceSpecialty>()
 			.Select(x => x.GetDescription()).ToArray());
 		comboApptSchedEnforceSpecialty.SelectedIndex=PrefC.GetInt(PrefName.ApptSchedEnforceSpecialty);
-		if(!true) {
-			comboApptSchedEnforceSpecialty.Visible=false;
-			labelApptSchedEnforceSpecialty.Visible=false;
-		}
 		checkReplaceBlockouts.Checked=PrefC.GetBool(PrefName.ReplaceExistingBlockout);
 	}
 

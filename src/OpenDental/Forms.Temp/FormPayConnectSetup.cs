@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.IO.Compression;
 using System.Linq;
 using System.Net;
 using System.Text;
@@ -12,7 +13,6 @@ using Imedisoft.Core.Caching;
 using Imedisoft.Core.Data;
 using Imedisoft.Core.Entities;
 using Imedisoft.Core.Features.Clinics;
-using Ionic.Zip;
 using OpenDental.UI;
 using OpenDentBusiness;
 using static OpenDentBusiness.PayConnect2;
@@ -54,43 +54,34 @@ public partial class FormPayConnectSetup : FormODBase {
 			return;
 		}
 		checkEnabled.Checked=_program.Enabled;
-		if(!true) {//clinics are not enabled, use ClinicNum 0 to indicate 'Headquarters' or practice level program properties
-			checkEnabled.Text=Lan.g(this,"Enabled");
-			groupPaySettings.Text=Lan.g(this,"Payment Settings");
-			comboClinic.Visible=false;
-			labelClinic.Visible=false;
-			labelClinicEnable.Visible=false;
-			_listUserClinicNums= [0];//if clinics are disabled, programproperty.ClinicNum will be set to 0
+		//Using clinics
+		groupPaySettings.Text=Lan.g(this,"Clinic Payment Settings");
+		_listUserClinicNums= [];
+		comboClinic.Items.Clear();
+		//if PayConnect is enabled and the user is restricted to a clinic, don't allow the user to disable for all clinics
+		if(Security.CurUser.ClinicIsRestricted) {
+			if(checkEnabled.Checked) {
+				checkEnabled.Enabled=false;
+			}
 		}
-		else {//Using clinics
-			groupPaySettings.Text=Lan.g(this,"Clinic Payment Settings");
-			_listUserClinicNums= [];
-			comboClinic.Items.Clear();
-			//if PayConnect is enabled and the user is restricted to a clinic, don't allow the user to disable for all clinics
-			if(Security.CurUser.ClinicIsRestricted) {
-				if(checkEnabled.Checked) {
-					checkEnabled.Enabled=false;
+		else {
+			comboClinic.Items.Add(Lan.g(this,"Headquarters"));
+			//this way both lists have the same number of items in it and if 'Headquarters' is selected the programproperty.ClinicNum will be set to 0
+			_listUserClinicNums.Add(0);
+			comboClinic.SelectedIndex=0;
+		}
+		var listClinics=Clinics.GetForUserod(Security.CurUser);
+		for(var i=0;i<listClinics.Count;i++) {
+			comboClinic.Items.Add(listClinics[i].Abbr);
+			_listUserClinicNums.Add(listClinics[i].Id);
+			if(Clinics.ClinicNum==listClinics[i].Id) {
+				comboClinic.SelectedIndex=i;
+				if(!Security.CurUser.ClinicIsRestricted) {
+					comboClinic.SelectedIndex++;//increment the SelectedIndex to account for 'Headquarters' in the list at position 0 if the user is not restricted.
 				}
 			}
-			else {
-				comboClinic.Items.Add(Lan.g(this,"Headquarters"));
-				//this way both lists have the same number of items in it and if 'Headquarters' is selected the programproperty.ClinicNum will be set to 0
-				_listUserClinicNums.Add(0);
-				comboClinic.SelectedIndex=0;
-			}
-			var listClinics=Clinics.GetForUserod(Security.CurUser);
-			for(var i=0;i<listClinics.Count;i++) {
-				comboClinic.Items.Add(listClinics[i].Abbr);
-				_listUserClinicNums.Add(listClinics[i].Id);
-				if(Clinics.ClinicNum==listClinics[i].Id) {
-					comboClinic.SelectedIndex=i;
-					if(!Security.CurUser.ClinicIsRestricted) {
-						comboClinic.SelectedIndex++;//increment the SelectedIndex to account for 'Headquarters' in the list at position 0 if the user is not restricted.
-					}
-				}
-			}
-			_indexClinicRevert=comboClinic.SelectedIndex;
 		}
+		_indexClinicRevert=comboClinic.SelectedIndex;
 		_listProgramProperties=ProgramProperties.GetForProgram(_program.ProgramNum);
 		for(var i=0;i<_listProgramProperties.Count;i++) {
 			if(_listProgramProperties[i].IsHighSecurity){
@@ -403,13 +394,13 @@ public partial class FormPayConnectSetup : FormODBase {
 		}
 		var memoryStream=new MemoryStream();
 		var setupFileName="";
-		using(var zipFileUnzipped=ZipFile.Read(zipFileName)) {
-			for(var unzipIndex=0;unzipIndex<zipFileUnzipped.Count;unzipIndex++) {//Unzip/write all files to the temp directory
-				var zipEntry=zipFileUnzipped[unzipIndex];
-				if(zipEntry.FileName.ToLower()=="setup.exe") {
-					setupFileName=zipEntry.FileName;
+		using(var zipFileUnzipped=ZipFile.OpenRead(zipFileName)) {
+			for(var unzipIndex=0;unzipIndex<zipFileUnzipped.Entries.Count;unzipIndex++) {//Unzip/write all files to the temp directory
+				var zipEntry=zipFileUnzipped.Entries[unzipIndex];
+				if(zipEntry.Name.ToLower()=="setup.exe") {
+					setupFileName=zipEntry.Name;
 				}
-				zipEntry.Extract(PrefC.GetTempFolderPath(),ExtractExistingFileAction.OverwriteSilently);
+				zipEntry.ExtractToFile(PrefC.GetTempFolderPath(),true);
 			}
 		}
 		Cursor=Cursors.Default;
@@ -436,7 +427,7 @@ public partial class FormPayConnectSetup : FormODBase {
 		try {
 			payConnect2Response=PayConnect2.GetMerchantInfo(clinicNum,textAPISecret.Text);
 		}
-		catch(Exception ex) {
+		catch {
 		}
 		if(payConnect2Response.ResponseType==PayConnect2.ResponseType.Error) {
 			var err=JObject.Parse(payConnect2Response.ErrorResponse.Error.ToString());

@@ -1,6 +1,5 @@
 using OpenDentBusiness;
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Windows.Forms;
 using CodeBase;
@@ -63,9 +62,6 @@ public partial class FormLogOn : FormODBase {
 		}
 		if(PrefC.GetBool(PrefName.SecurityBadgesRequirePassword)) {
 			labelSwipeBadge.Visible=false;
-		}
-		if(/* ODEnvironment.IsCloudServer */ false) {
-			timerShutdownInstance.Enabled=true;
 		}
 		FillListBox();
 		this.Focus();//Attempted fix, customers had issue with UI not defaulting focus to this form on startup.

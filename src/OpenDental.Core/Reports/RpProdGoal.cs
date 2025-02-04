@@ -2,13 +2,10 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
-using System.Reflection;
-using System.Text;
-using CodeBase;
 using DataConnectionBase;
 using Imedisoft.Core.Entities;
-using Imedisoft.Core.Features.Clinics;
 using Imedisoft.Core.Features.Clinics.Dtos;
+using Imedisoft.Features.Providers.Dtos;
 
 namespace OpenDentBusiness {
 	public class RpProdGoal {
@@ -18,16 +15,16 @@ namespace OpenDentBusiness {
 		//PrefC.GetBool or Clinics.GetDesc will return incorrect results.
 
 		///<summary>If not using clinics then supply an empty list of clinics.</summary>
-		public static DataSet GetData(DateTime dateFrom,DateTime dateTo,List<Provider> listProvs,List<ClinicDto> listClinics,bool hasAllProvs
+		public static DataSet GetData(DateTime dateFrom,DateTime dateTo,List<ProviderDto> listProvs,List<ClinicDto> listClinics,bool hasAllProvs
 			,bool hasAllClinics,PPOWriteoffDateCalc writeoffPayType,bool isCEMT=false) 
 		{
-			DataSet dataSet=GetMonthlyGoalDataSet(dateFrom,dateTo,listProvs,listClinics,hasAllProvs,hasAllClinics,writeoffPayType,isCEMT);
-			DataTable tableProduction=dataSet.Tables["tableProduction"];
-			DataTable tableAdj=dataSet.Tables["tableAdj"];
-			DataTable tableInsWriteoff=dataSet.Tables["tableInsWriteoff"];
-			DataTable tableSched=dataSet.Tables["tableSched"];
-			DataTable tableProdGoal=dataSet.Tables["tableProdGoal"];
-			DataTable tableWriteoffAdj=dataSet.Tables["tableWriteOffAdjustments"];
+			var dataSet=GetMonthlyGoalDataSet(dateFrom,dateTo,listProvs,listClinics,hasAllProvs,hasAllClinics,writeoffPayType,isCEMT);
+			var tableProduction=dataSet.Tables["tableProduction"];
+			var tableAdj=dataSet.Tables["tableAdj"];
+			var tableInsWriteoff=dataSet.Tables["tableInsWriteoff"];
+			var tableSched=dataSet.Tables["tableSched"];
+			var tableProdGoal=dataSet.Tables["tableProdGoal"];
+			var tableWriteoffAdj=dataSet.Tables["tableWriteOffAdjustments"];
 			decimal scheduledForDay;
 			decimal productionForDay;
 			decimal adjustsForDay;
@@ -35,7 +32,7 @@ namespace OpenDentBusiness {
 			decimal insWriteoffAdjsForDay;
 			decimal totalproductionForDay;
 			decimal prodGoalForDay;
-			DataTable dt=new DataTable("Total");
+			var dt=new DataTable("Total");
 			dt.Columns.Add(new DataColumn("Date"));
 			dt.Columns.Add(new DataColumn("Weekday"));
 			dt.Columns.Add(new DataColumn("Production"));
@@ -50,7 +47,7 @@ namespace OpenDentBusiness {
 				dt.Columns.Add(new DataColumn("Writeoff"));
 			}
 			dt.Columns.Add(new DataColumn("Tot Prod"));
-			DataTable dtClinic=new DataTable("Clinic");
+			var dtClinic=new DataTable("Clinic");
 			dtClinic.Columns.Add(new DataColumn("Date"));
 			dtClinic.Columns.Add(new DataColumn("Weekday"));
 			dtClinic.Columns.Add(new DataColumn("Production"));
@@ -75,11 +72,11 @@ namespace OpenDentBusiness {
 			//Figure out a way to find all hours a provider worked in a single day across multiple schedules.  If they overlap (due to multiple operatories)
 			//then we only count one.  
 			//Sum up a schedule for the day. 
-			Dictionary<Tuple<DateTime,long,long>,List<DataRow>> dictDates=new Dictionary<Tuple<DateTime,long,long>,List<DataRow>>();//We are grouping data rows by day, provnum, and clinicnum
-			for(int j=0;j<tableProdGoal.Rows.Count;j++) {
-				DateTime date=SIn.Date(tableProdGoal.Rows[j]["SchedDate"].ToString());
-				long provNum=SIn.Long(tableProdGoal.Rows[j]["ProvNum"].ToString());
-				long clinicNum=(!hasAllClinics && listClinics.Count==0) ? 0 : SIn.Long(tableProdGoal.Rows[j]["ClinicNum"].ToString());
+			var dictDates=new Dictionary<Tuple<DateTime,long,long>,List<DataRow>>();//We are grouping data rows by day, provnum, and clinicnum
+			for(var j=0;j<tableProdGoal.Rows.Count;j++) {
+				var date=SIn.Date(tableProdGoal.Rows[j]["SchedDate"].ToString());
+				var provNum=SIn.Long(tableProdGoal.Rows[j]["ProvNum"].ToString());
+				var clinicNum=(!hasAllClinics && listClinics.Count==0) ? 0 : SIn.Long(tableProdGoal.Rows[j]["ClinicNum"].ToString());
 				if(!dictDates.ContainsKey(Tuple.Create(date,provNum,clinicNum))) {
 					dictDates.Add(Tuple.Create(date,provNum,clinicNum),new List<DataRow>() { tableProdGoal.Rows[j] });
 					continue;//It's added, no need to do more.
@@ -87,26 +84,26 @@ namespace OpenDentBusiness {
 				//Date/prov/clinic combo exists in dictionary already, add row to the row collection.
 				dictDates[Tuple.Create(date,provNum,clinicNum)].Add(tableProdGoal.Rows[j]);
 			}
-			List<ProvProdGoal> listProdGoal=new List<ProvProdGoal>();
+			var listProdGoal=new List<ProvProdGoal>();
 			//Add all spans to a list of spans if they don't overlap.  If they do overlap, extend the start/end of an existing span.
 			//Once all spans are added, compare spans in list to other spans and see if they overlap, expand as needed (removing the one merged).
 			//If there is no movement, we are done.
-			foreach(KeyValuePair<Tuple<DateTime,long,long>,List<DataRow>> kvp in dictDates) {//For each day (there are no multi-clinic overlaps, can't run report if there are)
+			foreach(var kvp in dictDates) {//For each day (there are no multi-clinic overlaps, can't run report if there are)
 				double hours=0;
-				List<SchedRange> listRangeForDay=new List<SchedRange>();
-				foreach(DataRow row in kvp.Value) {//Add all schedule ranges to the list
-					TimeSpan stopTime=SIn.TimeSpan(row["StopTime"].ToString());
-					TimeSpan startTime=SIn.TimeSpan(row["StartTime"].ToString());
-					SchedRange range=new SchedRange() {StartTime=startTime,EndTime=stopTime};
+				var listRangeForDay=new List<SchedRange>();
+				foreach(var row in kvp.Value) {//Add all schedule ranges to the list
+					var stopTime=SIn.TimeSpan(row["StopTime"].ToString());
+					var startTime=SIn.TimeSpan(row["StartTime"].ToString());
+					var range=new SchedRange() {StartTime=startTime,EndTime=stopTime};
 					listRangeForDay.Add(range);
 				}
-				bool hasMovement=true;
+				var hasMovement=true;
 				while(listRangeForDay.Count>1 && hasMovement) {//As they're added, attempt to merge ranges until there's no more movement.
-					for(int i=listRangeForDay.Count-1;i>=0;i--) {
-						SchedRange range1=listRangeForDay[i];
-						for(int j=listRangeForDay.Count-1;j>=0;j--) {
+					for(var i=listRangeForDay.Count-1;i>=0;i--) {
+						var range1=listRangeForDay[i];
+						for(var j=listRangeForDay.Count-1;j>=0;j--) {
 							hasMovement=false;
-							SchedRange range2=listRangeForDay[j];
+							var range2=listRangeForDay[j];
 							if(range1.PriKey==range2.PriKey) {
 								continue;
 							}
@@ -129,17 +126,17 @@ namespace OpenDentBusiness {
 						}
 					}
 				}
-				foreach(SchedRange sched in listRangeForDay) {						
-					TimeSpan timeDiff=sched.EndTime.Subtract(sched.StartTime);
+				foreach(var sched in listRangeForDay) {						
+					var timeDiff=sched.EndTime.Subtract(sched.StartTime);
 					hours+=timeDiff.TotalHours;
 				}
 				listProdGoal.Add(new ProvProdGoal() {ClinicNum=kvp.Key.Item3,ProvNum=kvp.Key.Item2,Date=kvp.Key.Item1,Hours=hours,ProdGoal=SIn.Double(kvp.Value[0]["ProvProdGoal"].ToString())});
 			}			
 			//Get a list of clinics so that we have access to their descriptions for the report.
-			for(int it=0;it<listClinics.Count;it++) {//For each clinic
-				for(int i=0;i<dates.Length;i++) {//usually 12 months in loop for annual.  Loop through the DateTime array, each position represents one date in the report.
+			for(var it=0;it<listClinics.Count;it++) {//For each clinic
+				for(var i=0;i<dates.Length;i++) {//usually 12 months in loop for annual.  Loop through the DateTime array, each position represents one date in the report.
 					dates[i]=dateFrom.AddDays(i);//Monthly/Daily report, add a day
-					DataRow row=dtClinic.NewRow();
+					var row=dtClinic.NewRow();
 					row["Date"]=dates[i].ToShortDateString();
 					row["Weekday"]=dates[i].DayOfWeek.ToString();
 					scheduledForDay=0;
@@ -148,7 +145,7 @@ namespace OpenDentBusiness {
 					inswriteoffsForDay=0;	//spk 5/19/05
 					insWriteoffAdjsForDay=0;
 					prodGoalForDay=0;
-					for(int j=0;j<tableProduction.Rows.Count;j++) {
+					for(var j=0;j<tableProduction.Rows.Count;j++) {
 						if(listClinics[it].Id==0 && tableProduction.Rows[j]["ClinicNum"].ToString()!="0") {
 							continue;//Only counting unassigned this time around.
 						}
@@ -159,7 +156,7 @@ namespace OpenDentBusiness {
 							productionForDay+=SIn.Decimal(tableProduction.Rows[j]["Production"].ToString());
 						}
 					}
-					for(int j=0;j<tableAdj.Rows.Count;j++) {
+					for(var j=0;j<tableAdj.Rows.Count;j++) {
 						if(listClinics[it].Id==0 && tableAdj.Rows[j]["ClinicNum"].ToString()!="0") {
 							continue;
 						}
@@ -170,7 +167,7 @@ namespace OpenDentBusiness {
 							adjustsForDay+=SIn.Decimal(tableAdj.Rows[j]["Adjustment"].ToString());
 						}
 					}
-					for(int j=0;j<tableInsWriteoff.Rows.Count;j++) {
+					for(var j=0;j<tableInsWriteoff.Rows.Count;j++) {
 						if(listClinics[it].Id==0 && tableInsWriteoff.Rows[j]["ClinicNum"].ToString()!="0") {
 							continue;
 						}
@@ -187,7 +184,7 @@ namespace OpenDentBusiness {
 						}
 						insWriteoffAdjsForDay-=SIn.Decimal(rowCur["WriteOffEst"].ToString())+SIn.Decimal(rowCur["WriteOff"].ToString());
 					}
-					for(int j=0;j<tableSched.Rows.Count;j++) {
+					for(var j=0;j<tableSched.Rows.Count;j++) {
 						if(listClinics[it].Id==0 && tableSched.Rows[j]["ClinicNum"].ToString()!="0") {
 							continue;
 						}
@@ -198,7 +195,7 @@ namespace OpenDentBusiness {
 							scheduledForDay+=SIn.Decimal(tableSched.Rows[j]["Amount"].ToString());
 						}
 					}
-					for(int j = 0;j<listProdGoal.Count;j++) {
+					for(var j = 0;j<listProdGoal.Count;j++) {
 						if(listClinics[it].Id==0 && listProdGoal[j].ClinicNum!=0) {
 							continue;
 						}
@@ -210,7 +207,7 @@ namespace OpenDentBusiness {
 						}
 					}
 					totalproductionForDay=productionForDay+adjustsForDay+inswriteoffsForDay+insWriteoffAdjsForDay+scheduledForDay;
-					string clinicDesc=listClinics[it].Description;
+					var clinicDesc=listClinics[it].Description;
 					if(clinicDesc!=null && listClinics[it].IsHidden) {
 						clinicDesc+=" "+Lans.g("FormRpProdInc","(hidden)");
 					}
@@ -230,9 +227,9 @@ namespace OpenDentBusiness {
 					dtClinic.Rows.Add(row);
 				}
 			}
-			for(int i=0;i<dates.Length;i++) {//usually 12 months in loop
+			for(var i=0;i<dates.Length;i++) {//usually 12 months in loop
 				dates[i]=dateFrom.AddDays(i);
-				DataRow row=dt.NewRow();
+				var row=dt.NewRow();
 				row["Date"]=dates[i].ToShortDateString();
 				row["Weekday"]=dates[i].DayOfWeek.ToString();
 				scheduledForDay=0;
@@ -241,17 +238,17 @@ namespace OpenDentBusiness {
 				inswriteoffsForDay=0;
 				insWriteoffAdjsForDay=0;
 				prodGoalForDay=0;
-				for(int j=0;j<tableProduction.Rows.Count;j++) {
+				for(var j=0;j<tableProduction.Rows.Count;j++) {
 					if(dates[i].Date==SIn.Date(tableProduction.Rows[j]["ProcDate"].ToString()).Date) {
 						productionForDay+=SIn.Decimal(tableProduction.Rows[j]["Production"].ToString());
 					}
 				}
-				for(int j=0;j<tableAdj.Rows.Count;j++) {
+				for(var j=0;j<tableAdj.Rows.Count;j++) {
 					if(dates[i].Date==SIn.Date(tableAdj.Rows[j]["AdjDate"].ToString()).Date) {
 						adjustsForDay+=SIn.Decimal(tableAdj.Rows[j]["Adjustment"].ToString());
 					}
 				}
-				for(int j=0;j<tableInsWriteoff.Rows.Count;j++) {
+				for(var j=0;j<tableInsWriteoff.Rows.Count;j++) {
 					if(dates[i].Date==SIn.Date(tableInsWriteoff.Rows[j]["Date"].ToString()).Date) {
 						inswriteoffsForDay-=SIn.Decimal(tableInsWriteoff.Rows[j]["Writeoff"].ToString());
 					}
@@ -261,12 +258,12 @@ namespace OpenDentBusiness {
 						insWriteoffAdjsForDay-=SIn.Decimal(rowCur["WriteOffEst"].ToString())+SIn.Decimal(rowCur["WriteOff"].ToString());
 					}
 				}
-				for(int j=0;j<tableSched.Rows.Count;j++) {
+				for(var j=0;j<tableSched.Rows.Count;j++) {
 					if(dates[i].Date==SIn.Date(tableSched.Rows[j]["SchedDate"].ToString()).Date) {
 						scheduledForDay+=SIn.Decimal(tableSched.Rows[j]["Amount"].ToString());
 					}
 				}
-				for(int j = 0;j<listProdGoal.Count;j++) {
+				for(var j = 0;j<listProdGoal.Count;j++) {
 					if(dates[i].Date==listProdGoal[j].Date) {
 						prodGoalForDay+=(decimal)(listProdGoal[j].Hours*listProdGoal[j].ProdGoal);//Multiply the hours for this schedule by the amount of production goal for this prov.
 					}
@@ -295,47 +292,47 @@ namespace OpenDentBusiness {
 			return ds;
 		}
 
-		public static DataSet GetMonthlyGoalDataSet(DateTime dateFrom,DateTime dateTo,List<Provider> listProvs,List<ClinicDto> listClinics,bool hasAllProvs
+		public static DataSet GetMonthlyGoalDataSet(DateTime dateFrom,DateTime dateTo,List<ProviderDto> listProvs,List<ClinicDto> listClinics,bool hasAllProvs
 			,bool hasAllClinics,PPOWriteoffDateCalc writeoffPayType,bool isCEMT=false) 
 		{
-			List<long> listClinicNums=listClinics.Select(x => x.Id).ToList();
-			List<long> listProvNums=listProvs.Select(x => x.ProvNum).ToList();
+			var listClinicNums=listClinics.Select(x => x.Id).ToList();
+			var listProvNums=listProvs.Select(x => x.Id).ToList();
 			#region Procedures
-			string whereProv="";
+			var whereProv="";
 			if(!hasAllProvs && listProvNums.Count>0) {
 				whereProv="AND procedurelog.ProvNum IN ("+string.Join(",",listProvNums)+") ";
 			}
-			string whereClin="";
+			var whereClin="";
 			if(!hasAllClinics && listClinicNums.Count>0) {
 				whereClin="AND procedurelog.ClinicNum IN ("+string.Join(",",listClinicNums)+") ";
 			}
-			string command="SELECT "
-				+"procedurelog.ProcDate,procedurelog.ClinicNum,"
-				+"SUM(procedurelog.ProcFee*(procedurelog.UnitQty+procedurelog.BaseUnits))-IFNULL(SUM(cp.WriteOff),0) Production "
-				+"FROM procedurelog "
-				+"LEFT JOIN (SELECT SUM(claimproc.WriteOff) AS WriteOff, claimproc.ProcNum FROM claimproc "
-				+"WHERE claimproc.Status=7 "//only CapComplete writeoffs are subtracted here.
-				+"GROUP BY claimproc.ProcNum) cp ON procedurelog.ProcNum=cp.ProcNum "
-				+"WHERE procedurelog.ProcStatus = 2 "
-				+whereProv
-				+whereClin
-				+"AND procedurelog.ProcDate >= " +SOut.Date(dateFrom)+" "
-				+"AND procedurelog.ProcDate <= " +SOut.Date(dateTo)+" "
-				+"GROUP BY ClinicNum,YEAR(procedurelog.ProcDate),MONTH(procedurelog.ProcDate),DAY(procedurelog.ProcDate)";//Does not work for Oracle. Consider enhancing with DbHelper.Year(),DbHelper.Month()
+			var command="SELECT "
+			            +"procedurelog.ProcDate,procedurelog.ClinicNum,"
+			            +"SUM(procedurelog.ProcFee*(procedurelog.UnitQty+procedurelog.BaseUnits))-IFNULL(SUM(cp.WriteOff),0) Production "
+			            +"FROM procedurelog "
+			            +"LEFT JOIN (SELECT SUM(claimproc.WriteOff) AS WriteOff, claimproc.ProcNum FROM claimproc "
+			            +"WHERE claimproc.Status=7 "//only CapComplete writeoffs are subtracted here.
+			            +"GROUP BY claimproc.ProcNum) cp ON procedurelog.ProcNum=cp.ProcNum "
+			            +"WHERE procedurelog.ProcStatus = 2 "
+			            +whereProv
+			            +whereClin
+			            +"AND procedurelog.ProcDate >= " +SOut.Date(dateFrom)+" "
+			            +"AND procedurelog.ProcDate <= " +SOut.Date(dateTo)+" "
+			            +"GROUP BY ClinicNum,YEAR(procedurelog.ProcDate),MONTH(procedurelog.ProcDate),DAY(procedurelog.ProcDate)";//Does not work for Oracle. Consider enhancing with DbHelper.Year(),DbHelper.Month()
 			command+=" ORDER BY ClinicNum,ProcDate";
-			DataTable tableProduction=new DataTable();
+			var tableProduction=new DataTable();
 			tableProduction=DataCore.GetTable(command);
 			tableProduction.TableName="tableProduction";
 			#endregion
 			#region Adjustments
 			string whereProcProv="", whereProcClin="";
 			if(!hasAllProvs && listProvNums.Count>0) {
-				whereProv="AND adjustment.ProvNum IN ("+String.Join(",",listProvNums)+") ";
-				whereProcProv="AND procedurelog.ProvNum IN ("+String.Join(",",listProvNums)+") ";
+				whereProv="AND adjustment.ProvNum IN ("+string.Join(",",listProvNums)+") ";
+				whereProcProv="AND procedurelog.ProvNum IN ("+string.Join(",",listProvNums)+") ";
 			}
 			if(!hasAllClinics && listClinicNums.Count>0) {
-				whereClin="AND adjustment.ClinicNum IN ("+String.Join(",",listClinicNums)+") ";
-				whereProcClin="AND procedurelog.ClinicNum IN ("+String.Join(",",listClinicNums)+") ";
+				whereClin="AND adjustment.ClinicNum IN ("+string.Join(",",listClinicNums)+") ";
+				whereProcClin="AND procedurelog.ClinicNum IN ("+string.Join(",",listClinicNums)+") ";
 			}
 			command="SELECT "
 				+"U.AdjDate,"
@@ -365,7 +362,7 @@ namespace OpenDentBusiness {
 				+") AS U "
 				+"GROUP BY ClinicNum,YEAR(U.AdjDate),MONTH(U.AdjDate),DAY(U.AdjDate) "
 				+"ORDER BY ClinicNum,AdjDate";
-			DataTable tableAdj=new DataTable();
+			var tableAdj=new DataTable();
 			tableAdj=DataCore.GetTable(command);
 			tableAdj.TableName="tableAdj";
 			#endregion
@@ -418,12 +415,12 @@ namespace OpenDentBusiness {
 				+"GROUP BY ClinicNum,DATE(claimsnapshot.DateTEntry) "
 				+"ORDER BY ClinicNum,claimsnapshot.DateTEntry";
 			}
-			DataTable tableInsWriteoff=new DataTable();
+			var tableInsWriteoff=new DataTable();
 			tableInsWriteoff=DataCore.GetTable(command);
 			tableInsWriteoff.TableName="tableInsWriteoff";
 			#endregion
 			#region TableSched
-			DataTable tableSched=new DataTable();
+			var tableSched=new DataTable();
 			//Reads from the procedurelog table instead of claimproc because we are looking for scheduled procedures.
 			if(!hasAllProvs && listProvNums.Count>0) {
 				whereProv="AND procedurelog.ProvNum IN ("+string.Join(",",listProvNums)+") ";
@@ -465,7 +462,7 @@ namespace OpenDentBusiness {
 			//3. Fetch HourlyProdGoalAmt from provider on the schedule
 			//4. Sum scheduled hours, grouped by prov and clinic
 			//5. Multiply the scheduled hours by the provider's HourlyProdGoalAmt
-			DataTable tableProdGoal=new DataTable();
+			var tableProdGoal=new DataTable();
 			if(!hasAllProvs && listProvNums.Count>0) {
 				whereProv="AND S.ProvNum IN ("+string.Join(",",listProvNums)+") ";
 			}
@@ -490,7 +487,7 @@ namespace OpenDentBusiness {
 			tableProdGoal.TableName="tableProdGoal";	
 			#endregion
 			#region WriteOffAdjustments
-			DataTable tableWriteOffAdjustments=new DataTable();
+			var tableWriteOffAdjustments=new DataTable();
 			if(!hasAllProvs && listProvNums.Count>0) {
 				whereProv="AND claimproc.ProvNum IN ("+string.Join(",",listProvNums)+") ";
 			}
@@ -515,7 +512,7 @@ namespace OpenDentBusiness {
 			}
 			tableWriteOffAdjustments.TableName="tableWriteOffAdjustments";
 			#endregion WriteOffAdjustments
-			DataSet dataSet=new DataSet();
+			var dataSet=new DataSet();
 			dataSet.Tables.Add(tableProduction);
 			dataSet.Tables.Add(tableAdj);
 			dataSet.Tables.Add(tableInsWriteoff);

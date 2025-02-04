@@ -17,14 +17,15 @@ public class AutoCodeItemCrud
     public static List<AutoCodeItem> TableToList(DataTable table)
     {
         var retVal = new List<AutoCodeItem>();
-        AutoCodeItem autoCodeItem;
         foreach (DataRow row in table.Rows)
         {
-            autoCodeItem = new AutoCodeItem();
-            autoCodeItem.AutoCodeItemNum = SIn.Long(row["AutoCodeItemNum"].ToString());
-            autoCodeItem.AutoCodeNum = SIn.Long(row["AutoCodeNum"].ToString());
-            autoCodeItem.OldCode = SIn.String(row["OldCode"].ToString());
-            autoCodeItem.CodeNum = SIn.Long(row["CodeNum"].ToString());
+            var autoCodeItem = new AutoCodeItem
+            {
+                AutoCodeItemNum = SIn.Long(row["AutoCodeItemNum"].ToString()),
+                AutoCodeNum = SIn.Long(row["AutoCodeNum"].ToString()),
+                OldCode = SIn.String(row["OldCode"].ToString()),
+                CodeNum = SIn.Long(row["CodeNum"].ToString())
+            };
             retVal.Add(autoCodeItem);
         }
 

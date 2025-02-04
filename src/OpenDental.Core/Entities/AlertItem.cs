@@ -5,29 +5,17 @@ using OpenDentBusiness;
 
 namespace Imedisoft.Core.Entities;
 
-///<summary>Any row in this table will show up in the main menu of Open Dental to get the attention of the user.
-///The user will be able to click on the alert and take an action.  The actions available to the user are also determined in this row.</summary>
-[Serializable]
-[CrudTable(IsSynchable = true)]
 public class AlertItem : TableBase
 {
-    ///<summary>Primary key.</summary>
     [CrudColumn(IsPriKey = true)]
     public long AlertItemNum;
 
     ///<summary>FK to clinic.ClinicNum. Can be 0 or -1. -1 indicates show the alert in all clinics.</summary>
     public long ClinicNum;
 
-    ///<summary>What is displayed in the menu item.</summary>
     public string Description;
-
-    ///<summary>Enum:AlertType Identifies what type of alert this row is.</summary>
     public AlertType Type;
-
-    ///<summary>Enum:SeverityType The severity will help determine what color this alert should be in the main menu.</summary>
     public SeverityType Severity;
-
-    ///<summary>Enum:ActionType Bitwise flag that represents what actions are available for this alert.</summary>
     public ActionType Actions;
 
     ///<summary>Enum:FormType The form to open when the user clicks "Open Form".</summary>
@@ -42,12 +30,8 @@ public class AlertItem : TableBase
     ///<summary>FK to Userod.UserNum.  Will only be shown to that specific user.  0 is all users.</summary>
     public long UserNum;
 
-    ///<summary>Date this row was added to the database. Not editable by the user</summary>
-    [CrudColumn(SpecialType = CrudSpecialColType.DateTEntry)]
-    public DateTime SecDateTEntry;
-
     ///<summary>Helper dictionary for sorting the ActionType enum in a particular way for display purposes.</summary>
-    private static Dictionary<ActionType, int> _dictActionTypeOrder = new Dictionary<ActionType, int>
+    private static readonly Dictionary<ActionType, int> DictActionTypeOrder = new()
     {
         {ActionType.OpenForm, 1},
         {ActionType.ShowItemValue, 2},
@@ -56,26 +40,14 @@ public class AlertItem : TableBase
         {ActionType.None, 5},
     };
 
-
-    public AlertItem Copy()
-    {
-        return (AlertItem) MemberwiseClone();
-    }
-
     public override bool Equals(object obj)
     {
-        AlertItem alert = obj as AlertItem;
-        if (alert == null)
+        if (obj is not AlertItem alert)
         {
             return false;
         }
 
-        return AlertItemNum == alert.AlertItemNum
-               && ClinicNum == alert.ClinicNum
-               && Description == alert.Description
-               && Type == alert.Type
-               && Severity == alert.Severity
-               && Actions == alert.Actions;
+        return AlertItemNum == alert.AlertItemNum && ClinicNum == alert.ClinicNum && Description == alert.Description && Type == alert.Type && Severity == alert.Severity && Actions == alert.Actions;
     }
 
     public override int GetHashCode()
@@ -83,10 +55,9 @@ public class AlertItem : TableBase
         return base.GetHashCode();
     }
 
-    ///<summary>Comparer used to order the ActionType for display purposes.</summary>
     public static int CompareActionType(ActionType x, ActionType y)
     {
-        return _dictActionTypeOrder[x].CompareTo(_dictActionTypeOrder[y]);
+        return DictActionTypeOrder[x].CompareTo(DictActionTypeOrder[y]);
     }
 }
 
@@ -218,10 +189,7 @@ public enum SeverityType
     Low,
 
     ///<summary>2 - Orange</summary>
-    Medium,
-
-    ///<summary>3 - Red</summary>
-    High
+    Medium
 }
 
 [Flags]
@@ -240,10 +208,6 @@ public enum FormType
     ///<summary>0 - No form.</summary>
     None,
 
-    ///<summary>1 - FormEServicesWebSchedRecall.</summary>
-    [Description("eServices Web Sched Recall")]
-    FormEServicesWebSchedRecall,
-
     ///<summary>2 - FormOnlinePayments.</summary>
     [Description("Online Payments")]
     FormOnlinePayments,
@@ -252,37 +216,13 @@ public enum FormType
     [Description("Radiology Orders")]
     FormRadOrderList,
 
-    ///<summary>4 - FormEServicesSetup.</summary>
-    [Description("eServices Signup Portal")]
-    FormEServicesSignupPortal,
-
     ///<summary>5 - FormEServicesSetup. FKey will be the AptNum of the appointment to open.</summary>
     [Description("Appointment")]
     FormApptEdit,
 
-    ///<summary>6 - FormEServicesSetup Web Sched New Pat.</summary>
-    [Description("eServices Web Sched New Pat")]
-    FormEServicesWebSchedNewPat,
-
-    ///<summary>7 - FormWebSchedAppts.</summary>
-    [Description("Web Sched Appointments")]
-    FormWebSchedAppts,
-
     ///<summary>8 - FormPatientEdit. FKey will be PatNum.</summary>
     [Description("Edit Patient Information")]
     FormPatientEdit,
-
-    ///<summary>9 - FormEServicesSetup eConnector Service.</summary>
-    [Description("eServices eConnector Service")]
-    FormEServicesEConnector,
-
-    ///<summary>10 - FormDoseSpotAssignUserId.</summary>
-    [Description("DoseSpot Assign User ID")]
-    FormDoseSpotAssignUserId,
-
-    ///<summary>11 - FormDoseSpotAssignClinicId.</summary>
-    [Description("DoseSpot Assign Clinic ID")]
-    FormDoseSpotAssignClinicId,
 
     ///<summary>12 - FormWebMailMessageEdit</summary>
     [Description("WebMail Inbox")]
@@ -292,15 +232,7 @@ public enum FormType
     [Description("Email Addresses Setup")]
     FormEmailAddresses,
 
-    ///<summary>16 - FormWebForms</summary>
-    [Description("Web Forms")]
-    FormWebForms,
-
     ///<summary>17 - FormModuleSetup</summary>
     [Description("Module Preferences")]
     FormModuleSetup,
-
-    ///<summary>18 - FormEServicesAutoMsging</summary>
-    [Description("eServices Auto Messaging")]
-    FormEServicesAutoMsging,
 }

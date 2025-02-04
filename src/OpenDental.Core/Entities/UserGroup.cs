@@ -1,28 +1,25 @@
-using System;
 using OpenDentBusiness;
 
 namespace Imedisoft.Core.Entities;
 
-///<summary>A group of users.  Security permissions are determined by the usergroup of a user.</summary>
-[Serializable]
-public class UserGroup:TableBase {
-	///<summary>Primary key.</summary>
-	[CrudColumn(IsPriKey=true)]
-	public long UserGroupNum;
-	///<summary>.</summary>
-	public string Description;
-	///<summary>FK to usergroup.UserGroupNum.  The user group num within the Central Manager database.  Only editable via CEMT.  Can change when CEMT syncs.</summary>
-	public long UserGroupNumCEMT;
+public class UserGroup : TableBase
+{
+    [CrudColumn(IsPriKey = true)]
+    public long UserGroupNum;
 
-		
-	public UserGroup Copy(){
-		UserGroup u=new UserGroup();
-		u.UserGroupNum=UserGroupNum;
-		u.Description=Description;
-		u.UserGroupNumCEMT=UserGroupNumCEMT;
-		return u;
-	}
+    ///<summary>.</summary>
+    public string Description;
 
-		
-
+    ///<summary>FK to usergroup.UserGroupNum.  The user group num within the Central Manager database.  Only editable via CEMT.  Can change when CEMT syncs.</summary>
+    public long UserGroupNumCEMT;
+    
+    public UserGroup Copy()
+    {
+        return new UserGroup
+        {
+            UserGroupNum = UserGroupNum,
+            Description = Description,
+            UserGroupNumCEMT = UserGroupNumCEMT
+        };
+    }
 }

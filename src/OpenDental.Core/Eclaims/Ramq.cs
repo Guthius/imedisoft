@@ -37,7 +37,7 @@ public class Ramq
             //Now we need to update our cache of claims to reflect the change that took place in the database above in Etranss.SetClaimSentOrPrinted()
             queueItem.ClaimStatus = "S";
             var claim = Claims.GetClaim(queueItem.ClaimNum);
-            var provClaimTreat = Providers.GetProv(claim.ProvTreat);
+            var provClaimTreat = Providers.GetById(claim.ProvTreat);
             var dp = new DP_RACINDP();
 
             #region Header
@@ -48,16 +48,16 @@ public class Ramq
             dp.ENRGSpecified = true;
             //We hijack the TaxID number for the TRNSM field.  The TRNSM is a office identifying number.  Test range for developers is 18000 to 18999.
             dp.TRNSM = clearinghouseClin.SenderTIN;
-            dp.DISP = provClaimTreat.NationalProvID;
+            dp.DISP = provClaimTreat.NationalProviderId;
             //dp.CPTE_ADMN=;//Administrative account number.  Not currently used.
             var calendar = new JulianCalendar();
-            dp.ATTES = (DateTime.Now.Year % 10).ToString() //One digit for year
+            dp.ATTES = (DateTime.Now.Year % 10) //One digit for year
                        + calendar.GetDayOfYear(DateTime.Now).ToString().PadLeft(3, '0') //3 digits for Julian day of year.
                        + (etrans.CarrierTransCounter % 1000).ToString().PadLeft(3, '0'); //3 digits for sequence number.
             dp.NCE = (etrans.CarrierTransCounter % 10000).ToString().PadLeft(4, '0');
             dp.DISP_REFNT = claim.CanadianReferralProviderNum.Trim();
             //dp.DIAGN=;//Diagnostic code.  Not currently used.
-            dp.ETAB = provClaimTreat.CanadianOfficeNum; //Usually empty.
+            dp.ETAB = provClaimTreat.CanadianOfficeNumber; //Usually empty.
             //dp.ADMIS=;//Date of patient admission.  Not currently used.  This would be the same as the date of service for dental claims anyway.
             //dp.SORTI=;//Date patient discharged.  Not currently used.  This would be the same as the date of service for dental claims anyway.
             dp.TOT_DEM = claim.ClaimFee.ToString().Replace(".", "").PadLeft(6, '0');
@@ -154,8 +154,8 @@ public class Ramq
                 //acte.MODIF=;//Optional.  Not sure what to put here, so leaving blank for now.
                 acteProc.UNIT = proc.UnitQty.ToString().PadLeft(3, '0');
                 acteProc.MNT = proc.ProcFee.ToString("F").Replace(".", "").PadLeft(6, '0');
-                acteProc.DENT = proc.ToothNum.ToString().PadLeft(2, '0');
-                acteProc.SURF = proc.Surf.ToString().PadLeft(2, '0');
+                acteProc.DENT = proc.ToothNum.PadLeft(2, '0');
+                acteProc.SURF = proc.Surf.PadLeft(2, '0');
                 listProcs.Add(acteProc);
                 var listLabProcs = Procedures.GetCanadianLabFees(proc.ProcNum, listProcsForPat);
                 foreach (var labProc in listLabProcs)
@@ -269,7 +269,7 @@ public class Ramq
         var sbErrors = new StringBuilder();
         var sbWarnings = new StringBuilder();
         var claim = Claims.GetClaim(queueItem.ClaimNum);
-        var provClaimTreat = Providers.GetProv(claim.ProvTreat);
+        var provClaimTreat = Providers.GetById(claim.ProvTreat);
         var insSub = InsSubs.GetOne(claim.InsSubNum);
         InsPlan insPlanForNoBillIns = null;
         if (claim.ClaimType == "S")
@@ -317,7 +317,7 @@ public class Ramq
         }
 
         //DISP
-        if (!Regex.IsMatch(provClaimTreat.NationalProvID, @"^[27][0-9]{5}$"))
+        if (!Regex.IsMatch(provClaimTreat.NationalProviderId, @"^[27][0-9]{5}$"))
         {
             if (sbErrors.Length != 0)
             {
@@ -340,7 +340,7 @@ public class Ramq
         }
 
         //ETAB
-        if (!Regex.IsMatch(provClaimTreat.CanadianOfficeNum, @"^[0-9]{5}$"))
+        if (!Regex.IsMatch(provClaimTreat.CanadianOfficeNumber, @"^[0-9]{5}$"))
         {
             if (sbErrors.Length != 0)
             {

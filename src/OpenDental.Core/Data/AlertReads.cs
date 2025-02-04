@@ -22,13 +22,13 @@ public static class AlertReads
         AlertReadCrud.Insert(alertRead);
     }
 
-    public static void DeleteForAlertItems(List<long> listAlertItemNums)
+    public static void DeleteForAlertItems(List<long> alertItemNums)
     {
-        if (listAlertItemNums == null || listAlertItemNums.Count == 0)
+        if (alertItemNums == null || alertItemNums.Count == 0)
         {
             return;
         }
         
-        Db.NonQ("DELETE FROM alertread WHERE AlertItemNum IN (" + string.Join(",", listAlertItemNums) + ")");
+        Db.NonQ("DELETE FROM alertread WHERE AlertItemNum IN (" + string.Join(",", alertItemNums) + ")");
     }
 }

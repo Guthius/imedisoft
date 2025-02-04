@@ -1,15 +1,8 @@
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Linq;
-using System.Text;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using OpenDentBusiness;
-using WpfControls.UI;
 using OpenDental.Drawing;
 using CodeBase;
 using DataConnectionBase;

@@ -18,15 +18,16 @@ public class OrthoChartTabLinkCrud
     public static List<OrthoChartTabLink> TableToList(DataTable table)
     {
         var retVal = new List<OrthoChartTabLink>();
-        OrthoChartTabLink orthoChartTabLink;
         foreach (DataRow row in table.Rows)
         {
-            orthoChartTabLink = new OrthoChartTabLink();
-            orthoChartTabLink.OrthoChartTabLinkNum = SIn.Long(row["OrthoChartTabLinkNum"].ToString());
-            orthoChartTabLink.ItemOrder = SIn.Int(row["ItemOrder"].ToString());
-            orthoChartTabLink.OrthoChartTabNum = SIn.Long(row["OrthoChartTabNum"].ToString());
-            orthoChartTabLink.DisplayFieldNum = SIn.Long(row["DisplayFieldNum"].ToString());
-            orthoChartTabLink.ColumnWidthOverride = SIn.Int(row["ColumnWidthOverride"].ToString());
+            var orthoChartTabLink = new OrthoChartTabLink
+            {
+                OrthoChartTabLinkNum = SIn.Long(row["OrthoChartTabLinkNum"].ToString()),
+                ItemOrder = SIn.Int(row["ItemOrder"].ToString()),
+                OrthoChartTabNum = SIn.Long(row["OrthoChartTabNum"].ToString()),
+                DisplayFieldNum = SIn.Long(row["DisplayFieldNum"].ToString()),
+                ColumnWidthOverride = SIn.Int(row["ColumnWidthOverride"].ToString())
+            };
             retVal.Add(orthoChartTabLink);
         }
 
@@ -117,15 +118,13 @@ public class OrthoChartTabLinkCrud
         var idxNew = 0;
         var idxDB = 0;
         var rowsUpdatedCount = 0;
-        OrthoChartTabLink fieldNew;
-        OrthoChartTabLink fieldDB;
         //Because both lists have been sorted using the same criteria, we can now walk each list to determine which list contians the next element.  The next element is determined by Primary Key.
         //If the New list contains the next item it will be inserted.  If the DB contains the next item, it will be deleted.  If both lists contain the next item, the item will be updated.
         while (idxNew < listNew.Count || idxDB < listDB.Count)
         {
-            fieldNew = null;
+            OrthoChartTabLink fieldNew = null;
             if (idxNew < listNew.Count) fieldNew = listNew[idxNew];
-            fieldDB = null;
+            OrthoChartTabLink fieldDB = null;
             if (idxDB < listDB.Count) fieldDB = listDB[idxDB];
             //begin compare
             if (fieldNew != null && fieldDB == null)

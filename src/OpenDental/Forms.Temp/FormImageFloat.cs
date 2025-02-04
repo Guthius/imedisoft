@@ -40,8 +40,7 @@ public partial class FormImageFloat : FormODBase
         ControlImageDisplay.EventGotODFocus += ControlImageDisplay__EventGotODFocus;
         ControlImageDisplay.Size = ClientRectangle.Size;
         ControlImageDisplay.Dock = DockStyle.Fill;
-        
-        LayoutManagerForms.Add(ControlImageDisplay, this);
+        Controls.Add(ControlImageDisplay);
     }
 
     public void SimulateMouseDown(Point point, Rectangle rectangleFormBounds)

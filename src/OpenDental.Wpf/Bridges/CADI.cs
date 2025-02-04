@@ -21,7 +21,7 @@ namespace OpenDental.Bridges {
 			}
 			catch (Exception e) {
 				MessageBox.Show(e.Message);
-				SecurityLogs.MakeLogEntry(EnumPermType.ChartModule,ODMethodsT.Coalesce(pat).PatNum,e.Message);
+				SecurityLogs.MakeLogEntry(EnumPermType.ChartModule,(pat??new Patient()).PatNum,e.Message);
 			}
 		}
 	}

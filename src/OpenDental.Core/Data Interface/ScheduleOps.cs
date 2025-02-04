@@ -1,45 +1,52 @@
 using System.Collections.Generic;
 using System.Linq;
-using DataConnectionBase;
 using Imedisoft.Core.Crud;
 using Imedisoft.Core.Entities;
 
 namespace OpenDentBusiness;
 
-public class ScheduleOps
+public static class ScheduleOps
 {
     public static void Insert(ScheduleOp scheduleOp)
     {
         ScheduleOpCrud.Insert(scheduleOp);
     }
 
-    public static void DeleteBatch(List<long> listScheduleOpNums)
+    public static void DeleteBatch(List<long> scheduleOpNums)
     {
-        if (listScheduleOpNums == null || listScheduleOpNums.Count == 0) return;
-        var command = "DELETE FROM scheduleop WHERE ScheduleOpNum IN (" + string.Join(",", listScheduleOpNums) + ")";
-        Db.NonQ(command);
+        if (scheduleOpNums == null || scheduleOpNums.Count == 0)
+        {
+            return;
+        }
+
+        Db.NonQ("DELETE FROM scheduleop WHERE ScheduleOpNum IN (" + string.Join(",", scheduleOpNums) + ")");
     }
 
     public static List<ScheduleOp> GetForSched(long scheduleNum)
     {
-        var command = "SELECT * FROM scheduleop ";
-        command += "WHERE schedulenum = " + scheduleNum;
-        return ScheduleOpCrud.SelectMany(command);
+        return ScheduleOpCrud.SelectMany("SELECT * FROM scheduleop WHERE schedulenum = " + scheduleNum);
     }
 
-    public static List<ScheduleOp> GetForSchedList(List<Schedule> listSchedules)
+    public static List<ScheduleOp> GetForSchedList(List<Schedule> schedules)
     {
-        if (listSchedules == null || listSchedules.Count == 0) return new List<ScheduleOp>();
-        var command = "SELECT * FROM scheduleop WHERE ScheduleNum IN (" + string.Join(",", listSchedules.Select(x => x.ScheduleNum)) + ")";
-        return ScheduleOpCrud.SelectMany(command);
+        if (schedules == null || schedules.Count == 0)
+        {
+            return [];
+        }
+
+        return ScheduleOpCrud.SelectMany("SELECT * FROM scheduleop WHERE ScheduleNum IN (" + string.Join(", ", schedules.Select(x => x.ScheduleNum)) + ")");
     }
 
-    public static List<ScheduleOp> GetForSchedList(List<Schedule> listSchedules, List<long> listOpNums)
+    public static List<ScheduleOp> GetForSchedList(List<Schedule> schedules, List<long> opNums)
     {
-        if (listSchedules == null || listSchedules.Count == 0 || listOpNums == null || listOpNums.Count == 0) return new List<ScheduleOp>();
-        var command = "SELECT * FROM scheduleop "
-                      + "WHERE ScheduleNum IN (" + string.Join(",", listSchedules.Select(x => SOut.Long(x.ScheduleNum))) + ") "
-                      + "AND OperatoryNum IN (" + string.Join(",", listOpNums.Select(x => SOut.Long(x))) + ")";
-        return ScheduleOpCrud.SelectMany(command);
+        if (schedules == null || schedules.Count == 0 || opNums == null || opNums.Count == 0)
+        {
+            return [];
+        }
+
+        return ScheduleOpCrud.SelectMany(
+            "SELECT * FROM scheduleop " +
+            "WHERE ScheduleNum IN (" + string.Join(", ", schedules.Select(x => x.ScheduleNum)) + ") " +
+            "AND OperatoryNum IN (" + string.Join(", ", opNums) + ")");
     }
 }

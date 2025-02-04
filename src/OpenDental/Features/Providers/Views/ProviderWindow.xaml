@@ -1,0 +1,239 @@
+﻿<Window x:Class="OpenDental.Features.Providers.Views.ProviderWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:viewModels="clr-namespace:OpenDental.Features.Providers.ViewModels"
+        mc:Ignorable="d" d:DataContext="{d:DesignInstance viewModels:ProviderViewModel}"
+        Title="Edit Provider" Height="680" Width="960">
+
+    <Grid Margin="5">
+        <TabControl>
+            <TabItem Header="General" Padding="5">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+
+                    <Grid Grid.Column="0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="170" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="*" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+
+                        <Grid.Resources>
+                            <Style TargetType="{x:Type TextBlock}">
+                                <Setter Property="TextAlignment" Value="Right" />
+                                <Setter Property="VerticalAlignment" Value="Center" />
+                                <Setter Property="Padding" Value="5 0" />
+                            </Style>
+
+                            <Style TargetType="{x:Type TextBox}">
+                                <Setter Property="Padding" Value="2" />
+                                <Setter Property="Margin" Value="0 0 0 2" />
+                            </Style>
+
+                            <Style TargetType="{x:Type DatePicker}">
+                                <Setter Property="Padding" Value="2" />
+                                <Setter Property="Margin" Value="0 0 0 2" />
+                            </Style>
+
+                            <Style TargetType="{x:Type ComboBox}">
+                                <Setter Property="Padding" Value="2" />
+                                <Setter Property="Margin" Value="0 0 0 2" />
+                            </Style>
+                        </Grid.Resources>
+
+                        <TextBlock Grid.Row="0" Grid.Column="0" Text="Abbrevation" />
+                        <TextBox Grid.Row="0" Grid.Column="1" Text="{Binding }" Width="100"
+                                 HorizontalAlignment="Left" />
+
+                        <TextBlock Grid.Row="1" Grid.Column="0" Text="Last Name" />
+                        <TextBox Grid.Row="1" Grid.Column="1" Text="{Binding LastName}" />
+
+                        <TextBlock Grid.Row="2" Grid.Column="0" Text="First Name" />
+                        <TextBox Grid.Row="2" Grid.Column="1" Text="{Binding FirstName}" />
+
+                        <TextBlock Grid.Row="3" Grid.Column="0" Text="MI" />
+                        <TextBox Grid.Row="3" Grid.Column="1" Text="{Binding MiddleName}" />
+
+                        <TextBlock Grid.Row="4" Grid.Column="0" Text="Suffix (MD,DMD,DDS,etc)" />
+                        <TextBox Grid.Row="4" Grid.Column="1" Text="{Binding Suffix}" />
+
+                        <TextBlock Grid.Row="5" Grid.Column="0" Text="Preferred Name" />
+                        <TextBox Grid.Row="5" Grid.Column="1" Text="{Binding PreferredName}" />
+
+                        <TextBlock Grid.Row="6" Grid.Column="0" Text="Birthdate" />
+                        <DatePicker Grid.Row="6" Grid.Column="1"
+                                    SelectedDate="{Binding DateOfBirth}"
+                                    Width="150" HorizontalAlignment="Left" />
+
+                        <GroupBox Grid.Row="7" Grid.Column="1" Header="SSN or TIN (no dashes)" Padding="3" Margin="0 5">
+                            <StackPanel>
+                                <RadioButton Content="SSN" Margin="0 5 0 5" GroupName="Ssn" />
+                                <RadioButton Content="TIN" Margin="0 0 0 5" GroupName="Ssn"
+                                             IsChecked="{Binding UsingTin}" />
+                                <TextBox Text="{Binding Ssn}" />
+                            </StackPanel>
+                        </GroupBox>
+
+                        <GroupBox Grid.Row="8" Grid.Column="0" Grid.ColumnSpan="2" Header="Clinic Overrides">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="164" />
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                    <RowDefinition Height="Auto" />
+                                </Grid.RowDefinitions>
+
+                                <TextBlock Grid.Row="0" Grid.Column="0" Text="State License Number" />
+                                <TextBox Grid.Row="0" Grid.Column="1" />
+
+                                <TextBlock Grid.Row="1" Grid.Column="0" Text="State Where Licensed" />
+                                <TextBox Grid.Row="1" Grid.Column="1" />
+
+                                <TextBlock Grid.Row="2" Grid.Column="0" Text="DEA Number" />
+                                <TextBox Grid.Row="2" Grid.Column="1" />
+
+                                <TextBlock Grid.Row="3" Grid.Column="0" Text="State Rx ID" />
+                                <TextBox Grid.Row="3" Grid.Column="1" />
+
+                                <Button
+                                    Grid.Row="0" Grid.RowSpan="4" Grid.Column="2"
+                                    Margin="10 0 0 0"
+                                    VerticalAlignment="Bottom"
+                                    Width="80" Height="25"
+                                    Content="_Edit" />
+                            </Grid>
+                        </GroupBox>
+
+                        <TextBlock Grid.Row="9" Grid.Column="0" Text="Medicaid ID" />
+                        <TextBox Grid.Row="9" Grid.Column="1" Text="{Binding MedicaidId}" />
+
+                        <TextBlock Grid.Row="10" Grid.Column="0" Text="National Provider ID" />
+                        <TextBox Grid.Row="10" Grid.Column="1" Text="{Binding NationalProviderId}" />
+
+                        <TextBlock Grid.Row="11" Grid.Column="0" Text="Office Number" />
+                        <TextBox Grid.Row="11" Grid.Column="1" Text="{Binding CanadianOfficeNumber}" />
+
+                        <TextBlock Grid.Row="12" Grid.Column="0" Text="Term Date" />
+                        <DatePicker Grid.Row="12" Grid.Column="1"
+                                    Width="150" HorizontalAlignment="Left"
+                                    SelectedDate="{Binding TerminatedOn}" />
+
+                        <TextBlock Grid.Row="13" Grid.Column="0" Text="Appointment Color" />
+                        <TextBox Grid.Row="13" Grid.Column="1" Text="{Binding Color}" />
+
+                        <TextBlock Grid.Row="14" Grid.Column="0" Text="Highlight Outline Color" />
+                        <TextBox Grid.Row="14" Grid.Column="1" Text="{Binding OutlineColor}" />
+
+                        <TextBlock Grid.Row="16" Grid.Column="0" Text="Claim Billing Prov Override" />
+                        <ComboBox
+                            Grid.Row="16" Grid.Column="1"
+                            ItemsSource="{Binding ProviderDtos}"
+                            SelectedValuePath="Id"
+                            SelectedValue="{Binding BillingProviderId}"
+                            DisplayMemberPath="Description" />
+
+                        <TextBlock Grid.Row="17" Grid.Column="0" Text="Hourly Production Goal" />
+                        <TextBox Grid.Row="17" Grid.Column="1" Text="{Binding HourlyProductionGoal}" />
+                    </Grid>
+
+                    <Grid Grid.Column="1" Margin="10 0 0 0">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="*" />
+                        </Grid.RowDefinitions>
+
+                        <Grid Grid.Row="0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="10" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+
+                            <StackPanel Grid.Column="0">
+                                <TextBlock Text="Fee Schedule" />
+                                <ListBox Height="200" />
+                            </StackPanel>
+
+                            <StackPanel Grid.Column="2">
+                                <TextBlock Text="Specialty" />
+                                <ListBox Height="200"
+                                         ItemsSource="{Binding ProviderSpecialtyDtos}"
+                                         DisplayMemberPath="Description" />
+                            </StackPanel>
+                        </Grid>
+
+                        <StackPanel Grid.Row="1" Margin="0 10 0 5">
+                            <TextBlock Text="Scheduling Note" />
+                            <TextBox
+                                AcceptsReturn="True" Height="60"
+                                VerticalScrollBarVisibility="Visible"
+                                Text="{Binding SchedulerNote}" />
+                        </StackPanel>
+
+                        <StackPanel Grid.Row="2" HorizontalAlignment="Left" Margin="0 5">
+                            <TextBlock Text="Taxonomy Code Override" />
+                            <TextBox Width="200" Padding="2 3" Text="{Binding TaxonomyCode}" />
+                        </StackPanel>
+
+                        <StackPanel Grid.Row="3" VerticalAlignment="Bottom">
+                            <StackPanel.Resources>
+                                <Style TargetType="{x:Type CheckBox}">
+                                    <Setter Property="Margin" Value="0 3 0 0" />
+                                </Style>
+                            </StackPanel.Resources>
+                            <CheckBox Content="Is CDANet Member" Checked="{Binding IsCdaNet}" />
+                            <CheckBox Content="Secondary Provider (Hyg)" Checked="{Binding IsSecondary}" />
+                            <CheckBox Content="Signature on File" Checked="{Binding IsSignatureOnFile}" />
+
+                            <CheckBox
+                                Content="Not a Person (for example, a dummy provider representing the organization)"
+                                Checked="{Binding IsNotPerson}" />
+
+                            <CheckBox Content="Hidden" Checked="{Binding IsHidden}" />
+                            <CheckBox Content="Hidden On Reports" Checked="{Binding IsHiddenFromReports}" />
+                        </StackPanel>
+
+                    </Grid>
+                </Grid>
+            </TabItem>
+
+            <TabItem Header="Supplemental ID's" />
+
+            <TabItem Header="Clinics" />
+        </TabControl>
+    </Grid>
+
+</Window>

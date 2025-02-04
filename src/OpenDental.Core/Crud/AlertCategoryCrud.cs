@@ -8,15 +8,6 @@ namespace Imedisoft.Core.Crud;
 
 public class AlertCategoryCrud
 {
-    public static AlertCategory SelectOne(long alertCategoryNum)
-    {
-        var command = "SELECT * FROM alertcategory "
-                      + "WHERE AlertCategoryNum = " + SOut.Long(alertCategoryNum);
-        var list = TableToList(DataCore.GetTable(command));
-        if (list.Count == 0) return null;
-        return list[0];
-    }
-
     public static List<AlertCategory> SelectMany(string command)
     {
         var list = TableToList(DataCore.GetTable(command));
@@ -26,14 +17,15 @@ public class AlertCategoryCrud
     public static List<AlertCategory> TableToList(DataTable table)
     {
         var retVal = new List<AlertCategory>();
-        AlertCategory alertCategory;
         foreach (DataRow row in table.Rows)
         {
-            alertCategory = new AlertCategory();
-            alertCategory.AlertCategoryNum = SIn.Long(row["AlertCategoryNum"].ToString());
-            alertCategory.IsHQCategory = SIn.Bool(row["IsHQCategory"].ToString());
-            alertCategory.InternalName = SIn.String(row["InternalName"].ToString());
-            alertCategory.Description = SIn.String(row["Description"].ToString());
+            var alertCategory = new AlertCategory
+            {
+                AlertCategoryNum = SIn.Long(row["AlertCategoryNum"].ToString()),
+                IsHQCategory = SIn.Bool(row["IsHQCategory"].ToString()),
+                InternalName = SIn.String(row["InternalName"].ToString()),
+                Description = SIn.String(row["Description"].ToString())
+            };
             retVal.Add(alertCategory);
         }
 

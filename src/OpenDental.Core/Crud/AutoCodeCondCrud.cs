@@ -17,13 +17,14 @@ public class AutoCodeCondCrud
     public static List<AutoCodeCond> TableToList(DataTable table)
     {
         var retVal = new List<AutoCodeCond>();
-        AutoCodeCond autoCodeCond;
         foreach (DataRow row in table.Rows)
         {
-            autoCodeCond = new AutoCodeCond();
-            autoCodeCond.AutoCodeCondNum = SIn.Long(row["AutoCodeCondNum"].ToString());
-            autoCodeCond.AutoCodeItemNum = SIn.Long(row["AutoCodeItemNum"].ToString());
-            autoCodeCond.Cond = (AutoCondition) SIn.Int(row["Cond"].ToString());
+            var autoCodeCond = new AutoCodeCond
+            {
+                AutoCodeCondNum = SIn.Long(row["AutoCodeCondNum"].ToString()),
+                AutoCodeItemNum = SIn.Long(row["AutoCodeItemNum"].ToString()),
+                Cond = (AutoCondition) SIn.Int(row["Cond"].ToString())
+            };
             retVal.Add(autoCodeCond);
         }
 

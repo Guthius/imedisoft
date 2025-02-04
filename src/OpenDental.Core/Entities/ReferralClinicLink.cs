@@ -1,17 +1,15 @@
-﻿using System;
-using OpenDentBusiness;
+﻿using OpenDentBusiness;
 
 namespace Imedisoft.Core.Entities;
 
-///<summary>Table to link referrals and clinics together.</summary>
-[Serializable]
-[CrudTable(HasBatchWriteMethods=true)]
-public class ReferralClinicLink:TableBase {
-	///<summary>Primary key.</summary>
-	[CrudColumn(IsPriKey=true)]
-	public long ReferralClinicLinkNum;
-	///<summary>FK to referral.ReferralNum.</summary>
-	public long ReferralNum;
-	///<summary>FK to clinic.ClinicNum.</summary>
-	public long ClinicNum;
+public class ReferralClinicLink : TableBase
+{
+    [CrudColumn(IsPriKey = true)]
+    public long ReferralClinicLinkNum;
+
+    ///<summary>FK to referral.ReferralNum.</summary>
+    public long ReferralNum;
+
+    ///<summary>FK to clinic.ClinicNum.</summary>
+    public long ClinicNum;
 }

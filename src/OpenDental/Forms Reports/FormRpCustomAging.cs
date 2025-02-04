@@ -1,14 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Drawing;
-using System.Text;
-using System.Windows.Forms;
 using OpenDentBusiness;
 using CodeBase;
 using System.Linq;
 using OpenDental.UI;
-using System.Drawing.Printing;
 using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Entities;
@@ -61,7 +57,7 @@ public partial class FormRpCustomAging:FormODBase {
 		var listProvs = Providers.GetListReports();
 		for(var i=0;i < listProvs.Count;i++) {
 			// add text to providers that are marked as hidden or hidden in reports for the provider list
-			if(listProvs[i].IsHidden || listProvs[i].IsHiddenReport) {
+			if(listProvs[i].IsHidden || listProvs[i].IsHiddenFromReports) {
 				provAbbr=listProvs[i].Abbr+" "+Lan.g(this,"(hidden)") ;
 			}
 			else {
@@ -73,12 +69,6 @@ public partial class FormRpCustomAging:FormODBase {
 	}
 
 	private void FillClinics() {
-		if(!true) {
-			listBoxClins.Visible=false;
-			labelClinic.Visible=false;
-			checkAllClin.Visible=false;
-			return;
-		}
 		listBoxClins.Items.Clear();
 		var listClinics=Clinics.GetForUserod(Security.CurUser,true);
 		for(var i=0;i<listClinics.Count;i++) {

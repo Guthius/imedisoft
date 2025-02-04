@@ -1,14 +1,10 @@
 using System;
 using System.Drawing;
-using System.Collections;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.IO;
 using System.Windows.Forms;
-using System.Xml;
 using System.Xml.Serialization;
 using OpenDentBusiness;
-using OpenDental.UI;
 using System.Linq;
 using CodeBase;
 using Imedisoft.Core.Caching;
@@ -87,11 +83,6 @@ public partial class FormSheetTools:FormODBase {
 		var listSheetFieldDefsUnsupported=new List<SheetFieldDef>();
 		for(var i=sheetDef.SheetFieldDefs.Count-1;i>=0;i--) {
 			var sheetFieldDef=sheetDef.SheetFieldDefs[i];
-			//If user is importing a Dashboard SheetDef with SheetDefFields that are not supported by Dashboards, remove them from the field list
-			if(SheetDefs.IsDashboardType(sheetDef) && !UserControlDashboardWidget.IsSheetFieldDefSupported(sheetFieldDef)) {
-				listSheetFieldDefsUnsupported.Add(sheetFieldDef);
-				sheetDef.SheetFieldDefs.Remove(sheetFieldDef);
-			}
 			//ItemColor will be set to "Empty" if this is a sheet that was exported from a previous version that didn't support ItemColor.
 			//Color.Empty will actually draw but will be 'invisible' to the user.  For this reason, we considered this a bug and defaulted the color to black.
 			if(sheetFieldDef.ItemColor.Equals(Color.FromArgb(0, 0, 0, 0))) {

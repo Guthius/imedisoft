@@ -18,8 +18,6 @@ using Imedisoft.Core.Entities;
 using Imedisoft.Core.Features.Clinics;
 using OpenDental.UI;
 using OpenDentBusiness;
-using OpenDental.Thinfinity;
-using PdfSharp.Drawing;
 
 namespace OpenDental;
 
@@ -70,7 +68,6 @@ public partial class FormSheetFillEdit:FormODBase {
 	public bool IsRxControlled;
 	///<summary>Used for statements, do not save a sheet version of the statement.</summary>
 	public bool IsStatement;
-	public MedLab MedLabCur;
 	///<summary>A method that will be invoked when printing/email/creating PDF of a statement.</summary>
 	public SaveStatementToDocDelegate SaveStatementToDocDelegate;
 	///<summary>Will be null if deleted. Set before opening form.</summary>
@@ -253,10 +250,10 @@ public partial class FormSheetFillEdit:FormODBase {
 		else {
 			filePathAndName=PrefC.GetRandomTempFile(".pdf");
 			if(IsStatement) {
-				SheetPrinting.CreatePdf(SheetCur,filePathAndName,StatementCur,MedLabCur,DataSet_);
+				SheetPrinting.CreatePdf(SheetCur,filePathAndName,StatementCur,DataSet_);
 			}
 			else {
-				SheetPrinting.CreatePdf(SheetCur,filePathAndName,StatementCur,MedLabCur);
+				SheetPrinting.CreatePdf(SheetCur,filePathAndName,StatementCur);
 			}
 		}
 		try
@@ -309,10 +306,10 @@ public partial class FormSheetFillEdit:FormODBase {
 			return;
 		}
 		if(IsStatement) {
-			SheetPrinting.Print(SheetCur,DataSet_,1,IsRxControlled,StatementCur,MedLabCur);
+			SheetPrinting.Print(SheetCur,DataSet_,1,IsRxControlled,StatementCur);
 		}
 		else {
-			SheetPrinting.Print(SheetCur,1,IsRxControlled,StatementCur,MedLabCur);
+			SheetPrinting.Print(SheetCur,1,IsRxControlled,StatementCur);
 		}
 		if(SheetCur.SheetType==SheetTypeEnum.Statement && SaveStatementToDocDelegate!=null) {
 			SaveStatementToDocDelegate(StatementCur,SheetCur,DataSet_);
@@ -425,10 +422,10 @@ public partial class FormSheetFillEdit:FormODBase {
 		}
 		if(formSheetOutputFormat.QtyPaperCopies>0){
 			if(IsStatement) {
-				SheetPrinting.Print(SheetCur,DataSet_,1,IsRxControlled,StatementCur,MedLabCur);
+				SheetPrinting.Print(SheetCur,DataSet_,1,IsRxControlled,StatementCur);
 			}
 			else {
-				SheetPrinting.Print(SheetCur,formSheetOutputFormat.QtyPaperCopies,IsRxControlled,StatementCur,MedLabCur);
+				SheetPrinting.Print(SheetCur,formSheetOutputFormat.QtyPaperCopies,IsRxControlled,StatementCur);
 			}
 		}
 		var pdfFile="";
@@ -518,8 +515,6 @@ public partial class FormSheetFillEdit:FormODBase {
 		if(!TryToSaveData()){
 			return;
 		}
-		//Create mobile notification to update eClipboard device with new sheet.
-		MobileNotifications.CI_AddSheet(SheetCur.PatNum,SheetCur.SheetNum);
 		SecurityLogs.MakeLogEntry(EnumPermType.SheetEdit,SheetCur.PatNum,SheetCur.Description+" from "+SheetCur.DateTimeSheet.ToShortDateString());
 		DialogResult=DialogResult.OK;
 		Close();
@@ -1189,7 +1184,7 @@ public partial class FormSheetFillEdit:FormODBase {
 			if(!SheetCur.SheetFields[i].FieldType.In(SheetFieldType.Grid)){
 				continue;
 			}
-			SheetPrinting.DrawFieldGrid(SheetCur.SheetFields[i],SheetCur,g,null,DataSet_,StatementCur,MedLabCur,scaleMS:1);
+			SheetPrinting.DrawFieldGrid(SheetCur.SheetFields[i],SheetCur,g,null,DataSet_,StatementCur,scaleMS:1);
 		}
 		//Special----------------------------------------------------------------------------------------------------------------------
 		///Rare. Referral letter tooth chart seems to the only example because the chart module controls are only shown in FormSheetDefEdit, not FormSheetFillEdit.
@@ -1431,7 +1426,7 @@ public partial class FormSheetFillEdit:FormODBase {
 		textBox.TextChanged+=textBox_TextChanged;
 		textBox.FontChanged+=TextBox_FontChanged;
 		textBox.ReadOnly=sheetField.IsLocked;
-		LayoutManagerForms.Add(textBox,panelMain);
+		panelMain.Controls.Add(textBox);
 		//int scroll=panelScroll.VerticalScroll.Value;
 		//panelScroll.VerticalScroll.Value=scroll;
 		if(isFromCheckBox) {
@@ -1481,31 +1476,20 @@ public partial class FormSheetFillEdit:FormODBase {
 		}
 		//Format Email
 		fileName=DateTime.Now.ToString("yyyyMMdd")+"_"+DateTime.Now.TimeOfDay.Ticks+rnd.Next(1000)+".pdf";
-		filePathAndName=FileAtoZ.CombinePaths(attachPath,fileName);
+		filePathAndName=Path.Combine(attachPath,fileName);
 		string pdfFile;
-		if(false) {
-			pdfFile=PrefC.GetRandomTempFile("pdf");
-		}
-		else {
-			pdfFile=filePathAndName;
-		}
-		if(!string.IsNullOrEmpty(_tempPdfFile) && File.Exists(_tempPdfFile)) {
-			if(false) {
-				pdfFile=_tempPdfFile;
-			}
-			else {
-				File.Copy(_tempPdfFile,pdfFile);
-			}
+		pdfFile=filePathAndName;
+		if(!string.IsNullOrEmpty(_tempPdfFile) && File.Exists(_tempPdfFile))
+		{
+			File.Copy(_tempPdfFile,pdfFile);
 		}
 		else if(IsStatement) {
-			SheetPrinting.CreatePdf(SheetCur,pdfFile,StatementCur,MedLabCur,DataSet_);
+			SheetPrinting.CreatePdf(SheetCur,pdfFile,StatementCur,DataSet_);
 		}
 		else {
-			SheetPrinting.CreatePdf(SheetCur,pdfFile,StatementCur,MedLabCur);
+			SheetPrinting.CreatePdf(SheetCur,pdfFile,StatementCur);
 		}
-		if(false) {
-			FileAtoZ.Copy(pdfFile,filePathAndName);
-		}
+
 		emailMessage=new EmailMessage();
 		emailMessage.Subject=subject;
 		var shortFileName=Regex.Replace(SheetCur.Description, @"[^\w'@-_()&]", "");
@@ -1529,12 +1513,7 @@ public partial class FormSheetFillEdit:FormODBase {
 			var csvFileName=DateTime.Now.ToString("yyyyMMdd")+"_"+DateTime.Now.TimeOfDay.Ticks+rnd.Next(1000)+".csv";
 			var csvPathAndName=ODFileUtils.CombinePaths(attachPath,csvFileName);
 			var csvFilePath=Statements.SaveStatementAsCSV(StatementCur);
-			if(false){
-				MsgBox.Show(this,"Could not create email because no AtoZ folder.");
-			}
-			if(true) {
-				File.Copy(csvFilePath,csvPathAndName);
-			}
+			File.Copy(csvFilePath,csvPathAndName);
 			var emailAttachCSV=new EmailAttach();
 			emailAttachCSV.DisplayedFileName="Statement.csv";
 			emailAttachCSV.ActualFileName=csvFileName;
@@ -1718,20 +1697,6 @@ public partial class FormSheetFillEdit:FormODBase {
 			}
 			//Drawn in Paint
 		}
-		//draw screencharts--------------------------------------------------------------------------------------------------
-		for(var i=0;i<SheetCur.SheetFields.Count;i++){
-			if(SheetCur.SheetFields[i].FieldType!=SheetFieldType.ScreenChart) {
-				continue;
-			}
-			var screenToothChart=new ScreenToothChart(SheetCur.SheetFields[i].FieldValue,SheetCur.SheetFields[i].FieldValue[0]=='1');//Need to pass in value here to set tooth chart items.
-			screenToothChart.Location=new Point(SheetCur.SheetFields[i].XPos,SheetCur.SheetFields[i].YPos);
-			screenToothChart.Width=SheetCur.SheetFields[i].Width;
-			screenToothChart.Height=SheetCur.SheetFields[i].Height;
-			screenToothChart.Tag=SheetCur.SheetFields[i];
-			screenToothChart.Invalidate();
-			LayoutManagerForms.Add(screenToothChart,panelMain);
-			panelMain.Controls.SetChildIndex(screenToothChart,panelMain.Controls.Count-2);//Ensures it's in the right order but in front of the picture frame.
-		}
 		//draw signature boxes----------------------------------------------------------------------------------------------
 		for(var i=0;i<SheetCur.SheetFields.Count;i++){
 			if(!SheetCur.SheetFields[i].FieldType.In(SheetFieldType.SigBox,SheetFieldType.SigBoxPractice)) {
@@ -1779,7 +1744,7 @@ public partial class FormSheetFillEdit:FormODBase {
 			signatureBoxWrapper.Tag=SheetCur.SheetFields[i];
 			signatureBoxWrapper.TabStop=SheetCur.SheetFields[i].TabOrder>0;
 			signatureBoxWrapper.TabIndex=SheetCur.SheetFields[i].TabOrder;
-			LayoutManagerForms.Add(signatureBoxWrapper,panelMain);
+			panelMain.Controls.Add(signatureBoxWrapper);
 			signatureBoxWrapper.BringToFront();
 			var isOldSigXWebForms=signatureBoxWrapper.IsOldSigXWebForms();
 			if(signatureBoxWrapper.IsValid 
@@ -1800,7 +1765,7 @@ public partial class FormSheetFillEdit:FormODBase {
 				richTextBox.Height=14;
 				richTextBox.ReadOnly=true;
 				richTextBox.Font=new Font("Arial",8.25f);
-				LayoutManagerForms.Add(richTextBox,panelMain);
+				panelMain.Controls.Add(richTextBox);
 				richTextBox.BringToFront();
 				_listRichTextBoxesSignatures.Add(richTextBox);
 			}
@@ -2091,11 +2056,11 @@ public partial class FormSheetFillEdit:FormODBase {
 					File.Delete(_tempPdfFile);
 				}
 			}
-			catch(Exception ex) {
+			catch {
 			}
 			//Get a temporary location for the file
 			_tempPdfFile=PrefC.GetRandomTempFile(".pdf");
-			SheetPrinting.CreatePdf(SheetCur,_tempPdfFile,StatementCur,MedLabCur);
+			SheetPrinting.CreatePdf(SheetCur,_tempPdfFile,StatementCur);
 			//Import pdf, this will move the pdf into the correct location for the patient.
 			var defNum=Defs.GetByExactName(DefCat.ImageCats,"Letters");
 			if(defNum==0) {
@@ -2432,9 +2397,6 @@ public partial class FormSheetFillEdit:FormODBase {
 		var tempFile=PrefC.GetRandomTempFile(".pdf");
 		var rawBase64="";
 		SheetPrinting.CreatePdf(SheetCur,tempFile,StatementCur);
-		if(false) {
-			rawBase64=Convert.ToBase64String(System.IO.File.ReadAllBytes(tempFile));//Todo test this
-		}
 		//Check for an explicit image category to potentially override the autosave category.
 		var sheetDef=SheetDefs.GetSheetDef(SheetCur.SheetDefNum, hasExceptions:false);//this is wrong
 		if(charUsage=='U' && sheetDef!=null && sheetDef.AutoCheckSaveImageDocCategory!=0) {
@@ -2468,7 +2430,7 @@ public partial class FormSheetFillEdit:FormODBase {
 		try {
 			File.Delete(tempFile); //cleanup the temp file.
 		}
-		catch(Exception e) {
+		catch {
 		}
 		return true;
 	}
@@ -2489,9 +2451,6 @@ public partial class FormSheetFillEdit:FormODBase {
 			if(!MsgBox.Show(this,MsgBoxButtons.YesNo,message)) {
 				return;
 			}
-		}
-		if(SheetCur.SheetType==SheetTypeEnum.Screening) {
-			Screens.DeleteForSheet(SheetCur.SheetNum);
 		}
 		Sheets.Delete(SheetCur.SheetNum,SheetCur.PatNum,SheetCur.ShowInTerminal);
 		SecurityLogs.MakeLogEntry(EnumPermType.SheetEdit,SheetCur.PatNum,SheetCur.Description

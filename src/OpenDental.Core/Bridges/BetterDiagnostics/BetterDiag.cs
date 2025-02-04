@@ -1,11 +1,7 @@
 using System;
-using System.Collections;
 using System.Drawing;
 using System.IO;
 using System.Linq;
-using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading;
 using System.Collections.Generic;
 using CodeBase;
 using Imedisoft.Core.Caching;
@@ -36,7 +32,7 @@ namespace OpenDentBusiness.Bridges{
 					return;//File couldn't be converted to bitmap
 				}
 			}
-			BetterDiag betterDiag=new BetterDiag();
+			var betterDiag=new BetterDiag();
 			betterDiag.Patient_=patient;
 			if(mountItem!=null) {
 				betterDiag.Bitmap_=ImageHelper.ApplyDocumentSettingsToImage(document,bitmap,ImageSettingFlags.ALL);//Creates copy of bitmap
@@ -61,8 +57,8 @@ namespace OpenDentBusiness.Bridges{
 			catch {
 				return false;
 			}
-			List<string> listCategories=categoriesStr.Split(',').ToList();
-			string categoryName=Defs.GetName(DefCat.ImageCats,defNumCategory);
+			var listCategories=categoriesStr.Split(',').ToList();
+			var categoryName=Defs.GetName(DefCat.ImageCats,defNumCategory);
 			if(listCategories.Contains(categoryName)) {
 				return true;
 			}
@@ -75,7 +71,7 @@ namespace OpenDentBusiness.Bridges{
 
 		
 		public void SendOnThread() {
-			ODThread oDThreadBetterDiag=new ODThread(this.SendOnThreadWorker);
+			var oDThreadBetterDiag=new ODThread(this.SendOnThreadWorker);
 			//Swallow all exceptions and allow thread to exit gracefully.
 			oDThreadBetterDiag.AddExceptionHandler(new ODThread.ExceptionDelegate((Exception ex) => {
 				AlertUserOfError("There was an error processing a BetterDiagnostics image.");
@@ -113,54 +109,54 @@ namespace OpenDentBusiness.Bridges{
 		/// <summary>Inserts ImageDraws from BetterDiagnostics API response.</summary>
 		public void ProcessResultsForOneImage(BetterDiagResponse betterDiagResponse,Bitmap bitmap,Document document,MountItem mountItem){
 			long mountNum=0;
-			Point pointMountPos=new Point(0,0);
-			float scale=1f;
+			var pointMountPos=new Point(0,0);
+			var scale=1f;
 			if(mountItem!=null) {
 				scale=ImageDraws.CalcBitmapScaleToFitMountItem(bitmap.Width,bitmap.Height,mountItem.Width,mountItem.Height);
-				Point pointPadding=ImageDraws.CalcBitmapPaddingToFitMountItem(bitmap.Width,bitmap.Height,mountItem.Width,mountItem.Height,scale);
+				var pointPadding=ImageDraws.CalcBitmapPaddingToFitMountItem(bitmap.Width,bitmap.Height,mountItem.Width,mountItem.Height,scale);
 				//Add padding to line up annotations with centered image in mount item.
 				pointMountPos.X=mountItem.Xpos+pointPadding.X;
 				pointMountPos.Y=mountItem.Ypos+pointPadding.Y;
 				mountNum=mountItem.MountNum;
 			}
-			string fileName=document.FileName;
+			var fileName=document.FileName;
 			fileName=fileName.Replace(Path.GetExtension(fileName),".jpg");//BetterDiagnostics always returns filename with .jpg instead of original extension
-			if(!betterDiagResponse.findings.dictImageResults.TryGetValue(fileName,out List<ImageResult> listImageResults)) {
+			if(!betterDiagResponse.findings.dictImageResults.TryGetValue(fileName,out var listImageResults)) {
 				return;//Something went wrong.
 			}
-			for(int i=0;i<listImageResults.Count;i++) {
-				ImageDraw imageDraw=new ImageDraw();
+			for(var i=0;i<listImageResults.Count;i++) {
+				var imageDraw=new ImageDraw();
 				imageDraw.DocNum=document.DocNum;
 				imageDraw.MountNum=mountNum;
 				imageDraw.ImageAnnotVendor=EnumImageAnnotVendor.BetterDiagnostics;
 				imageDraw.BetterDiagLayer=GetCategoryForTagName(listImageResults[i].tag_name);
 				imageDraw.ColorDraw=GetColorForCategory(imageDraw.BetterDiagLayer);
 				imageDraw.DrawType=ImageDrawType.Polygon;
-				List<EnumCategoryBetterDiag> listEnumCategoryBetterDiagsToothParts=GetBetterDiagToothPartsCategories();
+				var listEnumCategoryBetterDiagsToothParts=GetBetterDiagToothPartsCategories();
 				if(!listEnumCategoryBetterDiagsToothParts.Contains(imageDraw.BetterDiagLayer)) {
 					//Not tooth part.
 					imageDraw.DrawType=ImageDrawType.Line;
 					imageDraw.Details=listImageResults[i].tag_name;
 				}
-				List<PointF> listPointFs=listImageResults[i].points.Select(p => new PointF((float)p[0],(float)p[1])).ToList();
+				var listPointFs=listImageResults[i].points.Select(p => new PointF((float)p[0],(float)p[1])).ToList();
 				listPointFs=ImageDraws.ScalePointsToMountItem(listPointFs,scale);
 				listPointFs=ImageDraws.TranslatePointsToMountItem(listPointFs,pointMountPos);
 				imageDraw.SetDrawingSegment(listPointFs);
 				ImageDraws.Insert(imageDraw);
 				//Add Text ImageDraw for bone level.
 				if(imageDraw.BetterDiagLayer==EnumCategoryBetterDiag.BoneLevel) {
-					ImageDraw imageDrawText=imageDraw.Copy();
+					var imageDrawText=imageDraw.Copy();
 					imageDrawText.Details="";//Don't show hover box for measurements.
 					imageDrawText.DrawType=ImageDrawType.Text;
 					imageDrawText.ColorDraw=GetTextColorForCategory(imageDrawText.BetterDiagLayer);
-					PointF pointFText=new PointF();
+					var pointFText=new PointF();
 					pointFText.X=(int)listImageResults[i].points[0][0];
 					pointFText.Y=(int)listImageResults[i].points[0][1];
 					pointFText=ImageDraws.ScalePointsToMountItem(ListTools.FromSingle(pointFText),scale)[0];
 					pointFText=ImageDraws.TranslatePointsToMountItem(ListTools.FromSingle(pointFText),pointMountPos)[0];
-					Point pointText=Point.Round(pointFText);
+					var pointText=Point.Round(pointFText);
 					//Calculate bone level measurement and set as text because it is not provided by the API response.
-					string drawText=GetLineMeasurementString(imageDraw,document,mountNum);
+					var drawText=GetLineMeasurementString(imageDraw,document,mountNum);
 					imageDrawText.SetLocAndText(pointText,drawText);
 					ImageDraws.Insert(imageDrawText);
 				}
@@ -222,7 +218,7 @@ namespace OpenDentBusiness.Bridges{
 
 		///<summary>Returns list of EnumCategoryBetterDiags considered to be "tooth parts".</summary>
 		public static List<EnumCategoryBetterDiag> GetBetterDiagToothPartsCategories() {
-			List<EnumCategoryBetterDiag> listEnumCategoryBetterDiags=new List<EnumCategoryBetterDiag>();
+			var listEnumCategoryBetterDiags=new List<EnumCategoryBetterDiag>();
 			listEnumCategoryBetterDiags.Add(EnumCategoryBetterDiag.Dentin);
 			listEnumCategoryBetterDiags.Add(EnumCategoryBetterDiag.Enamel);
 			listEnumCategoryBetterDiags.Add(EnumCategoryBetterDiag.Pulp);
@@ -238,16 +234,16 @@ namespace OpenDentBusiness.Bridges{
 			if(imageDraw.DrawType!=ImageDrawType.Line) {
 				return "";
 			}
-			string drawText="";
-			string scaleStr=PrefC.GetString(PrefName.ImagingDefaultScaleValue);//If single image, we can use preference
-			float lengthPixels=ImageDraws.CalcLengthLine(imageDraw.GetPoints());
-			float scaleValue=MountDefs.GetScale(scaleStr);
+			var drawText="";
+			var scaleStr=PrefC.GetString(PrefName.ImagingDefaultScaleValue);//If single image, we can use preference
+			var lengthPixels=ImageDraws.CalcLengthLine(imageDraw.GetPoints());
+			var scaleValue=MountDefs.GetScale(scaleStr);
 			float decimals=MountDefs.GetDecimals(scaleStr);
-			string unitsStr=MountDefs.GetScaleUnits(scaleStr);
+			var unitsStr=MountDefs.GetScaleUnits(scaleStr);
 			if(mountNum!=0) {
 				//Scale info for a mount is stored as an ImageDraw of type ScaleValue that contains the scale, number of decimals, and units.
-				List<ImageDraw> listImageDraws=ImageDraws.RefreshForDoc(document.DocNum);
-				ImageDraw imageDrawScale=listImageDraws.FirstOrDefault(x => x.DrawType==ImageDrawType.ScaleValue);
+				var listImageDraws=ImageDraws.RefreshForDoc(document.DocNum);
+				var imageDrawScale=listImageDraws.FirstOrDefault(x => x.DrawType==ImageDrawType.ScaleValue);
 				if(imageDrawScale!=null) {
 					scaleValue=MountDefs.GetScale(imageDrawScale.DrawingSegment);
 					decimals=MountDefs.GetDecimals(imageDrawScale.DrawingSegment);
@@ -257,7 +253,7 @@ namespace OpenDentBusiness.Bridges{
 			if(scaleValue==0) {
 				return "";
 			}
-			float lengthScaled=lengthPixels/scaleValue;
+			var lengthScaled=lengthPixels/scaleValue;
 			drawText=lengthScaled.ToString("f"+decimals.ToString());
 			if(!unitsStr.IsNullOrEmpty()){
 				drawText+=" "+unitsStr;

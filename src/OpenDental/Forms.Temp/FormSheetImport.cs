@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Data;
 using System.Drawing;
 using System.Text;
 using System.Windows.Forms;
@@ -9,7 +8,6 @@ using OpenDental.UI;
 using System.Linq;
 using CodeBase;
 using Newtonsoft.Json;
-using System.IO;
 using System.Text.RegularExpressions;
 using System.Globalization;
 using DataConnectionBase;
@@ -46,10 +44,6 @@ public partial class FormSheetImport:FormODBase {
 	private List<InsSub> _listInsSubs;
 	private InsSub _insSub1;
 	private InsSub _insSub2;
-	private OcrInsScanResponse _ocrResponsePrimaryFront;
-	private OcrInsScanResponse _ocrResponsePrimaryBack;
-	private OcrInsScanResponse _ocrResponseSecondaryFront;
-	private OcrInsScanResponse _ocrResponseSecondaryBack;
 	///<summary>In order to import insurance plans the sheet must contain Relationship, Subscriber, SubscriberID, CarrierName, and CarrierPhone.  This variable gets set when the sheet loads and will indicate if all fields are present for primary OR for secondary insurance.  Insurance should not attempt to import if this is false.</summary>
 	private bool _hasRequiredInsFields;
 	private bool _hasSectionPersonal;
@@ -91,32 +85,6 @@ public partial class FormSheetImport:FormODBase {
 		_patientOld=_patient.Copy();
 		_patientNote=PatientNotes.Refresh(_patient.PatNum,_patient.Guarantor);
 		_patientNoteOld=_patientNote.Copy();
-		//pre-initialize ocrData to blank. Do this even if we dont have ocr docs. Its easier than adding null checks.
-		_ocrResponsePrimaryFront=CreateBlankOcrInsScanResponse();
-		_ocrResponsePrimaryBack=CreateBlankOcrInsScanResponse();
-		_ocrResponseSecondaryFront=CreateBlankOcrInsScanResponse();
-		_ocrResponseSecondaryBack=CreateBlankOcrInsScanResponse();
-		//Get list documents for patient Documents.GetPatientData Order by date descending
-		var listDocumentsForInsScans=Documents.GetOcrDocumentsForPat(_patient.PatNum);
-		if(!listDocumentsForInsScans.IsNullOrEmpty()) {
-			var documentPrimaryInsFront=listDocumentsForInsScans.Find(x=>x.ImageCaptureType==EnumOcrCaptureType.PrimaryInsFront);
-			var documentPrimaryInsBack=listDocumentsForInsScans.Find(x=>x.ImageCaptureType==EnumOcrCaptureType.PrimaryInsBack);
-			var documentSecondaryInsFront=listDocumentsForInsScans.Find(x=>x.ImageCaptureType==EnumOcrCaptureType.SecondaryInsFront);
-			var documentSecondaryInsBack=listDocumentsForInsScans.Find(x=>x.ImageCaptureType==EnumOcrCaptureType.SecondaryInsBack);
-			//Get the images for the OcrData. its fine if we fail to get them.
-			if(documentPrimaryInsFront!=null){
-				_ocrResponsePrimaryFront=LoadOcrDataFromDocHelper(documentPrimaryInsFront);
-			}
-			if(documentPrimaryInsBack!=null){
-				_ocrResponsePrimaryBack=LoadOcrDataFromDocHelper(documentPrimaryInsBack);
-			}
-			if(documentSecondaryInsFront!=null){
-				_ocrResponseSecondaryFront=LoadOcrDataFromDocHelper(documentSecondaryInsFront);
-			}
-			if(documentSecondaryInsBack!=null){
-				_ocrResponseSecondaryBack=LoadOcrDataFromDocHelper(documentSecondaryInsBack);
-			}
-		}
 		_family=Patients.GetFamily(_patient.PatNum);
 		_isAddressSameForFam=true;
 		for(var i=0;i<_family.ListPats.Length;i++) {
@@ -423,7 +391,7 @@ public partial class FormSheetImport:FormODBase {
 					importRow.NewValObj=SIn.Date(fieldVal);
 				}
 				if(SheetCur!=null){
-					importRow.NewValObj=SheetFields.GetBirthDate(fieldVal,SheetCur.IsWebForm,SheetCur.IsCemtTransfer);
+					importRow.NewValObj=SIn.Date(fieldVal);
 				}
 				if(string.IsNullOrWhiteSpace(fieldVal)) {//Patient entered blank date, consider this to be valid blank date.
 					importRow.NewValDisplay="";
@@ -1941,7 +1909,7 @@ public partial class FormSheetImport:FormODBase {
 		#region Problems (eForms)
 		if(EFormCur!=null && _hasSectionProblems){
 			_listImportRows.Add(CreateSeparator("Problems"));
-			var listDiseasesPat=Diseases.Refresh(_patient.PatNum,showActiveOnly:true);
+			var listDiseasesPat=Diseases.Refresh(_patient.PatNum,activeOnly:true);
 			var listStringsPat=new List<string>();//this is for later
 			//First, we add a list of all existing diseases
 			for(var i=0;i<listDiseasesPat.Count;i++){
@@ -2216,107 +2184,6 @@ public partial class FormSheetImport:FormODBase {
 				return null;
 			}
 			result=eFormField.ValueString;
-		}
-		if(!fieldName.StartsWith("ins")) {
-			return result;
-		}
-		//OCR processing of insurance card from here down
-		if(result==null || result!="") {
-			//If null, preserve the null.
-			//If a value was found on the sheet, prefer the sheet value to ocrData.
-			return result;
-		}
-		switch(fieldName) {
-			case "ins1SubscriberNameF":
-				result=_ocrResponsePrimaryFront.Member.Name;
-				if(result.IsNullOrEmpty()) {
-					result=_ocrResponsePrimaryBack.Member.Name;
-				}
-				break;
-			case "ins1SubscriberID":
-				result=_ocrResponsePrimaryFront.IdNumber.Prefix+_ocrResponsePrimaryFront.IdNumber.Number;
-				if(result.IsNullOrEmpty()) {
-					result=_ocrResponsePrimaryBack.IdNumber.Prefix+_ocrResponsePrimaryBack.IdNumber.Number;
-				}
-				break;
-			case "ins1CarrierName":
-				result=_ocrResponsePrimaryFront.Insurer;
-				if(result.IsNullOrEmpty()) {
-					result=_ocrResponsePrimaryBack.Insurer;
-				}
-				break;
-			case "ins1CarrierPhone":
-				result=_ocrResponsePrimaryFront.Payer.PhoneNumber;
-				if(result.IsNullOrEmpty()) {
-					result=_ocrResponsePrimaryBack.Payer.PhoneNumber;
-				}
-				break;
-			case "ins1EmployerName":
-				result=_ocrResponsePrimaryFront.Member.Employer;
-				if(result.IsNullOrEmpty()) {
-					result=_ocrResponsePrimaryBack.Member.Employer;
-				}
-				break;
-			case "ins1GroupName":
-				result=_ocrResponsePrimaryFront.Member.Employer;
-				if(result.IsNullOrEmpty()) {
-					result=_ocrResponsePrimaryBack.Member.Employer;
-				}
-				break;
-			case "ins1GroupNum":
-				result=_ocrResponsePrimaryFront.GroupNumber;
-				if(result.IsNullOrEmpty()) {
-					result=_ocrResponsePrimaryBack.GroupNumber;
-				}
-				break;
-			case "ins2SubscriberNameF":
-				result=_ocrResponseSecondaryFront.Member.Name;
-				if(result.IsNullOrEmpty()) {
-					result=_ocrResponseSecondaryBack.Member.Name;
-				}
-				break;
-			case "ins2SubscriberID":
-				result=_ocrResponseSecondaryFront.IdNumber.Prefix+_ocrResponseSecondaryFront.IdNumber.Number;
-				if(result.IsNullOrEmpty()) {
-					result=_ocrResponseSecondaryBack.IdNumber.Prefix+_ocrResponseSecondaryBack.IdNumber.Number;
-				}
-				break;
-			case "ins2CarrierName":
-				result=_ocrResponseSecondaryFront.Insurer;
-				if(result.IsNullOrEmpty()) {
-					result=_ocrResponseSecondaryBack.Insurer;
-				}
-				break;
-			case "ins2CarrierPhone":
-				result=_ocrResponseSecondaryFront.Payer.PhoneNumber;
-				if(result.IsNullOrEmpty()) {
-					result=_ocrResponseSecondaryBack.Payer.PhoneNumber;
-				}
-				break;
-			case "ins2EmployerName":
-				result=_ocrResponseSecondaryFront.Member.Employer;
-				if(result.IsNullOrEmpty()) {
-					result=_ocrResponseSecondaryBack.Member.Employer;
-				}
-				break;
-			case "ins2GroupName":
-				result=_ocrResponseSecondaryFront.Member.Employer;
-				if(result.IsNullOrEmpty()) {
-					result=_ocrResponseSecondaryBack.Member.Employer;
-				}
-				break;
-			case "ins2GroupNum":
-				result=_ocrResponseSecondaryFront.GroupNumber;
-				if(result.IsNullOrEmpty()) {
-					result=_ocrResponseSecondaryBack.GroupNumber;
-				}
-				break;
-			default: break;
-		}
-		//Turn null into empty if we got in here. The field exists on the sheet, but didnt have a value, neither does OcrData.
-		//If we return null, the field wont be added to the grid. We know it should be there because sheetField.FieldValue was empty string.
-		if(result==null) {
-			result="";
 		}
 		return result;
 	}
@@ -3478,7 +3345,7 @@ public partial class FormSheetImport:FormODBase {
 		#endregion Meds (eForms)
 		#region Problems (eForms)
 		if(EFormCur!=null && _hasSectionProblems){
-			var listDiseasesPat=Diseases.Refresh(_patient.PatNum,showActiveOnly:true);
+			var listDiseasesPat=Diseases.Refresh(_patient.PatNum,activeOnly:true);
 			for(var i=0;i<_listImportRows.Count;i++) {
 				if(_listImportRows[i].TypeObj!=typeof(Disease)){
 					continue;
@@ -3559,51 +3426,6 @@ public partial class FormSheetImport:FormODBase {
 		DialogResult=DialogResult.OK;
 	}
 
-	/// <summary> Loads the Image and sets it in the appropriate PictureBox in the ui if able, and parses stored OcrInsScanResponse. If image fails to load, returned value will be an empty OcrInsScanResponse.</summary>
-	private OcrInsScanResponse LoadOcrDataFromDocHelper(Document doc) {
-		Bitmap bitmap=null;
-		try {
-			bitmap=ImageHelper.GetBitmapOfDocumentFromDb(doc.DocNum);
-		}
-		catch(Exception e) {
-			Logger.WriteException(new Exception("FormSheetImport - Could not find Image for document with docNum: "+doc.DocNum, innerException:e));
-		}
-		OcrInsScanResponse response=null;
-		ODPictureBox pictureBox;
-		switch(doc.ImageCaptureType) {
-			case EnumOcrCaptureType.PrimaryInsFront:
-				pictureBox=pictureBoxPrimaryInsuranceFront;
-				break;
-			case EnumOcrCaptureType.PrimaryInsBack:
-				pictureBox=pictureBoxPrimaryInsuranceBack;
-				break;
-			case EnumOcrCaptureType.SecondaryInsFront:
-				pictureBox=pictureBoxSecondaryInsuranceFront;
-				break;
-			case EnumOcrCaptureType.SecondaryInsBack:
-				pictureBox=pictureBoxSecondaryInsuranceBack;
-				break;
-			default:
-				return CreateBlankOcrInsScanResponse();
-		}
-		if(!doc.OcrResponseData.IsNullOrEmpty()){
-			try {
-				response=JsonConvert.DeserializeObject<OcrInsScanResponse>(doc.OcrResponseData);
-			}
-			catch(Exception e) { 
-				Logger.WriteException(new Exception("FormSheetImport - Could not de-serialize OcrInsScanResponse from docNum: "+doc.DocNum, innerException:e));	
-			}
-		}
-		if(bitmap==null||response==null) {
-			//If the image was not loaded, or the OcrInsScanResponse was not loaded, create and return a blank OcrInsScanResposne.
-			response=CreateBlankOcrInsScanResponse();
-		}
-		else {
-			pictureBox.Image= bitmap;
-		}
-		return response;
-	}
-
 	///<summary>Returns a string that will be empty if nothing is imported, or if there are no edited fields. Compares 'Current Value' and 'Import Value'
 	///columns to determine if there is a change. If changes are being imported will return a security log string including the changes.</summary>
 	private string SecurityLogHelper() {
@@ -3625,56 +3447,6 @@ public partial class FormSheetImport:FormODBase {
 			stringBuilder.Append($" to '{listGridRowsEdited[i].Cells[indexImportValue].Text}'\r\n");
 		}
 		return stringBuilder.ToString();
-	}
-
-	private OcrInsScanResponse CreateBlankOcrInsScanResponse() {
-		var result= new OcrInsScanResponse();
-		result.Member=new Member();
-		result.Dependents=[];
-		result.IdNumber=new IdNumber();
-		result.PrescriptionInfo=new PrescriptionInfo();
-		result.Copays=[];
-		result.Payer=new Payer();
-		result.Plan=new Plan();
-		return result;
-	}
-
-	private bool DoImport(string fieldName) {
-		for(var i=0;i<_listImportRows.Count;i++) {
-			if(_listImportRows[i].FieldName!=fieldName) {
-				continue;
-			}
-			return _listImportRows[i].DoImport;
-		}
-		return false;
-	}
-
-	///<summary>Will return null if field not found or if field marked to not import.</summary>
-	private object GetImpObj(string fieldName) {
-		for(var i=0;i<_listImportRows.Count;i++) {
-			if(_listImportRows[i].FieldName!=fieldName) {
-				continue;
-			}
-			if(!_listImportRows[i].DoImport) {
-				return null;
-			}
-			return _listImportRows[i].ImpValObj;
-		}
-		return null;
-	}
-
-	///<summary>Will return empty string field not found or if field marked to not import.</summary>
-	private string GetImpDisplay(string fieldName) {
-		for(var i=0;i<_listImportRows.Count;i++) {
-			if(_listImportRows[i].FieldName!=fieldName) {
-				continue;
-			}
-			if(!_listImportRows[i].DoImport) {
-				return "";
-			}
-			return _listImportRows[i].ImpValDisplay;
-		}
-		return "";
 	}
 
 	///<summary>Returns a separator and sets the FieldName to the passed in string.</summary>

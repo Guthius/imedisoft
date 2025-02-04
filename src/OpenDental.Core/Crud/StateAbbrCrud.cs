@@ -17,14 +17,15 @@ public class StateAbbrCrud
     public static List<StateAbbr> TableToList(DataTable table)
     {
         var retVal = new List<StateAbbr>();
-        StateAbbr stateAbbr;
         foreach (DataRow row in table.Rows)
         {
-            stateAbbr = new StateAbbr();
-            stateAbbr.StateAbbrNum = SIn.Long(row["StateAbbrNum"].ToString());
-            stateAbbr.Description = SIn.String(row["Description"].ToString());
-            stateAbbr.Abbr = SIn.String(row["Abbr"].ToString());
-            stateAbbr.MedicaidIDLength = SIn.Int(row["MedicaidIDLength"].ToString());
+            var stateAbbr = new StateAbbr
+            {
+                StateAbbrNum = SIn.Long(row["StateAbbrNum"].ToString()),
+                Description = SIn.String(row["Description"].ToString()),
+                Abbr = SIn.String(row["Abbr"].ToString()),
+                MedicaidIDLength = SIn.Int(row["MedicaidIDLength"].ToString())
+            };
             retVal.Add(stateAbbr);
         }
 

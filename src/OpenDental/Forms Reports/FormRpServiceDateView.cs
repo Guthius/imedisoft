@@ -1,11 +1,9 @@
 using System;
-using System.Collections.Generic;
 using System.Data;
 using System.Drawing;
 using System.Drawing.Printing;
 using System.IO;
 using System.Linq;
-using System.Text.RegularExpressions;
 using System.Windows.Forms;
 using CodeBase;
 using DataConnectionBase;
@@ -120,9 +118,6 @@ public partial class FormRpServiceDateView:FormODBase {
 		CreatePDF(tempFile);
 		var patCur=_fam.GetPatient(PatNum);
 		var rawBase64="";
-		if(false) {
-			rawBase64=Convert.ToBase64String(File.ReadAllBytes(tempFile));
-		}
 		var docSave=new Document();
 		docSave.DocNum=Documents.Insert(docSave);
 		docSave.ImgType=ImageType.Document;
@@ -142,7 +137,7 @@ public partial class FormRpServiceDateView:FormODBase {
 		try {
 			File.Delete(tempFile); //cleanup the temp file.
 		}
-		catch(Exception ex) {
+		catch {
 		}
 		MsgBox.Show(this,"PDF saved successfully.");
 	}

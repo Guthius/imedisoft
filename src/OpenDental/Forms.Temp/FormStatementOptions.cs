@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Diagnostics;
-using System.Drawing;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -14,7 +13,6 @@ using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Entities;
 using OpenDentBusiness;
-using OpenDentBusiness.WebTypes;
 
 namespace OpenDental;
 
@@ -85,9 +83,6 @@ public partial class FormStatementOptions : FormODBase {
 			checkSinglePatient.Checked=StatementCur.SinglePatient;
 			checkIntermingled.Checked=StatementCur.Intermingled;
 			checkIsReceipt.Checked=StatementCur.IsReceipt;
-			if(false){
-				checkShowLName.Checked=true;
-			}
 			if(StatementCur.IsInvoice) {//If they got here with drop down menu invoice item.
 				if(CultureInfo.CurrentCulture.Name=="en-US") {
 					checkIsInvoiceCopy.Visible=false;
@@ -301,7 +296,6 @@ public partial class FormStatementOptions : FormODBase {
 			butEmail.Enabled=false;
 			butPrint.Enabled=false;
 			butPreview.Enabled=false;
-			butPatPortal.Enabled=false;
 			checkExportCSV.Enabled=false;
 			//Consider enhancing the checkIsSent Click event handler to delete archived statements (aka PDFs).
 			//checkIsSent.Enabled=false; NO this is the only way to unsend in bulk and must stay enabled
@@ -666,16 +660,9 @@ public partial class FormStatementOptions : FormODBase {
 		var rnd=new Random();
 		var fileName=DateTime.Now.ToString("yyyyMMdd")+"_"+DateTime.Now.TimeOfDay.Ticks+rnd.Next(1000)+".pdf";
 		var filePathAndName=ODFileUtils.CombinePaths(attachPath,fileName);
-		if(false){
-			MsgBox.Show(this,"Could not create email because no AtoZ folder.");
-			return false;
-		}
 		var patient=Patients.GetPat(StatementCur.PatNum);
-		if(true) {
-			var oldPath=ODFileUtils.CombinePaths(ImageStore.GetPatientFolder(patient,ImageStore.GetDataFolder()),Documents.GetByNum(StatementCur.DocNum).FileName);
-			File.Copy(oldPath,filePathAndName);
-		}
-
+		var oldPath=ODFileUtils.CombinePaths(ImageStore.GetPatientFolder(patient,ImageStore.GetDataFolder()),Documents.GetByNum(StatementCur.DocNum).FileName);
+		File.Copy(oldPath,filePathAndName);
 		//Process.Start(filePathAndName);
 		var emailMessage=Statements.GetEmailMessageForStatement(StatementCur,patient);
 		var emailAttach=new EmailAttach();
@@ -687,13 +674,7 @@ public partial class FormStatementOptions : FormODBase {
 			var csvFileName=DateTime.Now.ToString("yyyyMMdd")+"_"+DateTime.Now.TimeOfDay.Ticks+rnd.Next(1000)+".csv";
 			var csvPathAndName=ODFileUtils.CombinePaths(attachPath,csvFileName);
 			var csvFilePath=Statements.SaveStatementAsCSV(StatementCur);
-			if(false){
-				MsgBox.Show(this,"Could not create email because no AtoZ folder.");
-				return false;
-			}
-			if(true) {
-				File.Copy(csvFilePath,csvPathAndName);
-			}
+			File.Copy(csvFilePath,csvPathAndName);
 			var emailAttachCSV=new EmailAttach();
 			emailAttachCSV.DisplayedFileName="Statement.csv";
 			emailAttachCSV.ActualFileName=csvFileName;
@@ -803,44 +784,12 @@ public partial class FormStatementOptions : FormODBase {
 	}
 
 	private void LimitedCustomStatementLayoutHelper() {
-		this.DisableAllExcept(butDelete,butPreview,butSave,checkIsSent,checkIntermingled,checkExportCSV,checkShowLName,checkExcludeTxfr, checkHidePayment,butPrint,butEmail,butPatPortal,textNote,textNoteBold,listMode,label1,label2,label3,label4,textDate);
+		this.DisableAllExcept(butDelete,butPreview,butSave,checkIsSent,checkIntermingled,checkExportCSV,checkShowLName,checkExcludeTxfr, checkHidePayment,butPrint,butEmail,textNote,textNoteBold,listMode,label1,label2,label3,label4,textDate);
 		if(StatementCur.LimitedCustomFamily==EnumLimitedCustomFamily.SuperFamily) {
 			//We always want these to be unchecked if its or a SuperFamily statement, otherwise we continue using what was already generated on the statement.
 			checkSuperStatement.Checked=false;
 			checkSinglePatient.Checked=false;
 		}
-	}
-
-	private void butPatPortal_Click(object sender,EventArgs e) {
-		if(!Defs.GetDefsForCategory(DefCat.ImageCats,true).Any(x => x.ItemValue.Contains(ImageCategorySpecial.L.ToString())
-		                                                            && x.ItemValue.Contains(ImageCategorySpecial.S.ToString()))) {
-			MsgBox.Show(this,"There is no image category used for both Patient Portal and Statements in Setup | Definitions | Image Categories. "
-			                 +"The Statements image category must have both 'Show in Patient Portal' and 'Statements' usage types selected.");
-			return;
-		}
-		if(UserWebs.GetByFKeyAndType(StatementCur.PatNum,UserWebFKeyType.PatientPortal,true)==null) {
-			MsgBox.Show(this,"This patient does not have Online Access to the Patient Portal.");
-			return;
-		}
-		//After checking the preference, CreatePdfForSheet() is called, which will try to create a pdf of the sheet
-		if(!CreatePdfForSheet()) {
-			MsgBox.Show(this,"There was an error creating a PDF for this patient");
-			return;
-		}
-		if(MsgBox.Show(this,MsgBoxButtons.YesNo,"Send an email to the patient notifying them that a statement is available?")) {
-			var patient=Patients.GetPat(StatementCur.PatNum);
-			var emailMessage=Statements.GetEmailMessageForPortalStatement(StatementCur,patient);
-			using var formEmailMessageEdit=new FormEmailMessageEdit(emailMessage,EmailAddresses.GetByClinic(patient.ClinicNum));
-			formEmailMessageEdit.IsNew=true;
-			formEmailMessageEdit.ShowDialog();
-			if(formEmailMessageEdit.DialogResult != DialogResult.OK) {
-				return;
-			}
-		}
-		StatementCur.IsSent=checkIsSent.Checked;
-		Statements.Update(StatementCur);
-		Signalods.SetInvalid(InvalidType.BillingList);
-		DialogResult=DialogResult.OK;
 	}
 
 	private void textDate_KeyPress(object sender,KeyPressEventArgs e) {
@@ -1144,21 +1093,6 @@ public partial class FormStatementOptions : FormODBase {
 		}
 		catch(Exception ex){
 			FriendlyException.Show(Lan.g(this,"Error deleting statements."),ex);
-			return;
-		}
-		try {
-			//If a patient is on a mobile device, then the statement also needs to be removed from there
-			var listMobileAppDevices=MobileAppDevices.GetAll();
-			var listStatements=ListStatements?? [StatementCur];
-			for(var i=0; i<listStatements.Count; i++) {
-				var mobileAppDevice=listMobileAppDevices.FirstOrDefault(x => x.PatNum==listStatements[i].PatNum);
-				if(mobileAppDevice!=null && mobileAppDevice.LastCheckInActivity>DateTime.Now.AddHours(-1)) {
-					MobileNotifications.CI_RefreshPayment(mobileAppDevice.MobileAppDeviceNum,listStatements[i].PatNum);
-				}
-			}
-		}
-		catch(Exception ex) {
-			FriendlyException.Show(Lan.g(this,"Error retrieving patient folder."),ex);
 			return;
 		}
 		Signalods.SetInvalid(InvalidType.BillingList);

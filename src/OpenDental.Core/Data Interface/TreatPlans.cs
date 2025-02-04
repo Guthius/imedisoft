@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Drawing;
 using System.Globalization;
 using System.Linq;
 using System.Text;
@@ -19,7 +18,7 @@ public class TreatPlans
     public static List<TreatPlan> Refresh(long patNum)
     {
         var command = "SELECT * FROM treatplan "
-                      + "WHERE PatNum=" + SOut.Long(patNum) + " "
+                      + "WHERE PatNum=" + (patNum) + " "
                       + "AND TPStatus=0 " //Saved
                       + "ORDER BY DateTP";
         return TreatPlanCrud.SelectMany(command);
@@ -28,7 +27,7 @@ public class TreatPlans
     public static List<TreatPlan> GetAllForPat(long patNum)
     {
         var command = "SELECT * FROM treatplan "
-                      + "WHERE PatNum=" + SOut.Long(patNum) + " ";
+                      + "WHERE PatNum=" + (patNum) + " ";
         return TreatPlanCrud.SelectMany(command);
     }
 
@@ -40,14 +39,9 @@ public class TreatPlans
         return listTreatPlans;
     }
 
-    public static TreatPlan GetOne(long treatPlanNum)
-    {
-        return TreatPlanCrud.SelectOne(treatPlanNum);
-    }
-
     public static TreatPlan GetActiveForPat(long patNum)
     {
-        var command = "SELECT * FROM treatplan WHERE PatNum=" + SOut.Long(patNum) + " AND TPStatus=" + SOut.Int((int) TreatPlanStatus.Active);
+        var command = "SELECT * FROM treatplan WHERE PatNum=" + (patNum) + " AND TPStatus=" + SOut.Int((int) TreatPlanStatus.Active);
         return TreatPlanCrud.SelectOne(command);
     }
 
@@ -70,18 +64,15 @@ public class TreatPlans
     public static void Delete(TreatPlan treatPlan)
     {
         //check proctp for dependencies
-        var command = "SELECT * FROM proctp WHERE TreatPlanNum =" + SOut.Long(treatPlan.TreatPlanNum);
+        var command = "SELECT * FROM proctp WHERE TreatPlanNum =" + (treatPlan.TreatPlanNum);
         var table = DataCore.GetTable(command);
         if (table.Rows.Count > 0)
             //this should never happen
             throw new ApplicationException(Lans.g("TreatPlans", "Cannot delete treatment plan because it has ProcTP's attached"));
 
-        command = "DELETE from treatplan WHERE TreatPlanNum = '" + SOut.Long(treatPlan.TreatPlanNum) + "'";
+        command = "DELETE from treatplan WHERE TreatPlanNum = '" + (treatPlan.TreatPlanNum) + "'";
         Db.NonQ(command);
         if (!treatPlan.TPStatus.In(TreatPlanStatus.Saved)) return;
-
-        var listMobileAppDevices = MobileAppDevices.GetAll(treatPlan.PatNum);
-        if (listMobileAppDevices.Count > 0) MobileNotifications.CI_RemoveTreatmentPlan(listMobileAppDevices.First().MobileAppDeviceNum, treatPlan);
     }
 
     public static long CreateArchivedTreatPlan(TreatPlan treatPlan, Patient patient, List<ProcTP> listProcTPsSelected, List<TreatPlanAttach> listTreatPlanAttaches)
@@ -199,54 +190,6 @@ public class TreatPlans
         return stringBuilder.ToString();
     }
 
-    public static TreatPlan GetTreatPlanListProcTP(TreatPlan treatPlan)
-    {
-        var tpModuleData = TreatmentPlanModules.GetModuleData(treatPlan.PatNum, true);
-        var loadActiveTPData = TreatmentPlanModules.GetLoadActiveTpData(tpModuleData.Pat,
-            treatPlan.TreatPlanNum,
-            tpModuleData.BenefitList,
-            tpModuleData.PatPlanList,
-            tpModuleData.InsPlanList,
-            treatPlan.DateTP,
-            tpModuleData.SubList,
-            PrefC.GetBool(PrefName.InsChecksFrequency),
-            false,
-            tpModuleData.ListSubstLinks);
-        if (treatPlan.TPStatus == TreatPlanStatus.Saved)
-        {
-            treatPlan.ListProcTPs = tpModuleData.ListProcTPs;
-        }
-        else
-        {
-            var listTpRows = TreatmentPlanModules.GetActiveTpPlanTpRows(
-                true,
-                true,
-                true,
-                treatPlan,
-                tpModuleData.Pat,
-                treatPlan.DateTP,
-                loadActiveTPData,
-                tpModuleData.InsPlanList,
-                tpModuleData.BenefitList,
-                tpModuleData.PatPlanList,
-                tpModuleData.ListSubstLinks,
-                tpModuleData.SubList,
-                tpModuleData.DiscountPlanSub,
-                tpModuleData.DiscountPlan,
-                tpModuleData.ListProcedures,
-                ref loadActiveTPData.ClaimProcList,
-                loadActiveTPData.HistList,
-                true);
-            treatPlan.ListProcTPs = ProcTPs.GetProcTPsFromTpRows(
-                tpModuleData.Pat.PatNum,
-                listTpRows.FindAll(x => x.RowType == TpRowType.TpRow),
-                loadActiveTPData.listProcForTP,
-                loadActiveTPData.ListTreatPlanAttaches);
-        }
-
-        return treatPlan;
-    }
-
     public static string GetHashStringForSignature(string str)
     {
         return Encoding.ASCII.GetString(MD5.Hash(Encoding.UTF8.GetBytes(str)));
@@ -312,7 +255,7 @@ public class TreatPlans
         var listProceduresForInactive = new List<Procedure>(); //All procs that should not be linked to the active plan (linked to inactive or unnasigned)
         var arrayProcNumsTpa = listTreatPlanAttaches.Select(x => x.ProcNum).ToArray(); //All procnums from listTPAs, makes it easier to see if a TPA exists for a proc
         var discountPlanSub = DiscountPlanSubs.GetSubForPat(patNum);
-        var discountPlan = DiscountPlans.GetForPats(new List<long> {patNum}).FirstOrDefault();
+        var discountPlan = DiscountPlans.GetForPats([patNum]).FirstOrDefault();
 
         #endregion Variables
 
@@ -516,7 +459,7 @@ public class TreatPlans
     public static TreatPlan GetUnassigned(long patNum)
     {
         var command = "SELECT * FROM treatplan "
-                      + "WHERE PatNum=" + SOut.Long(patNum) + " "
+                      + "WHERE PatNum=" + (patNum) + " "
                       + "AND TPStatus=" + SOut.Int((int) TreatPlanStatus.Inactive) + " "
                       + "AND Heading='" + SOut.String(Lans.g("TreatPlans", "Unassigned")) + "'";
         return TreatPlanCrud.SelectOne(command) ?? new TreatPlan();
@@ -525,9 +468,9 @@ public class TreatPlans
     public static void SetOtherActiveTPsToInactive(TreatPlan treatPlan)
     {
         var command = "SELECT * FROM treatplan "
-                      + "WHERE PatNum=" + SOut.Long(treatPlan.PatNum) + " "
+                      + "WHERE PatNum=" + (treatPlan.PatNum) + " "
                       + "AND TPStatus=" + SOut.Int((int) TreatPlanStatus.Active) + " "
-                      + "AND TreatPlanNum!=" + SOut.Long(treatPlan.TreatPlanNum);
+                      + "AND TreatPlanNum!=" + (treatPlan.TreatPlanNum);
         //Make Active TP's inactive. Rename if TP's still have default name.
         var listTreatPlansActive = TreatPlanCrud.SelectMany(command);
         for (var i = 0; i < listTreatPlansActive.Count; i++)
@@ -602,15 +545,6 @@ public class TreatPlans
         return listTreatPlansSavedLim;
     }
 
-    public static void RemoveMobileAppDeviceNum(long mobileAppDeviceNum)
-    {
-        var command = $@"
-				UPDATE treatplan
-				SET MobileAppDeviceNum=0
-				WHERE MobileAppDeviceNum={mobileAppDeviceNum}";
-        Db.NonQ(command);
-    }
-
     public static void UpdateTreatmentPlanType(Patient patient)
     {
         var listTreatPlans = GetAllForPat(patient.PatNum);
@@ -624,47 +558,5 @@ public class TreatPlans
                 listTreatPlans[i].TPType = treatPlanType;
                 Update(listTreatPlans[i]);
             }
-    }
-
-    public static void UpdateMobileAppDeviceNum(TreatPlan treatPlan, long mobileAppDeviceNum)
-    {
-        treatPlan.MobileAppDeviceNum = mobileAppDeviceNum;
-        Update(treatPlan);
-    }
-
-    public static string GetScaledSignature(string originalPoints, int signatureBoxWidth = 331, int signatureBoxHeight = 79)
-    {
-        var stringArrayPoints = originalPoints.Split(new[] {';'}, StringSplitOptions.RemoveEmptyEntries);
-        if (stringArrayPoints.IsNullOrEmpty()) return "";
-
-        var listPointsOrig = new List<Point>();
-        for (var i = 0; i < stringArrayPoints.Length; i++)
-        {
-            var stringArrayCoords = stringArrayPoints[i].Split(new[] {','}, StringSplitOptions.RemoveEmptyEntries);
-            var point = new Point(Convert.ToInt32(stringArrayCoords[0]), Convert.ToInt32(stringArrayCoords[1]));
-            listPointsOrig.Add(point);
-        }
-
-        //Get the maximum X value, and the corresponding Y value ising the 9:2 aspect ratio.
-        var xMax = Math.Max(listPointsOrig.Select(x => x.X).Max() + 1, signatureBoxWidth);
-        var pointUseX = new Point(xMax, (int) (xMax / (double) 9 * 2));
-        //Get the maximum Y value, and the corresponding X value ising the 9:2 aspect ratio.
-        var yMax = Math.Max(listPointsOrig.Select(y => y.Y).Max() + 1, signatureBoxHeight);
-        var pointUseY = new Point((int) (yMax * (double) 9 / 2), yMax);
-        //Use the larger valued point to make the largest scaling factor to ensure the the signature looks as similar to the original as possible.
-        //This is not exact, because we are using the largest points on the signature box, 
-        //instead of the size of the signature box that was signed on, since we don't have that information available from the device.
-        var pointUse = pointUseY;
-        if (pointUseX.X >= pointUseY.X) pointUse = pointUseX;
-
-        var listPointsScaled = new List<Point>();
-        //Apply the scaling factor to each point that was saved from the device to shrink the signature box down to the size that the sheetfield expects.
-        listPointsOrig.ForEach(x =>
-        {
-            listPointsScaled.Add(new Point(
-                (int) Math.Floor(x.X / (pointUse.X / (decimal) signatureBoxWidth)), (int) Math.Floor(x.Y / (pointUse.Y / (decimal) signatureBoxHeight))
-            ));
-        });
-        return string.Join(";", listPointsScaled.Select(x => $"{x.X},{x.Y}"));
     }
 }

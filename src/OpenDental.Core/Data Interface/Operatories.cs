@@ -15,28 +15,20 @@ public class Operatories
     public static void Sync(List<Operatory> listOperatoriesNew, List<Operatory> listOperatoriesOld)
     {
         OperatoryCrud.Sync(listOperatoriesNew, listOperatoriesOld);
-        //Regardless if changes were made during the sync, we need to make sure to sync the DefLinks for WSNPA appointment types.
-        //This needs to happen after the sync call so that the PKs have been correctly set for listNew.
-        var listDefLinksWSNPA = DefLinks.GetOperatoryDefLinksForCategory(DefCat.WebSchedNewPatApptTypes);
-        var listDefLinksWSEP = DefLinks.GetOperatoryDefLinksForCategory(DefCat.WebSchedExistingApptTypes);
-        for (var i = 0; i < listOperatoriesNew.Count; i++)
-        {
-            DefLinks.SyncWebSchedOpLinks(listOperatoriesNew[i], DefCat.WebSchedNewPatApptTypes, listDefLinksWSNPA);
-            DefLinks.SyncWebSchedOpLinks(listOperatoriesNew[i], DefCat.WebSchedExistingApptTypes, listDefLinksWSEP);
-        }
 
         //Delete any deflinks for operatories that are present within listOld but are not present within listNew.
         var listOpNumsDelete = listOperatoriesOld.Where(x => !listOperatoriesNew.Any(y => y.OperatoryNum == x.OperatoryNum))
             .Select(x => x.OperatoryNum)
             .Distinct()
             .ToList();
+        
         DefLinks.DeleteAllForFKeys(listOpNumsDelete, DefLinkType.Operatory);
     }
 
     public static bool HasFutureApts(long operatoryNum, params ApptStatus[] apptStatusArrayIgnore)
     {
         var command = "SELECT COUNT(*) FROM appointment "
-                      + "WHERE Op = " + SOut.Long(operatoryNum) + " ";
+                      + "WHERE Op = " + (operatoryNum) + " ";
         if (apptStatusArrayIgnore.Length > 0)
         {
             command += "AND AptStatus NOT IN (";
@@ -55,12 +47,12 @@ public class Operatories
 
     public static List<Appointment> MergeApptCheck(long opNumMaster, List<long> listOpNumsChild)
     {
-        if (listOpNumsChild == null || listOpNumsChild.Count == 0) return new List<Appointment>();
+        if (listOpNumsChild == null || listOpNumsChild.Count == 0) return [];
         if (listOpNumsChild.Contains(opNumMaster)) throw new ApplicationException(Lans.g("Operatories", "The operatory to keep cannot be within the selected list of operatories to combine."));
         var command = "SELECT * FROM appointment "
-                      + "WHERE Op IN (" + string.Join(",", listOpNumsChild.Concat(new[] {opNumMaster})) + ") "
+                      + "WHERE Op IN (" + string.Join(",", listOpNumsChild.Concat([opNumMaster])) + ") "
                       + "AND AptStatus IN ("
-                      + string.Join(",", new[] {(int) ApptStatus.Scheduled, (int) ApptStatus.Complete, (int) ApptStatus.Broken, (int) ApptStatus.PtNote}) + ")";
+                      + string.Join(",", [(int) ApptStatus.Scheduled, (int) ApptStatus.Complete, (int) ApptStatus.Broken, (int) ApptStatus.PtNote]) + ")";
         var listAppointmentsAll = AppointmentCrud.SelectMany(command);
         return listAppointmentsAll;
     }
@@ -150,7 +142,7 @@ public class Operatories
 
     public static List<long> GetOpNumsForClinics(List<long> listClinicNums)
     {
-        if (listClinicNums.IsNullOrEmpty()) return new List<long>();
+        if (listClinicNums.IsNullOrEmpty()) return [];
         return GetWhere(x => listClinicNums.Contains(x.ClinicNum)).Select(x => x.OperatoryNum).ToList();
     }
 
@@ -203,37 +195,11 @@ public class Operatories
         protected override List<Operatory> TableToList(DataTable dataTable)
         {
             var listOperatories = OperatoryCrud.TableToList(dataTable);
-            //The IsInHQView flag is not important enough to cause filling the cache to fail.
+            
             ODException.SwallowAnyException(() =>
             {
                 for (var i = 0; i < dataTable.Rows.Count; i++) listOperatories[i].IsInHQView = SIn.Bool(dataTable.Rows[i]["IsInHQView"].ToString());
             });
-            var listWSNPADefNums = DefLinks.GetOperatoryDefLinksForCategory(DefCat.WebSchedNewPatApptTypes).Select(x => x.DefNum).ToList();
-            var listWSEPDefNums = DefLinks.GetOperatoryDefLinksForCategory(DefCat.WebSchedExistingApptTypes).Select(x => x.DefNum).ToList();
-            var listDefLinksOp = DefLinks.GetDefLinksByType(DefLinkType.Operatory);
-            //Web Sched operatory defs are important enough that we want this portion to fail if it has problems.
-            //Create a dictionary comprised of Key: OperatoryNum and value: List of definition DefNums.
-            //WSNPA
-            var dictionaryWSNPAOperatoryDefNums = listDefLinksOp
-                .Where(x => listWSNPADefNums.Contains(x.DefNum))
-                .GroupBy(x => x.FKey) //FKey for DefLinkType.Operatory is OperatoryNum
-                .ToDictionary(x => x.Key, x => x.Select(y => y.DefNum).ToList());
-            foreach (var operatoryNum in dictionaryWSNPAOperatoryDefNums.Keys)
-            {
-                var operatory = listOperatories.FirstOrDefault(x => x.OperatoryNum == operatoryNum);
-                if (operatory != null) operatory.ListWSNPAOperatoryDefNums = dictionaryWSNPAOperatoryDefNums[operatoryNum];
-            }
-
-            //WSEP
-            var dictionaryWSEPOperatoryDefNums = listDefLinksOp
-                .Where(x => listWSEPDefNums.Contains(x.DefNum))
-                .GroupBy(x => x.FKey)
-                .ToDictionary(x => x.Key, x => x.Select(y => y.DefNum).ToList());
-            foreach (var operatoryNum in dictionaryWSEPOperatoryDefNums.Keys)
-            {
-                var operatory = listOperatories.FirstOrDefault(x => x.OperatoryNum == operatoryNum);
-                if (operatory != null) operatory.ListWSEPOperatoryDefNums = dictionaryWSEPOperatoryDefNums[operatoryNum];
-            }
 
             return listOperatories;
         }

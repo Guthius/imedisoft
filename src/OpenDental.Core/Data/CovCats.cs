@@ -452,39 +452,39 @@ public static class CovCats
 
     private static readonly CovCatCache Cache = new();
 
-    public static List<CovCat> GetDeepCopy(bool isShort = false)
+    public static List<CovCat> GetDeepCopy(bool shortList = false)
     {
-        return Cache.GetDeepCopy(isShort);
+        return Cache.GetDeepCopy(shortList);
     }
 
-    public static int GetFindIndex(Predicate<CovCat> match, bool isShort = false)
+    public static int GetFindIndex(Predicate<CovCat> predicate, bool shortList = false)
     {
-        return Cache.GetFindIndex(match, isShort);
+        return Cache.GetFindIndex(predicate, shortList);
     }
 
-    public static CovCat GetFirst(bool isShort = false)
+    public static CovCat GetFirst(bool shortList = false)
     {
-        return Cache.GetFirst(isShort);
+        return Cache.GetFirst(shortList);
     }
 
-    public static CovCat GetFirstOrDefault(Func<CovCat, bool> match, bool isShort = false)
+    public static CovCat GetFirstOrDefault(Func<CovCat, bool> predicate, bool shortList = false)
     {
-        return Cache.GetFirstOrDefault(match, isShort);
+        return Cache.GetFirstOrDefault(predicate, shortList);
     }
 
-    public static CovCat GetLastOrDefault(Func<CovCat, bool> match, bool isShort = false)
+    public static CovCat GetLastOrDefault(Func<CovCat, bool> predicate, bool shortList = false)
     {
-        return Cache.GetLastOrDefault(match, isShort);
+        return Cache.GetLastOrDefault(predicate, shortList);
     }
 
-    public static List<CovCat> GetWhere(Predicate<CovCat> match, bool isShort = false)
+    public static List<CovCat> GetWhere(Predicate<CovCat> predicate, bool shortList = false)
     {
-        return Cache.GetWhere(match, isShort);
+        return Cache.GetWhere(predicate, shortList);
     }
 
-    public static int GetCount(bool isShort = false)
+    public static int GetCount(bool shortList = false)
     {
-        return Cache.GetCount(isShort);
+        return Cache.GetCount(shortList);
     }
 
     public static void RefreshCache()
@@ -492,9 +492,9 @@ public static class CovCats
         GetTableFromCache(true);
     }
 
-    public static DataTable GetTableFromCache(bool doRefreshCache)
+    public static DataTable GetTableFromCache(bool refreshCache)
     {
-        return Cache.GetTableFromCache(doRefreshCache);
+        return Cache.GetTableFromCache(refreshCache);
     }
 
     public static void ClearCache()

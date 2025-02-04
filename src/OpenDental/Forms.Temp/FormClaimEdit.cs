@@ -14,8 +14,9 @@ using Imedisoft.Core.Caching;
 using Imedisoft.Core.Data;
 using Imedisoft.Core.Entities;
 using Imedisoft.Core.Features.Clinics;
+using Imedisoft.Features.Providers.Dtos;
+using OpenDental.Forms;
 using OpenDental.Logic;
-using OpenDental.Thinfinity;
 using OpenDental.UI;
 using OpenDentBusiness;
 using OpenDentBusiness.Eclaims;
@@ -193,7 +194,6 @@ public partial class FormClaimEdit : FormODBase {
 		if(IsFromBatchWindow) {
 			groupFinalizePayment.Visible=false;
 		}
-		warningIntegrity.SetTypeAndVisibility(EnumWarningIntegrityType.Claim,Claims.IsClaimHashValid(_claim));
 		if(CultureInfo.CurrentCulture.Name.EndsWith("CA")) {//Canadian. en-CA or fr-CA
 			labelPredeterm.Text=Lan.g(this,"Predeterm Num");
 			labelPriorAuth.Visible=false;
@@ -343,7 +343,7 @@ public partial class FormClaimEdit : FormODBase {
 		comboClinic.ClinicNumSelected=_claim.ClinicNum;
 		SetOrderingProvider(null);//Clears both the internal ordering and referral ordering providers.
 		if(_claim.ProvOrderOverride!=0) {
-			SetOrderingProvider(Providers.GetProv(_claim.ProvOrderOverride));
+			SetOrderingProvider(Providers.GetById(_claim.ProvOrderOverride));
 		}
 		else if(_claim.OrderingReferralNum!=0) {
 			Referral referral;
@@ -353,13 +353,13 @@ public partial class FormClaimEdit : FormODBase {
 		FillCombosProv();
 		if(_claim.ProvBill==0){
 			//setting combo to 0 would just show "0", and this field is required.
-			comboProvBill.SetSelectedProvNum(Providers.GetFirst(true).ProvNum);
+			comboProvBill.SetSelectedProvNum(Providers.GetFirst(true).Id);
 		}
 		else{
 			comboProvBill.SetSelectedProvNum(_claim.ProvBill);
 		}
 		if(_claim.ProvTreat==0){
-			comboProvTreat.SetSelectedProvNum(Providers.GetFirst(true).ProvNum);
+			comboProvTreat.SetSelectedProvNum(Providers.GetFirst(true).Id);
 		}
 		else{
 			comboProvTreat.SetSelectedProvNum(_claim.ProvTreat);
@@ -471,7 +471,7 @@ public partial class FormClaimEdit : FormODBase {
 				}
 				controlsInput.Controls[i].Enabled=false;
 			}
-			catch(Exception e) {//Just in case.
+			catch {//Just in case.
 			}
 		}
 	}
@@ -498,13 +498,13 @@ public partial class FormClaimEdit : FormODBase {
 	}
 
 	private void butPickOrderProvInternal_Click(object sender,EventArgs e) {
-		var frmProviderPick = new FrmProviderPick(comboProvBill.Items.GetAll<Provider>());
+		var frmProviderPick = new FrmProviderPick(comboProvBill.Items.GetAll<ProviderDto>());
 		frmProviderPick.ProvNumSelected=_provNumOrdering;
 		frmProviderPick.ShowDialog();
 		if(!frmProviderPick.IsDialogOK) {
 			return;
 		}
-		SetOrderingProvider(Providers.GetProv(frmProviderPick.ProvNumSelected));
+		SetOrderingProvider(Providers.GetById(frmProviderPick.ProvNumSelected));
 	}
 
 	private void butPickOrderProvReferral_Click(object sender,EventArgs e) {
@@ -525,14 +525,14 @@ public partial class FormClaimEdit : FormODBase {
 		SetOrderingProvider(null);//Clears both the internal ordering and referral ordering providers.
 	}
 
-	private void SetOrderingProvider(Provider provider) {
+	private void SetOrderingProvider(ProviderDto provider) {
 		if(provider==null) {
 			_provNumOrdering=0;
 			textOrderingProviderOverride.Text="";
 		}
 		else {
-			_provNumOrdering=provider.ProvNum;
-			textOrderingProviderOverride.Text=provider.GetFormalName()+"  NPI: "+(provider.NationalProvID.Trim()==""?"Missing":provider.NationalProvID);
+			_provNumOrdering=provider.Id;
+			textOrderingProviderOverride.Text=provider.FormalName+"  NPI: "+(provider.NationalProviderId.Trim()==""?"Missing":provider.NationalProviderId);
 		}
 		_referralOrdering=null;
 	}
@@ -549,7 +549,7 @@ public partial class FormClaimEdit : FormODBase {
 	}
 
 	private void butPickProvBill_Click(object sender,EventArgs e) {
-		var frmProviderPick = new FrmProviderPick(comboProvBill.Items.GetAll<Provider>());
+		var frmProviderPick = new FrmProviderPick(comboProvBill.Items.GetAll<ProviderDto>());
 		frmProviderPick.ProvNumSelected=comboProvBill.GetSelectedProvNum();
 		frmProviderPick.ShowDialog();
 		if(!frmProviderPick.IsDialogOK) {
@@ -559,7 +559,7 @@ public partial class FormClaimEdit : FormODBase {
 	}
 
 	private void butPickProvTreat_Click(object sender,EventArgs e) {
-		var frmProviderPick = new FrmProviderPick(comboProvTreat.Items.GetAll<Provider>());
+		var frmProviderPick = new FrmProviderPick(comboProvTreat.Items.GetAll<ProviderDto>());
 		frmProviderPick.ProvNumSelected=comboProvTreat.GetSelectedProvNum();
 		frmProviderPick.ShowDialog();
 		if(!frmProviderPick.IsDialogOK) {
@@ -1243,7 +1243,7 @@ public partial class FormClaimEdit : FormODBase {
 			try {
 				Process.Start(pathAndFileName);
 			}
-			catch(Exception ex) {
+			catch {
 				MsgBox.Show(this,"Could not open the attachment.");
 			}
 		}
@@ -2457,10 +2457,6 @@ public partial class FormClaimEdit : FormODBase {
 
 	private void butAttachPerioHelper() {
 		//Patient PatCur=Patients.GetPat(PatNum);
-		if(false) {
-			MsgBox.Show(this,"Error. Not using AtoZ images folder.");
-			return;
-		}
 		var contrPerioGrid=new ContrPerio();
 		contrPerioGrid.BackColor = System.Drawing.SystemColors.Window;
 		contrPerioGrid.Size = new System.Drawing.Size(602,665);
@@ -3250,14 +3246,14 @@ public partial class FormClaimEdit : FormODBase {
 		try {
 			SIn.Byte(textOrthoTotalM.Text);
 		}
-		catch(Exception ex) {
+		catch {
 			MsgBox.Show(this,"Please enter a valid value for Ortho Months Total.");
 			return false;
 		}
 		try {
 			SIn.Byte(textOrthoRemainM.Text);
 		}
-		catch(Exception ex) {
+		catch {
 			MsgBox.Show(this,"Please enter a valid value for Ortho Months Remaining.");
 			return false;
 		}

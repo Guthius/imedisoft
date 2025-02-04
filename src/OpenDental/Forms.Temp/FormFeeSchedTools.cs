@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Data;
 using System.Drawing;
 using System.Globalization;
 using System.IO;
@@ -16,7 +15,7 @@ using Imedisoft.Core.Caching;
 using Imedisoft.Core.Entities;
 using Imedisoft.Core.Features.Clinics;
 using Imedisoft.Core.Features.Clinics.Dtos;
-using OpenDental.Thinfinity;
+using Imedisoft.Features.Providers.Dtos;
 using OpenDental.UI;
 using OpenDentBusiness;
 
@@ -26,14 +25,14 @@ public partial class FormFeeSchedTools :FormODBase {
 	///<summary>The defNum of the fee schedule that is currently displayed in the main window.</summary>
 	private long _schedNum;
 	private List<FeeSched> _listFeeScheds;
-	private List<Provider> _listProviders;
+	private List<ProviderDto> _listProviders;
 	private List<ClinicDto> _listClinics;
 
 	///<summary>A list of security logs that should be inserted.</summary>
 	private List<string> _listSecurityLogEntries= [];
 
 	///<summary>Supply the fee schedule num(DefNum) to which all these changes will apply</summary>
-	public FormFeeSchedTools(long schedNum,List<FeeSched> listFeeScheds,List<Provider> listProviders,List<ClinicDto> listClinics) {
+	public FormFeeSchedTools(long schedNum,List<FeeSched> listFeeScheds,List<ProviderDto> listProviders,List<ClinicDto> listClinics) {
 		// Required for Windows Form Designer support
 		InitializeComponent();
 
@@ -116,11 +115,6 @@ public partial class FormFeeSchedTools :FormODBase {
 		}
 		if(comboFeeSchedTo.SelectedIndex==-1) {
 			comboFeeSchedTo.SelectedIndex=0;
-		}
-		if(!true) {//No clinics
-			//For UI reasons, leave the clinic combo boxes visible for users not using clinics and they will just say "none".
-			comboClinic.Enabled=false;
-			comboClinic.HqDescription="None";
 		}
 		//Fee Sched Groups
 		if(checkShowGroups.Visible) {//Always run the fill logic if they are using the groups feaure, not just if the combobox is showing.
@@ -209,11 +203,8 @@ public partial class FormFeeSchedTools :FormODBase {
 				return;
 			}
 		}
-		else if(!MsgBox.Show(this,MsgBoxButtons.OKCancel,"This will clear all values from the selected fee schedule for the currently selected provider and effective date.  Are you sure you want to continue?")) {
-			return;
-		}
 		var listClinicNums=new List<long>();
-		if(true && !comboClinic.IsUnassignedSelected){
+		if(!comboClinic.IsUnassignedSelected){
 			listClinicNums.Add(comboClinic.ClinicNumSelected);
 		}
 		var feeSchedNum=_listFeeScheds[comboFeeSched.SelectedIndex].FeeSchedNum;
@@ -238,7 +229,7 @@ public partial class FormFeeSchedTools :FormODBase {
 		}
 		long provNum=0;
 		if(comboProvider.SelectedIndex!=0) {
-			provNum=_listProviders[comboProvider.SelectedIndex-1].ProvNum;
+			provNum=_listProviders[comboProvider.SelectedIndex-1].Id;
 		}
 		//ODProgress.ShowAction(() => {
 		var logText="";
@@ -278,7 +269,7 @@ public partial class FormFeeSchedTools :FormODBase {
 		}
 		long toProvNum=0;
 		if(comboProviderTo.SelectedIndex!=0) {
-			toProvNum=_listProviders[comboProviderTo.SelectedIndex-1].ProvNum;
+			toProvNum=_listProviders[comboProviderTo.SelectedIndex-1].Id;
 		}
 		var feeSchedTo=_listFeeScheds[comboFeeSchedTo.SelectedIndex];
 		long fromClinicNum=0;
@@ -287,7 +278,7 @@ public partial class FormFeeSchedTools :FormODBase {
 		}
 		long fromProvNum=0;
 		if(comboProvider.SelectedIndex!=0) {
-			fromProvNum=_listProviders[comboProvider.SelectedIndex-1].ProvNum;
+			fromProvNum=_listProviders[comboProvider.SelectedIndex-1].Id;
 		}
 		if(checkShowGroups.Checked) {
 			//verify we aren't copying the same group into itself
@@ -411,7 +402,7 @@ public partial class FormFeeSchedTools :FormODBase {
 		}
 		long provNum=0;
 		if(comboProvider.SelectedIndex>0){
-			provNum=_listProviders[comboProvider.SelectedIndex-1].ProvNum;
+			provNum=_listProviders[comboProvider.SelectedIndex-1].Id;
 		}
 		var listFees=Fees.GetListExact(feeSchedNum,clinicNum,provNum,odDatePickerEffectiveDateSelected.GetDateTime());
 		var doIncreaseFees=EvaluateOverrides(clinicNum,provNum,feeSchedNum,listFees);
@@ -573,7 +564,7 @@ public partial class FormFeeSchedTools :FormODBase {
 		}
 		long provNum=0;
 		if(comboProvider.SelectedIndex!=0) {
-			provNum=_listProviders[comboProvider.SelectedIndex-1].ProvNum;
+			provNum=_listProviders[comboProvider.SelectedIndex-1].Id;
 		}
 		var fileName="Fees"+feeSchedDesc+".txt";
 		var filePath=ODFileUtils.CombinePaths(Path.GetTempPath(),fileName);
@@ -655,7 +646,7 @@ public partial class FormFeeSchedTools :FormODBase {
 		}
 		long provNum=0;
 		if(comboProvider.SelectedIndex!=0) {
-			provNum=_listProviders[comboProvider.SelectedIndex-1].ProvNum;
+			provNum=_listProviders[comboProvider.SelectedIndex-1].Id;
 		}
 		var progressOD=new ProgressWin();
 		progressOD.ActionMain=() => FeeL.ImportFees(importFilePath,feeSched.FeeSchedNum,clinicNum,provNum,odDatePickerEffectiveDateImportExport.GetDateTime());
@@ -804,7 +795,7 @@ public partial class FormFeeSchedTools :FormODBase {
 			try {
 				File.Delete(tempFile);
 			}
-			catch(Exception ex) {
+			catch {
 			}
 		}
 		int numImported;
@@ -832,7 +823,7 @@ public partial class FormFeeSchedTools :FormODBase {
 		}
 		long provNum=0;
 		if(comboProvider.SelectedIndex!=0) {
-			provNum=_listProviders[comboProvider.SelectedIndex-1].ProvNum;
+			provNum=_listProviders[comboProvider.SelectedIndex-1].Id;
 		}
 		FeeScheds.ImportCanadaFeeSchedule2(feeSched,feeData,clinicNum,provNum,out numImported,out numSkipped,odDatePickerEffectiveDateImportExport.GetDateTime());
 		actionCloseFeeSchedImportCanadaProgress?.Invoke();
@@ -855,55 +846,32 @@ public partial class FormFeeSchedTools :FormODBase {
 		var progressExtended=new ODProgressExtended(this,tag:progressBarHelper,cancelButtonText:Lan.g(this,"Close"));
 		Cursor=Cursors.WaitCursor;
 		var listFeesHQ=Fees.GetByClinicNum(0);//All HQ fees
-		if(true) {
-			var listFeeClinics=comboGlobalUpdateClinics.ListClinicNumsSelected;
-			for(var i=0;i<listFeeClinics.Count;i++) {
-				//Clinic clinicCur=listFeeClinics[i];
-				while(progressExtended.IsPaused) {
-					Thread.Sleep(10);
-					if(progressExtended.IsCanceled) {
-						break;
-					}
-				}
+		var listFeeClinics=comboGlobalUpdateClinics.ListClinicNumsSelected;
+		for(var i=0;i<listFeeClinics.Count;i++) {
+			//Clinic clinicCur=listFeeClinics[i];
+			while(progressExtended.IsPaused) {
+				Thread.Sleep(10);
 				if(progressExtended.IsCanceled) {
 					break;
 				}
-				var percentComplete=(double)i/listFeeClinics.Count*100;
-				if(listFeeClinics.Count>1) {
-					progressBarHelper=new ProgressBarHelper("Overall",(int)percentComplete+"%",i,listFeeClinics.Count,tagString:"OverallStatus");
-					progressExtended.Fire(ODEventType.FeeSched,progressBarHelper);
-					progressBarHelper=new ProgressBarHelper(Clinics.GetAbbr(listFeeClinics[i]),"0%",1,100,tagString:"Clinic");
-					progressExtended.Fire(ODEventType.FeeSched,progressBarHelper);
-				}
-				else {
-					progressBarHelper=new ProgressBarHelper(Clinics.GetAbbr(listFeeClinics[i]),"0%",1,100,tagString:"Clinic");
-					progressExtended.Fire(ODEventType.FeeSched,progressBarHelper);
-					progressExtended.HideButtons();//can't pause or cancel with 1 clinic. This event needs to be called after the bar is instantiated. 
-				}
-				try {
-					rowsChanged+=Procedures.GlobalUpdateFees(listFeesHQ,listFeeClinics[i],Clinics.GetAbbr(listFeeClinics[i]));
-				}
-				catch(ApplicationException ex) {
-					Cursor=Cursors.Default;
-					progressExtended.Close();
-					ODMessageBox.Show(ex.Message);
-					return;	
-				}
-				if(progressExtended.IsPaused) {
-					progressExtended.AllowResume();
-				}
 			}
+			if(progressExtended.IsCanceled) {
+				break;
+			}
+			var percentComplete=(double)i/listFeeClinics.Count*100;
 			if(listFeeClinics.Count>1) {
-				progressBarHelper=new ProgressBarHelper("Overall","100%",100,100,tagString:"OverallStatus");
+				progressBarHelper=new ProgressBarHelper("Overall",(int)percentComplete+"%",i,listFeeClinics.Count,tagString:"OverallStatus");
+				progressExtended.Fire(ODEventType.FeeSched,progressBarHelper);
+				progressBarHelper=new ProgressBarHelper(Clinics.GetAbbr(listFeeClinics[i]),"0%",1,100,tagString:"Clinic");
 				progressExtended.Fire(ODEventType.FeeSched,progressBarHelper);
 			}
-		}
-		else {//no clinic - "Clinic" here is just a reference to the progress bar that updates Clinic progress instead of overall progress
-			progressBarHelper=new ProgressBarHelper("Updating...","0%",1,100,tagString:"Clinic");
-			progressExtended.Fire(ODEventType.FeeSched,progressBarHelper);
-			progressExtended.HideButtons();
+			else {
+				progressBarHelper=new ProgressBarHelper(Clinics.GetAbbr(listFeeClinics[i]),"0%",1,100,tagString:"Clinic");
+				progressExtended.Fire(ODEventType.FeeSched,progressBarHelper);
+				progressExtended.HideButtons();//can't pause or cancel with 1 clinic. This event needs to be called after the bar is instantiated. 
+			}
 			try {
-				rowsChanged=Procedures.GlobalUpdateFees(listFeesHQ,0,"Updating...");
+				rowsChanged+=Procedures.GlobalUpdateFees(listFeesHQ,listFeeClinics[i],Clinics.GetAbbr(listFeeClinics[i]));
 			}
 			catch(ApplicationException ex) {
 				Cursor=Cursors.Default;
@@ -911,6 +879,13 @@ public partial class FormFeeSchedTools :FormODBase {
 				ODMessageBox.Show(ex.Message);
 				return;	
 			}
+			if(progressExtended.IsPaused) {
+				progressExtended.AllowResume();
+			}
+		}
+		if(listFeeClinics.Count>1) {
+			progressBarHelper=new ProgressBarHelper("Overall","100%",100,100,tagString:"OverallStatus");
+			progressExtended.Fire(ODEventType.FeeSched,progressBarHelper);
 		}
 		progressExtended.OnProgressDone();
 		progressBarHelper=new ProgressBarHelper("Treatment planned procedure fees changed: "+rowsChanged+"\r\nDone.",
@@ -949,7 +924,7 @@ public partial class FormFeeSchedTools :FormODBase {
 				var prevClinicNum=PrefC.GetLong(PrefName.GlobalUpdateWriteOffLastClinicCompleted);
 				indexPrevClinic=listWriteoffClinics.FindIndex(x => x==prevClinicNum);
 			}
-			catch(Exception ex) {
+			catch {
 			}
 		}
 		if(indexPrevClinic>-1 //only true if clinics are enabled, the user is not restricted, updating all clinics, and the pref has been set from previous run

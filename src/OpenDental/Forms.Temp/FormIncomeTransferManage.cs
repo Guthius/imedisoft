@@ -1,13 +1,10 @@
 using System;
 using System.Collections.Generic;
-using System.Data;
-using System.Drawing;
 using System.Linq;
 using System.Windows.Forms;
 using OpenDental.UI;
 using OpenDentBusiness;
 using CodeBase;
-using System.Text;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Entities;
 using Imedisoft.Core.Features.Clinics;
@@ -210,7 +207,7 @@ public partial class FormIncomeTransferManage:FormODBase {
 		if(!Security.IsAuthorized(EnumPermType.PaymentCreate,datePickerAsOf.Value)) {
 			return false;
 		}
-		var dbmLog=DatabaseMaintenances.ProcedurelogDeletedWithAttachedIncome(false,DbmMode.Breakdown,_patient.PatNum);
+		var dbmLog=DatabaseMaintenances.ProcedurelogDeletedWithAttachedIncome();
 		if(dbmLog!="") {
 			var msgBoxCopyPaste=new MsgBoxCopyPaste(dbmLog);
 			msgBoxCopyPaste.Show();

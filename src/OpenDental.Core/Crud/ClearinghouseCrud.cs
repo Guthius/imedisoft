@@ -25,41 +25,42 @@ public class ClearinghouseCrud
     public static List<Clearinghouse> TableToList(DataTable table)
     {
         var retVal = new List<Clearinghouse>();
-        Clearinghouse clearinghouse;
         foreach (DataRow row in table.Rows)
         {
-            clearinghouse = new Clearinghouse();
-            clearinghouse.ClearinghouseNum = SIn.Long(row["ClearinghouseNum"].ToString());
-            clearinghouse.Description = SIn.String(row["Description"].ToString());
-            clearinghouse.ExportPath = SIn.String(row["ExportPath"].ToString());
-            clearinghouse.Payors = SIn.String(row["Payors"].ToString());
-            clearinghouse.Eformat = (ElectronicClaimFormat) SIn.Int(row["Eformat"].ToString());
-            clearinghouse.ISA05 = SIn.String(row["ISA05"].ToString());
-            clearinghouse.SenderTIN = SIn.String(row["SenderTIN"].ToString());
-            clearinghouse.ISA07 = SIn.String(row["ISA07"].ToString());
-            clearinghouse.ISA08 = SIn.String(row["ISA08"].ToString());
-            clearinghouse.ISA15 = SIn.String(row["ISA15"].ToString());
-            clearinghouse.Password = SIn.String(row["Password"].ToString());
-            clearinghouse.ResponsePath = SIn.String(row["ResponsePath"].ToString());
-            clearinghouse.CommBridge = (EclaimsCommBridge) SIn.Int(row["CommBridge"].ToString());
-            clearinghouse.ClientProgram = SIn.String(row["ClientProgram"].ToString());
-            clearinghouse.LastBatchNumber = SIn.Int(row["LastBatchNumber"].ToString());
-            clearinghouse.ModemPort = SIn.Byte(row["ModemPort"].ToString());
-            clearinghouse.LoginID = SIn.String(row["LoginID"].ToString());
-            clearinghouse.SenderName = SIn.String(row["SenderName"].ToString());
-            clearinghouse.SenderTelephone = SIn.String(row["SenderTelephone"].ToString());
-            clearinghouse.GS03 = SIn.String(row["GS03"].ToString());
-            clearinghouse.ISA02 = SIn.String(row["ISA02"].ToString());
-            clearinghouse.ISA04 = SIn.String(row["ISA04"].ToString());
-            clearinghouse.ISA16 = SIn.String(row["ISA16"].ToString());
-            clearinghouse.SeparatorData = SIn.String(row["SeparatorData"].ToString());
-            clearinghouse.SeparatorSegment = SIn.String(row["SeparatorSegment"].ToString());
-            clearinghouse.ClinicNum = SIn.Long(row["ClinicNum"].ToString());
-            clearinghouse.HqClearinghouseNum = SIn.Long(row["HqClearinghouseNum"].ToString());
-            clearinghouse.IsEraDownloadAllowed = (EraBehaviors) SIn.Int(row["IsEraDownloadAllowed"].ToString());
-            clearinghouse.IsClaimExportAllowed = SIn.Bool(row["IsClaimExportAllowed"].ToString());
-            clearinghouse.IsAttachmentSendAllowed = SIn.Bool(row["IsAttachmentSendAllowed"].ToString());
-            clearinghouse.LocationID = SIn.String(row["LocationID"].ToString());
+            var clearinghouse = new Clearinghouse
+            {
+                ClearinghouseNum = SIn.Long(row["ClearinghouseNum"].ToString()),
+                Description = SIn.String(row["Description"].ToString()),
+                ExportPath = SIn.String(row["ExportPath"].ToString()),
+                Payors = SIn.String(row["Payors"].ToString()),
+                Eformat = (ElectronicClaimFormat) SIn.Int(row["Eformat"].ToString()),
+                ISA05 = SIn.String(row["ISA05"].ToString()),
+                SenderTIN = SIn.String(row["SenderTIN"].ToString()),
+                ISA07 = SIn.String(row["ISA07"].ToString()),
+                ISA08 = SIn.String(row["ISA08"].ToString()),
+                ISA15 = SIn.String(row["ISA15"].ToString()),
+                Password = SIn.String(row["Password"].ToString()),
+                ResponsePath = SIn.String(row["ResponsePath"].ToString()),
+                CommBridge = (EclaimsCommBridge) SIn.Int(row["CommBridge"].ToString()),
+                ClientProgram = SIn.String(row["ClientProgram"].ToString()),
+                LastBatchNumber = SIn.Int(row["LastBatchNumber"].ToString()),
+                ModemPort = SIn.Byte(row["ModemPort"].ToString()),
+                LoginID = SIn.String(row["LoginID"].ToString()),
+                SenderName = SIn.String(row["SenderName"].ToString()),
+                SenderTelephone = SIn.String(row["SenderTelephone"].ToString()),
+                GS03 = SIn.String(row["GS03"].ToString()),
+                ISA02 = SIn.String(row["ISA02"].ToString()),
+                ISA04 = SIn.String(row["ISA04"].ToString()),
+                ISA16 = SIn.String(row["ISA16"].ToString()),
+                SeparatorData = SIn.String(row["SeparatorData"].ToString()),
+                SeparatorSegment = SIn.String(row["SeparatorSegment"].ToString()),
+                ClinicNum = SIn.Long(row["ClinicNum"].ToString()),
+                HqClearinghouseNum = SIn.Long(row["HqClearinghouseNum"].ToString()),
+                IsEraDownloadAllowed = (EraBehaviors) SIn.Int(row["IsEraDownloadAllowed"].ToString()),
+                IsClaimExportAllowed = SIn.Bool(row["IsClaimExportAllowed"].ToString()),
+                IsAttachmentSendAllowed = SIn.Bool(row["IsAttachmentSendAllowed"].ToString()),
+                LocationID = SIn.String(row["LocationID"].ToString())
+            };
             retVal.Add(clearinghouse);
         }
 
@@ -403,15 +404,13 @@ public class ClearinghouseCrud
         var idxNew = 0;
         var idxDB = 0;
         var rowsUpdatedCount = 0;
-        Clearinghouse fieldNew;
-        Clearinghouse fieldDB;
         //Because both lists have been sorted using the same criteria, we can now walk each list to determine which list contians the next element.  The next element is determined by Primary Key.
         //If the New list contains the next item it will be inserted.  If the DB contains the next item, it will be deleted.  If both lists contain the next item, the item will be updated.
         while (idxNew < listNew.Count || idxDB < listDB.Count)
         {
-            fieldNew = null;
+            Clearinghouse fieldNew = null;
             if (idxNew < listNew.Count) fieldNew = listNew[idxNew];
-            fieldDB = null;
+            Clearinghouse fieldDB = null;
             if (idxDB < listDB.Count) fieldDB = listDB[idxDB];
             //begin compare
             if (fieldNew != null && fieldDB == null)

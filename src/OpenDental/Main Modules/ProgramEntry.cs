@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
+using System.Net;
 using System.Windows.Forms;
 using System.Windows.Interop;
 using System.Windows.Media;
@@ -20,8 +21,9 @@ internal static class ProgramEntry
         
         try
         {
-            ODInitialize.Initialize();
-            Security.CurComputerName = ODEnvironment.MachineName;
+            ServicePointManager.SecurityProtocol |= SecurityProtocolType.Tls12;
+            
+            Security.CurComputerName = Environment.MachineName;
         }
         catch (Exception e)
         {
@@ -45,27 +47,11 @@ internal static class ProgramEntry
 
         args.CopyTo(commandLineArgs, 0);
 
-        var formOpenDental = new FormOpenDental(commandLineArgs);
+        var formOpenDental = new FormOpenDental();
 
-        Exception submittedException = null;
-
-        var actionUnhandled = new Action<Exception, string>((e, threadName) =>
+        var actionUnhandled = new Action<Exception, string>((e, _) =>
         {
-            var displayMsg = "";
-            try
-            {
-                if (submittedException == null)
-                {
-                    submittedException = e;
-                    BugSubmissions.SubmitException(e, out displayMsg, threadName, FormOpenDental.PatNumCur, formOpenDental.GetSelectedModuleName());
-                }
-            }
-            catch
-            {
-                // ignored
-            }
-
-            FriendlyException.Show(displayMsg.IsNullOrEmpty() ? "Critical Error: " + e.Message : displayMsg, e, isUnhandledException: true);
+            FriendlyException.Show("Critical Error: " + e.Message, e, isUnhandledException: true);
             
             formOpenDental.ProcessKillCommand();
         });

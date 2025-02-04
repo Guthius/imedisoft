@@ -27,44 +27,44 @@ public class PayPlanLinks
 
     public static List<PayPlanLink> GetListForPayplan(long payplanNum)
     {
-        var command = $"SELECT * FROM payplanlink WHERE PayPlanNum={SOut.Long(payplanNum)}";
+        var command = $"SELECT * FROM payplanlink WHERE PayPlanNum={(payplanNum)}";
         return PayPlanLinkCrud.SelectMany(command);
     }
 
     public static List<long> GetListForLinkTypeAndFKeys(PayPlanLinkType linkType, List<long> listFKeys)
     {
         var command = $"SELECT FKey FROM payplanlink WHERE LinkType={SOut.Int((int) linkType)}";
-        if (!listFKeys.IsNullOrEmpty()) command += $" AND FKey IN ({string.Join(",", listFKeys.Select(x => SOut.Long(x)))})";
+        if (!listFKeys.IsNullOrEmpty()) command += $" AND FKey IN ({string.Join(",", listFKeys.Select(x => (x)))})";
         return Db.GetListLong(command);
     }
 
     public static List<PayPlanLink> GetForPayPlans(List<long> listPayPlans)
     {
-        if (listPayPlans.IsNullOrEmpty()) return new List<PayPlanLink>();
+        if (listPayPlans.IsNullOrEmpty()) return [];
 
-        var command = $"SELECT * FROM payplanlink WHERE PayPlanNum IN ({string.Join(",", listPayPlans.Select(x => SOut.Long(x)))}) ";
+        var command = $"SELECT * FROM payplanlink WHERE PayPlanNum IN ({string.Join(",", listPayPlans.Select(x => (x)))}) ";
         return PayPlanLinkCrud.SelectMany(command);
     }
 
     public static List<PayPlanLink> GetForFKeyAndLinkType(long fKey, PayPlanLinkType linkType)
     {
-        return GetForFKeysAndLinkType(new List<long> {fKey}, linkType);
+        return GetForFKeysAndLinkType([fKey], linkType);
     }
 
     public static List<PayPlanLink> GetForFKeysAndLinkType(List<long> listFKeys, PayPlanLinkType linkType)
     {
-        if (listFKeys.IsNullOrEmpty()) return new List<PayPlanLink>();
+        if (listFKeys.IsNullOrEmpty()) return [];
 
-        var command = $"SELECT * FROM payplanlink WHERE payplanlink.FKey IN ({string.Join(",", listFKeys.Select(x => SOut.Long(x)))}) " +
+        var command = $"SELECT * FROM payplanlink WHERE payplanlink.FKey IN ({string.Join(",", listFKeys.Select(x => (x)))}) " +
                       $"AND payplanlink.LinkType={SOut.Int((int) linkType)} ";
         return PayPlanLinkCrud.SelectMany(command);
     }
 
     public static List<PayPlanLink> GetForPayPlansAndLinkType(List<long> listPayPlanNums, PayPlanLinkType linkType)
     {
-        if (listPayPlanNums.Count == 0) return new List<PayPlanLink>();
+        if (listPayPlanNums.Count == 0) return [];
 
-        var command = $"SELECT * FROM payplanlink WHERE payplanlink.PayPlanNum IN ({string.Join(",", listPayPlanNums.Select(x => SOut.Long(x)))}) " +
+        var command = $"SELECT * FROM payplanlink WHERE payplanlink.PayPlanNum IN ({string.Join(",", listPayPlanNums.Select(x => (x)))}) " +
                       $"AND payplanlink.LinkType={SOut.Int((int) linkType)}";
         return PayPlanLinkCrud.SelectMany(command);
     }

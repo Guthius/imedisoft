@@ -2,7 +2,6 @@ using CodeBase;
 using OpenDentBusiness;
 using OpenDentBusiness.Misc;
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;

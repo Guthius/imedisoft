@@ -25,14 +25,15 @@ public class CommOptOutCrud
     public static List<CommOptOut> TableToList(DataTable table)
     {
         var retVal = new List<CommOptOut>();
-        CommOptOut commOptOut;
         foreach (DataRow row in table.Rows)
         {
-            commOptOut = new CommOptOut();
-            commOptOut.CommOptOutNum = SIn.Long(row["CommOptOutNum"].ToString());
-            commOptOut.PatNum = SIn.Long(row["PatNum"].ToString());
-            commOptOut.OptOutSms = (CommOptOutType) SIn.Int(row["OptOutSms"].ToString());
-            commOptOut.OptOutEmail = (CommOptOutType) SIn.Int(row["OptOutEmail"].ToString());
+            var commOptOut = new CommOptOut
+            {
+                CommOptOutNum = SIn.Long(row["CommOptOutNum"].ToString()),
+                PatNum = SIn.Long(row["PatNum"].ToString()),
+                OptOutSms = (CommOptOutType) SIn.Int(row["OptOutSms"].ToString()),
+                OptOutEmail = (CommOptOutType) SIn.Int(row["OptOutEmail"].ToString())
+            };
             retVal.Add(commOptOut);
         }
 

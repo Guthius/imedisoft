@@ -1,16 +1,6 @@
 using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Linq;
-using System.Text;
-using System.Windows;
 using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
 using DataConnectionBase;
-using OpenDentBusiness;
-using WpfControls.UI;
 
 namespace OpenDental {
 	public partial class FrmDatePicker:FrmODBase {

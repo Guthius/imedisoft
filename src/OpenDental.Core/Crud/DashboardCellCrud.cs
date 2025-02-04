@@ -18,14 +18,15 @@ public class DashboardCellCrud
     public static List<DashboardCell> TableToList(DataTable table)
     {
         var retVal = new List<DashboardCell>();
-        DashboardCell dashboardCell;
         foreach (DataRow row in table.Rows)
         {
-            dashboardCell = new DashboardCell();
-            dashboardCell.DashboardCellNum = SIn.Long(row["DashboardCellNum"].ToString());
-            dashboardCell.DashboardLayoutNum = SIn.Long(row["DashboardLayoutNum"].ToString());
-            dashboardCell.CellRow = SIn.Int(row["CellRow"].ToString());
-            dashboardCell.CellColumn = SIn.Int(row["CellColumn"].ToString());
+            var dashboardCell = new DashboardCell
+            {
+                DashboardCellNum = SIn.Long(row["DashboardCellNum"].ToString()),
+                DashboardLayoutNum = SIn.Long(row["DashboardLayoutNum"].ToString()),
+                CellRow = SIn.Int(row["CellRow"].ToString()),
+                CellColumn = SIn.Int(row["CellColumn"].ToString())
+            };
             var cellType = row["CellType"].ToString();
             if (cellType == "")
                 dashboardCell.CellType = 0;

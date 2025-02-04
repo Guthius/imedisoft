@@ -160,18 +160,6 @@ public partial class UserControlSetupWizPrinter : SetupWizControl
             case "checkPostcard":
                 sit = PrintSituation.Postcard;
                 break;
-            case "comboRx":
-            case "checkRx":
-                sit = PrintSituation.Rx;
-                break;
-            case "comboRxControlled":
-            case "checkRxControlled":
-                sit = PrintSituation.RxControlled;
-                break;
-            case "comboRxMulti":
-            case "checkRxMulti":
-                sit = PrintSituation.RxMulti;
-                break;
             case "comboStatement":
             case "checkStatement":
                 sit = PrintSituation.Statement;
@@ -274,7 +262,7 @@ public partial class UserControlSetupWizPrinter : SetupWizControl
 
     private void ControlDone(object sender, EventArgs e)
     {
-        var compName = ODEnvironment.MachineName;
+        var compName = Environment.MachineName;
         if (checkSimple.Checked && !PrefC.GetBool(PrefName.EasyHidePrinters))
         {
             Printers.ClearAll();

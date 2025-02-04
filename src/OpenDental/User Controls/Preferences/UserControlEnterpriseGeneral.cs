@@ -1,12 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Globalization;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 using DataConnectionBase;
 using Imedisoft.Core.Caching;
@@ -131,7 +125,7 @@ public partial class UserControlEnterpriseGeneral:UserControl {
 					throw new Exception();
 				}
 			}
-			catch(Exception e) {
+			catch {
 				errorMsg+="Log off after minutes is invalid. Must be a positive number.\r\n";
 			}
 		}
@@ -218,7 +212,7 @@ public partial class UserControlEnterpriseGeneral:UserControl {
 		try {
 			prefHidden=Prefs.GetOne(prefName);
 		}
-		catch(Exception ex) {
+		catch {
 			return null;
 		}
 		return prefHidden.ValueString;
@@ -240,7 +234,7 @@ public partial class UserControlEnterpriseGeneral:UserControl {
 		try {
 			FillHiddenPrefs();
 		}
-		catch(Exception ex) {
+		catch {
 		}
 		checkPasswordsMustBeStrong.Checked=PrefC.GetBool(PrefName.PasswordsMustBeStrong);
 		checkPasswordsStrongIncludeSpecial.Checked=PrefC.GetBool(PrefName.PasswordsStrongIncludeSpecial);

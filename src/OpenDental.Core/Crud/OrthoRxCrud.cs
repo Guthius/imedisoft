@@ -17,15 +17,16 @@ public class OrthoRxCrud
     public static List<OrthoRx> TableToList(DataTable table)
     {
         var retVal = new List<OrthoRx>();
-        OrthoRx orthoRx;
         foreach (DataRow row in table.Rows)
         {
-            orthoRx = new OrthoRx();
-            orthoRx.OrthoRxNum = SIn.Long(row["OrthoRxNum"].ToString());
-            orthoRx.OrthoHardwareSpecNum = SIn.Long(row["OrthoHardwareSpecNum"].ToString());
-            orthoRx.Description = SIn.String(row["Description"].ToString());
-            orthoRx.ToothRange = SIn.String(row["ToothRange"].ToString());
-            orthoRx.ItemOrder = SIn.Int(row["ItemOrder"].ToString());
+            var orthoRx = new OrthoRx
+            {
+                OrthoRxNum = SIn.Long(row["OrthoRxNum"].ToString()),
+                OrthoHardwareSpecNum = SIn.Long(row["OrthoHardwareSpecNum"].ToString()),
+                Description = SIn.String(row["Description"].ToString()),
+                ToothRange = SIn.String(row["ToothRange"].ToString()),
+                ItemOrder = SIn.Int(row["ItemOrder"].ToString())
+            };
             retVal.Add(orthoRx);
         }
 

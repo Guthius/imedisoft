@@ -1,6 +1,4 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Windows.Forms;
 using CodeBase;
 using DataConnectionBase;
@@ -122,10 +120,6 @@ public partial class FormTaskPreferences:FormODBase {
 	private void butSave_Click(object sender,EventArgs e) {
 		if(!validNumX.IsValid() | !validNumY.IsValid()) {
 			ODMessageBox.Show(Lan.g(this,"Please fix data entry errors first."));
-			return;
-		}
-		if(FormOpenDental.IsDashboardVisible && checkTaskListAlwaysShow.Checked && !checkBoxTaskKeepListHidden.Checked && radioRight.Checked) {
-			MsgBox.Show(this,"Tasks cannot be docked to the right when Dashboards are in use.");
 			return;
 		}
 		var isChanged=false;

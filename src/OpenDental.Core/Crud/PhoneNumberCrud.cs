@@ -1,35 +1,14 @@
-#region
-
 using System.Collections.Generic;
 using System.Data;
-using System.Linq;
 using System.Text;
 using DataConnectionBase;
 using Imedisoft.Core.Entities;
 using OpenDentBusiness;
 
-#endregion
-
 namespace Imedisoft.Core.Crud;
 
 public class PhoneNumberCrud
 {
-    public static PhoneNumber SelectOne(long phoneNumberNum)
-    {
-        var command = "SELECT * FROM phonenumber "
-                      + "WHERE PhoneNumberNum = " + SOut.Long(phoneNumberNum);
-        var list = TableToList(DataCore.GetTable(command));
-        if (list.Count == 0) return null;
-        return list[0];
-    }
-
-    public static PhoneNumber SelectOne(string command)
-    {
-        var list = TableToList(DataCore.GetTable(command));
-        if (list.Count == 0) return null;
-        return list[0];
-    }
-
     public static List<PhoneNumber> SelectMany(string command)
     {
         var list = TableToList(DataCore.GetTable(command));
@@ -39,63 +18,23 @@ public class PhoneNumberCrud
     public static List<PhoneNumber> TableToList(DataTable table)
     {
         var retVal = new List<PhoneNumber>();
-        PhoneNumber phoneNumber;
         foreach (DataRow row in table.Rows)
         {
-            phoneNumber = new PhoneNumber();
-            phoneNumber.PhoneNumberNum = SIn.Long(row["PhoneNumberNum"].ToString());
-            phoneNumber.PatNum = SIn.Long(row["PatNum"].ToString());
-            phoneNumber.PhoneNumberVal = SIn.String(row["PhoneNumberVal"].ToString());
-            phoneNumber.PhoneNumberDigits = SIn.String(row["PhoneNumberDigits"].ToString());
-            phoneNumber.PhoneType = (PhoneType) SIn.Int(row["PhoneType"].ToString());
+            var phoneNumber = new PhoneNumber
+            {
+                PhoneNumberNum = SIn.Long(row["PhoneNumberNum"].ToString()),
+                PatNum = SIn.Long(row["PatNum"].ToString()),
+                PhoneNumberVal = SIn.String(row["PhoneNumberVal"].ToString()),
+                PhoneNumberDigits = SIn.String(row["PhoneNumberDigits"].ToString()),
+                PhoneType = (PhoneType) SIn.Int(row["PhoneType"].ToString())
+            };
             retVal.Add(phoneNumber);
         }
 
         return retVal;
     }
 
-    public static DataTable ListToTable(List<PhoneNumber> listPhoneNumbers, string tableName = "")
-    {
-        if (string.IsNullOrEmpty(tableName)) tableName = "PhoneNumber";
-        var table = new DataTable(tableName);
-        table.Columns.Add("PhoneNumberNum");
-        table.Columns.Add("PatNum");
-        table.Columns.Add("PhoneNumberVal");
-        table.Columns.Add("PhoneNumberDigits");
-        table.Columns.Add("PhoneType");
-        foreach (var phoneNumber in listPhoneNumbers)
-            table.Rows.Add(SOut.Long(phoneNumber.PhoneNumberNum), SOut.Long(phoneNumber.PatNum), phoneNumber.PhoneNumberVal, phoneNumber.PhoneNumberDigits, SOut.Int((int) phoneNumber.PhoneType));
-        return table;
-    }
-
-    public static long Insert(PhoneNumber phoneNumber)
-    {
-        return Insert(phoneNumber, false);
-    }
-
-    public static long Insert(PhoneNumber phoneNumber, bool useExistingPK)
-    {
-        var command = "INSERT INTO phonenumber (";
-
-        command += "PatNum,PhoneNumberVal,PhoneNumberDigits,PhoneType) VALUES(";
-
-        command +=
-            SOut.Long(phoneNumber.PatNum) + ","
-                                          + "'" + SOut.String(phoneNumber.PhoneNumberVal) + "',"
-                                          + "'" + SOut.String(phoneNumber.PhoneNumberDigits) + "',"
-                                          + SOut.Int((int) phoneNumber.PhoneType) + ")";
-        {
-            phoneNumber.PhoneNumberNum = Db.NonQ(command, true, "PhoneNumberNum", "phoneNumber");
-        }
-        return phoneNumber.PhoneNumberNum;
-    }
-
-    public static void InsertMany(List<PhoneNumber> listPhoneNumbers)
-    {
-        InsertMany(listPhoneNumbers, false);
-    }
-
-    public static void InsertMany(List<PhoneNumber> listPhoneNumbers, bool useExistingPK)
+    public static void InsertMany(List<PhoneNumber> listPhoneNumbers, bool useExistingPK = false)
     {
         StringBuilder sbCommands = null;
         var index = 0;
@@ -146,98 +85,5 @@ public class PhoneNumberCrud
                 index++;
             }
         }
-    }
-
-    public static long InsertNoCache(PhoneNumber phoneNumber)
-    {
-        return InsertNoCache(phoneNumber, false);
-    }
-
-    public static long InsertNoCache(PhoneNumber phoneNumber, bool useExistingPK)
-    {
-        const bool isRandomKeys = false;
-        var command = "INSERT INTO phonenumber (";
-        if (isRandomKeys || useExistingPK) command += "PhoneNumberNum,";
-        command += "PatNum,PhoneNumberVal,PhoneNumberDigits,PhoneType) VALUES(";
-        if (isRandomKeys || useExistingPK) command += SOut.Long(phoneNumber.PhoneNumberNum) + ",";
-        command +=
-            SOut.Long(phoneNumber.PatNum) + ","
-                                          + "'" + SOut.String(phoneNumber.PhoneNumberVal) + "',"
-                                          + "'" + SOut.String(phoneNumber.PhoneNumberDigits) + "',"
-                                          + SOut.Int((int) phoneNumber.PhoneType) + ")";
-        if (useExistingPK || isRandomKeys)
-            Db.NonQ(command);
-        else
-            phoneNumber.PhoneNumberNum = Db.NonQ(command, true, "PhoneNumberNum", "phoneNumber");
-        return phoneNumber.PhoneNumberNum;
-    }
-
-    public static void Update(PhoneNumber phoneNumber)
-    {
-        var command = "UPDATE phonenumber SET "
-                      + "PatNum           =  " + SOut.Long(phoneNumber.PatNum) + ", "
-                      + "PhoneNumberVal   = '" + SOut.String(phoneNumber.PhoneNumberVal) + "', "
-                      + "PhoneNumberDigits= '" + SOut.String(phoneNumber.PhoneNumberDigits) + "', "
-                      + "PhoneType        =  " + SOut.Int((int) phoneNumber.PhoneType) + " "
-                      + "WHERE PhoneNumberNum = " + SOut.Long(phoneNumber.PhoneNumberNum);
-        Db.NonQ(command);
-    }
-
-    public static bool Update(PhoneNumber phoneNumber, PhoneNumber oldPhoneNumber)
-    {
-        var command = "";
-        if (phoneNumber.PatNum != oldPhoneNumber.PatNum)
-        {
-            if (command != "") command += ",";
-            command += "PatNum = " + SOut.Long(phoneNumber.PatNum) + "";
-        }
-
-        if (phoneNumber.PhoneNumberVal != oldPhoneNumber.PhoneNumberVal)
-        {
-            if (command != "") command += ",";
-            command += "PhoneNumberVal = '" + SOut.String(phoneNumber.PhoneNumberVal) + "'";
-        }
-
-        if (phoneNumber.PhoneNumberDigits != oldPhoneNumber.PhoneNumberDigits)
-        {
-            if (command != "") command += ",";
-            command += "PhoneNumberDigits = '" + SOut.String(phoneNumber.PhoneNumberDigits) + "'";
-        }
-
-        if (phoneNumber.PhoneType != oldPhoneNumber.PhoneType)
-        {
-            if (command != "") command += ",";
-            command += "PhoneType = " + SOut.Int((int) phoneNumber.PhoneType) + "";
-        }
-
-        if (command == "") return false;
-        command = "UPDATE phonenumber SET " + command
-                                            + " WHERE PhoneNumberNum = " + SOut.Long(phoneNumber.PhoneNumberNum);
-        Db.NonQ(command);
-        return true;
-    }
-
-    public static bool UpdateComparison(PhoneNumber phoneNumber, PhoneNumber oldPhoneNumber)
-    {
-        if (phoneNumber.PatNum != oldPhoneNumber.PatNum) return true;
-        if (phoneNumber.PhoneNumberVal != oldPhoneNumber.PhoneNumberVal) return true;
-        if (phoneNumber.PhoneNumberDigits != oldPhoneNumber.PhoneNumberDigits) return true;
-        if (phoneNumber.PhoneType != oldPhoneNumber.PhoneType) return true;
-        return false;
-    }
-
-    public static void Delete(long phoneNumberNum)
-    {
-        var command = "DELETE FROM phonenumber "
-                      + "WHERE PhoneNumberNum = " + SOut.Long(phoneNumberNum);
-        Db.NonQ(command);
-    }
-
-    public static void DeleteMany(List<long> listPhoneNumberNums)
-    {
-        if (listPhoneNumberNums == null || listPhoneNumberNums.Count == 0) return;
-        var command = "DELETE FROM phonenumber "
-                      + "WHERE PhoneNumberNum IN(" + string.Join(",", listPhoneNumberNums.Select(x => SOut.Long(x))) + ")";
-        Db.NonQ(command);
     }
 }

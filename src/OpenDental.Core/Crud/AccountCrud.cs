@@ -19,14 +19,16 @@ public class AccountCrud
         var retVal = new List<Account>();
         foreach (DataRow row in table.Rows)
         {
-            var account = new Account();
-            account.AccountNum = SIn.Long(row["AccountNum"].ToString());
-            account.Description = SIn.String(row["Description"].ToString());
-            account.AcctType = (AccountType) SIn.Int(row["AcctType"].ToString());
-            account.BankNumber = SIn.String(row["BankNumber"].ToString());
-            account.Inactive = SIn.Bool(row["Inactive"].ToString());
-            account.AccountColor = Color.FromArgb(SIn.Int(row["AccountColor"].ToString()));
-            account.IsRetainedEarnings = SIn.Bool(row["IsRetainedEarnings"].ToString());
+            var account = new Account
+            {
+                AccountNum = SIn.Long(row["AccountNum"].ToString()),
+                Description = SIn.String(row["Description"].ToString()),
+                AcctType = (AccountType) SIn.Int(row["AcctType"].ToString()),
+                BankNumber = SIn.String(row["BankNumber"].ToString()),
+                Inactive = SIn.Bool(row["Inactive"].ToString()),
+                AccountColor = Color.FromArgb(SIn.Int(row["AccountColor"].ToString())),
+                IsRetainedEarnings = SIn.Bool(row["IsRetainedEarnings"].ToString())
+            };
             retVal.Add(account);
         }
 
@@ -51,7 +53,7 @@ public class AccountCrud
         return table;
     }
 
-    public static long Insert(Account account)
+    public static void Insert(Account account)
     {
         var command = "INSERT INTO account (";
 
@@ -67,7 +69,6 @@ public class AccountCrud
         {
             account.AccountNum = Db.NonQ(command, true, "AccountNum", "account");
         }
-        return account.AccountNum;
     }
 
     public static void Update(Account account, Account oldAccount)

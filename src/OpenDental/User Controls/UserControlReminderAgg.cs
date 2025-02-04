@@ -13,7 +13,7 @@ namespace OpenDental;
 
 public partial class UserControlReminderAgg:UserControl {
 	private string _templateEmailAggShared;
-	public LayoutManagerForms LayoutManager=new LayoutManagerForms();
+	
 
 	public UserControlReminderAgg(ApptReminderRule apptReminderDefault) {
 		InitializeComponent();
@@ -32,7 +32,7 @@ public partial class UserControlReminderAgg:UserControl {
 	}
 
 	///<summary>These tags are not allowed in Arrival Response or Come In sms messages.</summary>
-	private List<string> ListTagsExludedFromArrivalResponseComeIn => [OpenDentBusiness.AutoComm.ArrivalsTagReplacer.ARRIVED_TAG];
+	private List<string> ListTagsExludedFromArrivalResponseComeIn => [OpenDentBusiness.AutoComm.ArrivalsTagReplacer.ArrivedTag];
 
 	private void LoadControls() {
 		textSMSAggShared.Text=SIn.String(Rule.TemplateSMSAggShared);
@@ -90,7 +90,7 @@ public partial class UserControlReminderAgg:UserControl {
 			var text=MarkupEdit.TranslateToXhtml(_templateEmailAggShared,isEmail:true);
 			browserEmailBody.DocumentText=text;
 		}
-		catch(Exception ex) {
+		catch {
 		}
 	}
 
@@ -130,8 +130,8 @@ public partial class UserControlReminderAgg:UserControl {
 				errors.Add(groupArrivedReply.Text+Lan.g(this," and ")+groupComeIn.Text
 				           +Lan.g(this," cannot contain ")+string.Join(",",ListTagsExludedFromArrivalResponseComeIn));
 			}
-			if(!textSMSAggShared.Text.ToLower().Contains(OpenDentBusiness.AutoComm.ArrivalsTagReplacer.ARRIVED_TAG.ToLower())) {
-				errors.Add(groupBoxSMSAggShared.Text+Lan.g(this,$" must contain the \"{OpenDentBusiness.AutoComm.ArrivalsTagReplacer.ARRIVED_TAG}\" tag."));
+			if(!textSMSAggShared.Text.ToLower().Contains(OpenDentBusiness.AutoComm.ArrivalsTagReplacer.ArrivedTag.ToLower())) {
+				errors.Add(groupBoxSMSAggShared.Text+Lan.g(this,$" must contain the \"{OpenDentBusiness.AutoComm.ArrivalsTagReplacer.ArrivedTag}\" tag."));
 			}
 			return errors;//Arrival Response and ComeIn templates are allowed to be blank, so we can just return here.
 		}
@@ -189,7 +189,7 @@ public partial class UserControlReminderAgg:UserControl {
 		var retContainsURLs=false;
 		var errors=new List<string>();
 		foreach(var str in allTextTemplates) {
-			var url=PrefC.GetFirstShortURL(str);
+			var url=PrefC.GetFirstShortUrl(str);
 			if(!string.IsNullOrWhiteSpace(url)) {
 				retContainsURLs=true;
 				errors.Add(Lan.g(this,"Message cannot contain the URL")+" "+url+" "+Lan.g(this,"as this is only allowed for eServices."));

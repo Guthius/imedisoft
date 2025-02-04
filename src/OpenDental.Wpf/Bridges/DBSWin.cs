@@ -1,8 +1,5 @@
 using System;
-using System.Collections;
-using System.Diagnostics;
 using System.IO;
-using System.Text;
 using System.Windows.Forms;
 using OpenDentBusiness;
 using System.Collections.Generic;

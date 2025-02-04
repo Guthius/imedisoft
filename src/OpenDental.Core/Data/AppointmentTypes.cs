@@ -17,33 +17,33 @@ public static class AppointmentTypes
     {
         AppointmentTypeCrud.Sync(listAppointmentTypesNew, listAppointmentTypesOld);
     }
-    
+
     public static AppointmentType GetOne(long appointmentTypeNum)
     {
         return GetFirstOrDefault(x => x.AppointmentTypeNum == appointmentTypeNum);
     }
-    
+
     public static string CheckInUse(long appointmentTypeNum)
     {
         if (appointmentTypeNum == 0)
         {
             return "";
         }
-        
+
         var command = "SELECT COUNT(*) FROM appointment WHERE AppointmentTypeNum = " + appointmentTypeNum;
         if (SIn.Int(Db.GetCount(command)) > 0)
         {
             return "Not allowed to delete appointment types that are in use on an appointment.";
         }
-        
-        command = 
-            "SELECT COUNT(*) FROM deflink " + 
-            "WHERE LinkType = " + (int) DefLinkType.AppointmentType + " " + 
+
+        command =
+            "SELECT COUNT(*) FROM deflink " +
+            "WHERE LinkType = " + (int) DefLinkType.AppointmentType + " " +
             "AND FKey = " + appointmentTypeNum;
-        
+
         return SIn.Int(Db.GetCount(command)) > 0 ? "Not allowed to delete appointment types that are in use by Web Sched New Pat Appt Types definitions." : "";
     }
-    
+
     public static string CheckRequiredProcsAttached(long appointmentTypeNum, List<Procedure> procedures)
     {
         var message = "";
@@ -53,49 +53,49 @@ public static class AppointmentTypes
         {
             return message;
         }
-        
+
         var procCodesRequiredForAppointmentType = appointmentType.CodeStrRequired.Split(",", StringSplitOptions.RemoveEmptyEntries).ToList();
 
         var selectedCodeNums = procedures.Select(x => x.CodeNum).ToList();
         var selectedProcCodes = new List<string>();
-        
+
         foreach (var codeNum in selectedCodeNums)
         {
             var procedureCode = ProcedureCodes.GetFirstOrDefault(x => x.CodeNum == codeNum);
-            
+
             selectedProcCodes.Add(procedureCode.ProcCode);
         }
-            
+
         var requiredCodesSelected = 0;
         var requiredProcCodesMissing = new List<string>();
-        
+
         foreach (var requiredProcCode in procCodesRequiredForAppointmentType)
         {
             if (selectedProcCodes.Contains(requiredProcCode))
             {
                 requiredCodesSelected++;
-                
+
                 selectedProcCodes.Remove(requiredProcCode);
                 continue;
             }
 
             requiredProcCodesMissing.Add(requiredProcCode);
         }
-            
+
         switch (appointmentType.RequiredProcCodesNeeded)
         {
             case EnumRequiredProcCodesNeeded.AtLeastOne when requiredCodesSelected == 0:
-                message = 
-                    "Appointment Type \"" + appointmentType.AppointmentTypeName + "\" must contain at least one of the following procedures:\r\n" + 
+                message =
+                    "Appointment Type \"" + appointmentType.AppointmentTypeName + "\" must contain at least one of the following procedures:\r\n" +
                     string.Join(", ", procCodesRequiredForAppointmentType);
                 return message;
-                
+
             case EnumRequiredProcCodesNeeded.All when requiredCodesSelected != procCodesRequiredForAppointmentType.Count:
-                message = 
-                    "Appointment Type \"" + appointmentType.AppointmentTypeName + "\" requires the following procedures:\r\n" + 
-                    string.Join(", ", procCodesRequiredForAppointmentType) + 
+                message =
+                    "Appointment Type \"" + appointmentType.AppointmentTypeName + "\" requires the following procedures:\r\n" +
+                    string.Join(", ", procCodesRequiredForAppointmentType) +
                     "\r\n\r\nThe following procedures are missing from this appointment:" +
-                    "\r\n" + 
+                    "\r\n" +
                     string.Join(", ", requiredProcCodesMissing);
                 return message;
         }
@@ -105,11 +105,11 @@ public static class AppointmentTypes
 
     public static int SortItemOrder(AppointmentType appointmentType1, AppointmentType appointmentType2)
     {
-        return appointmentType1.ItemOrder != appointmentType2.ItemOrder 
-            ? appointmentType1.ItemOrder.CompareTo(appointmentType2.ItemOrder) 
+        return appointmentType1.ItemOrder != appointmentType2.ItemOrder
+            ? appointmentType1.ItemOrder.CompareTo(appointmentType2.ItemOrder)
             : appointmentType1.AppointmentTypeNum.CompareTo(appointmentType2.AppointmentTypeNum);
     }
-    
+
     public static string GetName(long appointmentTypeNum)
     {
         var appointmentType = GetFirstOrDefault(x => x.AppointmentTypeNum == appointmentTypeNum);
@@ -117,7 +117,7 @@ public static class AppointmentTypes
         {
             return string.Empty;
         }
-        
+
         var typeName = appointmentType.AppointmentTypeName;
         if (appointmentType.IsHidden)
         {
@@ -126,21 +126,21 @@ public static class AppointmentTypes
 
         return typeName;
     }
-    
+
     public static string GetTimePatternForAppointmentType(AppointmentType appointmentType, long provNumDentist = 0, long provNumHyg = 0)
     {
         string timePattern;
-        
+
         if (string.IsNullOrEmpty(appointmentType.Pattern))
         {
             var procCodeStrings = appointmentType.CodeStr.Split([','], StringSplitOptions.RemoveEmptyEntries).ToList();
             var codeNums = new List<long>();
-            
+
             foreach (var procCode in procCodeStrings)
             {
                 codeNums.Add(ProcedureCodes.GetProcCode(procCode).CodeNum);
             }
-            
+
             timePattern = Appointments.CalculatePattern(provNumDentist, provNumHyg, codeNums, true);
         }
         else
@@ -155,10 +155,10 @@ public static class AppointmentTypes
     {
         var defLinks = DefLinks.GetDefLinksByType(DefLinkType.AppointmentType);
         var defLink = defLinks.FirstOrDefault(x => x.DefNum == defNum);
-        
+
         return defLink == null ? null : GetFirstOrDefault(x => x.AppointmentTypeNum == defLink.FKey, true);
     }
-    
+
     private class AppointmentTypeCache : CacheListAbs<AppointmentType>
     {
         protected override List<AppointmentType> GetCacheFromDb()
@@ -191,27 +191,27 @@ public static class AppointmentTypes
             return !item.IsHidden;
         }
     }
-    
+
     private static readonly AppointmentTypeCache Cache = new();
 
-    public static List<AppointmentType> GetDeepCopy(bool isShort = false)
+    public static List<AppointmentType> GetDeepCopy(bool shortList = false)
     {
-        return Cache.GetDeepCopy(isShort);
+        return Cache.GetDeepCopy(shortList);
     }
 
-    public static AppointmentType GetFirstOrDefault(Func<AppointmentType, bool> match, bool isShort = false)
+    public static AppointmentType GetFirstOrDefault(Func<AppointmentType, bool> predicate, bool shortList = false)
     {
-        return Cache.GetFirstOrDefault(match, isShort);
+        return Cache.GetFirstOrDefault(predicate, shortList);
     }
 
-    public static List<AppointmentType> GetWhere(Predicate<AppointmentType> match, bool isShort = false)
+    public static List<AppointmentType> GetWhere(Predicate<AppointmentType> predicate, bool shortList = false)
     {
-        return Cache.GetWhere(match, isShort);
+        return Cache.GetWhere(predicate, shortList);
     }
 
-    public static DataTable GetTableFromCache(bool doRefreshCache)
+    public static DataTable GetTableFromCache(bool refreshCache)
     {
-        return Cache.GetTableFromCache(doRefreshCache);
+        return Cache.GetTableFromCache(refreshCache);
     }
 
     public static void ClearCache()

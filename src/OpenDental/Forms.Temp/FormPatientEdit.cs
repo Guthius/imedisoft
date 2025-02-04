@@ -6,7 +6,6 @@ using System.Text.RegularExpressions;
 using System.Windows.Forms;
 using OpenDental.UI;
 using OpenDentBusiness;
-using OpenDentBusiness.HL7;
 using System.Diagnostics;
 using System.Linq;
 using CodeBase;
@@ -14,7 +13,7 @@ using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Data;
 using Imedisoft.Core.Entities;
-using Imedisoft.Core.Features.Clinics;
+using Imedisoft.Features.Providers.Dtos;
 using OpenDental.Logic;
 
 namespace OpenDental;
@@ -75,7 +74,7 @@ public partial class FormPatientEdit : FormODBase {
 	///<summary>Because adding the new feature where patients can choose their race from hundreds of options would cause us to need to recertify EHR, 
 	///we committed all the code for the new feature while keeping the old behavior for EHR users. When we are ready to switch to the new feature, 
 	///all we need to do is set this boolean to true (hopefully).</summary>
-	private bool _isUsingNewRaceFeature=!PrefC.GetBool(PrefName.ShowFeatureEhr);
+	private bool _isUsingNewRaceFeature=!false;
 	private bool _isLoad;//To keep track if ListBoxes' selected index is changed by the user
 	private bool _isMissingRequiredFields;
 	private bool _isMouseInListCounties;
@@ -102,8 +101,6 @@ public partial class FormPatientEdit : FormODBase {
 	///Deleted is excluded, unless PatCur is flagged as deleted.
 	///Needed due to index differences when deleted is not present.</summary>
 	private List<PatientStatus> _listPatientStatuses= [];
-	///<summary>Local cache of RefAttaches for the current patient.  Set in FillReferrals().</summary>
-	private List<RefAttach> _listRefAttaches;
 	private List<RequiredField> _listRequiredFields;
 	private List<Site> _listSitesFiltered;
 	///<summary>Used to keep track of what masked SSN was shown when the form was loaded, and stop us from storing masked SSNs on accident.</summary>
@@ -126,7 +123,7 @@ public partial class FormPatientEdit : FormODBase {
 		listBoxEmps.DoubleClick += new System.EventHandler(listEmps_DoubleClick);
 		listBoxEmps.MouseEnter += new System.EventHandler(listEmps_MouseEnter);
 		listBoxEmps.MouseLeave += new System.EventHandler(listEmps_MouseLeave);
-		LayoutManagerForms.Add(listBoxEmps,this);
+		Controls.Add(listBoxEmps);
 		listBoxEmps.BringToFront();
 		listBoxCounties=new OpenDental.UI.ListBox();
 		listBoxCounties.Location=new Point(tabControlPatInfo.Left+tabPublicHealth.Left+textCounty.Left,
@@ -137,7 +134,7 @@ public partial class FormPatientEdit : FormODBase {
 		//listBoxCounties.DoubleClick += new System.EventHandler(listCars_DoubleClick);
 		listBoxCounties.MouseEnter += new System.EventHandler(listCounties_MouseEnter);
 		listBoxCounties.MouseLeave += new System.EventHandler(listCounties_MouseLeave);
-		LayoutManagerForms.Add(listBoxCounties,this);
+		Controls.Add(listBoxCounties);
 		listBoxCounties.BringToFront();
 		listBoxSites=new OpenDental.UI.ListBox();
 		listBoxSites.Location=new Point(tabControlPatInfo.Left+tabPublicHealth.Left+textSite.Left,
@@ -147,13 +144,9 @@ public partial class FormPatientEdit : FormODBase {
 		listBoxSites.Click += new System.EventHandler(listSites_Click);
 		listBoxSites.MouseEnter += new System.EventHandler(listSites_MouseEnter);
 		listBoxSites.MouseLeave += new System.EventHandler(listSites_MouseLeave);
-		LayoutManagerForms.Add(listBoxSites,this);
+		Controls.Add(listBoxSites);
 		listBoxSites.BringToFront();
-			
-		if(false) {
-			labelST.Text=Lan.g(this,"ST, Country");
-			textCountry.Visible=true;
-		}
+
 		if(CultureInfo.CurrentCulture.Name.EndsWith("CA")) {//Canadian. en-CA or fr-CA
 			labelSSN.Text=Lan.g(this,"SIN");
 			labelZip.Text=Lan.g(this,"Postal Code");
@@ -181,7 +174,7 @@ public partial class FormPatientEdit : FormODBase {
 		listBoxMedicaidStates.Click += new System.EventHandler(listMedicaidStates_Click);
 		listBoxMedicaidStates.MouseEnter += new System.EventHandler(listMedicaidStates_MouseEnter);
 		listBoxMedicaidStates.MouseLeave += new System.EventHandler(listMedicaidStates_MouseLeave);
-		LayoutManagerForms.Add(listBoxMedicaidStates,this);
+		Controls.Add(listBoxMedicaidStates);
 		listBoxMedicaidStates.BringToFront();
 		listBoxStates=new OpenDental.UI.ListBox();
 		listBoxStates.Location=new Point(textState.Left+groupBox1.Left,textState.Bottom+groupBox1.Top);
@@ -190,7 +183,7 @@ public partial class FormPatientEdit : FormODBase {
 		listBoxStates.Click += new System.EventHandler(listStates_Click);
 		listBoxStates.MouseEnter += new System.EventHandler(listStates_MouseEnter);
 		listBoxStates.MouseLeave += new System.EventHandler(listStates_MouseLeave);
-		LayoutManagerForms.Add(listBoxStates,this);
+		Controls.Add(listBoxStates);
 		listBoxStates.BringToFront();
 	}
 
@@ -207,7 +200,6 @@ public partial class FormPatientEdit : FormODBase {
 		tabPublicHealth.Show();
 		tabPublicHealth.Select();
 		checkSuperBilling.Enabled=(Security.IsAuthorized(EnumPermType.PatientBillingEdit,true));
-		warningIntegrity1.SetTypeAndVisibility(EnumWarningIntegrityType.Patient,Patients.IsPatientHashValid(Patient));
 		#region SameForFamily
 		var patientEditSameForFamily=new PatientEditSameForFamily(Patient,Family);
 		checkAddressSame.Checked=patientEditSameForFamily.AddressSameForFamily;
@@ -424,7 +416,7 @@ public partial class FormPatientEdit : FormODBase {
 					case "2028-9":
 						comboBoxMultiRace.SetSelected(3,true);//Asian
 						break;
-					case PatientRace.DECLINE_SPECIFY_RACE_CODE:
+					case PatientRace.DeclineSpecifyRaceCode:
 						comboBoxMultiRace.SetSelected(4,true);//DeclinedToSpecify
 						break;
 					case "2076-8":
@@ -436,7 +428,7 @@ public partial class FormPatientEdit : FormODBase {
 					case "2106-3":
 						comboBoxMultiRace.SetSelected(7,true);//White
 						break;
-					case PatientRace.DECLINE_SPECIFY_ETHNICITY_CODE:
+					case PatientRace.DeclineSpecifyEthnicityCode:
 						comboEthnicity.SelectedIndex=1;//DeclinedToSpecify
 						break;
 					case "2186-5":
@@ -611,7 +603,7 @@ public partial class FormPatientEdit : FormODBase {
 		if(Patient.PriProv>0 && !Security.IsAuthorized(EnumPermType.PatPriProvEdit)) {
 			return;
 		}
-		var frmProviderPick = new FrmProviderPick(comboPriProv.Items.GetAll<Provider>());
+		var frmProviderPick = new FrmProviderPick(comboPriProv.Items.GetAll<ProviderDto>());
 		frmProviderPick.ProvNumSelected=comboPriProv.GetSelectedProvNum();
 		frmProviderPick.ShowDialog();
 		if(!frmProviderPick.IsDialogOK) {
@@ -621,7 +613,7 @@ public partial class FormPatientEdit : FormODBase {
 	}
 
 	private void butPickSecondary_Click(object sender,EventArgs e) {
-		var frmProviderPick = new FrmProviderPick(comboSecProv.Items.GetAll<Provider>());
+		var frmProviderPick = new FrmProviderPick(comboSecProv.Items.GetAll<ProviderDto>());
 		frmProviderPick.ProvNumSelected=comboSecProv.GetSelectedProvNum();
 		frmProviderPick.ShowDialog();
 		if(!frmProviderPick.IsDialogOK) {
@@ -638,22 +630,13 @@ public partial class FormPatientEdit : FormODBase {
 		if(PrefC.GetBool(PrefName.PriProvDefaultToSelectProv)) {
 			comboPriProv.Items.AddProvNone("Select Provider");
 		}
-		if(true) {//not dental school
-			comboPriProv.Items.AddProvsAbbr(listProviders);
-		}
-		else{
-			comboPriProv.Items.AddProvsFull(listProviders);
-		}
+		//not dental school
+		comboPriProv.Items.AddProvsAbbr(listProviders);
 		comboPriProv.SetSelectedProvNum(provNum);
 		provNum=comboSecProv.GetSelectedProvNum();
 		comboSecProv.Items.Clear();
 		comboSecProv.Items.AddProvNone();
-		if(true) {//not dental school
-			comboSecProv.Items.AddProvsAbbr(listProviders);
-		}
-		else{
-			comboSecProv.Items.AddProvsFull(listProviders);
-		}
+		comboSecProv.Items.AddProvsAbbr(listProviders);
 		comboSecProv.SetSelectedProvNum(provNum);
 	}
 
@@ -857,12 +840,7 @@ public partial class FormPatientEdit : FormODBase {
 					}
 					break;
 				case RequiredFieldName.Race:
-					if(PrefC.GetBool(PrefName.ShowFeatureEhr)) {
-						SetRequiredComboBoxOD(labelRace,comboBoxMultiRace,areConditionsMet, [0],"Race is required");
-					}
-					else {
-						SetRequiredTextBox(labelRace,textRace,areConditionsMet);
-					}
+					SetRequiredTextBox(labelRace,textRace,areConditionsMet);
 					break;
 				case RequiredFieldName.ReferredFrom:
 					SetRequiredTextBox(labelReferredFrom,textReferredFrom,areConditionsMet);
@@ -1522,9 +1500,7 @@ public partial class FormPatientEdit : FormODBase {
 			var smsToMobile=SmsToMobiles.SendSmsSingle(patientNew.PatNum,patientNew.WirelessPhone,message,patientNew.ClinicNum,SmsMessageSource.OptOutReply);
 		}
 		catch(Exception ex) {
-			if(!FormEServicesSetup.ProcessSendSmsException(ex)) {
-				MsgBox.Show(this,ex.Message);
-			}
+			MsgBox.Show(this,ex.Message);
 			return;
 		}
 	}
@@ -2223,14 +2199,8 @@ public partial class FormPatientEdit : FormODBase {
 		}
 		int declinedIdx;
 		int otherIdx;
-		if(PrefC.GetBool(PrefName.ShowFeatureEhr)) {
-			declinedIdx=4;
-			otherIdx=6;
-		}
-		else {
-			declinedIdx=5;
-			otherIdx=9;
-		}
+		declinedIdx=5;
+		otherIdx=9;
 		//The first selected is 'None', so unselect it.
 		if(comboBoxMultiRace.SelectedIndices[0]==0) {
 			comboBoxMultiRace.SetSelected(0,false);
@@ -2268,9 +2238,6 @@ public partial class FormPatientEdit : FormODBase {
 		if(comboBoxMultiRace.SelectedIndices.Contains(otherIdx)) {
 			comboBoxMultiRace.SelectedIndices.Clear();
 			comboBoxMultiRace.SetSelected(otherIdx,true);
-			return;
-		}
-		if(PrefC.GetBool(PrefName.ShowFeatureEhr)) {
 			return;
 		}
 		//Guaranteed to be at least 2 selected indices if we get here
@@ -2624,7 +2591,7 @@ public partial class FormPatientEdit : FormODBase {
 					_listPatientRaces.Add(new PatientRace(Patient.PatNum,"2028-9"));//Asian
 				}
 				else if(selectedIdx==4) {
-					_listPatientRaces.Add(new PatientRace(Patient.PatNum,PatientRace.DECLINE_SPECIFY_RACE_CODE));//DeclinedToSpecifyRace
+					_listPatientRaces.Add(new PatientRace(Patient.PatNum,PatientRace.DeclineSpecifyRaceCode));//DeclinedToSpecifyRace
 				}
 				else if(selectedIdx==5) {
 					_listPatientRaces.Add(new PatientRace(Patient.PatNum,"2076-8"));//HawaiiOrPacIsland
@@ -2636,10 +2603,10 @@ public partial class FormPatientEdit : FormODBase {
 					_listPatientRaces.Add(new PatientRace(Patient.PatNum,"2106-3"));//White
 				}
 			}
-			if(_listPatientRaces.Any(x => x.CdcrecCode==PatientRace.DECLINE_SPECIFY_RACE_CODE)) {
+			if(_listPatientRaces.Any(x => x.CdcrecCode==PatientRace.DeclineSpecifyRaceCode)) {
 				//If DeclinedToSpecify was chosen, then ensure that no other races are saved.
 				_listPatientRaces.Clear();
-				_listPatientRaces.Add(new PatientRace(Patient.PatNum,PatientRace.DECLINE_SPECIFY_RACE_CODE));
+				_listPatientRaces.Add(new PatientRace(Patient.PatNum,PatientRace.DeclineSpecifyRaceCode));
 			}
 			else if(_listPatientRaces.Any(x => x.CdcrecCode=="2131-1")) {//If Other was chosen, then ensure that no other races are saved.
 				_listPatientRaces.Clear();
@@ -2648,7 +2615,7 @@ public partial class FormPatientEdit : FormODBase {
 			//In order to pass EHR G2 MU testing you must be able to have an ethnicity without a race, or a race without an ethnicity.  This will mean that patients will not count towards
 			//meaningful use demographic calculations.  If we have time in the future we should probably alert EHR users when a race is chosen but no ethnicity, or a ethnicity but no race.
 			if(comboEthnicity.SelectedIndex==1) {
-				_listPatientRaces.Add(new PatientRace(Patient.PatNum,PatientRace.DECLINE_SPECIFY_ETHNICITY_CODE));
+				_listPatientRaces.Add(new PatientRace(Patient.PatNum,PatientRace.DeclineSpecifyEthnicityCode));
 			}
 			else if(comboEthnicity.SelectedIndex==2) {
 				_listPatientRaces.Add(new PatientRace(Patient.PatNum,"2186-5"));//NotHispanic

@@ -39,7 +39,7 @@ public partial class FormProgressStatus : FormProgressBase
         textHistoryMsg.Visible = true;
     }
 
-    public sealed override void UpdateProgress(string status, ProgressBarHelper progHelper, bool hasProgHelper)
+    protected sealed override void UpdateProgress(string status, ProgressBarHelper progHelper, bool hasProgHelper)
     {
         if (Visible && _hasHistory && !progressBar.Visible)
         {
@@ -123,7 +123,8 @@ public partial class FormProgressStatus : FormProgressBase
     {
         try
         {
-            ODClipboard.SetClipboard(textHistoryMsg.Text);
+            Clipboard.SetText(textHistoryMsg.Text);
+            
             MessageBox.Show("Copied");
         }
         catch (Exception)

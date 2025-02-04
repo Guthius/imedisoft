@@ -44,12 +44,8 @@ public partial class FormClaimAttachSnipDXC:FormODBase {
 		if(listDefsClaimAttachments.Count>0) {//At least one Claim Attachment image definition exists.
 			labelClaimAttachWarning.Visible=false;
 		}
-		if(/* ODEnvironment.IsCloudServer */ false) {
-			ODProgress.ShowAction(()=>StartSnipping(),"Opening snipping tool...");
-		}
-		else {
-			StartSnipping();//this also minimizes
-		}
+
+		StartSnipping();//this also minimizes
 		textNarrative.Text=ClaimCur.Narrative;
 		ValidateClaimDXC();
 	}
@@ -443,12 +439,7 @@ public partial class FormClaimAttachSnipDXC:FormODBase {
 		if(!attachmentSentAndSaved) {
 			return;
 		}
-		if(/* ODEnvironment.IsCloudServer */ false) {
-			ODProgress.ShowAction(()=>StartSnipping(),"Opening snipping tool...");
-		}
-		else {
-			StartSnipping();
-		}
+		StartSnipping();
 		textFileName.Text="Attachment";
 	}
 

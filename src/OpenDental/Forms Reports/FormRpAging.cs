@@ -8,6 +8,7 @@ using Imedisoft.Core.Caching;
 using Imedisoft.Core.Entities;
 using Imedisoft.Core.Features.Clinics;
 using Imedisoft.Core.Features.Clinics.Dtos;
+using Imedisoft.Features.Providers.Dtos;
 using OpenDental.ReportingComplex;
 using OpenDental.UI;
 using OpenDentBusiness;
@@ -15,7 +16,7 @@ using OpenDentBusiness;
 namespace OpenDental;
 
 public partial class FormRpAging : FormODBase {
-	private List<Provider> _listProviders;
+	private List<ProviderDto> _listProviders;
 	private List<Def> _listBillingTypeDefs;
 
 		
@@ -42,29 +43,22 @@ public partial class FormRpAging : FormODBase {
 		listBillType.Visible=false;
 		checkBillTypesAll.Checked=true;
 		for(var i=0;i<_listProviders.Count;i++){
-			listProv.Items.Add(_listProviders[i].GetLongDesc());
+			listProv.Items.Add(_listProviders[i].Description);
 		}
 		if(listProv.Items.Count>0) {
 			listProv.SelectedIndex=0;
 		}
 		checkProvAll.Checked=true;
 		listProv.Visible=false;
-		if(!true) {
-			listClin.Visible=false;
-			labelClin.Visible=false;
-			checkAllClin.Visible=false;
+		var listClinics = Clinics.GetForUserod(Security.CurUser,true,"Unassigned").ToList();
+		if(!listClinics.Exists(x => x.Id==Clinics.ClinicNum)) {//Could have a hidden clinic selected
+			listClinics.Add(Clinics.GetClinic(Clinics.ClinicNum));
 		}
-		else {
-			var listClinics = Clinics.GetForUserod(Security.CurUser,true,"Unassigned").ToList();
-			if(!listClinics.Exists(x => x.Id==Clinics.ClinicNum)) {//Could have a hidden clinic selected
-				listClinics.Add(Clinics.GetClinic(Clinics.ClinicNum));
-			}
-			listClin.Items.AddList<ClinicDto>(listClinics,x => x.Abbr+(x.IsHidden?(" "+Lan.g(this,"(hidden)")):""));
-			listClin.SelectedIndex=listClinics.FindIndex(x => x.Id==Clinics.ClinicNum);//FindIndex could return -1, which is fine
-			if(Clinics.ClinicNum==0) {
-				checkAllClin.Checked=true;
-				listClin.Visible=false;
-			}
+		listClin.Items.AddList<ClinicDto>(listClinics,x => x.Abbr+(x.IsHidden?(" "+Lan.g(this,"(hidden)")):""));
+		listClin.SelectedIndex=listClinics.FindIndex(x => x.Id==Clinics.ClinicNum);//FindIndex could return -1, which is fine
+		if(Clinics.ClinicNum==0) {
+			checkAllClin.Checked=true;
+			listClin.Visible=false;
 		}
 		if(PrefC.GetBool(PrefName.AgingReportShowAgePatPayplanPayments)) {
 			//Visibility set to false in designer, only set to visible here.  No UI for pref, only set true via query for specific customer.
@@ -177,7 +171,7 @@ public partial class FormRpAging : FormODBase {
 			rpo.ListBillTypes=listBillType.SelectedIndices.OfType<int>().Select(x => _listBillingTypeDefs[x].DefNum).ToList();
 		}
 		if(!checkProvAll.Checked) {
-			rpo.ListProvNums=listProv.SelectedIndices.OfType<int>().Select(x => _listProviders[x].ProvNum).ToList();
+			rpo.ListProvNums=listProv.SelectedIndices.OfType<int>().Select(x => _listProviders[x].Id).ToList();
 		}
 		if(true) {
 			//if "All" is selected and the user is not restricted, show ALL clinics, including the 0 clinic.
@@ -222,7 +216,7 @@ public partial class FormRpAging : FormODBase {
 					checkBoxExcludeIncomeTransfers.Checked = false;
 				}
 			}
-			catch(Exception ex) {
+			catch {
 				//failed to get version, just proceed as if the version is OK
 			}
 		}

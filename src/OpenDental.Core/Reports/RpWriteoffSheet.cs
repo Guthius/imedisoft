@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Reflection;
 using DataConnectionBase;
 using Imedisoft.Core.Entities;
 
@@ -11,15 +10,15 @@ namespace OpenDentBusiness {
 		public static DataTable GetWriteoffTable(DateTime dateStart,DateTime dateEnd,List<long> listProvNums,List<long> listClinicNums
 			,bool hasAllClinics,bool hasClinicsEnabled,PPOWriteoffDateCalc writeoffPayType) 
 		{
-			string whereProv="";
+			var whereProv="";
 			if(listProvNums.Count > 0) {
 				whereProv+=" AND claimproc.ProvNum IN("+string.Join(",",listProvNums)+") ";
 			}
-			string whereClin="";
+			var whereClin="";
 			if(hasClinicsEnabled && listClinicNums.Count > 0) {//Using clinics
 				whereClin+=" AND claimproc.ClinicNum IN("+string.Join(",",listClinicNums)+") ";
 			}
-			string query="SET @FromDate="+SOut.Date(dateStart)+", @ToDate="+SOut.Date(dateEnd)+";";
+			var query="SET @FromDate="+SOut.Date(dateStart)+", @ToDate="+SOut.Date(dateEnd)+";";
 			if(writeoffPayType==PPOWriteoffDateCalc.InsPayDate) {
 				query+="SELECT DATE(claimproc.DateCP) date,"
 					+DbHelper.Concat("patient.LName","', '","patient.FName","' '","patient.MiddleI")+","
@@ -134,7 +133,7 @@ namespace OpenDentBusiness {
 										ORDER BY date,PatNum
 									) writeoff";
 			}
-			return ReportsComplex.GetTable(query);
+			return DataCore.GetTable(query);
 		}	
 	}
 

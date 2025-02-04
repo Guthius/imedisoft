@@ -26,11 +26,6 @@ public partial class FormTrojanCollectSetup : FormODBase {
 	}
 
 	private void FormTrojanCollectSetup_Load(object sender,EventArgs e) {
-		if(/* ODEnvironment.IsCloudServer */ false) {
-			MsgBox.Show(this,"This program is not available while using Open Dental Cloud.");
-			Close();
-			return;
-		}
 		_program=Programs.GetCur(ProgramName.TrojanExpressCollect);
 		textExportFolder.Text=ProgramProperties.GetPropVal(_program.ProgramNum,"FolderPath");
 		var billtype=SIn.Long(ProgramProperties.GetPropVal(_program.ProgramNum,"BillingType"));
@@ -52,7 +47,7 @@ public partial class FormTrojanCollectSetup : FormODBase {
 					textExportFolder.Text=folderBrowserDialog.SelectedPath;
 				}
 			}
-			catch(Exception ex) {
+			catch {
 				ODMessageBox.Show(Lan.g(this,"There was an error showing the Browse window.")+"\r\n"
 				                                                                             +Lan.g(this,"Try running as an Administrator or manually typing in a path."));
 				return;

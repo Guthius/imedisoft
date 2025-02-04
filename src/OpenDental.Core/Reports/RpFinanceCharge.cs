@@ -2,19 +2,18 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
-using System.Reflection;
 using DataConnectionBase;
 
 namespace OpenDentBusiness {
 	public class RpFinanceCharge{
 		public static DataTable GetFinanceChargeTable(DateTime dateStart,DateTime dateEnd,long finChargeAdjType,List<long> listProvNums,List<long> listBillingDefNums) 
 		{
-			string query="SELECT patient.PatNum,"+DbHelper.Concat("patient.LName","', '","patient.FName","' '","patient.MiddleI")+" PatName,patient.Preferred"
-				+",adjustment.AdjAmt "
-				+"FROM patient "
-				+"INNER JOIN adjustment ON patient.PatNum=adjustment.PatNum "
-					+"AND adjustment.AdjDate BETWEEN "+SOut.Date(dateStart)+" AND "+SOut.Date(dateEnd)+" "
-					+"AND adjustment.AdjType = "+SOut.Long(finChargeAdjType)+" ";
+			var query="SELECT patient.PatNum,"+DbHelper.Concat("patient.LName","', '","patient.FName","' '","patient.MiddleI")+" PatName,patient.Preferred"
+			          +",adjustment.AdjAmt "
+			          +"FROM patient "
+			          +"INNER JOIN adjustment ON patient.PatNum=adjustment.PatNum "
+			          +"AND adjustment.AdjDate BETWEEN "+SOut.Date(dateStart)+" AND "+SOut.Date(dateEnd)+" "
+			          +"AND adjustment.AdjType = "+SOut.Long(finChargeAdjType)+" ";
 				if(listProvNums.Count>0) {
 					query+="AND patient.PriProv IN ("+string.Join(",",listProvNums.Select(x => SOut.Long(x)))+") ";
 				}
@@ -22,7 +21,7 @@ namespace OpenDentBusiness {
 					query+="AND patient.BillingType IN ("+string.Join(",",listBillingDefNums.Select(x => SOut.Long(x)))+") ";
 				}
 				query+="ORDER BY patient.LName,patient.FName,AdjAmt DESC";
-			DataTable table=ReportsComplex.GetTable(query);
+			var table=DataCore.GetTable(query);
 			return table;
 		}	
 	}

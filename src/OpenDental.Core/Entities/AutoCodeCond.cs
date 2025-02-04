@@ -1,20 +1,19 @@
-using System;
 using OpenDentBusiness;
 
 namespace Imedisoft.Core.Entities;
 
-///<summary>AutoCode condition.  Always attached to an AutoCodeItem, which is then, in turn, attached to an autocode.  There is usually only one or two conditions for a given AutoCodeItem.</summary>
-[Serializable]
-public class AutoCodeCond:TableBase{//
-	///<summary>Primary key.</summary>
-	[CrudColumn(IsPriKey=true)]
-	public long AutoCodeCondNum;
-	///<summary>FK to autocodeitem.AutoCodeItemNum.</summary>
-	public long AutoCodeItemNum;
-	///<summary>Enum:AutoCondition </summary>
-	public AutoCondition Cond;
+public class AutoCodeCond : TableBase
+{
+    [CrudColumn(IsPriKey = true)]
+    public long AutoCodeCondNum;
 
-	public AutoCodeCond Copy() {
-		return (AutoCodeCond)MemberwiseClone();
-	}
+    ///<summary>FK to autocodeitem.AutoCodeItemNum.</summary>
+    public long AutoCodeItemNum;
+
+    public AutoCondition Cond;
+
+    public AutoCodeCond Copy()
+    {
+        return (AutoCodeCond) MemberwiseClone();
+    }
 }

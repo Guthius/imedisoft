@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using CodeBase;
-using DataConnectionBase;
 using Imedisoft.Core.Crud;
 using Imedisoft.Core.Data;
 using Imedisoft.Core.Entities;
@@ -109,7 +108,7 @@ public class OrthoChartRows
 
     public static List<OrthoChartRow> GetAllForPatient(long patNum, bool doIncludeOrthoCharts = true)
     {
-        var command = "SELECT * FROM orthochartrow WHERE PatNum = " + SOut.Long(patNum);
+        var command = "SELECT * FROM orthochartrow WHERE PatNum = " + (patNum);
         var listOrthoChartRows = OrthoChartRowCrud.SelectMany(command);
         if (!doIncludeOrthoCharts) return listOrthoChartRows;
         var listOrthoChartRowNums = listOrthoChartRows.Select(x => x.OrthoChartRowNum).ToList();
@@ -126,7 +125,7 @@ public class OrthoChartRows
 
     public static List<OrthoChartRow> GetPatientData(long patNum)
     {
-        var command = "SELECT * FROM orthochartrow WHERE PatNum = " + SOut.Long(patNum);
+        var command = "SELECT * FROM orthochartrow WHERE PatNum = " + (patNum);
         var listOrthoChartRows = OrthoChartRowCrud.SelectMany(command);
         return listOrthoChartRows;
     }

@@ -100,11 +100,6 @@ public class DateTools
     {
         return new DateTime(dateT.Year, dateT.Month, DateTime.DaysInMonth(dateT.Year, dateT.Month), 23, 59, 59, dateT.Kind);
     }
-
-    public static string ToStringDH(TimeSpan ts)
-    {
-        return string.Format("{0:%d} Days {0:%h} Hours", ts);
-    }
 }
 
 public class StringTools
@@ -352,31 +347,6 @@ public class EnumTools
         }
 
         return (T) Enum.ToObject(typeof(T), valLong);
-    }
-
-    public static T RemoveFlag<T>(Enum value, params T[] flags)
-    {
-        var valLong = Convert.ToInt64(value);
-        foreach (var flagToRemove in flags)
-        {
-            valLong &= ~Convert.ToInt64(flagToRemove);
-        }
-
-        return (T) Enum.ToObject(typeof(T), valLong);
-    }
-
-    public static T ToggleFlag<T>(Enum value, T flagToToggle) where T : Enum
-    {
-        if (HasAnyFlag(value, flagToToggle))
-        {
-            value = RemoveFlag(value, flagToToggle);
-        }
-        else
-        {
-            value = AddFlag(value, flagToToggle);
-        }
-
-        return (T) Enum.ToObject(typeof(T), value);
     }
 
     public static IEnumerable<T> GetFlags<T>(T value) where T : Enum
@@ -637,18 +607,11 @@ public class ListTools
         return false;
     }
 
-    public class ODEqualityComparer<TSource> : IEqualityComparer<TSource>
+    public class ODEqualityComparer<TSource>(Func<TSource, TSource, bool> funcCompare) : IEqualityComparer<TSource>
     {
-        private Func<TSource, TSource, bool> _funcCompare;
-
-        public ODEqualityComparer(Func<TSource, TSource, bool> funcCompare)
-        {
-            this._funcCompare = funcCompare;
-        }
-
         public bool Equals(TSource x, TSource y)
         {
-            return _funcCompare(x, y);
+            return funcCompare(x, y);
         }
 
         public int GetHashCode(TSource obj)
@@ -660,18 +623,7 @@ public class ListTools
     }
 }
 
-public class ShortDescriptionAttribute : Attribute
+public class ShortDescriptionAttribute(string shortDesc) : Attribute
 {
-    public ShortDescriptionAttribute(string shortDesc)
-    {
-        ShortDesc = shortDesc;
-    }
-
-    private string _shortDesc = "";
-
-    public string ShortDesc
-    {
-        get { return _shortDesc; }
-        set { _shortDesc = value; }
-    }
+    public string ShortDesc { get; } = shortDesc;
 }

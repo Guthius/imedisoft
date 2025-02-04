@@ -1,5 +1,4 @@
-﻿using System;
-using System.Windows.Forms;
+﻿using System.Windows.Forms;
 using Imedisoft.Core.Entities;
 using OpenDentBusiness;
 
@@ -32,7 +31,7 @@ public partial class UserControlEmailTemplate:UserControl {
 				try {
 					xhtml=MarkupEdit.TranslateToXhtml(htmlText,true);
 				}
-				catch(Exception ex) {
+				catch {
 				}
 			}
 			webBrowserEmail.DocumentText=xhtml;

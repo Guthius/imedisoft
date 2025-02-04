@@ -12,7 +12,10 @@ public static class AlertCategoryLinks
 {
     public static List<AlertCategoryLink> GetForCategory(long alertCategoryNum)
     {
-        return alertCategoryNum == 0 ? [] : AlertCategoryLinkCrud.SelectMany("SELECT * FROM alertcategorylink WHERE AlertCategoryNum = " + alertCategoryNum);
+        return alertCategoryNum == 0
+            ? []
+            : AlertCategoryLinkCrud.SelectMany(
+                "SELECT * FROM alertcategorylink WHERE AlertCategoryNum = " + alertCategoryNum);
     }
 
     public static void Insert(AlertCategoryLink alertCategoryLink)
@@ -65,14 +68,14 @@ public static class AlertCategoryLinks
 
     private static readonly AlertCategoryLinkCache Cache = new();
 
-    public static List<AlertCategoryLink> GetWhere(Predicate<AlertCategoryLink> match, bool isShort = false)
+    public static List<AlertCategoryLink> GetWhere(Predicate<AlertCategoryLink> predicate, bool shortList = false)
     {
-        return Cache.GetWhere(match, isShort);
+        return Cache.GetWhere(predicate, shortList);
     }
 
-    public static DataTable GetTableFromCache(bool doRefreshCache)
+    public static DataTable GetTableFromCache(bool refreshCache)
     {
-        return Cache.GetTableFromCache(doRefreshCache);
+        return Cache.GetTableFromCache(refreshCache);
     }
 
     public static void ClearCache()

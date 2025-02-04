@@ -238,23 +238,6 @@ public abstract class CacheDictAbs<TItem, TKey, TValue> : CacheAbs<TItem> where 
         }
     }
 
-    public bool RemoveKey(TKey key)
-    {
-        FillDictIfNull();
-
-        _lock.EnterWriteLock();
-        try
-        {
-            _shortKeys.Remove(key);
-
-            return _items.Remove(key);
-        }
-        finally
-        {
-            _lock.ExitWriteLock();
-        }
-    }
-
     public void SetValueForKey(TKey key, TValue value, bool isShort = false)
     {
         FillDictIfNull();

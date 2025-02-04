@@ -2,9 +2,6 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
-using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 using CodeBase;
 using DataConnectionBase;
 using Imedisoft.Core.Caching;
@@ -14,9 +11,9 @@ namespace OpenDentBusiness {
 	public class RpProcOverpaid {
 		public static DataTable GetOverPaidProcs(long patNum,List<long> listProvNums,List<long> listClinics,DateTime dateStart,DateTime dateEnd,
 			bool isOnlyShowingInsOrWoOverpaid=false) {
-			List<long> listHiddenUnearnedDefNums=Defs.GetDefsNoCache(DefCat.PaySplitUnearnedType).FindAll(x => !string.IsNullOrEmpty(x.ItemValue)).Select(x => x.DefNum).ToList();
+			var listHiddenUnearnedDefNums=Defs.GetDefsNoCache(DefCat.PaySplitUnearnedType).FindAll(x => !string.IsNullOrEmpty(x.ItemValue)).Select(x => x.DefNum).ToList();
 			#region Completed Procs
-			string command="SELECT ";
+			var command="SELECT ";
 			if(PrefC.GetBool(PrefName.ReportsShowPatNum)) {
 				command+=DbHelper.Concat("CAST(patient.PatNum AS CHAR)","'-'","patient.LName","', '","patient.FName","' '","patient.MiddleI");
 			}
@@ -48,15 +45,15 @@ namespace OpenDentBusiness {
 				command+="AND procedurelog.PatNum="+SOut.Long(patNum)+" ";
 			}
 			command+="ORDER BY procedurelog.ProcDate,patientName,procedurecode.ProcCode,provider.Abbr";
-			DataTable rawCompletedProcTable=DataCore.GetTable(command);
-			Dictionary<long,DataRow> dictCompletedProcRows=rawCompletedProcTable.Select().ToDictionary(x => SIn.Long(x["ProcNum"].ToString()));
+			var rawCompletedProcTable=DataCore.GetTable(command);
+			var dictCompletedProcRows=rawCompletedProcTable.Select().ToDictionary(x => SIn.Long(x["ProcNum"].ToString()));
 			#endregion
-			DataTable table=new DataTable();
+			var table=new DataTable();
 			if(dictCompletedProcRows.Count==0) {
 				return table;
 			}
 			#region ClaimProcs
-			List<long> listPatNums=rawCompletedProcTable.Select().Select(x => SIn.Long(x["PatNum"].ToString())).Distinct().ToList();
+			var listPatNums=rawCompletedProcTable.Select().Select(x => SIn.Long(x["PatNum"].ToString())).Distinct().ToList();
 			command=@"SELECT MIN(claimproc.ProcNum) ProcNum,MIN(claimproc.PatNum) PatNum,MIN(claimproc.ProcDate) ProcDate,SUM(claimproc.InsPayAmt) insPayAmt,
 				SUM(claimproc.Writeoff) writeoff
 				FROM claimproc
@@ -68,7 +65,7 @@ namespace OpenDentBusiness {
 				+@"GROUP BY claimproc.ProcNum
 				HAVING SUM(claimproc.InsPayAmt+claimproc.Writeoff)>0
 				ORDER BY NULL";
-			Dictionary<long,DataRow> dictClaimProcRows=DataCore.GetTable(command).Select().ToDictionary(x => SIn.Long(x["ProcNum"].ToString()));
+			var dictClaimProcRows=DataCore.GetTable(command).Select().ToDictionary(x => SIn.Long(x["ProcNum"].ToString()));
 			#endregion
 			#region Patient Payments
 			command=@"SELECT paysplit.ProcNum,SUM(paysplit.SplitAmt) ptAmt
@@ -81,7 +78,7 @@ namespace OpenDentBusiness {
 			command+=@"
 				GROUP BY paysplit.ProcNum
 				ORDER BY NULL";
-			Dictionary<long,DataRow> dictPatPayRows=DataCore.GetTable(command).Select().ToDictionary(x => SIn.Long(x["ProcNum"].ToString()));
+			var dictPatPayRows=DataCore.GetTable(command).Select().ToDictionary(x => SIn.Long(x["ProcNum"].ToString()));
 			#endregion
 			#region Adjustments
 			command=@"SELECT adjustment.ProcNum,SUM(adjustment.AdjAmt) AdjAmt
@@ -90,7 +87,7 @@ namespace OpenDentBusiness {
 				AND adjustment.PatNum IN("+string.Join(",",listPatNums.Select(x => SOut.Long(x)))+@")
 				GROUP BY adjustment.ProcNum
 				ORDER BY NULL";
-			Dictionary<long,DataRow> dictAdjRows=DataCore.GetTable(command).Select().ToDictionary(x => SIn.Long(x["ProcNum"].ToString()));
+			var dictAdjRows=DataCore.GetTable(command).Select().ToDictionary(x => SIn.Long(x["ProcNum"].ToString()));
 			#endregion
 			//columns that start with lowercase are altered for display rather than being raw data.
 			table.Columns.Add("patientName");
@@ -106,9 +103,9 @@ namespace OpenDentBusiness {
 			table.Columns.Add("overPay");
 			table.Columns.Add("PatNum");
 			DataRow row;
-			foreach(KeyValuePair<long,DataRow> kvp in dictCompletedProcRows) {
-				long procNum=kvp.Key;
-				decimal procFeeAmt=SIn.Decimal(kvp.Value["fee"].ToString());
+			foreach(var kvp in dictCompletedProcRows) {
+				var procNum=kvp.Key;
+				var procFeeAmt=SIn.Decimal(kvp.Value["fee"].ToString());
 				decimal insPaidAmt=0;
 				decimal woAmt=0;
 				decimal ptPaidAmt=0;
@@ -123,7 +120,7 @@ namespace OpenDentBusiness {
 				if(dictAdjRows.ContainsKey(procNum)) {
 					adjAmt=SIn.Decimal(dictAdjRows[procNum]["AdjAmt"].ToString());
 				}
-				decimal overPay=procFeeAmt-insPaidAmt-woAmt-ptPaidAmt+adjAmt;
+				var overPay=procFeeAmt-insPaidAmt-woAmt-ptPaidAmt+adjAmt;
 				if(!CompareDecimal.IsLessThanZero(overPay)) {
 					continue;//No overpayment. Not need to continue;
 				}

@@ -1,21 +1,11 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Diagnostics;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 using OpenDentBusiness;
-using CodeBase;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Data;
 using Imedisoft.Core.Entities;
 using Imedisoft.Core.Features.Clinics;
 using OpenDental.Forms;
-using OpenDentBusiness;
 
 namespace OpenDental;
 
@@ -95,15 +85,6 @@ public partial class UserControlChartGeneral:UserControl {
 		SetIcdLabels();
 	}
 
-	private void linkLabelIsAlertRadiologyProcsEnabledDetails_LinkClicked(object sender,LinkLabelLinkClickedEventArgs e) {
-		try {
-			Process.Start("https://opendental.com/manual/ehrcpoeradapprove.html");
-		}
-		catch(Exception ex) {
-			ODMessageBox.Show(Lan.g(this,"Could not find")+" "+"https://opendental.com/manual/ehrcpoeradapprove.html"+"\r\n"
-			                  +Lan.g(this,"Please set up a default web browser."));
-		}
-	}
 	#endregion Methods - Event Handlers
 
 	#region Methods - Private
@@ -154,9 +135,6 @@ public partial class UserControlChartGeneral:UserControl {
 		}
 		comboProcCodeListSort.SelectedIndex=PrefC.GetInt(PrefName.ProcCodeListSortOrder);
 		checkBoxRxClinicUseSelected.Checked=PrefC.GetBool(PrefName.ElectronicRxClinicUseSelected);
-		if(!true) {
-			checkBoxRxClinicUseSelected.Visible=false;
-		}
 		checkIsAlertRadiologyProcsEnabled.Checked=PrefC.GetBool(PrefName.IsAlertRadiologyProcsEnabled);
 		checkShowPlannedApptPrompt.Checked=PrefC.GetBool(PrefName.ShowPlannedAppointmentPrompt);
 		checkChartOrthoTabAutomaticCheckboxes.Checked=PrefC.GetBool(PrefName.ChartOrthoTabAutomaticCheckboxes);

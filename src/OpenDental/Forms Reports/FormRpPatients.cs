@@ -1,15 +1,11 @@
 using System;
-using System.Drawing;
-using System.Collections;
-using System.ComponentModel;
-using System.Windows.Forms;
-using System.IO;
 using OpenDentBusiness;
 using System.Collections.Generic;
 using System.Linq;
 using CodeBase;
 using DataConnectionBase;
 using Imedisoft.Core.Entities;
+using Imedisoft.Features.Providers.Dtos;
 
 namespace OpenDental;
 
@@ -42,14 +38,12 @@ public partial class FormRpPatients:FormODBase {
 	private bool NeedRefPat=false;
 	private bool NeedProcLogLast=false;
 	private bool NeedProcLogFirst=false;
-	private bool _needProcLogLComplete=false;
-	private bool _needProcLogFComplete=false;
 	private bool NeedRecall=false;
 	private bool IsWhereRelation=false;
 	private bool RefToSel;
 	private bool RefFromSel;
 	private List<FeeSched> _listFeeScheds;
-	private List<Provider> _listProviders;
+	private List<ProviderDto> _listProviders;
 	private List<Def> _listBillingTypeDefs;
 	private List<Def> _listRecallUnschedStatusDefs;
 
@@ -288,8 +282,6 @@ public partial class FormRpPatients:FormODBase {
 		NeedRefPat=false;
 		NeedProcLogFirst=false;
 		NeedProcLogLast=false;
-		_needProcLogFComplete=false;
-		_needProcLogLComplete=false;
 		NeedRecall=false;
 		for(var i = 0;i<UsingInsPlans.Count;i++) {
 			if(UsingInsPlans[i]) {
@@ -317,10 +309,8 @@ public partial class FormRpPatients:FormODBase {
 				IsWhereRelation=true;
 			}
 			else if(_usingProcFComplete[i]) {
-				_needProcLogFComplete=true;
 			}
 			else if(_usingProcLComplete[i]) {
-				_needProcLogLComplete=true;
 			}
 		}
 		for(var i = 0;i<listPatientSelect.SelectedIndices.Count;i++) {
@@ -661,12 +651,12 @@ public partial class FormRpPatients:FormODBase {
 				SetListBoxConditions();
 				listBoxColumns.Items.Clear();
 				for(var i = 0;i<_listProviders.Count;i++) {
-					sItem=_listProviders[i].LName+", "
-					                             +_listProviders[i].MI+" "+_listProviders[i].FName;
+					sItem=_listProviders[i].LastName+", "
+					                             +_listProviders[i].MiddleName+" "+_listProviders[i].FirstName;
 					if(_listProviders[i].IsHidden) {
 						sItem+="(hidden)";
 					}
-					if(_listProviders[i].ProvStatus==ProviderStatus.Deleted) {
+					if(_listProviders[i].IsDeleted) {
 						sItem+="(deleted)";
 					}
 					listBoxColumns.Items.Add(sItem);
@@ -996,7 +986,7 @@ public partial class FormRpPatients:FormODBase {
 						sItem="OR ";
 					}
 					sItem+="patient.PriProv "+listConditions.SelectedItem+" '"
-					       +_listProviders[listBoxColumns.SelectedIndices[i]].ProvNum+"'";
+					       +_listProviders[listBoxColumns.SelectedIndices[i]].Id+"'";
 					if(i==listBoxColumns.SelectedIndices.Count-1) {
 						sItem+=")";
 					}
@@ -1023,7 +1013,7 @@ public partial class FormRpPatients:FormODBase {
 						sItem="OR ";
 					}
 					sItem+="patient.SecProv "+listConditions.SelectedItem+" '"
-					       +_listProviders[listBoxColumns.SelectedIndices[i]].ProvNum+"'";
+					       +_listProviders[listBoxColumns.SelectedIndices[i]].Id+"'";
 					if(i==listBoxColumns.SelectedIndices.Count-1) {
 						sItem+=")";
 					}

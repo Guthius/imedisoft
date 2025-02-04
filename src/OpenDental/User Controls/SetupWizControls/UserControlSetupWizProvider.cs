@@ -4,6 +4,7 @@ using System.Linq;
 using System.Windows.Forms;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Entities;
+using Imedisoft.Features.Providers.Dtos;
 using OpenDental.UI;
 using OpenDentBusiness;
 
@@ -22,7 +23,7 @@ public partial class UserControlSetupWizProvider : SetupWizControl
     {
         FillGrid();
 
-        if (Providers.GetWhere(x => x.FName.ToLower() != "default", true).ToList().Count != 0)
+        if (Providers.GetWhere(x => x.FirstName.ToLower() != "default", true).ToList().Count != 0)
         {
             return;
         }
@@ -51,7 +52,7 @@ public partial class UserControlSetupWizProvider : SetupWizControl
 
         gridMain.ListGridRows.Clear();
 
-        var complete = listProvs.Where(x => x.FName.ToLower() != "default").ToList().Count != 0;
+        var complete = listProvs.Where(x => x.FirstName.ToLower() != "default").ToList().Count != 0;
 
         foreach (var prov in listProvs)
         {
@@ -59,16 +60,16 @@ public partial class UserControlSetupWizProvider : SetupWizControl
             var isDentist = OpenDental.SetupWizard.ProvSetup.IsPrimary(prov);
             var isHyg = prov.IsSecondary;
 
-            row.Cells.Add(prov.FName);
+            row.Cells.Add(prov.FirstName);
 
-            if ((isDentist || isHyg) && (string.IsNullOrEmpty(prov.FName) || prov.FName.ToLower() == "default"))
+            if ((isDentist || isHyg) && (string.IsNullOrEmpty(prov.FirstName) || prov.FirstName.ToLower() == "default"))
             {
                 row.Cells[row.Cells.Count - 1].ColorBackG = needsAttnCol;
                 complete = false;
             }
 
-            row.Cells.Add(prov.LName);
-            if ((isDentist || isHyg) && string.IsNullOrEmpty(prov.LName))
+            row.Cells.Add(prov.LastName);
+            if ((isDentist || isHyg) && string.IsNullOrEmpty(prov.LastName))
             {
                 row.Cells[row.Cells.Count - 1].ColorBackG = needsAttnCol;
                 complete = false;
@@ -88,25 +89,25 @@ public partial class UserControlSetupWizProvider : SetupWizControl
                 complete = false;
             }
 
-            row.Cells.Add(prov.SSN);
-            if (isDentist && string.IsNullOrEmpty(prov.SSN))
+            row.Cells.Add(prov.Ssn);
+            if (isDentist && string.IsNullOrEmpty(prov.Ssn))
             {
                 row.Cells[row.Cells.Count - 1].ColorBackG = needsAttnCol;
                 complete = false;
             }
 
-            row.Cells.Add(prov.NationalProvID);
-            if (isDentist && string.IsNullOrEmpty(prov.NationalProvID))
+            row.Cells.Add(prov.NationalProviderId);
+            if (isDentist && string.IsNullOrEmpty(prov.NationalProviderId))
             {
                 row.Cells[row.Cells.Count - 1].ColorBackG = needsAttnCol;
                 complete = false;
             }
 
             row.Cells.Add("");
-            row.Cells[row.Cells.Count - 1].ColorBackG = prov.ProvColor;
+            row.Cells[row.Cells.Count - 1].ColorBackG = ColorTranslator.FromHtml(prov.Color);
             //not required
             row.Cells.Add("");
-            row.Cells[row.Cells.Count - 1].ColorBackG = prov.OutlineColor;
+            row.Cells[row.Cells.Count - 1].ColorBackG = ColorTranslator.FromHtml(prov.OutlineColor);
             //not required
             row.Cells.Add(prov.IsSecondary ? "X" : "");
             //not required
@@ -153,11 +154,9 @@ public partial class UserControlSetupWizProvider : SetupWizControl
             return;
         }
 
-        var selectedProv = (Provider) gridMain.ListGridRows[e.Row].Tag;
+        var providerDto = (ProviderDto) gridMain.ListGridRows[e.Row].Tag;
 
-        using var formProvEdit = new FormProvEdit();
-
-        formProvEdit.ProviderCur = selectedProv;
+        using var formProvEdit = new FormProvEdit(providerDto);
 
         if (formProvEdit.ShowDialog() == DialogResult.OK)
         {
@@ -172,25 +171,9 @@ public partial class UserControlSetupWizProvider : SetupWizControl
             return;
         }
 
-        using var formProvEdit = new FormProvEdit();
+        var providerDto = new ProviderDto();
 
-        formProvEdit.ProviderCur = new Provider
-        {
-            IsNew = true
-        };
-
-        if (gridMain.SelectedIndices.Length > 0)
-        {
-            formProvEdit.ProviderCur.ItemOrder = ((Provider) gridMain.ListGridRows[gridMain.SelectedIndices[0]].Tag).ItemOrder;
-        }
-        else if (gridMain.ListGridRows.Count > 0)
-        {
-            formProvEdit.ProviderCur.ItemOrder = ((Provider) gridMain.ListGridRows[gridMain.ListGridRows.Count - 1].Tag).ItemOrder + 1;
-        }
-        else
-        {
-            formProvEdit.ProviderCur.ItemOrder = 0;
-        }
+        using var formProvEdit = new FormProvEdit(providerDto);
 
         formProvEdit.IsNew = true;
 
@@ -198,10 +181,6 @@ public partial class UserControlSetupWizProvider : SetupWizControl
         {
             return;
         }
-
-        var provider = formProvEdit.ProviderCur;
-
-        Providers.MoveDownBelow(provider);
 
         Cache.Refresh(InvalidType.Providers);
 

@@ -19,16 +19,17 @@ public class HieClinicCrud
     public static List<HieClinic> TableToList(DataTable table)
     {
         var retVal = new List<HieClinic>();
-        HieClinic hieClinic;
         foreach (DataRow row in table.Rows)
         {
-            hieClinic = new HieClinic();
-            hieClinic.HieClinicNum = SIn.Long(row["HieClinicNum"].ToString());
-            hieClinic.ClinicNum = SIn.Long(row["ClinicNum"].ToString());
-            hieClinic.SupportedCarrierFlags = (HieCarrierFlags) SIn.Int(row["SupportedCarrierFlags"].ToString());
-            hieClinic.PathExportCCD = SIn.String(row["PathExportCCD"].ToString());
-            hieClinic.TimeOfDayExportCCD = TimeSpan.FromTicks(SIn.Long(row["TimeOfDayExportCCD"].ToString()));
-            hieClinic.IsEnabled = SIn.Bool(row["IsEnabled"].ToString());
+            var hieClinic = new HieClinic
+            {
+                HieClinicNum = SIn.Long(row["HieClinicNum"].ToString()),
+                ClinicNum = SIn.Long(row["ClinicNum"].ToString()),
+                SupportedCarrierFlags = (HieCarrierFlags) SIn.Int(row["SupportedCarrierFlags"].ToString()),
+                PathExportCCD = SIn.String(row["PathExportCCD"].ToString()),
+                TimeOfDayExportCCD = TimeSpan.FromTicks(SIn.Long(row["TimeOfDayExportCCD"].ToString())),
+                IsEnabled = SIn.Bool(row["IsEnabled"].ToString())
+            };
             retVal.Add(hieClinic);
         }
 
@@ -112,15 +113,13 @@ public class HieClinicCrud
         var idxNew = 0;
         var idxDB = 0;
         var rowsUpdatedCount = 0;
-        HieClinic fieldNew;
-        HieClinic fieldDB;
         //Because both lists have been sorted using the same criteria, we can now walk each list to determine which list contians the next element.  The next element is determined by Primary Key.
         //If the New list contains the next item it will be inserted.  If the DB contains the next item, it will be deleted.  If both lists contain the next item, the item will be updated.
         while (idxNew < listNew.Count || idxDB < listDB.Count)
         {
-            fieldNew = null;
+            HieClinic fieldNew = null;
             if (idxNew < listNew.Count) fieldNew = listNew[idxNew];
-            fieldDB = null;
+            HieClinic fieldDB = null;
             if (idxDB < listDB.Count) fieldDB = listDB[idxDB];
             //begin compare
             if (fieldNew != null && fieldDB == null)

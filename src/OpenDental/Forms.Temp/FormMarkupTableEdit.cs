@@ -10,7 +10,6 @@ using System.Xml;
 using CodeBase;
 using DataConnectionBase;
 using OpenDental.UI;
-using OpenDentBusiness;
 
 namespace OpenDental;
 
@@ -405,7 +404,7 @@ public partial class FormMarkupTableEdit:FormODBase {
 		try {
 			clipBoardText=ODClipboard.GetText();
 		}
-		catch(Exception ex) {
+		catch {
 			MsgBox.Show(this,"Could not paste contents from the clipboard.  Please try again.");
 			return;
 		}

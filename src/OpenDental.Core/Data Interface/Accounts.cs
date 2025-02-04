@@ -26,7 +26,7 @@ public class Accounts
 					FROM journalentry 
 					INNER JOIN journalentry je2 ON je2.TransactionNum=journalentry.TransactionNum
 					INNER JOIN account ON account.AccountNum=je2.AccountNum
-					WHERE journalentry.AccountNum=" + SOut.Long(account.AccountNum) + @"
+					WHERE journalentry.AccountNum=" + (account.AccountNum) + @"
 					AND journalentry.DateDisplayed > " + SOut.Date(PrefC.GetDate(PrefName.AccountingLockDate)) + @"
 					ORDER BY je2.TransactionNum"; //to group them
         var table = DataCore.GetTable(command);
@@ -87,7 +87,7 @@ public class Accounts
     public static void Delete(Account account)
     {
         //check to see if account has any journal entries
-        var command = "SELECT COUNT(*) FROM journalentry WHERE AccountNum=" + SOut.Long(account.AccountNum);
+        var command = "SELECT COUNT(*) FROM journalentry WHERE AccountNum=" + (account.AccountNum);
         if (Db.GetCount(command) != "0")
             throw new ApplicationException(Lans.g("FormAccountEdit",
                 "Not allowed to delete an account with existing journal entries."));
@@ -115,7 +115,7 @@ public class Accounts
                     throw new ApplicationException(Lans.g("FormAccountEdit", "Account is in use in the setup section."));
         }
 
-        command = "DELETE FROM account WHERE AccountNum = " + SOut.Long(account.AccountNum);
+        command = "DELETE FROM account WHERE AccountNum = " + (account.AccountNum);
         Db.NonQ(command);
     }
 
@@ -138,7 +138,7 @@ public class Accounts
     public static double GetBalance(long accountNum, AccountType accountType)
     {
         var command = "SELECT SUM(DebitAmt),SUM(CreditAmt) FROM journalentry "
-                      + "WHERE AccountNum=" + SOut.Long(accountNum)
+                      + "WHERE AccountNum=" + (accountNum)
                       + " GROUP BY AccountNum";
         var table = DataCore.GetTable(command);
         double debit = 0;

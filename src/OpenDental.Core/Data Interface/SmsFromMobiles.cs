@@ -19,11 +19,11 @@ public class SmsFromMobiles
         if (patNum == -1)
         {
             //Only limit clinic if not searching for a particular PatNum.
-            if (listClinicNums.Count > 0) listCommandFilters.Add("ClinicNum IN (" + string.Join(",", listClinicNums.Select(x => SOut.Long(x))) + ")");
+            if (listClinicNums.Count > 0) listCommandFilters.Add("ClinicNum IN (" + string.Join(",", listClinicNums.Select(x => (x))) + ")");
         }
         else
         {
-            listCommandFilters.Add($"PatNum = {SOut.Long(patNum)}");
+            listCommandFilters.Add($"PatNum = {(patNum)}");
         }
 
         if (!string.IsNullOrEmpty(phoneNumber)) listCommandFilters.Add($"MobilePhoneNumber='{SOut.String(phoneNumber)}'");

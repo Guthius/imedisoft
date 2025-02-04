@@ -4,8 +4,6 @@ using System.Windows.Forms;
 using OpenDentBusiness;
 using System.Linq;
 using CodeBase;
-using OpenDental.UI;
-using System.Drawing;
 using System.Text;
 using DataConnectionBase;
 using Imedisoft.Core.Entities;

@@ -4,6 +4,7 @@ using System.Windows.Forms;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Entities;
 using Imedisoft.Core.Features.Clinics;
+using Imedisoft.Features.Providers.Dtos;
 using OpenDentBusiness;
 using OpenDentBusiness.Eclaims;
 
@@ -12,7 +13,7 @@ namespace OpenDental.Forms;
 public partial class FormCanadaPaymentReconciliation : FormODBase
 {
     private List<Carrier> _carriers = [];
-    private List<Provider> _providers;
+    private List<ProviderDto> _providers;
 
     public FormCanadaPaymentReconciliation()
     {
@@ -34,7 +35,7 @@ public partial class FormCanadaPaymentReconciliation : FormODBase
 
         for (var i = 0; i < _providers.Count; i++)
         {
-            if (!_providers[i].IsCDAnet)
+            if (!_providers[i].IsCdaNet)
             {
                 continue;
             }
@@ -42,16 +43,16 @@ public partial class FormCanadaPaymentReconciliation : FormODBase
             listBillingProvider.Items.Add(_providers[i].Abbr);
             listTreatingProvider.Items.Add(_providers[i].Abbr);
 
-            if (_providers[i].ProvNum != defaultProvNum)
+            if (_providers[i].Id != defaultProvNum)
             {
                 continue;
             }
 
             listBillingProvider.SelectedIndex = i;
-            textBillingOfficeNumber.Text = _providers[i].CanadianOfficeNum;
+            textBillingOfficeNumber.Text = _providers[i].CanadianOfficeNumber;
 
             listTreatingProvider.SelectedIndex = i;
-            textTreatingOfficeNumber.Text = _providers[i].CanadianOfficeNum;
+            textTreatingOfficeNumber.Text = _providers[i].CanadianOfficeNumber;
         }
 
         textDateReconciliation.Text = DateTime.Today.ToShortDateString();
@@ -59,12 +60,12 @@ public partial class FormCanadaPaymentReconciliation : FormODBase
 
     private void ListBoxBillingProvider_Click(object sender, EventArgs e)
     {
-        textBillingOfficeNumber.Text = _providers[listBillingProvider.SelectedIndex].CanadianOfficeNum;
+        textBillingOfficeNumber.Text = _providers[listBillingProvider.SelectedIndex].CanadianOfficeNumber;
     }
 
     private void ListBoxTreatingProvider_Click(object sender, EventArgs e)
     {
-        textTreatingOfficeNumber.Text = _providers[listTreatingProvider.SelectedIndex].CanadianOfficeNum;
+        textTreatingOfficeNumber.Text = _providers[listTreatingProvider.SelectedIndex].CanadianOfficeNumber;
     }
 
     private void ButtonSave_Click(object sender, EventArgs e)

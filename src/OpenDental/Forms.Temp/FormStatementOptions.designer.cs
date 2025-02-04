@@ -69,7 +69,6 @@ namespace OpenDental {
 			this.checkIsInvoice = new OpenDental.UI.CheckBox();
 			this.checkSuperStatement = new OpenDental.UI.CheckBox();
 			this.checkLimited = new OpenDental.UI.CheckBox();
-			this.butPatPortal = new OpenDental.UI.Button();
 			this.checkShowLName = new OpenDental.UI.CheckBox();
 			this.checkSendSms = new OpenDental.UI.CheckBox();
 			this.checkExcludeTxfr = new OpenDental.UI.CheckBox();
@@ -436,16 +435,6 @@ namespace OpenDental {
 			this.checkLimited.Text = "Limited statement";
 			this.checkLimited.Visible = false;
 			// 
-			// butPatPortal
-			// 
-			this.butPatPortal.ImageAlign = System.Drawing.ContentAlignment.MiddleLeft;
-			this.butPatPortal.Location = new System.Drawing.Point(351, 523);
-			this.butPatPortal.Name = "butPatPortal";
-			this.butPatPortal.Size = new System.Drawing.Size(79, 24);
-			this.butPatPortal.TabIndex = 20;
-			this.butPatPortal.Text = "Pat Portal";
-			this.butPatPortal.Click += new System.EventHandler(this.butPatPortal_Click);
-			// 
 			// checkShowLName
 			// 
 			this.checkShowLName.CheckAlign = System.Drawing.ContentAlignment.MiddleRight;
@@ -492,7 +481,6 @@ namespace OpenDental {
 			this.Controls.Add(this.checkExcludeTxfr);
 			this.Controls.Add(this.checkSendSms);
 			this.Controls.Add(this.checkShowLName);
-			this.Controls.Add(this.butPatPortal);
 			this.Controls.Add(this.checkLimited);
 			this.Controls.Add(this.groupInvoice);
 			this.Controls.Add(this.checkSuperStatement);
@@ -567,7 +555,6 @@ namespace OpenDental {
 		private Label label5;
 		private OpenDental.UI.CheckBox checkSuperStatement;
 		private OpenDental.UI.CheckBox checkLimited;
-		private UI.Button butPatPortal;
 		private OpenDental.UI.CheckBox checkBoxBillShowTransSinceZero;
 		private OpenDental.UI.CheckBox checkShowLName;
 		private OpenDental.UI.CheckBox checkSendSms;

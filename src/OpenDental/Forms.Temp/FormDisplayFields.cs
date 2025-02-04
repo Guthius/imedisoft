@@ -30,7 +30,7 @@ public partial class FormDisplayFields : FormODBase {
 		DisplayFields.RefreshCache();
 		_listDisplayFieldsShowing=DisplayFields.GetForCategory(DisplayFieldCategoryCur);
 		if(DisplayFieldCategoryCur==DisplayFieldCategory.ChartPatientInformation
-		   && !PrefC.GetBool(PrefName.ShowFeatureEhr)
+		   && !false
 		   && _listDisplayFieldsShowing.Any(x => x.InternalName=="Tobacco Use"))
 		{
 			//user may have enable EHR features, added the tobacco use display field, and then disabled EHR features, remove the tobacco use display field

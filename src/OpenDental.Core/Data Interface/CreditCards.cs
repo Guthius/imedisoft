@@ -31,10 +31,10 @@ public class CreditCards
 
     public static List<CreditCard> RefreshBySource(long patNum, List<CreditCardSource> listCreditCardSources)
     {
-        if (listCreditCardSources.Count == 0) return new List<CreditCard>();
+        if (listCreditCardSources.Count == 0) return [];
         var command = "SELECT * FROM creditcard WHERE CCSource IN (" + string.Join(",", listCreditCardSources.Select(x => SOut.Int((int) x))) + ") ";
         if (patNum != 0) //Add the PatNum criteria.
-            command += "AND PatNum=" + SOut.Long(patNum) + " ";
+            command += "AND PatNum=" + (patNum) + " ";
         command += "ORDER BY ItemOrder DESC";
         return CreditCardCrud.SelectMany(command);
     }
@@ -47,18 +47,6 @@ public class CreditCards
     public static void Insert(CreditCard creditCard)
     {
         CreditCardCrud.Insert(creditCard);
-    }
-
-    public static void InsertFromPayConnect(PayConnectResponseWeb payConnectResponseWeb)
-    {
-        var listCreditCardSources = new List<CreditCardSource>();
-        listCreditCardSources.Add(CreditCardSource.PayConnect);
-        listCreditCardSources.Add(CreditCardSource.PayConnectPortal);
-        listCreditCardSources.Add(CreditCardSource.PayConnectPortalLogin);
-        if (GetTokenCount(payConnectResponseWeb.PaymentToken, listCreditCardSources) > 0) //Prevent duplicates.
-            throw new Exception("PayConnect token already exists: " + payConnectResponseWeb.PaymentToken);
-        SecurityLogs.MakeLogEntry(EnumPermType.CreditCardEdit, payConnectResponseWeb.PatNum, "Credit Card Added");
-        Insert(payConnectResponseWeb.ToCreditCard());
     }
 
     public static void InsertFromXWeb(XWebResponse xWebResponse)
@@ -151,7 +139,7 @@ public class CreditCards
 
     public static void Delete(long creditCardNum)
     {
-        var command = "DELETE FROM creditcard WHERE CreditCardNum = " + SOut.Long(creditCardNum);
+        var command = "DELETE FROM creditcard WHERE CreditCardNum = " + (creditCardNum);
         Db.NonQ(command);
     }
 
@@ -171,7 +159,7 @@ public class CreditCards
     public static string GetMonthlyCardsOnFile(long patNum)
     {
         var result = "";
-        var command = "SELECT * FROM creditcard WHERE PatNum=" + SOut.Long(patNum)
+        var command = "SELECT * FROM creditcard WHERE PatNum=" + (patNum)
                                                                + " AND (YEAR(DateStop)<1880 OR DateStop>NOW()) " //Recurring card is active.
                                                                + " AND ChargeAmt>0"
                                                                + " AND CCSource NOT IN (" + SOut.Enum(CreditCardSource.XWeb) + "," + SOut.Enum(CreditCardSource.XWebPortalLogin) + ") "; //Not created from the Patient Portal
@@ -187,7 +175,7 @@ public class CreditCards
 
     public static List<CreditCard> GetActiveCards(long patNum)
     {
-        var command = "SELECT * FROM creditcard WHERE PatNum=" + SOut.Long(patNum)
+        var command = "SELECT * FROM creditcard WHERE PatNum=" + (patNum)
                                                                + " AND (YEAR(DateStop)<1880 OR DateStop>=CURDATE()) "
                                                                + " AND (YEAR(DateStart)>1880 AND DateStart<=CURDATE()) " //Recurring card is active.
                                                                + " AND CCSource NOT IN (" + SOut.Enum(CreditCardSource.XWeb) + "," + SOut.Enum(CreditCardSource.XWebPortalLogin) + ") "; //Not created from the Patient Portal
@@ -227,7 +215,7 @@ public class CreditCards
                    + "INNER JOIN patient guar ON guar.PatNum=pat.Guarantor "
                    + "WHERE cc.PayPlanNum=0 " //Keeps card from showing up in case they have a balance AND is setup for payment plan. 
                    + "AND CCSource NOT IN (" + SOut.Int((int) CreditCardSource.XWeb) + "," + SOut.Int((int) CreditCardSource.XWebPortalLogin) + ") "; //Not created from the Patient Portal
-        if (listClinicNums != null && listClinicNums.Count > 0) command += "AND cc.ClinicNum IN (" + string.Join(",", listClinicNums.Select(x => SOut.Long(x))) + ") ";
+        if (listClinicNums != null && listClinicNums.Count > 0) command += "AND cc.ClinicNum IN (" + string.Join(",", listClinicNums.Select(x => (x))) + ") ";
         command += "GROUP BY cc.CreditCardNum) ";
 
         #endregion
@@ -256,7 +244,7 @@ public class CreditCards
                    + ") ppc ON ppc.PayPlanNum=cc.PayPlanNum "
                    + "WHERE cc.PayPlanNum>0 "
                    + "AND CCSource NOT IN (" + SOut.Int((int) CreditCardSource.XWeb) + "," + SOut.Int((int) CreditCardSource.XWebPortalLogin) + ") "; //Not created from the Patient Portal
-        if (listClinicNums != null && listClinicNums.Count > 0) command += "AND cc.ClinicNum IN (" + string.Join(",", listClinicNums.Select(x => SOut.Long(x))) + ") ";
+        if (listClinicNums != null && listClinicNums.Count > 0) command += "AND cc.ClinicNum IN (" + string.Join(",", listClinicNums.Select(x => (x))) + ") ";
         command += "GROUP BY cc.CreditCardNum ";
         command += "HAVING PayPlanDueCalc>0)"; //don't show cc's attached to payplans when the payplan has nothing due
 
@@ -382,13 +370,13 @@ public class CreditCards
                       + "LEFT JOIN ( "
                       + "SELECT SUM(adjustment.AdjAmt) AdjAmt,adjustment.ProcNum "
                       + "FROM adjustment "
-                      + "WHERE adjustment.PatNum=" + SOut.Long(patNum) + " "
+                      + "WHERE adjustment.PatNum=" + (patNum) + " "
                       + "AND adjustment.ProcNum!=0 "
                       + "GROUP BY adjustment.ProcNum "
                       + ") adj ON adj.ProcNum=pl.ProcNum "
                       + "WHERE pl.ProcStatus=2 "
                       + "AND pc.ProcCode IN (" + procStr + ") "
-                      + "AND pl.PatNum=" + SOut.Long(patNum) + " "
+                      + "AND pl.PatNum=" + (patNum) + " "
                       + "AND pl.ProcDate<=" + "CURDATE()" + " ";
         //If today is the billingDay or today is the last day of the current month and the billingDay is greater than today
         //i.e. billingDay=31 and today is the 30th which is the last day of the current month, only count procs with date after the 31st of last month
@@ -405,10 +393,10 @@ public class CreditCards
     {
         var command = "SELECT CreditCardNum,Procedures "
                       + "FROM creditcard "
-                      + "WHERE PatNum=" + SOut.Long(patNum) + " "
+                      + "WHERE PatNum=" + (patNum) + " "
                       + "AND DateStart<=CURDATE() AND YEAR(DateStart)>1880 "
                       + "AND (DateStop>=CURDATE() OR YEAR(DateStop)<1880) "
-                      + "AND CreditCardNum!=" + SOut.Long(cardNum);
+                      + "AND CreditCardNum!=" + (cardNum);
         var table = DataCore.GetTable(command);
         return table.Rows.OfType<DataRow>().SelectMany(x => x["Procedures"].ToString().Split(',')).Any(x => x == procCode);
     }
@@ -620,7 +608,7 @@ public class CreditCards
 
     public static List<CreditCard> GetCardsByToken(string token, List<CreditCardSource> listCreditCardSources)
     {
-        if (listCreditCardSources.Count == 0) return new List<CreditCard>();
+        if (listCreditCardSources.Count == 0) return [];
         var command = "SELECT * FROM creditcard WHERE CCSource IN (" + string.Join(",", listCreditCardSources.Select(x => SOut.Int((int) x))) + ") AND (0 ";
         if (listCreditCardSources.Any(x => x.In(CreditCardSource.PayConnect,
                 CreditCardSource.XServerPayConnect,
@@ -650,7 +638,7 @@ public class CreditCards
 
     public static List<CreditCard> GetCardsWithTokenBySource(List<CreditCardSource> listCreditCardSources)
     {
-        if (listCreditCardSources.Count == 0) return new List<CreditCard>();
+        if (listCreditCardSources.Count == 0) return [];
         var command = "SELECT * FROM creditcard WHERE CCSource IN (" + string.Join(",", listCreditCardSources.Select(x => SOut.Int((int) x))) + ") AND (0 ";
         if (listCreditCardSources.Contains(CreditCardSource.PayConnect) || listCreditCardSources.Contains(CreditCardSource.XServerPayConnect)) command += "OR PayConnectToken!='' ";
         if (listCreditCardSources.Exists(x => x.In(CreditCardSource.XServer, CreditCardSource.XWeb, CreditCardSource.XServerPayConnect, CreditCardSource.XWebPortalLogin, CreditCardSource.XWebPaymentPortal, CreditCardSource.XWebPaymentPortalGuest))) command += "OR XChargeToken!='' ";
@@ -796,19 +784,19 @@ public class CreditCards
     {
         var command = $"UPDATE creditcard " +
                       $"SET PayPlanNum=0,ChargeAmt=0,DateStart={SOut.Date(DateTime.MinValue)},DateStop={SOut.Date(DateTime.MinValue)},ChargeFrequency='' " +
-                      $"WHERE PayPlanNum={SOut.Long(payPlanNum)}";
+                      $"WHERE PayPlanNum={(payPlanNum)}";
         Db.NonQ(command);
     }
 
     public static List<CreditCard> GetForPayPlan(long payPlanNum)
     {
-        var command = $"SELECT * FROM creditcard WHERE PayPlanNum={SOut.Long(payPlanNum)}";
+        var command = $"SELECT * FROM creditcard WHERE PayPlanNum={(payPlanNum)}";
         return CreditCardCrud.SelectMany(command);
     }
 
     public static int GetMaxItemOrderForPat(long patNum)
     {
-        var command = "SELECT Max(ItemOrder) FROM creditcard WHERE PatNum=" + SOut.Long(patNum) + " ";
+        var command = "SELECT Max(ItemOrder) FROM creditcard WHERE PatNum=" + (patNum) + " ";
         var MaxItemOrder = DataCore.GetScalar(command);
         if (MaxItemOrder.IsNullOrEmpty()) return -1;
         return SIn.Int(MaxItemOrder);

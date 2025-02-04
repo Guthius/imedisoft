@@ -26,7 +26,7 @@ public static class Sftp
 
             _client.CreateDirectoriesIfNeeded(Folder);
 
-            var fullFilePath = ODFileUtils.CombinePaths(Folder, FileName, '/');
+            var fullFilePath = Folder + '/' + FileName;
 
             using (var uploadStream = new MemoryStream(ByteArray))
             {
@@ -72,32 +72,6 @@ public static class Sftp
 
             Client.DisconnectIfNeeded(hadToConnect);
         }
-    }
-
-    public static bool FileExists(string host, string user, string pass, string filePath)
-    {
-        var client = Init(host, user, pass);
-
-        return FileExists(client, filePath);
-    }
-
-    private static bool FileExists(SftpClient client, string filePath)
-    {
-        try
-        {
-            var hadToConnect = client.ConnectIfNeeded();
-
-            client.Get(filePath);
-            client.DisconnectIfNeeded(hadToConnect);
-
-            return true;
-        }
-        catch
-        {
-            // ignored
-        }
-
-        return false;
     }
 
     public static bool IsConnectionValid(string host, string user, string pass, int port = 22)

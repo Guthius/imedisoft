@@ -1,156 +1,196 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Runtime.InteropServices;
-using System.Runtime.ExceptionServices;
 using System.Drawing;
-using System.Windows.Forms;
+using System.Runtime.ExceptionServices;
+using System.Runtime.InteropServices;
 
 namespace OpenDental.UI;
 
 ///<summary>Each camera has one of these.  This calls the native methods and passes results up to the Camera.  This also has an internal list of cameras.  Huh?  And its own Camera Huh????</summary>
-public class CameraMethods {
-	// Cameras
-	static private int _videocamLibCount = 0;
-	static private object _videocamLock = new object();
-	public List<Camera> ListCameras = null;
-	//needed to avoid garbage collection problem
-	private VideoCamLib.CaptureCallbackProc _nativeCallback;
-	private Camera _cameraCur = null;
-	private int _camWidth = 0;
-	private int _camHeight = 0;
-	private int _camstride = 0;
+public class CameraMethods
+{
+    // Cameras
+    static private int _videocamLibCount = 0;
+    static private object _videocamLock = new object();
 
-	///<summary>Constructor.  Also refreshes camera list</summary>
-	public CameraMethods() {
-		lock(_videocamLock) {
-			if(_videocamLibCount == 0) {
-				if(VideoCamLib.Initialize() != 0) {
-					throw new ApplicationException("Unable to initialize the camera API");
-				}
-			}
-			_videocamLibCount++;
-			RefreshCameraList();
-		}
-	}
+    public List<Camera> ListCameras = null;
 
-	private void RefreshCameraList() {
-		var count=0;
-		Cleanup();
-		ListCameras= [];
-		var hResult=VideoCamLib.RefreshCameraList(ref count);
-		if(hResult!= 0) {
-			return;
-		}
-		for(var i=0;i<count;i++) {
-			var name = IntPtr.Zero;
-			object nativeInterface = null;
-			if(VideoCamLib.GetCameraDetails(i,out nativeInterface,out name) == 0) {
-				var camera = new Camera(this,nativeInterface,Marshal.PtrToStringBSTR(name));
-				ListCameras.Add(camera);
-			}
-			Marshal.FreeBSTR(name);
-		}
-	}
+    //needed to avoid garbage collection problem
+    private VideoCamLib.CaptureCallbackProc _nativeCallback;
+    private Camera _cameraCur = null;
+    private int _camWidth = 0;
+    private int _camHeight = 0;
+    private int _camstride = 0;
 
-	public List<Camera> GetListCameras(){
-		return ListCameras;
-	}
+    ///<summary>Constructor.  Also refreshes camera list</summary>
+    public CameraMethods()
+    {
+        lock (_videocamLock)
+        {
+            if (_videocamLibCount == 0)
+            {
+                if (VideoCamLib.Initialize() != 0)
+                {
+                    throw new ApplicationException("Unable to initialize the camera API");
+                }
+            }
 
-	public event VideoCamLib.CaptureCallbackProc OnImageCapture;
+            _videocamLibCount++;
+            RefreshCameraList();
+        }
+    }
 
-	public void Cleanup() {
-		if(_cameraCur != null) {
-			VideoCamLib.StopCamera();
-			_cameraCur = null;
-		}
-		if(ListCameras== null) {
-			return;
-		}
-		for(var i=0;i<ListCameras.Count;i++) {
-			ListCameras[i].Dispose();
-		}
-		ListCameras.Clear();
-		return;
-	}
+    private void RefreshCameraList()
+    {
+        var count = 0;
+        Cleanup();
+        ListCameras = [];
+        var hResult = VideoCamLib.RefreshCameraList(ref count);
+        if (hResult != 0)
+        {
+            return;
+        }
 
-	public void Dispose() {
-		Cleanup();
-		lock(_videocamLock) {
-			_videocamLibCount--;
-			if(_videocamLibCount <= 0) {
-				if(VideoCamLib.Cleanup() != 0) {
-					throw new ApplicationException("Unable to cleanup the webcam API");  // TODO fix exception
-				}
-			}
-		}
-	}
+        for (var i = 0; i < count; i++)
+        {
+            var name = IntPtr.Zero;
+            object nativeInterface = null;
+            if (VideoCamLib.GetCameraDetails(i, out nativeInterface, out name) == 0)
+            {
+                var camera = new Camera(this, nativeInterface, Marshal.PtrToStringBSTR(name));
+                ListCameras.Add(camera);
+            }
 
-	[HandleProcessCorruptedStateExceptions]
-	protected virtual void Dispose(bool A_0) {
-		Dispose();
-	}
+            Marshal.FreeBSTR(name);
+        }
+    }
 
-		
-	public void StartCamera(Camera camera){
-		if(_cameraCur!=null){
-			VideoCamLib.StopCamera();
-			_cameraCur=null;
-		}
-		if(ListCameras==null){
-			return;
-		}
-		for(var i = 0;i < 2;i++) {//looks like it tries twice
-			if(camera.NativeInterface==null) {
-				throw new InvalidComObjectException("The camera has been disposed");
-			}
-			_nativeCallback = new VideoCamLib.CaptureCallbackProc(CaptureCallbackProc);
-			var rc = VideoCamLib.StartCamera(camera.NativeInterface,
-				_nativeCallback,
-				camera.Width,//minWidth
-				camera.Height,//minHeight
-				ref _camWidth,
-				ref _camHeight,
-				ref _camstride);
-			if(rc == 0) {//StartCamera failed internally on the first step
-				_cameraCur = camera;
-				_cameraCur.Width = _camWidth;
-				_cameraCur.Height = _camHeight;
-				return;
-			}
-			else {
-				if(i > 0) {
-					//This at least tells us which of the 18 steps it failed on
-					throw new ApplicationException(string.Format("Unable to start camera. rc={0}",rc)); // TODO make a better exception
-				}
-			}
-		}
-	}
+    public List<Camera> GetListCameras()
+    {
+        return ListCameras;
+    }
 
-	public void StopCamera() {
-		if(_cameraCur != null) {
-			VideoCamLib.StopCamera();
-			_cameraCur = null;
-		}
-	}
+    public void Cleanup()
+    {
+        if (_cameraCur != null)
+        {
+            VideoCamLib.StopCamera();
+            _cameraCur = null;
+        }
 
-	public void CaptureCallbackProc(int dataSize,byte[] data) {
-		if(_cameraCur != null) {
-			// Do the magic to create a bitmap
-			var handle = GCHandle.Alloc(data,GCHandleType.Pinned);
-			var scan0 = (int)handle.AddrOfPinnedObject();
-			var byteArray = new byte[dataSize];
-			Marshal.Copy((IntPtr)scan0,byteArray,0,dataSize);
-			handle.Free();
-			// pass it to the camera for its events and processing
-			_cameraCur.FireImageCaptured(byteArray,new Size(_camWidth,_camHeight));
-		}
-	}
+        if (ListCameras == null)
+        {
+            return;
+        }
+
+        for (var i = 0; i < ListCameras.Count; i++)
+        {
+            ListCameras[i].Dispose();
+        }
+
+        ListCameras.Clear();
+    }
+
+    public void Dispose()
+    {
+        Cleanup();
+        lock (_videocamLock)
+        {
+            _videocamLibCount--;
+            if (_videocamLibCount > 0)
+            {
+                return;
+            }
+            
+            if (VideoCamLib.Cleanup() != 0)
+            {
+                throw new ApplicationException("Unable to cleanup the webcam API");
+            }
+        }
+    }
+
+    [HandleProcessCorruptedStateExceptions]
+    protected virtual void Dispose(bool A_0)
+    {
+        Dispose();
+    }
+    
+    public void StartCamera(Camera camera)
+    {
+        if (_cameraCur != null)
+        {
+            VideoCamLib.StopCamera();
+            _cameraCur = null;
+        }
+
+        if (ListCameras == null)
+        {
+            return;
+        }
+
+        for (var i = 0; i < 2; i++)
+        {
+            //looks like it tries twice
+            if (camera.NativeInterface == null)
+            {
+                throw new InvalidComObjectException("The camera has been disposed");
+            }
+
+            _nativeCallback = new VideoCamLib.CaptureCallbackProc(CaptureCallbackProc);
+            var rc = VideoCamLib.StartCamera(camera.NativeInterface,
+                _nativeCallback,
+                camera.Width, //minWidth
+                camera.Height, //minHeight
+                ref _camWidth,
+                ref _camHeight,
+                ref _camstride);
+            if (rc == 0)
+            {
+                //StartCamera failed internally on the first step
+                _cameraCur = camera;
+                _cameraCur.Width = _camWidth;
+                _cameraCur.Height = _camHeight;
+                return;
+            }
+            else
+            {
+                if (i > 0)
+                {
+                    //This at least tells us which of the 18 steps it failed on
+                    throw new ApplicationException(string.Format("Unable to start camera. rc={0}", rc));
+                }
+            }
+        }
+    }
+
+    public void StopCamera()
+    {
+        if (_cameraCur != null)
+        {
+            VideoCamLib.StopCamera();
+            
+            _cameraCur = null;
+        }
+    }
+
+    public void CaptureCallbackProc(int dataSize, byte[] data)
+    {
+        if (_cameraCur != null)
+        {
+            var handle = GCHandle.Alloc(data, GCHandleType.Pinned);
+            var scan0 = (int) handle.AddrOfPinnedObject();
+            var byteArray = new byte[dataSize];
+            
+            Marshal.Copy((IntPtr) scan0, byteArray, 0, dataSize);
+            handle.Free();
+            
+            _cameraCur.FireImageCaptured(byteArray, new Size(_camWidth, _camHeight));
+        }
+    }
 }
 
-public class CameraInfo {
-	public int index;
-	public string name;
+public class CameraInfo
+{
+    public int index;
+    public string name;
 }

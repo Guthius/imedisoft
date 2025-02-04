@@ -1,18 +1,13 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Data;
 using System.Globalization;
-using System.Linq;
-using System.Text;
 using System.Windows;
 using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
 using Imedisoft.Core.Data;
 using Imedisoft.Core.Entities;
+using Imedisoft.Features.Providers.Dtos;
 using OpenDentBusiness;
-using WpfControls.UI;
 
 namespace OpenDental {
 	/// <summary></summary>
@@ -55,7 +50,7 @@ namespace OpenDental {
 
 		private void butPickProvider_Click(object sender,EventArgs e) {
 			//for dental schools
-			FrmProviderPick frmProviderPick=new FrmProviderPick(comboProv.Items.GetAll<Provider>());
+			FrmProviderPick frmProviderPick=new FrmProviderPick(comboProv.Items.GetAll<ProviderDto>());
 			frmProviderPick.ProvNumSelected=comboProv.GetSelectedProvNum();
 			frmProviderPick.ShowDialog();
 			if(!frmProviderPick.IsDialogOK) {

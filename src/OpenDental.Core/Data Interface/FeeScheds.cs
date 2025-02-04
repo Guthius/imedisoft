@@ -9,6 +9,7 @@ using Imedisoft.Core.Caching;
 using Imedisoft.Core.Crud;
 using Imedisoft.Core.Entities;
 using Imedisoft.Core.Features.Clinics;
+using Imedisoft.Features.Providers.Dtos;
 
 namespace OpenDentBusiness;
 
@@ -101,20 +102,20 @@ public class FeeScheds
         var listFeeSchedNums = Db.GetListLong(command);
         if (listFeeSchedNums.Count == 0) return 0;
         ODEvent.Fire(ODEventType.HideUnusedFeeSchedules, Lans.g("FormFeeScheds", "Hiding unused fee schedules..."));
-        command = "UPDATE feesched SET IsHidden=1 WHERE FeeSchedNum IN(" + string.Join(",", listFeeSchedNums.Select(x => SOut.Long(x))) + ")";
+        command = "UPDATE feesched SET IsHidden=1 WHERE FeeSchedNum IN(" + string.Join(",", listFeeSchedNums.Select(x => (x))) + ")";
         var rowsChanged = Db.NonQ(command);
         return rowsChanged;
     }
 
     private class FamProc
     {
-        public List<PatProc> ListPatProcs = new();
+        public List<PatProc> ListPatProcs = [];
     }
 
     private class PatProc
     {
         public int Age;
-        public List<Procedure> ListProcs = new();
+        public List<Procedure> ListProcs = [];
         public long PatNum;
     }
 
@@ -135,7 +136,7 @@ public class FeeScheds
 
     public static long GetFeeSched(long priPlanFeeSched, long patFeeSched, long provNumProc)
     {
-        var provFeeSched = (Providers.GetFirstOrDefault(x => x.ProvNum == provNumProc) ?? new Provider()).FeeSched; //defaults to 0
+        var provFeeSched = Providers.GetFirstOrDefault(x => x.Id == provNumProc)?.FeeScheduleId ?? 0; //defaults to 0
         return new[] {priPlanFeeSched, patFeeSched, provFeeSched}.FirstOrDefault(x => x > 0); //defaults to 0 if all fee scheds are 0
     }
 
@@ -165,15 +166,15 @@ public class FeeScheds
         }
 
         if (patient.FeeSched != 0) return patient.FeeSched;
-        if (patient.PriProv == 0) return Providers.GetFirst(true).FeeSched;
+        if (patient.PriProv == 0) return Providers.GetFirst(true).FeeScheduleId??0;
         var providerFirst = Providers.GetFirst(); //Used in order to preserve old behavior...  If this fails, then old code would have failed.
-        var provider = Providers.GetFirstOrDefault(x => x.ProvNum == patient.PriProv) ?? providerFirst;
-        return provider.FeeSched;
+        var provider = Providers.GetFirstOrDefault(x => x.Id == patient.PriProv) ?? providerFirst;
+        return provider.FeeScheduleId??0;
     }
 
     public static void CopyFeeSchedule(FeeSched feeSchedFrom, long clinicNumFrom, long provNumFrom, FeeSched feeSchedTo, List<long> listClinicNumsTo, long provNumTo, DateTime dateEffectiveOld = new(), DateTime dateEffectiveNew = new())
     {
-        if (listClinicNumsTo == null) listClinicNumsTo = new List<long>();
+        if (listClinicNumsTo == null) listClinicNumsTo = [];
         if (listClinicNumsTo.Count == 0) listClinicNumsTo.Add(0);
         //Store a local copy of the fees from the old FeeSched
         var listFeesLocalCopy = Fees.GetListExact(feeSchedTo.FeeSchedNum, listClinicNumsTo, provNumTo, dateEffectiveNew);
@@ -347,15 +348,15 @@ public class FeeScheds
     {
         string command;
         //change specific row in question.
-        command = "UPDATE feesched SET ItemOrder=" + SOut.Int(newItemOrder) + " WHERE FeeSchedNum=" + SOut.Long(feeSched.FeeSchedNum);
+        command = "UPDATE feesched SET ItemOrder=" + SOut.Int(newItemOrder) + " WHERE FeeSchedNum=" + (feeSched.FeeSchedNum);
         Db.NonQ(command);
         //decrement items below old pos to close the gap, except the one we're moving
         command = "UPDATE feesched SET ItemOrder=ItemOrder-1 WHERE ItemOrder >" + SOut.Int(feeSched.ItemOrder)
-                                                                                + " AND FeeSchedNum !=" + SOut.Long(feeSched.FeeSchedNum);
+                                                                                + " AND FeeSchedNum !=" + (feeSched.FeeSchedNum);
         Db.NonQ(command);
         //increment items (move down) at or below new pos, except the one we're moving
         command = "UPDATE feesched SET ItemOrder=ItemOrder+1 WHERE ItemOrder >= " + SOut.Int(newItemOrder)
-                                                                                  + " AND FeeSchedNum !=" + SOut.Long(feeSched.FeeSchedNum);
+                                                                                  + " AND FeeSchedNum !=" + (feeSched.FeeSchedNum);
         Db.NonQ(command);
     }
 
@@ -449,7 +450,7 @@ public class FeeScheds
                     {
                         PatNum = y.PatNum,
                         Age = y.Age,
-                        ListProcs = dictPatProcs.TryGetValue(y.PatNum, out var listProcsCurr) ? listProcsCurr : new List<Procedure>()
+                        ListProcs = dictPatProcs.TryGetValue(y.PatNum, out var listProcsCurr) ? listProcsCurr : []
                     }).ToList()
                 }).ToList();
             listPatPlans = PatPlans.GetPatPlansForPats(dictPatProcs.Keys.ToList());
@@ -522,7 +523,7 @@ public class FeeScheds
                     listBenefitsCur = listBenefits
                         .FindAll(y => listInsPlanNumsCur.Contains(y.PlanNum) || listPatPlanNumsCur.Contains(y.PatPlanNum));
                     listBenefitsCur.Sort();
-                    if (!dictClaimProcs.TryGetValue(listPatProcs[j].PatNum, out var listClaimProcsCur)) listClaimProcsCur = new List<ClaimProc>();
+                    if (!dictClaimProcs.TryGetValue(listPatProcs[j].PatNum, out var listClaimProcsCur)) listClaimProcsCur = [];
                     var blueBookEstimateData = new BlueBookEstimateData(listInsPlansCur, listInsSubsCur, listPatPlansCur, listPatProcs[j].ListProcs, listSubstitutionLinks);
                     var listProcedures = listPatProcs[j].ListProcs;
                     for (var k = 0; k < listProcedures.Count; k++)
@@ -565,7 +566,7 @@ public class FeeScheds
                     //if this is the last clinic in the list, clear the last clinic pref so the next time it will run for all clinics
                     Prefs.UpdateString(PrefName.GlobalUpdateWriteOffLastClinicCompleted, "");
                 else
-                    Prefs.UpdateString(PrefName.GlobalUpdateWriteOffLastClinicCompleted, SOut.Long(listClinicNumsWriteoff[i]));
+                    Prefs.UpdateString(PrefName.GlobalUpdateWriteOffLastClinicCompleted, (listClinicNumsWriteoff[i].ToString()));
                 Signalods.SetInvalid(InvalidType.Prefs);
             }
 

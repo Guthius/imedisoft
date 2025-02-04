@@ -1,9 +1,6 @@
 using System;
 using System.Data;
-using System.Diagnostics;
 using System.Drawing;
-using System.Drawing.Printing;
-using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Globalization;
@@ -13,13 +10,11 @@ using OpenDental.UI;
 using OpenDentBusiness;
 using System.Linq;
 using CodeBase;
-using System.Text;
 using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Entities;
-using Imedisoft.Core.Features.Clinics;
+using Imedisoft.Features.Providers.Dtos;
 using PdfSharp.Pdf;
-using OpenDentBusiness.WebTypes;
 
 namespace OpenDental;
 
@@ -93,7 +88,6 @@ public partial class FormPayPlan : FormODBase {
 		else {
 			textPeriodPayment.Text=_payPlan.PayAmt.ToString("f");
 		}
-		warningIntegrity1.SetTypeAndVisibility(EnumWarningIntegrityType.PayPlan,PayPlans.IsPayPlanHashValid(_payPlan));
 		textDownPayment.Text=_payPlan.DownPayment.ToString("f");
 		textDate.Text=_payPlan.PayPlanDate.ToShortDateString();
 		if(IsNew) {
@@ -146,15 +140,15 @@ public partial class FormPayPlan : FormODBase {
 			butAddTxCredits.Visible=false;
 			textTotalTxAmt.Visible=false;
 			labelTotalTx.Visible=false;
-			LayoutManagerForms.MoveLocation(labelTxAmtInfo,new Point(labelTxAmtInfo.Location.X,labelTxAmtInfo.Location.Y-20));
+			labelTxAmtInfo.Location = new Point(labelTxAmtInfo.Location.X,labelTxAmtInfo.Location.Y-20);
 		}
 		else {
 			Text=Lan.g(this,"Old Payment Plan");
 			labelInsPlan.Visible=false;
 			textInsPlan.Visible=false;
 			butChangePlan.Visible=false;
-			LayoutManagerForms.MoveLocation(textDate,new Point(textDate.Location.X+22,textDate.Location.Y));//line up with text boxes below
-			LayoutManagerForms.MoveLocation(labelDateAgreement,new Point(labelDateAgreement.Location.X+22,labelDateAgreement.Location.Y));
+			textDate.Location = new Point(textDate.Location.X+22,textDate.Location.Y);//line up with text boxes below
+			labelDateAgreement.Location = new Point(labelDateAgreement.Location.X+22,labelDateAgreement.Location.Y);
 		}
 		_defArrayAccountColors=Defs.GetDefsForCategory(DefCat.AccountColors,true).ToArray();
 		//If the amort schedule has been created and the first payment date has passed, don't allow user to change the first payment date or downpayment
@@ -222,7 +216,7 @@ public partial class FormPayPlan : FormODBase {
 	}
 
 	private void butPickProv_Click(object sender,EventArgs e) {
-		var frmProviderPick = new FrmProviderPick(comboProv.Items.GetAll<Provider>());
+		var frmProviderPick = new FrmProviderPick(comboProv.Items.GetAll<ProviderDto>());
 		frmProviderPick.ProvNumSelected=comboProv.GetSelectedProvNum();
 		frmProviderPick.ShowDialog();
 		if(!frmProviderPick.IsDialogOK) {
@@ -1120,48 +1114,6 @@ public partial class FormPayPlan : FormODBase {
 		textTotalTxAmt.Text=txTotalAmt.ToString("f");
 	}
 
-	private void butSendToDevice_Click(object sender,EventArgs e) {
-		if(!MobileAppDevices.IsClinicSignedUpForEClipboard(Clinics.ClinicNum)) {
-			MsgBox.Show("Please enable eClipboard for this clinic to use this feature.");
-			return;
-		}
-		//Performs the same steps as if user had clicked 'Ok'. 
-		if(!Save()) {
-			return;
-		}
-		//The sheet that the practice uses for payment plans needs to have a signature box on it, otherwise the signature won't be
-		//visible after signing. 
-		if(SheetDefs.GetInternalOrCustom(SheetInternalType.PaymentPlan).SheetFieldDefs.FirstOrDefault(
-			   x => x.FieldType==SheetFieldType.SigBox)==null) 
-		{
-			MsgBox.Show(this,"Please add a signature field to your pay plan sheet.");
-			return;
-		}
-		if(_patient==null){
-			MsgBox.Show(this,"Please select a patient first.");
-			return;
-		}
-		if(_payPlan==null) {
-			MsgBox.Show(this,"Please select a payment plan to send.");
-			return;
-		}
-		else if(!string.IsNullOrEmpty(_payPlan.Signature)) {
-			MsgBox.Show(this,"This Payment Plan has already been signed.");
-			return;
-		}
-		var mobileAppDevice=MobileAppDevices.ShouldCreateMobileNotification(_patient.PatNum);
-		if(mobileAppDevice==null) {
-			OpenUnlockCodeForPayPlan();
-		}
-		else {
-			PushSelectedPayPlanToEclipboard(mobileAppDevice);
-		}
-		DialogResult=DialogResult.OK;
-		//The form needs to close, because if a patient signs a payment plan while FormPayPlan is open, and then someone in OD
-		//clicks OK, then the signature gets blown away. 
-		Close();
-	}
-
 	///<summary>Returns a PDF for the currently selected PaymentPlan and sets out PaymentPlan to selected PaymentPlan.
 	///If nothing is selected in gridPayPlans then returns null and out PaymentPlan is set to null.</summary>
 	private PdfDocument GetPayPlanPDF(PayPlan payPlan){
@@ -1171,58 +1123,9 @@ public partial class FormPayPlan : FormODBase {
 		}
 		var actionCloseProgress=ODProgress.Show(); //Immediately shows a progress window.
 		var sheet=PayPlanToSheet(payPlan);
-		pdfDocument=SheetPrinting.CreatePdf(sheet,"",null,null,null,null,null,false);
+		pdfDocument=SheetPrinting.CreatePdf(sheet,"",null,null,null,null,false);
 		actionCloseProgress();//Closes the progress window. 
 		return pdfDocument;
-	}
-
-	///<summary>Opens a FormMobileCode window with the currently selected PayPlan.</summary>
-	private void OpenUnlockCodeForPayPlan(){
-		MobileDataByte funcInsertDataForUnlockCode(string unlockCode) {
-			using var pdfDocument=GetPayPlanPDF(_payPlan);
-			var listTagValues=new List<string>();
-			listTagValues.Add(_payPlan.PayPlanNum.ToString());
-			listTagValues.Add(_payPlan.PayPlanDate.Ticks.ToString());
-			listTagValues.Add(_patient.GetNameFirstOrPrefL());
-			try {
-				var mobileDataByteNum=MobileDataBytes.InsertPDF(pdfDocument,_patient.PatNum,unlockCode,eActionType.PaymentPlan,listTagValues);
-				return MobileDataBytes.GetOne(mobileDataByteNum);
-			}
-			catch (Exception ex) {
-				//Failed to insert mobile data byte and won't be retrievable in eClipboard so clear out mobile app device num
-				PayPlans.UpdateMobileAppDeviceNum(_payPlan,0);
-				Signalods.SetInvalid(InvalidType.AccModule,KeyType.PatNum,_payPlan.PatNum);
-				Signalods.SetInvalid(InvalidType.EClipboard);
-				MsgBox.Show(ex.Message);
-				return null;
-			}
-		}
-		using var formMobileCode=new FormMobileCode(funcInsertDataForUnlockCode);
-		formMobileCode.ShowDialog();
-	}
-
-	///<summary>Sends the current PayPlan to a given target mobile device.
-	///Shows a MsgBox when done or if error occurs.</summary>
-	private void PushSelectedPayPlanToEclipboard(MobileAppDevice mobileAppDevice){
-		if(_payPlan==null){
-			return;//document wont be null below.
-		}
-		using var pdfDocument=GetPayPlanPDF(_payPlan);//Cant be null due to above check.
-		try {
-			MobileNotifications.CI_SendPaymentPlan(pdfDocument,_payPlan,mobileAppDevice.MobileAppDeviceNum);
-		}
-		catch (Exception ex) {
-			//Error occurred
-			//It failed to send to device, so clear out what ever device num was there
-			PayPlans.UpdateMobileAppDeviceNum(_payPlan,0);
-			Signalods.SetInvalid(InvalidType.AccModule,KeyType.PatNum,_payPlan.PatNum);
-			Signalods.SetInvalid(InvalidType.EClipboard);
-			MsgBox.Show($"Error sending Payment Plan: {ex.Message}");
-			return;
-		}
-		//The payment plan's MobileAppDeviceNum needs to be updated so that we know it is on a device
-		MsgBox.Show($"Payment Plan sent to device: {mobileAppDevice.DeviceName}");
-		//The signal from CI_SendPaymentPlan will take care of refreshing Control Account
 	}
 
 	///<summary>Performs validation on payplan and then calls SaveData() to save payplan if the payplan was valid. Sets DialogResult to OK</summary>

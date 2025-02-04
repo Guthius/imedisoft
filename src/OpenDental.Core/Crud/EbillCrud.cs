@@ -18,17 +18,18 @@ public class EbillCrud
     public static List<Ebill> TableToList(DataTable table)
     {
         var retVal = new List<Ebill>();
-        Ebill ebill;
         foreach (DataRow row in table.Rows)
         {
-            ebill = new Ebill();
-            ebill.EbillNum = SIn.Long(row["EbillNum"].ToString());
-            ebill.ClinicNum = SIn.Long(row["ClinicNum"].ToString());
-            ebill.ClientAcctNumber = SIn.String(row["ClientAcctNumber"].ToString());
-            ebill.ElectUserName = SIn.String(row["ElectUserName"].ToString());
-            ebill.ElectPassword = SIn.String(row["ElectPassword"].ToString());
-            ebill.PracticeAddress = (EbillAddress) SIn.Int(row["PracticeAddress"].ToString());
-            ebill.RemitAddress = (EbillAddress) SIn.Int(row["RemitAddress"].ToString());
+            var ebill = new Ebill
+            {
+                EbillNum = SIn.Long(row["EbillNum"].ToString()),
+                ClinicNum = SIn.Long(row["ClinicNum"].ToString()),
+                ClientAcctNumber = SIn.String(row["ClientAcctNumber"].ToString()),
+                ElectUserName = SIn.String(row["ElectUserName"].ToString()),
+                ElectPassword = SIn.String(row["ElectPassword"].ToString()),
+                PracticeAddress = (EbillAddress) SIn.Int(row["PracticeAddress"].ToString()),
+                RemitAddress = (EbillAddress) SIn.Int(row["RemitAddress"].ToString())
+            };
             retVal.Add(ebill);
         }
 
@@ -136,15 +137,13 @@ public class EbillCrud
         var idxNew = 0;
         var idxDB = 0;
         var rowsUpdatedCount = 0;
-        Ebill fieldNew;
-        Ebill fieldDB;
         //Because both lists have been sorted using the same criteria, we can now walk each list to determine which list contians the next element.  The next element is determined by Primary Key.
         //If the New list contains the next item it will be inserted.  If the DB contains the next item, it will be deleted.  If both lists contain the next item, the item will be updated.
         while (idxNew < listNew.Count || idxDB < listDB.Count)
         {
-            fieldNew = null;
+            Ebill fieldNew = null;
             if (idxNew < listNew.Count) fieldNew = listNew[idxNew];
-            fieldDB = null;
+            Ebill fieldDB = null;
             if (idxDB < listDB.Count) fieldDB = listDB[idxDB];
             //begin compare
             if (fieldNew != null && fieldDB == null)

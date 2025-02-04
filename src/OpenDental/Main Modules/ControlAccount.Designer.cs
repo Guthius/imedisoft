@@ -91,7 +91,6 @@
 			this.contextMenuPayment = new System.Windows.Forms.ContextMenu();
 			this.menuItemAllocateUnearned = new System.Windows.Forms.MenuItem();
 			this.menuItemIncomeTransfer = new System.Windows.Forms.MenuItem();
-			this.menuItemSendPaymentToDevice = new System.Windows.Forms.MenuItem();
 			this.menuItemSendMsgToPay = new System.Windows.Forms.MenuItem();
 			this.contextMenuPayPlan = new System.Windows.Forms.ContextMenu();
 			this.menuItemDynamicPayPlan = new System.Windows.Forms.MenuItem();
@@ -890,7 +889,6 @@
 			this.contextMenuPayment.MenuItems.AddRange(new System.Windows.Forms.MenuItem[] {
             this.menuItemAllocateUnearned,
             this.menuItemIncomeTransfer,
-            this.menuItemSendPaymentToDevice,
             this.menuItemSendMsgToPay});
 			this.contextMenuPayment.Popup += new System.EventHandler(this.contextMenuPayment_Popup);
 			// 
@@ -906,15 +904,9 @@
 			this.menuItemIncomeTransfer.Text = "Income Transfer";
 			this.menuItemIncomeTransfer.Click += new System.EventHandler(this.menuItemIncomeTransfer_Click);
 			// 
-			// menuItemSendPaymentToDevice
-			// 
-			this.menuItemSendPaymentToDevice.Index = 2;
-			this.menuItemSendPaymentToDevice.Text = "Send Payment to eClipboard";
-			this.menuItemSendPaymentToDevice.Click += new System.EventHandler(this.menuItemSendPaymentToDevice_Click);
-			// 
 			// menuItemSendMsgToPay
 			// 
-			this.menuItemSendMsgToPay.Index = 3;
+			this.menuItemSendMsgToPay.Index = 2;
 			this.menuItemSendMsgToPay.Text = "Send Message-to-Pay";
 			this.menuItemSendMsgToPay.Click += new System.EventHandler(this.menuItemSendMessageToPay_Click);
 			// 
@@ -1922,7 +1914,6 @@
 		private System.Windows.Forms.MenuItem menuItemLimitedCustom;
 		private System.Windows.Forms.MenuItem menuItemReceipt;
 		private System.Windows.Forms.MenuItem menuItemSalesTax;
-		private System.Windows.Forms.MenuItem menuItemSendPaymentToDevice;
 		private System.Windows.Forms.MenuItem menuItemSendMsgToPay;
 		private System.Windows.Forms.MenuItem menuItemStatementEmail;
 		private System.Windows.Forms.MenuItem menuItemStatementMore;

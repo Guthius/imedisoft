@@ -5,7 +5,6 @@ using System.Linq;
 using CodeBase;
 using DataConnectionBase;
 using Imedisoft.Core.Crud;
-using Imedisoft.Core.Data;
 using Imedisoft.Core.Entities;
 
 namespace OpenDentBusiness;
@@ -58,7 +57,7 @@ public class Commlogs
         InsertForRecallOrReactivation(patNum, commItemMode, numberOfReminders, defNumNewStatus, CommItemSource.User, Security.CurUser.UserNum, DateTime.Now, commonItemTypeAuto);
     }
 
-    public static Commlog InsertForRecallOrReactivation(long patNum, CommItemMode commItemMode, int numberOfReminders, long defNumNewStatus, CommItemSource commItemSource, long userNum, DateTime dateTimeNow, CommItemTypeAuto commItemTypeAuto = CommItemTypeAuto.RECALL, string message = "")
+    public static void InsertForRecallOrReactivation(long patNum, CommItemMode commItemMode, int numberOfReminders, long defNumNewStatus, CommItemSource commItemSource, long userNum, DateTime dateTimeNow, CommItemTypeAuto commItemTypeAuto = CommItemTypeAuto.RECALL, string message = "")
     {
         var commType = GetTypeAuto(commItemTypeAuto);
         var commTypeStr = "Reactivation";
@@ -68,9 +67,9 @@ public class Commlogs
         }
 
         var commlog = GetTodayCommlog(patNum, commItemMode, commItemTypeAuto);
-        if (commlog != null)
+        if (commlog is not null)
         {
-            return commlog;
+            return;
         }
 
         commlog = new Commlog
@@ -108,8 +107,6 @@ public class Commlogs
         commlog.UserNum = userNum;
         commlog.CommSource = commItemSource;
         commlog.CommlogNum = Insert(commlog);
-        
-        return commlog;
     }
 
     public static Commlog GetTodayCommlog(long patNum, CommItemMode commItemMode, CommItemTypeAuto commItemTypeAuto)
@@ -222,7 +219,7 @@ public class Commlogs
 
         return CommlogCrud.SelectMany(
             "SELECT * FROM commlog " +
-            "WHERE ReferralNum=" + referralNum + " " +
+            "WHERE ReferralNum = " + referralNum + " " +
             "ORDER BY CommDateTime");
     }
 
@@ -233,7 +230,7 @@ public class Commlogs
             return;
         }
 
-        Db.NonQ("DELETE FROM commlog WHERE ReferralNum=" + referralNum);
+        Db.NonQ("DELETE FROM commlog WHERE ReferralNum = " + referralNum);
     }
 }
 

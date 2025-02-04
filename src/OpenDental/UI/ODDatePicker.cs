@@ -3,7 +3,6 @@ using System.ComponentModel;
 using System.Drawing;
 using System.Windows.Forms;
 using DataConnectionBase;
-using OpenDentBusiness;
 
 namespace OpenDental.UI;
 
@@ -17,7 +16,7 @@ public partial class ODDatePicker:UserControl {
 	private EnumCalendarLocation _calendarLocation=EnumCalendarLocation.Below;
 	///<summary>Adjustments to the calendar location.  Starting location is based on the CalendarLocation property.</summary>
 	private Point _pointAdjustCalendarLoc;
-	public LayoutManagerForms LayoutManager=new LayoutManagerForms();
+	
 	#endregion Fields
 
 	#region Properties

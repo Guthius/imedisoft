@@ -38,7 +38,7 @@ namespace OpenDental{
 			this.gridMain.TabIndex = 3;
 			this.gridMain.Title = "Electronic Benefit Request History";
 			this.gridMain.TranslationName = "TableBenefitHistory";
-			this.gridMain.CellDoubleClick += new OpenDental.UI.ODGridClickEventHandler(this.gridMain_CellDoubleClick);
+			this.gridMain.CellDoubleClick += new OpenDental.UI.ODGridClickEventHandler(this.GridMain_CellDoubleClick);
 			// 
 			// FormBenefitElectHistory
 			// 

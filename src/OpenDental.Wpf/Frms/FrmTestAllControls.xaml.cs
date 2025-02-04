@@ -1,23 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Data;
 using System.Diagnostics;
 using System.Linq;
 using System.Text.RegularExpressions;
-using System.Threading;
-using System.Threading.Tasks;
 using System.Windows;
-using System.Windows.Data;
-using System.Windows.Documents;
 using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Animation;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
 using OpenDentBusiness;
 using WpfControls.UI;
-using Microsoft.Win32;
 
 namespace OpenDental {
 	/// <summary></summary>
@@ -30,7 +19,6 @@ namespace OpenDental {
 			PreviewKeyDown+=FrmTestAllControls_PreviewKeyDown;
 			KeyDown+=FrmTestAllControls_KeyDown;
 			//monthCalendar.AllowClickingTopText=false;
-			warningIntegrity1.SetTypeAndVisibility(EnumWarningIntegrityType.Patient,false);
 			FormClosing+=FrmODBase_FormClosing_1;
 		}
 

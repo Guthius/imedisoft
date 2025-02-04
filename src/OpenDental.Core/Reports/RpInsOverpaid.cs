@@ -1,14 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Reflection;
 using DataConnectionBase;
 
 namespace OpenDentBusiness {
 	public class RpInsOverpaid {
 		///<summary>If not using clinics then supply an empty list of clinicNums.  listClinicNums must have at least one item if using clinics.</summary>
 		public static DataTable GetInsuranceOverpaid(DateTime dateStart,DateTime dateEnd,List<long> listClinicNums,bool groupByProc) {
-			string query=$@"
+			var query=$@"
 					SELECT 
 						CONCAT(patient.LName,', ',patient.FName) patname
 						,procedurelog.ProcDate

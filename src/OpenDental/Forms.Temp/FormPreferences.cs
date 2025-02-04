@@ -1,16 +1,13 @@
 using System;
 using System.Collections.Generic;
-using System.Data;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Drawing.Text;
 using System.IO;
 using System.Text;
 using System.Windows.Forms;
-using System.Xml;
 using System.Xml.Serialization;
 using CodeBase;
-using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Entities;
 using OpenDentBusiness;
@@ -110,18 +107,13 @@ namespace OpenDental {
 
 		private void FormModulePrefs_Load(object sender,EventArgs e) {
 			FillUserControls();
-			if(/* ODBuild.IsDebug() */ false)	{
+			try {//try/catch used to prevent setup form from partially loading and filling controls.  Causes UEs, Example: TimeCardOvertimeFirstDayOfWeek set to -1 because UI control not filled properly.
 				LoadUserControls();
 			}
-			else {
-				try {//try/catch used to prevent setup form from partially loading and filling controls.  Causes UEs, Example: TimeCardOvertimeFirstDayOfWeek set to -1 because UI control not filled properly.
-					LoadUserControls();
-				}
-				catch(Exception ex) {
-					FriendlyException.Show(Lan.g(this,"An error has occurred while attempting to load preferences.  Run database maintenance and try again."),ex);
-					DialogResult=DialogResult.Abort;
-					return;
-				}
+			catch(Exception ex) {
+				FriendlyException.Show(Lan.g(this,"An error has occurred while attempting to load preferences.  Run database maintenance and try again."),ex);
+				DialogResult=DialogResult.Abort;
+				return;
 			}
 			if(SelectedNode==0) {
 				treeMain.SelectedNode=treeMain.Nodes[0];
@@ -138,7 +130,7 @@ namespace OpenDental {
 			var region=new Region(graphicsPath);
 			panelInfo.Region=region;//This makes it transparent outside the circle, but there's no antialiasing
 			panelInfo.Paint+=PanelInfo_Paint;
-			LayoutManagerForms.Add(panelInfo,this);
+			Controls.Add(panelInfo);
 			var strXml=Properties.Resources.PrefInfos;
 			var memoryStream=new MemoryStream();
 			var streamWriter=new StreamWriter(memoryStream);
@@ -804,7 +796,6 @@ namespace OpenDental {
 			userControlFamilyGeneral.SyncChanged+=UserControl_SyncChanged;
 			userControlAccountGeneral.SyncChanged+=UserControl_SyncChanged;
 			userControlAccountClaimSend.SyncChanged+=UserControl_SyncChanged;
-			userControlAccountClaimReceive.SyncChanged+=UserControl_SyncChanged;
 			userControlAccountPayments.SyncChanged+=UserControl_SyncChanged;
 			userControlManageBillingStatements.SyncChanged+=UserControl_SyncChanged;
 			userControlEnterpriseGeneral.SyncChanged+=UserControl_SyncChanged;

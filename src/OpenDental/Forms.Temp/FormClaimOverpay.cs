@@ -1,12 +1,7 @@
 using System;
 using System.Collections.Generic;
-using System.Data;
 using System.Drawing;
-using System.Globalization;
 using System.Linq;
-using System.ServiceModel.Configuration;
-using System.Text;
-using System.Web.UI;
 using System.Windows.Forms;
 using DataConnectionBase;
 using Imedisoft.Core.Entities;

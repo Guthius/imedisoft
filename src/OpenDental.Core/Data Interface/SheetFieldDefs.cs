@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using CodeBase;
-using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Crud;
 using Imedisoft.Core.Entities;
@@ -14,7 +13,7 @@ public class SheetFieldDefs
 {
     public static List<SheetFieldDef> GetForExamSheet(long sheetDefNum)
     {
-        var command = "SELECT * FROM sheetfielddef WHERE SheetDefNum=" + SOut.Long(sheetDefNum) + " "
+        var command = "SELECT * FROM sheetfielddef WHERE SheetDefNum=" + (sheetDefNum) + " "
                       + "AND ((FieldName!='misc' AND FieldName!='') OR (ReportableName!='')) "
                       + "GROUP BY FieldName,ReportableName";
         return SheetFieldDefCrud.SelectMany(command);
@@ -22,7 +21,7 @@ public class SheetFieldDefs
 
     public static List<SheetFieldDef> GetForSheetDef(long sheetDefNum)
     {
-        var command = "SELECT * FROM sheetfielddef WHERE SheetDefNum=" + SOut.Long(sheetDefNum);
+        var command = "SELECT * FROM sheetfielddef WHERE SheetDefNum=" + (sheetDefNum);
         return SheetFieldDefCrud.SelectMany(command);
     }
 

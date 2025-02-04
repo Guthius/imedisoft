@@ -7,7 +7,6 @@ using System.Linq;
 using PdfSharp.Drawing;
 using System.Collections.Generic;
 using DataConnectionBase;
-using Imedisoft.Core.Data;
 using Imedisoft.Core.Entities;
 
 namespace OpenDental;
@@ -202,14 +201,6 @@ public partial class FormSheetDef:FormODBase {
 		}
 		if(!checkHasMobileLayout.Enabled) { //Only change the check state if the selected form does not allow mobile sheet layout
 			checkHasMobileLayout.Checked=false;
-		}
-	}
-
-	private void CheckHasMobileLayout_CheckedChanged(object sender,EventArgs e) {
-		if(!checkHasMobileLayout.Checked && SheetDefCur.SheetDefNum>0 && EClipboardSheetDefs.IsSheetDefInUse(SheetDefCur.SheetDefNum)) {
-			MsgBox.Show("This sheet is currently being used by eClipboard, which requires sheets to have a mobile layout. " +
-			            "You must remove this form from eClipboard rules before you can remove the mobile layout for this sheet.");
-			checkHasMobileLayout.Checked=true;
 		}
 	}
 

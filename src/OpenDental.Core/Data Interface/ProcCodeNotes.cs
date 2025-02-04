@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Data;
-using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Crud;
 using Imedisoft.Core.Entities;
@@ -12,7 +11,7 @@ public class ProcCodeNotes
 {
     public static List<ProcCodeNote> GetList(long codeNum)
     {
-        var command = "SELECT * FROM proccodenote WHERE CodeNum=" + SOut.Long(codeNum);
+        var command = "SELECT * FROM proccodenote WHERE CodeNum=" + (codeNum);
         return ProcCodeNoteCrud.SelectMany(command);
     }
 
@@ -28,7 +27,7 @@ public class ProcCodeNotes
 
     public static void Delete(long procCodeNoteNum)
     {
-        var command = "DELETE FROM proccodenote WHERE ProcCodeNoteNum = " + SOut.Long(procCodeNoteNum);
+        var command = "DELETE FROM proccodenote WHERE ProcCodeNoteNum = " + (procCodeNoteNum);
         Db.NonQ(command);
     }
 

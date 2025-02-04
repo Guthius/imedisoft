@@ -17,14 +17,15 @@ public class EmailAutographCrud
     public static List<EmailAutograph> TableToList(DataTable table)
     {
         var retVal = new List<EmailAutograph>();
-        EmailAutograph emailAutograph;
         foreach (DataRow row in table.Rows)
         {
-            emailAutograph = new EmailAutograph();
-            emailAutograph.EmailAutographNum = SIn.Long(row["EmailAutographNum"].ToString());
-            emailAutograph.Description = SIn.String(row["Description"].ToString());
-            emailAutograph.EmailAddress = SIn.String(row["EmailAddress"].ToString());
-            emailAutograph.AutographText = SIn.String(row["AutographText"].ToString());
+            var emailAutograph = new EmailAutograph
+            {
+                EmailAutographNum = SIn.Long(row["EmailAutographNum"].ToString()),
+                Description = SIn.String(row["Description"].ToString()),
+                EmailAddress = SIn.String(row["EmailAddress"].ToString()),
+                AutographText = SIn.String(row["AutographText"].ToString())
+            };
             retVal.Add(emailAutograph);
         }
 

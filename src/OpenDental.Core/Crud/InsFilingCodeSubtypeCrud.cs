@@ -17,13 +17,14 @@ public class InsFilingCodeSubtypeCrud
     public static List<InsFilingCodeSubtype> TableToList(DataTable table)
     {
         var retVal = new List<InsFilingCodeSubtype>();
-        InsFilingCodeSubtype insFilingCodeSubtype;
         foreach (DataRow row in table.Rows)
         {
-            insFilingCodeSubtype = new InsFilingCodeSubtype();
-            insFilingCodeSubtype.InsFilingCodeSubtypeNum = SIn.Long(row["InsFilingCodeSubtypeNum"].ToString());
-            insFilingCodeSubtype.InsFilingCodeNum = SIn.Long(row["InsFilingCodeNum"].ToString());
-            insFilingCodeSubtype.Descript = SIn.String(row["Descript"].ToString());
+            var insFilingCodeSubtype = new InsFilingCodeSubtype
+            {
+                InsFilingCodeSubtypeNum = SIn.Long(row["InsFilingCodeSubtypeNum"].ToString()),
+                InsFilingCodeNum = SIn.Long(row["InsFilingCodeNum"].ToString()),
+                Descript = SIn.String(row["Descript"].ToString())
+            };
             retVal.Add(insFilingCodeSubtype);
         }
 

@@ -26,15 +26,16 @@ public class EobAttachCrud
     public static List<EobAttach> TableToList(DataTable table)
     {
         var retVal = new List<EobAttach>();
-        EobAttach eobAttach;
         foreach (DataRow row in table.Rows)
         {
-            eobAttach = new EobAttach();
-            eobAttach.EobAttachNum = SIn.Long(row["EobAttachNum"].ToString());
-            eobAttach.ClaimPaymentNum = SIn.Long(row["ClaimPaymentNum"].ToString());
-            eobAttach.DateTCreated = SIn.DateTime(row["DateTCreated"].ToString());
-            eobAttach.FileName = SIn.String(row["FileName"].ToString());
-            eobAttach.RawBase64 = SIn.String(row["RawBase64"].ToString());
+            var eobAttach = new EobAttach
+            {
+                EobAttachNum = SIn.Long(row["EobAttachNum"].ToString()),
+                ClaimPaymentNum = SIn.Long(row["ClaimPaymentNum"].ToString()),
+                DateTCreated = SIn.DateTime(row["DateTCreated"].ToString()),
+                FileName = SIn.String(row["FileName"].ToString()),
+                RawBase64 = SIn.String(row["RawBase64"].ToString())
+            };
             retVal.Add(eobAttach);
         }
 

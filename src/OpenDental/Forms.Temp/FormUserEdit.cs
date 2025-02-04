@@ -1,18 +1,15 @@
 using System;
-using System.Drawing;
-using System.Collections;
-using System.ComponentModel;
 using System.Windows.Forms;
 using OpenDentBusiness;
 using System.Linq;
 using System.Collections.Generic;
-using System.DirectoryServices;
 using CodeBase;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Data;
 using Imedisoft.Core.Entities;
 using Imedisoft.Core.Features.Clinics;
 using Imedisoft.Core.Features.Clinics.Dtos;
+using Imedisoft.Features.Providers.Dtos;
 
 namespace OpenDental;
 
@@ -29,7 +26,7 @@ public partial class FormUserEdit : FormODBase {
 	///<summary>The alert categories that are available to be selected. Some alert types will not be displayed if this is not OD HQ.</summary>
 	private List<AlertCategory> _listAlertCategories;
 	private List<Employee> _listEmployees;
-	private List<Provider> _listProviders;
+	private List<ProviderDto> _listProviders;
 	private bool _isFromAddUser;
 	private bool _isFillingList;
 	private UserOdPref _userOdPrefLogOffAfterMinutes;
@@ -93,8 +90,8 @@ public partial class FormUserEdit : FormODBase {
 		listProv.SelectedIndex=0;
 		_listProviders=Providers.GetDeepCopy(true);
 		for(var i=0;i<_listProviders.Count;i++) {
-			listProv.Items.Add(_listProviders[i].GetLongDesc());
-			if(UserodCur.ProvNum==_listProviders[i].ProvNum) {
+			listProv.Items.Add(_listProviders[i].Description);
+			if(UserodCur.ProvNum==_listProviders[i].Id) {
 				listProv.SelectedIndex=i+1;
 			}
 		}
@@ -117,40 +114,33 @@ public partial class FormUserEdit : FormODBase {
 			listAlertSubMulti.Items.Add(Lan.g(this,_listAlertCategories[i].Description));
 			listAlertSubMulti.SetSelected(i,listAlertCategoryNumsUser.Contains(_listAlertCategories[i].AlertCategoryNum));
 		}
-		if(!true) {
-			tabClinics.Enabled=false;//Disables all controls in the clinics tab.  Tab is still selectable.
-			listAlertSubsClinicsMulti.Visible=false;
-			labelAlertClinic.Visible=false;
+		listClinic.Items.Clear();
+		listClinic.Items.Add(Lan.g(this,"All"));
+		listAlertSubsClinicsMulti.Items.Add(Lan.g(this,"All"));
+		listAlertSubsClinicsMulti.Items.Add(Lan.g(this,"Headquarters"));
+		if(UserodCur.ClinicNum==0) {//Unrestricted
+			listClinic.SetSelected(0);
+			listClinicMulti.Enabled=false;
 		}
-		else {
-			listClinic.Items.Clear();
-			listClinic.Items.Add(Lan.g(this,"All"));
-			listAlertSubsClinicsMulti.Items.Add(Lan.g(this,"All"));
-			listAlertSubsClinicsMulti.Items.Add(Lan.g(this,"Headquarters"));
-			if(UserodCur.ClinicNum==0) {//Unrestricted
-				listClinic.SetSelected(0);
-				listClinicMulti.Enabled=false;
+		if(isAllClinicsSubscribed) {//They are subscribed to all clinics
+			listAlertSubsClinicsMulti.SetSelected(0);
+		}
+		else if(listClinicNumsSubscribed.Contains(0)) {//They are subscribed to Headquarters
+			listAlertSubsClinicsMulti.SetSelected(1);
+		}
+		var listUserClinics=UserClinics.GetForUser(UserodCur.UserNum);
+		for(var i=0;i<_listClinics.Count;i++) {
+			listClinic.Items.Add(_listClinics[i].Abbr);
+			listClinicMulti.Items.Add(_listClinics[i].Abbr);
+			listAlertSubsClinicsMulti.Items.Add(_listClinics[i].Abbr);
+			if(UserodCur.ClinicNum==_listClinics[i].Id) {
+				listClinic.SetSelected(i+1);
 			}
-			if(isAllClinicsSubscribed) {//They are subscribed to all clinics
-				listAlertSubsClinicsMulti.SetSelected(0);
+			if(UserodCur.ClinicNum!=0 && listUserClinics.Exists(x => x.ClinicNum==_listClinics[i].Id)) {
+				listClinicMulti.SetSelected(i);//No "All" option, don't select i+1
 			}
-			else if(listClinicNumsSubscribed.Contains(0)) {//They are subscribed to Headquarters
-				listAlertSubsClinicsMulti.SetSelected(1);
-			}
-			var listUserClinics=UserClinics.GetForUser(UserodCur.UserNum);
-			for(var i=0;i<_listClinics.Count;i++) {
-				listClinic.Items.Add(_listClinics[i].Abbr);
-				listClinicMulti.Items.Add(_listClinics[i].Abbr);
-				listAlertSubsClinicsMulti.Items.Add(_listClinics[i].Abbr);
-				if(UserodCur.ClinicNum==_listClinics[i].Id) {
-					listClinic.SetSelected(i+1);
-				}
-				if(UserodCur.ClinicNum!=0 && listUserClinics.Exists(x => x.ClinicNum==_listClinics[i].Id)) {
-					listClinicMulti.SetSelected(i);//No "All" option, don't select i+1
-				}
-				if(!isAllClinicsSubscribed && _listAlertSubsUserTypesOld.Exists(x => x.ClinicNum==_listClinics[i].Id)) {
-					listAlertSubsClinicsMulti.SetSelected(i+2);//All+HQ
-				}
+			if(!isAllClinicsSubscribed && _listAlertSubsUserTypesOld.Exists(x => x.ClinicNum==_listClinics[i].Id)) {
+				listAlertSubsClinicsMulti.SetSelected(i+2);//All+HQ
 			}
 		}
 		if(string.IsNullOrEmpty(UserodCur.PasswordHash)){
@@ -181,26 +171,6 @@ public partial class FormUserEdit : FormODBase {
 	}
 
 	private void butPickDomainUser_Click(object sender,EventArgs e) {
-		//DirectoryEntry does recognize an empty string as a valid LDAP entry and will just return all logins from all available domains
-		//But all logins should be on the same domain, so this field is required
-		if(string.IsNullOrWhiteSpace(PrefC.GetString(PrefName.DomainLoginPath))) {
-			MsgBox.Show(this,"DomainLoginPath is missing in security settings. DomainLoginPath is required before assigning domain logins to user accounts.");
-			return;
-		}
-		//Try to access the specified DomainLoginPath
-		try {
-			DirectoryEntry.Exists(PrefC.GetString(PrefName.DomainLoginPath));
-		}
-		catch(Exception ex) {
-			ODMessageBox.Show(Lan.g(this,"An error occurred while attempting to access the provided DomainLoginPath:")+" "+ex.Message);
-			return;
-		}
-		using var formDomainUserPick=new FormDomainUserPick();
-		formDomainUserPick.ShowDialog();
-		if(formDomainUserPick.DialogResult==DialogResult.OK && formDomainUserPick.SelectedDomainName!=null) { //only check for null, as empty string should clear the field
-			UserodCur.DomainUser=$@"{PrefC.GetString(PrefName.DomainObjectGuid)}\{formDomainUserPick.SelectedDomainName}";
-			textDomainUser.Text=formDomainUserPick.SelectedDomainName;
-		}
 	}
 
 	private void listClinic_MouseClick(object sender,MouseEventArgs e) {
@@ -353,22 +323,20 @@ public partial class FormUserEdit : FormODBase {
 			UserodCur.EmployeeNum=_listEmployees[listEmployee.SelectedIndex-1].EmployeeNum;
 		}
 		if(listProv.SelectedIndex==0) {
-			var provider=Providers.GetProv(UserodCur.ProvNum);
+			var provider=Providers.GetById(UserodCur.ProvNum);
 			if(provider!=null) {
-				provider.IsInstructor=false;//If there are more than 1 users associated to this provider, they will no longer be an instructor.
 				Providers.Update(provider);	
 			}
 			UserodCur.ProvNum=0;
 		}
 		else {
-			var provider=Providers.GetProv(UserodCur.ProvNum);
+			var provider=Providers.GetById(UserodCur.ProvNum);
 			if(provider!=null) {
-				if(provider.ProvNum!=_listProviders[listProv.SelectedIndex-1].ProvNum) {
-					provider.IsInstructor=false;//If there are more than 1 users associated to this provider, they will no longer be an instructor.
+				if(provider.Id!=_listProviders[listProv.SelectedIndex-1].Id) {
 				}
 				Providers.Update(provider);
 			}
-			UserodCur.ProvNum=_listProviders[listProv.SelectedIndex-1].ProvNum;
+			UserodCur.ProvNum=_listProviders[listProv.SelectedIndex-1].Id;
 		}
 		UserodCur.BadgeId=textBadgeId.Text;
 		if(IsNew) {
@@ -457,12 +425,6 @@ public partial class FormUserEdit : FormODBase {
 			_listAlertSubsUserTypesNew.RemoveAll(x => !listClinicNums.Contains(x.ClinicNum));
 		}
 		for(var i = 0;i<listAlertCatagoryNumsUser.Count;i++) {
-			if(!true) {
-				if(!_listAlertSubsUserTypesOld.Exists(x => x.AlertCategoryNum==listAlertCatagoryNumsUser[i])) {//Was not subscribed to type.
-					_listAlertSubsUserTypesNew.Add(new AlertSub(UserodCur.UserNum,0,listAlertCatagoryNumsUser[i]));
-				}
-				continue;
-			}
 			//Clinics enabled.
 			for(var j = 0;j<listClinicNums.Count;j++) {
 				if(!_listAlertSubsUserTypesOld.Exists(x => x.ClinicNum==listClinicNums[j] && x.AlertCategoryNum==listAlertCatagoryNumsUser[i])) {//Was not subscribed to type.

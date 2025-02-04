@@ -16,21 +16,21 @@ public class PatientRaces
 				COALESCE(cdcrec.HeirarchicalCode,'') HeirarchicalCode
 				FROM patientrace 
 				LEFT JOIN cdcrec ON cdcrec.CdcrecCode=patientrace.CdcrecCode
-				WHERE PatNum=" + SOut.Long(patNum);
+				WHERE PatNum=" + (patNum);
         var table = DataCore.GetTable(command);
         var listPatientRaces = PatientRaceCrud.TableToList(table);
         for (var i = 0; i < table.Rows.Count; i++)
             switch (listPatientRaces[i].CdcrecCode)
             {
-                case PatientRace.DECLINE_SPECIFY_RACE_CODE:
+                case PatientRace.DeclineSpecifyRaceCode:
                     listPatientRaces[i].Description = Lans.g("PatientRaces", "DECLINED TO SPECIFY");
                     listPatientRaces[i].IsEthnicity = false;
                     break;
-                case PatientRace.DECLINE_SPECIFY_ETHNICITY_CODE:
+                case PatientRace.DeclineSpecifyEthnicityCode:
                     listPatientRaces[i].Description = Lans.g("PatientRaces", "DECLINED TO SPECIFY");
                     listPatientRaces[i].IsEthnicity = true;
                     break;
-                case PatientRace.MULTI_RACE_CODE:
+                case PatientRace.MultiRaceCode:
                     listPatientRaces[i].Description = Lans.g("PatientRaces", "MULTIRACIAL");
                     listPatientRaces[i].IsEthnicity = false;
                     break;
@@ -131,13 +131,13 @@ public class PatientRaces
         if (listPatRaces.Count == 0)
         {
             //DELETE all for the patient if listPatRaces is empty.
-            command = "DELETE FROM patientrace WHERE PatNum = " + SOut.Long(patNum); //Can't use CRUD layer here because there might be multiple races for one patient.
+            command = "DELETE FROM patientrace WHERE PatNum = " + (patNum); //Can't use CRUD layer here because there might be multiple races for one patient.
             Db.NonQ(command);
             return;
         }
 
         List<PatientRace> listPatientRacesDB;
-        command = "SELECT * FROM patientrace WHERE PatNum = " + SOut.Long(patNum);
+        command = "SELECT * FROM patientrace WHERE PatNum = " + (patNum);
         listPatientRacesDB = PatientRaceCrud.SelectMany(command);
         //delete excess rows
         for (var i = 0; i < listPatientRacesDB.Count; i++)

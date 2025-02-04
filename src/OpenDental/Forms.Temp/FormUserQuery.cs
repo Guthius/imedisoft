@@ -12,7 +12,6 @@ using Imedisoft.Core.Caching;
 using Imedisoft.Core.Data;
 using Imedisoft.Core.Entities;
 using OpenDental.Logic;
-using OpenDental.Thinfinity;
 using OpenDental.UI;
 using OpenDentBusiness;
 
@@ -214,12 +213,6 @@ namespace OpenDental
             IDataObject dataObject;
             try
             {
-                if (/* ODEnvironment.IsCloudServer */ false)
-                {
-                    textQuery.Text = ODClipboard.GetText();
-                    return;
-                }
-
                 dataObject = Clipboard.GetDataObject();
             }
             catch
@@ -388,87 +381,62 @@ namespace OpenDental
             }
 
             string filePath;
-            if (!false && false)
+            saveFileDialog2 = new SaveFileDialog();
+            saveFileDialog2.AddExtension = true;
+            saveFileDialog2.FilterIndex = 0;
+            if (delimiter == "\t")
             {
-                filePath = ODFileUtils.CombinePaths(Path.GetTempPath(), "ODUserQueryExport.xls");
+                saveFileDialog2.Filter = "Text files(*.txt)|*.txt|All files(*.*)|*.*";
             }
             else
             {
-                saveFileDialog2 = new SaveFileDialog();
-                saveFileDialog2.AddExtension = true;
-                saveFileDialog2.FilterIndex = 0;
-                if (delimiter == "\t")
+                saveFileDialog2.Filter = "CSV files(*.csv)|*.csv|All files(*.*)|*.*";
+            }
+
+            if (_userQuery == null || _userQuery.FileName == null || _userQuery.FileName == "")
+            {
+                //.FileName==null)
+                if (textTitle.Text.IsNullOrEmpty())
                 {
-                    saveFileDialog2.Filter = "Text files(*.txt)|*.txt|All files(*.*)|*.*";
+                    saveFileDialog2.FileName = "UserQuery"; //Filename suggestion instead of being empty
                 }
                 else
                 {
-                    saveFileDialog2.Filter = "CSV files(*.csv)|*.csv|All files(*.*)|*.*";
-                }
-
-                if (_userQuery == null || _userQuery.FileName == null || _userQuery.FileName == "")
-                {
-                    //.FileName==null)
-                    if (textTitle.Text.IsNullOrEmpty())
-                    {
-                        saveFileDialog2.FileName = "UserQuery"; //Filename suggestion instead of being empty
-                    }
-                    else
-                    {
-                        saveFileDialog2.FileName = textTitle.Text;
-                    }
-                }
-                else
-                {
-                    saveFileDialog2.FileName = _userQuery.FileName;
-                }
-
-                if (/* ODEnvironment.IsCloudServer */ false)
-                {
-                    if (saveFileDialog2.ShowDialog() != DialogResult.OK)
-                    {
-                        return;
-                    }
-
-                    if (saveFileDialog2.FileName.IsNullOrEmpty())
-                    {
-                        MsgBox.Show("Failed to save the file.");
-                        return;
-                    }
-
-                    filePath = ODFileUtils.CombinePaths(Path.GetTempPath(), saveFileDialog2.FileName.Split('\\').Last());
-                }
-                else
-                {
-                    Cursor = Cursors.WaitCursor; //Checking the directory can take time, so set cursor to loading wheel
-                    if (!Directory.Exists(PrefC.GetString(PrefName.ExportPath)))
-                    {
-                        try
-                        {
-                            Directory.CreateDirectory(PrefC.GetString(PrefName.ExportPath));
-                            saveFileDialog2.InitialDirectory = PrefC.GetString(PrefName.ExportPath);
-                        }
-                        catch
-                        {
-                            //initialDirectory will be blank
-                        }
-                    }
-                    else
-                    {
-                        saveFileDialog2.InitialDirectory = PrefC.GetString(PrefName.ExportPath);
-                    }
-
-                    Cursor = Cursors.Default;
-                    if (saveFileDialog2.ShowDialog() != DialogResult.OK)
-                    {
-                        saveFileDialog2.Dispose();
-                        return;
-                    }
-
-                    filePath = saveFileDialog2.FileName;
-                    saveFileDialog2.Dispose();
+                    saveFileDialog2.FileName = textTitle.Text;
                 }
             }
+            else
+            {
+                saveFileDialog2.FileName = _userQuery.FileName;
+            }
+
+            Cursor = Cursors.WaitCursor; //Checking the directory can take time, so set cursor to loading wheel
+            if (!Directory.Exists(PrefC.GetString(PrefName.ExportPath)))
+            {
+                try
+                {
+                    Directory.CreateDirectory(PrefC.GetString(PrefName.ExportPath));
+                    saveFileDialog2.InitialDirectory = PrefC.GetString(PrefName.ExportPath);
+                }
+                catch
+                {
+                    //initialDirectory will be blank
+                }
+            }
+            else
+            {
+                saveFileDialog2.InitialDirectory = PrefC.GetString(PrefName.ExportPath);
+            }
+
+            Cursor = Cursors.Default;
+            if (saveFileDialog2.ShowDialog() != DialogResult.OK)
+            {
+                saveFileDialog2.Dispose();
+                return;
+            }
+
+            filePath = saveFileDialog2.FileName;
+            saveFileDialog2.Dispose();
 
             StreamWriter streamWriter = null;
             try
@@ -955,7 +923,7 @@ namespace OpenDental
                         {
                             _dictionaryPatientNames = Patients.GetDictAllPatientNames();
                         }
-                        catch (Exception e)
+                        catch
                         {
                             return dataString;
                         }
@@ -987,7 +955,7 @@ namespace OpenDental
                         var referral = Referrals.GetReferral(SIn.Long(dataString));
                         retVal = referral.LName + ", " + referral.FName + " " + referral.MName;
                     }
-                    catch (Exception e)
+                    catch
                     {
                         return dataString;
                     }
@@ -1350,7 +1318,7 @@ namespace OpenDental
                 _serverThreadId = 0;
                 FillForm();
             }
-            catch (Exception e)
+            catch
             {
             }
         }

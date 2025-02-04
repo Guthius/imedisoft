@@ -24,7 +24,7 @@ public class FamilyBalancer
             return;
         }
 
-        FamilyBalancerOptions familyBalanceOptions = (FamilyBalancerOptions) thread.Tag;
+        var familyBalanceOptions = (FamilyBalancerOptions) thread.Tag;
         ConcurrentQueueOutputMessages.Enqueue(new OutputMessage(LogLevel.Error, $@"======================================================================"));
         ConcurrentQueueOutputMessages.Enqueue(new OutputMessage(LogLevel.Error, $@"Income Transfer thread started at {DateTime.Now} with the following settings:"));
         ConcurrentQueueOutputMessages.Enqueue(new OutputMessage(LogLevel.Error, $@"Income Transfer Date: {familyBalanceOptions.DateIncomeTransfer.ToShortDateString()}"));
@@ -35,17 +35,17 @@ public class FamilyBalancer
         ConcurrentQueueOutputMessages.Enqueue(new OutputMessage(LogLevel.Error, $@"Is Rigorous: {(familyBalanceOptions.IsRigorous ? "True" : "False")}"));
         ConcurrentQueueOutputMessages.Enqueue(new OutputMessage(LogLevel.Error, $@"======================================================================"));
         FillGuarantorQueue(familyBalanceOptions);
-        string strLogic = "FIFO logic";
+        var strLogic = "FIFO logic";
         if (familyBalanceOptions.IsRigorous)
         {
             strLogic = "Rigorous logic";
         }
 
-        while (!thread.HasQuit && ConcurrentQueueGuarantors != null && ConcurrentQueueGuarantors.TryDequeue(out long guarantor))
+        while (!thread.HasQuit && ConcurrentQueueGuarantors != null && ConcurrentQueueGuarantors.TryDequeue(out var guarantor))
         {
             ConcurrentQueueOutputMessages.Enqueue(new OutputMessage(LogLevel.Verbose, $@"Processing the family of guarantor: {guarantor} ------------------"));
-            Family family = Patients.GetFamily(guarantor);
-            Patient patient = family.GetPatient(guarantor);
+            var family = Patients.GetFamily(guarantor);
+            var patient = family.GetPatient(guarantor);
             if (familyBalanceOptions.DoDeleteTransfers)
             {
                 ConcurrentQueueOutputMessages.Enqueue(new OutputMessage(LogLevel.Verbose, $@"Deleting transfers for family..."));
@@ -61,9 +61,9 @@ public class FamilyBalancer
             if (familyBalanceOptions.IsRigorous)
             {
                 ConcurrentQueueOutputMessages.Enqueue(new OutputMessage(LogLevel.Verbose, $@"Rigorous income transfer logic running..."));
-                PaymentEdit.ConstructResults constructResults = PaymentEdit.ConstructAndLinkChargeCredits(family.GetPatNums(), patient.PatNum,
+                var constructResults = PaymentEdit.ConstructAndLinkChargeCredits(family.GetPatNums(), patient.PatNum,
                     new List<PaySplit>(), new Payment(), new List<AccountEntry>(), isIncomeTxfr: true, dateAsOf: familyBalanceOptions.DateAsOf);
-                if (!PaymentEdit.TryCreateIncomeTransfer(constructResults.ListAccountEntries, familyBalanceOptions.DateIncomeTransfer, out PaymentEdit.IncomeTransferData data))
+                if (!PaymentEdit.TryCreateIncomeTransfer(constructResults.ListAccountEntries, familyBalanceOptions.DateIncomeTransfer, out var data))
                 {
                     ConcurrentQueueOutputMessages.Enqueue(new OutputMessage(LogLevel.Error, $@"Failed to create an income transfer due to the following:"));
                     if (data.StringBuilderWarnings.Length > 0)
@@ -87,7 +87,7 @@ public class FamilyBalancer
                 try
                 {
                     ConcurrentQueueOutputMessages.Enqueue(new OutputMessage(LogLevel.Verbose, $@"FIFO income transfer logic running..."));
-                    PaymentEdit.IncomeTransferData incomeTransferData = PaymentEdit.GetIncomeTransferDataFIFO(patient.PatNum, familyBalanceOptions.DateIncomeTransfer,
+                    var incomeTransferData = PaymentEdit.GetIncomeTransferDataFIFO(patient.PatNum, familyBalanceOptions.DateIncomeTransfer,
                         dateAsOf: familyBalanceOptions.DateAsOf);
                     listPaySplits = incomeTransferData.ListSplitsCur;
                 }
@@ -105,7 +105,7 @@ public class FamilyBalancer
             }
 
             ConcurrentQueueOutputMessages.Enqueue(new OutputMessage(LogLevel.Verbose, $@"An income transfer with {listPaySplits.Count} payment splits was created to balance the family account."));
-            Payment payment = new Payment();
+            var payment = new Payment();
             payment.PayDate = familyBalanceOptions.DateIncomeTransfer;
             payment.PatNum = patient.PatNum;
             //Explicitly set ClinicNum=0, since a pat's ClinicNum will remain set if the user enabled clinics, assigned patients to clinics, and then
@@ -177,7 +177,7 @@ public class FamilyBalancer
         try
         {
             ConcurrentQueueOutputMessages.Enqueue(new OutputMessage(LogLevel.Verbose, $@"Transferring claim pay as totals..."));
-            ClaimTransferResult claimTransferResult = PaymentEdit.TransferClaimsPayAsTotal(patient.PatNum, family.GetPatNums(),
+            var claimTransferResult = PaymentEdit.TransferClaimsPayAsTotal(patient.PatNum, family.GetPatNums(),
                 "Automatic transfer of claims pay as total from family balancer.");
             //Process the claim transfer result for logging purposes.
             if (claimTransferResult == null || claimTransferResult.ListClaimProcsInserted.IsNullOrEmpty())
@@ -187,18 +187,18 @@ public class FamilyBalancer
             else
             {
                 ConcurrentQueueOutputMessages.Enqueue(new OutputMessage(LogLevel.Verbose, $@"The following claims needed a pay as total transfer:"));
-                List<ClaimTransferBreakdown> listClaimTransferBreakdowns = claimTransferResult.ListClaimProcsInserted.GroupBy(x => x.ClaimNum)
+                var listClaimTransferBreakdowns = claimTransferResult.ListClaimProcsInserted.GroupBy(x => x.ClaimNum)
                     .ToDictionary(x => x.Key, x => x.ToList())
                     .Select(x => new ClaimTransferBreakdown() {ClaimNum = x.Key, CountNewClaimProcs = x.Value.Count})
                     .ToList();
-                List<string> listBreakdownStrings = listClaimTransferBreakdowns
+                var listBreakdownStrings = listClaimTransferBreakdowns
                     .Select(x => $"  ClaimNum: {x.ClaimNum} added {x.CountNewClaimProcs} new claimprocs.")
                     .ToList();
-                string strClaimProcDesc = string.Join("\r\n", listBreakdownStrings);
+                var strClaimProcDesc = string.Join("\r\n", listBreakdownStrings);
                 ConcurrentQueueOutputMessages.Enqueue(new OutputMessage(LogLevel.Verbose, strClaimProcDesc));
-                int countPaySplits = claimTransferResult.ListPaySplitsInserted.Count;
-                string strSplitsTotal = claimTransferResult.ListPaySplitsInserted.Sum(x => x.SplitAmt).ToString("C");
-                string strPaySplitDesc = $"  There were {countPaySplits} new unearned payment splits totalling {strSplitsTotal} inserted.";
+                var countPaySplits = claimTransferResult.ListPaySplitsInserted.Count;
+                var strSplitsTotal = claimTransferResult.ListPaySplitsInserted.Sum(x => x.SplitAmt).ToString("C");
+                var strPaySplitDesc = $"  There were {countPaySplits} new unearned payment splits totalling {strSplitsTotal} inserted.";
                 ConcurrentQueueOutputMessages.Enqueue(new OutputMessage(LogLevel.Verbose, strPaySplitDesc));
             }
         }
@@ -218,20 +218,20 @@ public class FamilyBalancer
             return;
         }
 
-        FamilyBalancerOptions familyBalanceOptions = (FamilyBalancerOptions) thread.Tag;
+        var familyBalanceOptions = (FamilyBalancerOptions) thread.Tag;
         ConcurrentQueueOutputMessages.Enqueue(new OutputMessage(LogLevel.Error, $@"======================================================================"));
         ConcurrentQueueOutputMessages.Enqueue(new OutputMessage(LogLevel.Error, $@"Recreate thread started at {DateTime.Now} with the following settings:"));
         ConcurrentQueueOutputMessages.Enqueue(new OutputMessage(LogLevel.Error, $@"As of Date: {familyBalanceOptions.DateAsOf.ToShortDateString()}"));
         ConcurrentQueueOutputMessages.Enqueue(new OutputMessage(LogLevel.Error, $@"Delete All Transfers: {(familyBalanceOptions.DoDeleteTransfers ? "True" : "False")}"));
         ConcurrentQueueOutputMessages.Enqueue(new OutputMessage(LogLevel.Error, $@"======================================================================"));
         FillGuarantorQueue(familyBalanceOptions);
-        while (!thread.HasQuit && ConcurrentQueueGuarantors != null && ConcurrentQueueGuarantors.TryDequeue(out long guarantor))
+        while (!thread.HasQuit && ConcurrentQueueGuarantors != null && ConcurrentQueueGuarantors.TryDequeue(out var guarantor))
         {
             ConcurrentQueueOutputMessages.Enqueue(new OutputMessage(LogLevel.Verbose, $@"Processing the family of guarantor: {guarantor} ------------------"));
             if (familyBalanceOptions.DoDeleteTransfers)
             {
                 ConcurrentQueueOutputMessages.Enqueue(new OutputMessage(LogLevel.Verbose, $@"Deleting transfers for family..."));
-                List<long> listPatNums = Patients.GetFamily(guarantor).GetPatNums();
+                var listPatNums = Patients.GetFamily(guarantor).GetPatNums();
                 PaymentEdit.DeleteTransfersForFamily(listPatNums, isPayTypeIgnored: true);
             }
 
@@ -260,16 +260,16 @@ public class FamilyBalancer
             return;
         }
 
-        FamilyBalancerOptions familyBalanceOptions = (FamilyBalancerOptions) thread.Tag;
+        var familyBalanceOptions = (FamilyBalancerOptions) thread.Tag;
         ConcurrentQueueOutputMessages.Enqueue(new OutputMessage(LogLevel.Error, $@"======================================================================"));
         ConcurrentQueueOutputMessages.Enqueue(new OutputMessage(LogLevel.Error, $@"Overpay thread started at {DateTime.Now}"));
         ConcurrentQueueOutputMessages.Enqueue(new OutputMessage(LogLevel.Error, $@"======================================================================"));
         FillGuarantorQueue(familyBalanceOptions);
-        while (!thread.HasQuit && ConcurrentQueueGuarantors != null && ConcurrentQueueGuarantors.TryDequeue(out long guarantor))
+        while (!thread.HasQuit && ConcurrentQueueGuarantors != null && ConcurrentQueueGuarantors.TryDequeue(out var guarantor))
         {
             ConcurrentQueueOutputMessages.Enqueue(new OutputMessage(LogLevel.Verbose, $@"Processing the family of guarantor: {guarantor} ------------------"));
-            Family family = Patients.GetFamily(guarantor);
-            Patient patient = family.GetPatient(guarantor);
+            var family = Patients.GetFamily(guarantor);
+            var patient = family.GetPatient(guarantor);
             if (!TransferClaimsPayAsTotal(family, patient))
             {
                 continue;
@@ -277,7 +277,7 @@ public class FamilyBalancer
 
             try
             {
-                InsOverpayResult insOverpayResult = PaymentEdit.TransferInsuranceOverpaymentsForFamily(family,
+                var insOverpayResult = PaymentEdit.TransferInsuranceOverpaymentsForFamily(family,
                     payDate: familyBalanceOptions.DatePay,
                     defNumPayType: familyBalanceOptions.DefNumPayType);
                 if (insOverpayResult.StringBuilderErrors.Length == 0)

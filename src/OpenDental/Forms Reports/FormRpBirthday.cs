@@ -1,13 +1,10 @@
 using System;
-using System.ComponentModel;
 using System.Data;
 using System.Drawing;
-using System.Collections;
 using System.Globalization;
 using System.Drawing.Printing;
 using System.Windows.Forms;
 using OpenDental.ReportingComplex;
-using OpenDental.UI;
 using OpenDentBusiness;
 using CodeBase;
 using DataConnectionBase;

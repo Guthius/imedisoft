@@ -116,7 +116,7 @@ public class ProcedureL
             }
 
             var procedureCode = ProcedureCodes.GetProcCode(procedure.CodeNum);
-            var provNum = Procedures.GetProvNumFromAppointment(appointment, procedure, procedureCode);
+            var provNum = Procedures.GetProvNumFromAppointment(appointment, procedureCode);
             if (provNum != procedure.ProvNum)
             {
                 proceduresCompletedWithDifferentProv.Add(procedure);

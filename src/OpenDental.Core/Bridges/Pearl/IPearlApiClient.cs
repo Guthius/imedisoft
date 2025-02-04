@@ -1,17 +1,5 @@
-﻿using CodeBase;
-using Google.Apis.Auth.OAuth2;
-using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
-using System.Drawing;
-using System.Drawing.Imaging;
-using System.IO;
-using System.Linq;
-using System.Net.Http;
-using System.Net.Http.Headers;
-using System.Threading.Tasks;
+﻿using System.Drawing;
 using Imedisoft.Core.Entities;
-using SystemTask = System.Threading.Tasks.Task;
 
 namespace OpenDentBusiness.Pearl {
 	public interface IPearlApiClient {

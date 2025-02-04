@@ -40,7 +40,7 @@ public class XWebResponses
                       + SOut.Int((int) XWebResponseCodes.Approval) + ","
                       + SOut.Int((int) XWebResponseCodes.PartialApproval) + ") "
                       + "AND xwebresponse.DateTUpdate BETWEEN " + SOut.DateTime(dateFrom) + " AND " + SOut.DateTime(dateTo.AddDays(1)) + " ";
-        if (listClinicNums.Count > 0) command += "AND xwebresponse.ClinicNum IN (" + string.Join(",", listClinicNums.Select(x => SOut.Long(x))) + ") ";
+        if (listClinicNums.Count > 0) command += "AND xwebresponse.ClinicNum IN (" + string.Join(",", listClinicNums.Select(x => (x))) + ") ";
 
         #endregion
 
@@ -61,7 +61,7 @@ public class XWebResponses
                    + "WHERE payconnectresponseweb.DateTimeCompleted BETWEEN " + SOut.DateTime(dateFrom) + " AND " + SOut.DateTime(dateTo.AddDays(1)) + " "
                    + "AND payconnectresponseweb.ProcessingStatus='" + PayConnectWebStatus.Completed + "' "
                    + "AND payconnectresponseweb.TransType!='' ";
-        if (listClinicNums.Count > 0) command += "AND payment.ClinicNum IN (" + string.Join(",", listClinicNums.Select(x => SOut.Long(x))) + ") ";
+        if (listClinicNums.Count > 0) command += "AND payment.ClinicNum IN (" + string.Join(",", listClinicNums.Select(x => (x))) + ") ";
 
         command += "ORDER BY DateTUpdate,Patient;";
 

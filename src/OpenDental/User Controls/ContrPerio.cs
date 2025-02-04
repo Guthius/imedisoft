@@ -2,20 +2,16 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Data;
-using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Drawing2D;
-using System.Drawing.Imaging;
-using System.Drawing.Text;
 using System.Linq;
 using System.Windows.Forms;
 using CodeBase;
 using DataConnectionBase;
 using Imedisoft.Core.Caching;
+using Imedisoft.Core.Data;
 using Imedisoft.Core.Entities;
 using OpenDentBusiness;
-using SparksToothChart;
 using WpfControls.UI;
 
 namespace OpenDental;
@@ -31,7 +27,7 @@ public class ContrPerio : System.Windows.Forms.Control{
 	public EnumAdvanceSequence EnumAdvanceSequence_=EnumAdvanceSequence.MaxFirst;
 	///<summary>Current direction of the perio exam sequence</summary>
 	public EnumCurrentDirection EnumCurrentDirection_;
-	public LayoutManagerForms LayoutManager=new LayoutManagerForms();
+	
 	///<summary>Stores the column,row of the currently selected cell(s).</summary>
 	public List<ColRow> ListColRowsSelected;
 	///<summary>List of all perio exams for the current patient.</summary>

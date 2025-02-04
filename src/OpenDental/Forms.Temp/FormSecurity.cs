@@ -1,12 +1,8 @@
 using System;
 using System.Collections.Generic;
-using System.Data;
-using System.Drawing;
-using System.Text;
 using System.Windows.Forms;
 using OpenDental.UI;
 using OpenDentBusiness;
-using CodeBase;
 using System.Linq;
 using Imedisoft.Core.Entities;
 
@@ -113,7 +109,6 @@ public partial class FormSecurity:FormODBase {
 
 	private DialogResult userControlSecurityTabs_GroupPermissionChecked(object sender,SecurityEventArgs e) {
 		using var formGroupPermEdit = new FormGroupPermEdit(e.Perm);
-		formGroupPermEdit.IsNew=true;
 		formGroupPermEdit.ShowDialog();
 		return formGroupPermEdit.DialogResult;
 	}

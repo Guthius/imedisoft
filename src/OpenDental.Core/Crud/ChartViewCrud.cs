@@ -17,21 +17,22 @@ public class ChartViewCrud
     public static List<ChartView> TableToList(DataTable table)
     {
         var retVal = new List<ChartView>();
-        ChartView chartView;
         foreach (DataRow row in table.Rows)
         {
-            chartView = new ChartView();
-            chartView.ChartViewNum = SIn.Long(row["ChartViewNum"].ToString());
-            chartView.Description = SIn.String(row["Description"].ToString());
-            chartView.ItemOrder = SIn.Int(row["ItemOrder"].ToString());
-            chartView.ProcStatuses = (ChartViewProcStat) SIn.Int(row["ProcStatuses"].ToString());
-            chartView.ObjectTypes = (ChartViewObjs) SIn.Int(row["ObjectTypes"].ToString());
-            chartView.ShowProcNotes = SIn.Bool(row["ShowProcNotes"].ToString());
-            chartView.IsAudit = SIn.Bool(row["IsAudit"].ToString());
-            chartView.SelectedTeethOnly = SIn.Bool(row["SelectedTeethOnly"].ToString());
-            chartView.OrionStatusFlags = (OrionStatus) SIn.Int(row["OrionStatusFlags"].ToString());
-            chartView.DatesShowing = (ChartViewDates) SIn.Int(row["DatesShowing"].ToString());
-            chartView.IsTpCharting = SIn.Bool(row["IsTpCharting"].ToString());
+            var chartView = new ChartView
+            {
+                ChartViewNum = SIn.Long(row["ChartViewNum"].ToString()),
+                Description = SIn.String(row["Description"].ToString()),
+                ItemOrder = SIn.Int(row["ItemOrder"].ToString()),
+                ProcStatuses = (ChartViewProcStat) SIn.Int(row["ProcStatuses"].ToString()),
+                ObjectTypes = (ChartViewObjs) SIn.Int(row["ObjectTypes"].ToString()),
+                ShowProcNotes = SIn.Bool(row["ShowProcNotes"].ToString()),
+                IsAudit = SIn.Bool(row["IsAudit"].ToString()),
+                SelectedTeethOnly = SIn.Bool(row["SelectedTeethOnly"].ToString()),
+                OrionStatusFlags = (OrionStatus) SIn.Int(row["OrionStatusFlags"].ToString()),
+                DatesShowing = (ChartViewDates) SIn.Int(row["DatesShowing"].ToString()),
+                IsTpCharting = SIn.Bool(row["IsTpCharting"].ToString())
+            };
             retVal.Add(chartView);
         }
 
@@ -58,7 +59,7 @@ public class ChartViewCrud
         return table;
     }
 
-    public static long Insert(ChartView chartView)
+    public static void Insert(ChartView chartView)
     {
         var command = "INSERT INTO chartview (";
 
@@ -78,7 +79,6 @@ public class ChartViewCrud
         {
             chartView.ChartViewNum = Db.NonQ(command, true, "ChartViewNum", "chartView");
         }
-        return chartView.ChartViewNum;
     }
 
     public static void Update(ChartView chartView)

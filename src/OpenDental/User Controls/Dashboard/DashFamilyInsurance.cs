@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Drawing;
 using System.Windows.Forms;
 using Imedisoft.Core.Entities;
@@ -15,7 +14,6 @@ public partial class DashFamilyInsurance : Control, IDashWidgetField
     private List<PatPlan> _listPatPlans;
     private List<Benefit> _listBenefits;
     private Patient _pat;
-    public LayoutManagerForms LayoutManager = new LayoutManagerForms();
     private string _strFamPriMax = "";
     private string _strFamPriDed = "";
     private string _strFamSecMax = "";
@@ -27,35 +25,9 @@ public partial class DashFamilyInsurance : Control, IDashWidgetField
         DoubleBuffered = true;
     }
 
-    public void PassLayoutManager(LayoutManagerForms layoutManager)
-    {
-        //this is only in dashboard.  In ControlTreat, the LayoutManager is set during layout.
-        LayoutManager = layoutManager;
-    }
-
     protected override Size DefaultSize
     {
         get { return new Size(193, 80); }
-    }
-
-    protected override void OnSizeChanged(EventArgs e)
-    {
-        base.OnSizeChanged(e);
-        /*
-        groupBoxFamilyIns.Bounds=ClientRectangle;
-        //LayoutManager is not allowed to touch dashboard, so we have to do manual layout ourselves.
-        //It would be better to do this with paint instead of controls.
-        //WARNING: Changing the position of controls in this designer will not change them in the UI because we lay them all out here:
-        float scaledFontSize=F(8.25f);
-        scaledFontSize*=0.92f;//because this is what the layout manager usually does
-        using Font fontLabel=new Font(FontFamily.GenericSansSerif,scaledFontSize);
-        labelPri.Font=fontLabel;
-        labelSec.Font=fontLabel;
-        labelAnnual.Font=fontLabel;
-        labelDed.Font=fontLabel;
-        labelPri.Bounds=new Rectangle((74),(16),(60),(15));
-        labelSec.Bounds=new Rectangle((131),(16),(60),(14));
-        labelAnnual.Bounds=new Rectangle((4),(37),(66),(15));*/
     }
 
     protected override void OnPaint(PaintEventArgs e)
@@ -129,58 +101,6 @@ public partial class DashFamilyInsurance : Control, IDashWidgetField
     public string GetFamSecDed()
     {
         return _strFamSecDed;
-    }
-
-    public void SetData(PatientDashboardDataEventArgs data, SheetField sheetField)
-    {
-        if (!IsNecessaryDataAvailable(data))
-        {
-            return;
-        }
-
-        ExtractData(data);
-    }
-
-    private bool IsNecessaryDataAvailable(PatientDashboardDataEventArgs data)
-    {
-        if (data.Pat == null || data.ListInsPlans == null || data.ListInsSubs == null || data.ListPatPlans == null || data.ListBenefits == null || data.Pat == null)
-        {
-            return false;
-        }
-
-        return true;
-    }
-
-    private void ExtractData(PatientDashboardDataEventArgs data)
-    {
-        _listInsPlans = data.ListInsPlans;
-        _listInsSubs = data.ListInsSubs;
-        _listPatPlans = data.ListPatPlans;
-        _listBenefits = data.ListBenefits;
-        _pat = data.Pat;
-    }
-
-    public void RefreshData(Patient pat, SheetField sheetField)
-    {
-        _listInsPlans = [];
-        _listInsSubs = [];
-        _listPatPlans = [];
-        _listBenefits = [];
-        _pat = pat;
-        if (_pat == null)
-        {
-            return;
-        }
-
-        _listPatPlans = PatPlans.Refresh(_pat.PatNum);
-        _listInsSubs = InsSubs.RefreshForFam(Patients.GetFamily(_pat.PatNum));
-        _listInsPlans = InsPlans.RefreshForSubList(_listInsSubs);
-        _listBenefits = Benefits.Refresh(_listPatPlans, _listInsSubs);
-    }
-
-    public void RefreshView()
-    {
-        RefreshInsurance(_pat, _listInsPlans, _listInsSubs, _listPatPlans, _listBenefits);
     }
 
     public void RefreshInsurance(Patient pat, List<InsPlan> listInsPlans, List<InsSub> listInsSubs, List<PatPlan> listPatPlans, List<Benefit> listBenefits)

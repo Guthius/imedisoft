@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Runtime.ExceptionServices;
@@ -8,7 +7,6 @@ using System.Runtime.InteropServices;
 using System.Security.Cryptography;
 using System.Text;
 using System.Windows.Forms;
-using Microsoft.Win32;
 
 namespace CodeBase;
 
@@ -19,21 +17,9 @@ public static class MiscUtils
 
     public static string CreateRandomAlphaNumericString(int length)
     {
-        string result = "";
-        string randChrs = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-        for (int i = 0; i < length; i++)
-        {
-            result += randChrs[ODRandom.Next(0, randChrs.Length - 1)];
-        }
-
-        return result;
-    }
-
-    public static string CreateRandomAlphaString(int length)
-    {
-        string result = "";
-        string randChrs = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
-        for (int i = 0; i < length; i++)
+        var result = "";
+        var randChrs = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+        for (var i = 0; i < length; i++)
         {
             result += randChrs[ODRandom.Next(0, randChrs.Length - 1)];
         }
@@ -48,7 +34,7 @@ public static class MiscUtils
             return false;
         }
 
-        if (!Uri.TryCreate(uri, UriKind.Absolute, out Uri uriResult))
+        if (!Uri.TryCreate(uri, UriKind.Absolute, out var uriResult))
         {
             return false;
         }
@@ -58,9 +44,9 @@ public static class MiscUtils
 
     public static string CreateRandomNumericString(int length)
     {
-        string result = "";
-        string randChrs = "0123456789";
-        for (int i = 0; i < length; i++)
+        var result = "";
+        var randChrs = "0123456789";
+        for (var i = 0; i < length; i++)
         {
             result += randChrs[ODRandom.Next(0, randChrs.Length - 1)];
         }
@@ -68,15 +54,9 @@ public static class MiscUtils
         return result;
     }
 
-    public static DateTime GetRandomDate(DateTime lowerBound, DateTime upperBound)
-    {
-        int daysInRange = (int) (upperBound - lowerBound).TotalDays;
-        return lowerBound.AddDays(ODRandom.Next(daysInRange));
-    }
-
     public static List<DateTime> GetDatesInRange(DateTime dateTimeStart, DateTime dateTimeEnd)
     {
-        List<DateTime> listDateTimes = new List<DateTime>();
+        var listDateTimes = new List<DateTime>();
         if (dateTimeStart != DateTime.MinValue && dateTimeEnd == DateTime.MinValue)
         {
             return ListTools.FromSingle(dateTimeStart);
@@ -92,38 +72,12 @@ public static class MiscUtils
             return listDateTimes;
         }
 
-        for (DateTime dateTime = dateTimeStart; dateTime <= dateTimeEnd; dateTime = dateTime.AddDays(1))
+        for (var dateTime = dateTimeStart; dateTime <= dateTimeEnd; dateTime = dateTime.AddDays(1))
         {
             listDateTimes.Add(dateTime.Date);
         }
 
         return listDateTimes;
-    }
-
-    public static List<string> CutStringIntoSimilarSizedChunks(string inputString, int chunkSize)
-    {
-        List<string> listChunks = new List<string>();
-        int to = 0;
-        int from = 0;
-        int end = inputString.Length;
-        string splitString;
-        while (to < end)
-        {
-            to = Math.Min(to + chunkSize, end);
-            int length = to - from;
-            splitString = inputString.Substring(from, length);
-            while (Encoding.UTF8.GetByteCount(splitString) > chunkSize)
-            {
-                length--;
-                to--;
-                splitString = inputString.Substring(from, length);
-            }
-
-            listChunks.Add(splitString);
-            from += length;
-        }
-
-        return listChunks;
     }
 
     public static CultureInfo GetCultureFromThreeLetter(string strThreeLetterISOname)
@@ -134,8 +88,8 @@ public static class MiscUtils
             return null;
         }
 
-        CultureInfo[] arrayCulturesNeutral = CultureInfo.GetCultures(CultureTypes.NeutralCultures);
-        for (int i = 0; i < arrayCulturesNeutral.Length; i++)
+        var arrayCulturesNeutral = CultureInfo.GetCultures(CultureTypes.NeutralCultures);
+        for (var i = 0; i < arrayCulturesNeutral.Length; i++)
         {
             if (arrayCulturesNeutral[i].ThreeLetterISOLanguageName == strThreeLetterISOname)
             {
@@ -173,8 +127,8 @@ public static class MiscUtils
 
     public static IEnumerable<T> DistinctBy<T, TKey>(this IEnumerable<T> listSource, Func<T, TKey> keySelector)
     {
-        HashSet<TKey> hashSet = new HashSet<TKey>();
-        foreach (T source in listSource)
+        var hashSet = new HashSet<TKey>();
+        foreach (var source in listSource)
         {
             if (hashSet.Add(keySelector(source)))
             {
@@ -185,7 +139,7 @@ public static class MiscUtils
 
     public static void ForEach<T>(this IEnumerable<T> listSource, Action<T> action)
     {
-        foreach (T source in listSource)
+        foreach (var source in listSource)
         {
             action(source);
         }
@@ -198,7 +152,7 @@ public static class MiscUtils
 
     public static string GetExceptionText(Exception e, string threadName = null, bool isUnhandledException = true)
     {
-        string text = "";
+        var text = "";
         if (isUnhandledException)
         {
             text = "Unhandled exception ";
@@ -211,7 +165,7 @@ public static class MiscUtils
                 + (string.IsNullOrEmpty(e.StackTrace) ? "No StackTrace" : e.StackTrace);
         if (e is AggregateException)
         {
-            foreach (Exception innerEx in ((AggregateException) e).InnerExceptions)
+            foreach (var innerEx in ((AggregateException) e).InnerExceptions)
             {
                 text += InnerExceptionToString(innerEx);
             }
@@ -240,7 +194,7 @@ public static class MiscUtils
 
     public static void PreserveExceptionInfoAndThrow(Exception ex)
     {
-        ExceptionDispatchInfo exInfo = ExceptionDispatchInfo.Capture(ex);
+        var exInfo = ExceptionDispatchInfo.Capture(ex);
         exInfo.Throw(); //This line should actually throw.
     }
 
@@ -291,9 +245,9 @@ public static class MiscUtils
             throw new ArgumentException("Date must be at least 7 days greater than MinDate: " + date);
         }
 
-        for (int i = 0; i < 7; i++)
+        for (var i = 0; i < 7; i++)
         {
-            DateTime newDate = date.AddDays(-i);
+            var newDate = date.AddDays(-i);
             if (newDate.DayOfWeek == dayOfWeek)
             {
                 return newDate;
@@ -310,9 +264,9 @@ public static class MiscUtils
             throw new ArgumentException("Date must be at least 7 days smaller than MaxValue: " + date);
         }
 
-        for (int i = 0; i < 7; i++)
+        for (var i = 0; i < 7; i++)
         {
-            DateTime newDate = date.AddDays(i);
+            var newDate = date.AddDays(i);
             if (newDate.DayOfWeek == dayOfWeek)
             {
                 return newDate;
@@ -326,18 +280,18 @@ public static class MiscUtils
 
     public static string Encrypt(string encrypt)
     {
-        UTF8Encoding enc = new UTF8Encoding();
-        byte[] arrayEncryptBytes = Encoding.UTF8.GetBytes(encrypt);
-        MemoryStream ms = new MemoryStream();
+        var enc = new UTF8Encoding();
+        var arrayEncryptBytes = Encoding.UTF8.GetBytes(encrypt);
+        var ms = new MemoryStream();
         CryptoStream cs = null;
         Aes aes = new AesCryptoServiceProvider();
         aes.Key = enc.GetBytes("AKQjlLUjlcABVbqp");
         aes.IV = new byte[16];
-        ICryptoTransform encryptor = aes.CreateEncryptor(aes.Key, aes.IV);
+        var encryptor = aes.CreateEncryptor(aes.Key, aes.IV);
         cs = new CryptoStream(ms, encryptor, CryptoStreamMode.Write);
         cs.Write(arrayEncryptBytes, 0, arrayEncryptBytes.Length);
         cs.FlushFinalBlock();
-        byte[] retval = new byte[ms.Length];
+        var retval = new byte[ms.Length];
         ms.Position = 0;
         ms.Read(retval, 0, (int) ms.Length);
         cs.Dispose();
@@ -354,19 +308,19 @@ public static class MiscUtils
     {
         try
         {
-            byte[] encrypted = Convert.FromBase64String(encString);
+            var encrypted = Convert.FromBase64String(encString);
             MemoryStream ms = null;
             CryptoStream cs = null;
             StreamReader sr = null;
             Aes aes = new AesCryptoServiceProvider();
-            UTF8Encoding enc = new UTF8Encoding();
+            var enc = new UTF8Encoding();
             aes.Key = enc.GetBytes("AKQjlLUjlcABVbqp");
             aes.IV = new byte[16];
-            ICryptoTransform decryptor = aes.CreateDecryptor(aes.Key, aes.IV);
+            var decryptor = aes.CreateDecryptor(aes.Key, aes.IV);
             ms = new MemoryStream(encrypted);
             cs = new CryptoStream(ms, decryptor, CryptoStreamMode.Read);
             sr = new StreamReader(cs);
-            string decrypted = sr.ReadToEnd();
+            var decrypted = sr.ReadToEnd();
             ms.Dispose();
             cs.Dispose();
             sr.Dispose();
@@ -391,71 +345,6 @@ public static class MiscUtils
 
             return "";
         }
-    }
-
-    public static bool TryUpdateIeEmulation()
-    {
-        bool ret = false;
-        try
-        {
-            int browserVersion;
-            //Get the installed IE version.
-            using (WebBrowser wb = new WebBrowser())
-            {
-                browserVersion = wb.Version.Major;
-            }
-
-            int regVal;
-            //Set the appropriate IE version
-            if (browserVersion >= 11)
-            {
-                regVal = 11001;
-            }
-            else if (browserVersion == 10)
-            {
-                regVal = 10001;
-            }
-            else if (browserVersion == 9)
-            {
-                regVal = 9999;
-            }
-            else if (browserVersion == 8)
-            {
-                regVal = 8888;
-            }
-            else if (browserVersion == 7)
-            {
-                regVal = 7000;
-            }
-            else
-            {
-                //Unknown version.  This will happen when version 12 and beyond are released.
-                regVal = browserVersion * 1000 + 1; //Guess the regVal code needed based on the historic pattern.
-            }
-
-            //Set the actual key.  This key can be set without admin rights, because it is within the current user's registry store.
-            string applicationName = Process.GetCurrentProcess().ProcessName + ".exe"; //This is OpenDental.vhost.exe when debugging, different for distributors.
-            string keyPath = @"SOFTWARE\Microsoft\Internet Explorer\Main\FeatureControl\FEATURE_BROWSER_EMULATION";
-            RegistryKey key = Registry.CurrentUser.OpenSubKey(keyPath, true);
-            if (key == null)
-            {
-                key = Registry.CurrentUser.CreateSubKey(keyPath);
-            }
-
-            object keyValueCur = key.GetValue(applicationName);
-            if (keyValueCur == null || keyValueCur.ToString() != regVal.ToString())
-            {
-                key.SetValue(applicationName, regVal, RegistryValueKind.DWord);
-                ret = true;
-            }
-
-            key.Close();
-        }
-        catch (Exception e)
-        {
-        }
-
-        return ret;
     }
 }
 

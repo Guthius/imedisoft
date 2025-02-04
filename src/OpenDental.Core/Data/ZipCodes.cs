@@ -65,14 +65,14 @@ public class ZipCodes
 
     private static readonly ZipCodeCache Cache = new();
 
-    public static List<ZipCode> GetWhere(Predicate<ZipCode> match, bool isShort = false)
+    public static List<ZipCode> GetWhere(Predicate<ZipCode> predicate, bool shortList = false)
     {
-        return Cache.GetWhere(match, isShort);
+        return Cache.GetWhere(predicate, shortList);
     }
 
-    public static List<ZipCode> GetDeepCopy(bool isShort = false)
+    public static List<ZipCode> GetDeepCopy(bool shortList = false)
     {
-        return Cache.GetDeepCopy(isShort);
+        return Cache.GetDeepCopy(shortList);
     }
 
     public static void RefreshCache()

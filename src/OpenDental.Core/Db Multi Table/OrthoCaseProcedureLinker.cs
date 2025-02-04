@@ -29,7 +29,7 @@ public class OrthoCaseProcedureLinker
         if (procedureOld.ProcStatus != ProcStat.C && procedure.ProcStatus == ProcStat.C)
         {
             //If procedure's status has changed from not-Complete to Completed, create new link to return...
-            OrthoCaseProcedureLinker orthoCaseProcedureLinker = CreateOneForPatient(procedure.PatNum);
+            var orthoCaseProcedureLinker = CreateOneForPatient(procedure.PatNum);
             orthoProcLink = orthoCaseProcedureLinker.LinkProcedureToActiveOrthoCaseIfNeeded(procedure);
         }
 
@@ -49,7 +49,7 @@ public class OrthoCaseProcedureLinker
 
     public static OrthoCaseProcedureLinker CreateOneForPatient(long patNum)
     {
-        List<OrthoCaseProcedureLinker> listOrthoCaseProcedureLinkers = CreateManyForPatients([patNum]);
+        var listOrthoCaseProcedureLinkers = CreateManyForPatients([patNum]);
         //Creation methods below ensure that list is never null or empty. A patient can only have one active OrthoCase,
         //so the list will only contain that active OrthoCase or a blank OrthoCaseProcedureLinker.
         return listOrthoCaseProcedureLinkers[0];
@@ -64,7 +64,7 @@ public class OrthoCaseProcedureLinker
         }
 
         //Get data needed for all patients to avoid querying in loops.
-        List<OrthoCase> listActiveOrthoCases = OrthoCases.GetActiveForPats(listPatNums);
+        var listActiveOrthoCases = OrthoCases.GetActiveForPats(listPatNums);
         if (listActiveOrthoCases.IsNullOrEmpty())
         {
             return CreateBlankLinkersForPatients(listPatNums);
@@ -72,30 +72,30 @@ public class OrthoCaseProcedureLinker
 
         //We don't need any other data for patients that don't have active OrthoCases.
         //Use this list of PatNums for further querying to filter on fewer PatNums.
-        List<long> listPatNumsForActiveOrthoCases = listActiveOrthoCases.Select(x => x.PatNum).ToList();
-        List<long> listOrthoCaseNums = listActiveOrthoCases.Select(x => x.OrthoCaseNum).ToList();
-        List<OrthoProcLink> listOrthoProcLinks = OrthoProcLinks.GetManyByOrthoCases(listOrthoCaseNums);
-        List<long> listBandingProcNums = listOrthoProcLinks
+        var listPatNumsForActiveOrthoCases = listActiveOrthoCases.Select(x => x.PatNum).ToList();
+        var listOrthoCaseNums = listActiveOrthoCases.Select(x => x.OrthoCaseNum).ToList();
+        var listOrthoProcLinks = OrthoProcLinks.GetManyByOrthoCases(listOrthoCaseNums);
+        var listBandingProcNums = listOrthoProcLinks
             .Where(x => x.ProcLinkType == OrthoProcType.Banding)
             .Select(x => x.ProcNum)
             .ToList();
-        List<Procedure> listBandingProcedures = Procedures.GetManyProc(listBandingProcNums, false);
-        List<OrthoPlanLink> listOrthoPlanLinks = OrthoPlanLinks.GetManyForOrthoCases(listOrthoCaseNums);
+        var listBandingProcedures = Procedures.GetManyProc(listBandingProcNums, false);
+        var listOrthoPlanLinks = OrthoPlanLinks.GetManyForOrthoCases(listOrthoCaseNums);
         List<long> listOrthoScheduleNums = listOrthoScheduleNums = listOrthoPlanLinks
             .Where(x => x.LinkType == OrthoPlanLinkType.OrthoSchedule)
             .Select(x => x.FKey)
             .ToList();
-        List<OrthoSchedule> listOrthoSchedules = OrthoSchedules.GetMany(listOrthoScheduleNums);
-        List<PayPlan> listPayPlans = PayPlans.GetAllPatPayPlansForPats(listPatNumsForActiveOrthoCases);
-        List<long> listPayPlanNums = listPayPlans.Select(x => x.PayPlanNum).ToList();
-        List<PayPlanLink> listProcPayPlanLinks = PayPlanLinks.GetForPayPlansAndLinkType(listPayPlanNums, PayPlanLinkType.Procedure);
-        List<PayPlanCharge> listProcPayPlanCredits = PayPlanCharges.GetAllProcCreditsForPayPlans(listPayPlanNums);
+        var listOrthoSchedules = OrthoSchedules.GetMany(listOrthoScheduleNums);
+        var listPayPlans = PayPlans.GetAllPatPayPlansForPats(listPatNumsForActiveOrthoCases);
+        var listPayPlanNums = listPayPlans.Select(x => x.PayPlanNum).ToList();
+        var listProcPayPlanLinks = PayPlanLinks.GetForPayPlansAndLinkType(listPayPlanNums, PayPlanLinkType.Procedure);
+        var listProcPayPlanCredits = PayPlanCharges.GetAllProcCreditsForPayPlans(listPayPlanNums);
         //Create an OrthoCaseProcedureLinker for each patient.
         //Full list of PatNums is used because we need to create blanks for patients without an active OrthoCase.
-        for (int i = 0; i < listPatNums.Count; i++)
+        for (var i = 0; i < listPatNums.Count; i++)
         {
-            long patNum = listPatNums[i];
-            OrthoCaseProcedureLinker OrthoCaseProcedureLinker = CreateOneForPatient(patNum, listActiveOrthoCases, listOrthoProcLinks, listOrthoPlanLinks,
+            var patNum = listPatNums[i];
+            var OrthoCaseProcedureLinker = CreateOneForPatient(patNum, listActiveOrthoCases, listOrthoProcLinks, listOrthoPlanLinks,
                 listBandingProcedures, listOrthoSchedules, listPayPlans, listProcPayPlanLinks, listProcPayPlanCredits);
             listOrthoCaseProcedureLinkers.Add(OrthoCaseProcedureLinker);
         }
@@ -135,16 +135,16 @@ public class OrthoCaseProcedureLinker
             return false; //Won't link Procedures that don't have an OrthoCase Procedure code.
         }
 
-        bool doesCaseHaveBanding = (_bandingProcedure != null);
-        bool doesCaseHaveIncompleteBanding = (doesCaseHaveBanding && _bandingProcedure.ProcStatus != ProcStat.C);
-        bool isProcedureCompletedBanding = (doesCaseHaveBanding && procedure.ProcNum == _bandingProcedure.ProcNum);
+        var doesCaseHaveBanding = (_bandingProcedure != null);
+        var doesCaseHaveIncompleteBanding = (doesCaseHaveBanding && _bandingProcedure.ProcStatus != ProcStat.C);
+        var isProcedureCompletedBanding = (doesCaseHaveBanding && procedure.ProcNum == _bandingProcedure.ProcNum);
         if (doesCaseHaveIncompleteBanding && !isProcedureCompletedBanding)
         {
             return false; //If OrthoCase has an incomplete banding Procedure linked, other procs can't be linked until it is completed.
         }
 
-        bool doesProcedureHaveBandingCode = OrthoCases.GetListProcTypeProcCodes(PrefName.OrthoBandingCodes).Contains(procCode);
-        bool isProcedureWrongBanding = (doesCaseHaveBanding && !isProcedureCompletedBanding && doesProcedureHaveBandingCode);
+        var doesProcedureHaveBandingCode = OrthoCases.GetListProcTypeProcCodes(PrefName.OrthoBandingCodes).Contains(procCode);
+        var isProcedureWrongBanding = (doesCaseHaveBanding && !isProcedureCompletedBanding && doesProcedureHaveBandingCode);
         if (isProcedureWrongBanding)
         {
             return false; //Can't have more than one banding Procedure linked to case.
@@ -155,7 +155,7 @@ public class OrthoCaseProcedureLinker
             return false; //Can't link bandings to transfer cases.
         }
 
-        List<long> listVisitProcNums = ListOrthoProcLinks
+        var listVisitProcNums = ListOrthoProcLinks
             .Where(x => x.ProcLinkType == OrthoProcType.Visit)
             .Select(x => x.ProcNum)
             .ToList();
@@ -169,15 +169,15 @@ public class OrthoCaseProcedureLinker
 
     public OrthoProcLink LinkProcedureToActiveOrthoCaseIfNeeded(Procedure procedure, bool doUpdateProcedure = false)
     {
-        string procCode = ProcedureCodes.GetProcCode(procedure.CodeNum).ProcCode;
+        var procCode = ProcedureCodes.GetProcCode(procedure.CodeNum).ProcCode;
         if (!ShouldProcedureLinkToOrthoCase(procedure, procCode))
         {
             return null;
         }
 
         OrthoProcLink orthoProcLink = null;
-        Procedure procedureOld = procedure.Copy();
-        OrthoCase orthoCaseOld = ActiveOrthoCase.Copy();
+        var procedureOld = procedure.Copy();
+        var orthoCaseOld = ActiveOrthoCase.Copy();
         //If Procedure being set complete is the banding, it is already linked. We just need to update the BandingDate.
         if (_bandingProcedure != null && _bandingProcedure.ProcNum == procedure.ProcNum)
         {
@@ -245,7 +245,7 @@ public class OrthoCaseProcedureLinker
     private static List<OrthoCaseProcedureLinker> CreateBlankLinkersForPatients(List<long> listPatNums)
     {
         List<OrthoCaseProcedureLinker> listOrthoCaseProcedureLinkers = [];
-        for (int i = 0; i < listPatNums.Count(); i++)
+        for (var i = 0; i < listPatNums.Count(); i++)
         {
             listOrthoCaseProcedureLinkers.Add(new OrthoCaseProcedureLinker {PatNum = listPatNums[i]});
         }
@@ -255,28 +255,28 @@ public class OrthoCaseProcedureLinker
 
     private static OrthoCaseProcedureLinker CreateOneForPatient(long patNum, List<OrthoCase> listActiveOrthoCases, List<OrthoProcLink> listOrthoProcLinks, List<OrthoPlanLink> listOrthoPlanLinks, List<Procedure> listBandingProcedures, List<OrthoSchedule> listOrthoSchedules, List<PayPlan> listPayPlans, List<PayPlanLink> listProcPayPlanLinks, List<PayPlanCharge> listProcPayPlanCharges)
     {
-        OrthoCase activeOrthoCase = listActiveOrthoCases.FirstOrDefault(x => x.PatNum == patNum);
+        var activeOrthoCase = listActiveOrthoCases.FirstOrDefault(x => x.PatNum == patNum);
         if (activeOrthoCase == null)
         {
             return new OrthoCaseProcedureLinker() {PatNum = patNum};
         }
 
-        OrthoPlanLink orthoScheduleLink = listOrthoPlanLinks.FirstOrDefault(x => x.LinkType == OrthoPlanLinkType.OrthoSchedule && x.OrthoCaseNum == activeOrthoCase.OrthoCaseNum);
+        var orthoScheduleLink = listOrthoPlanLinks.FirstOrDefault(x => x.LinkType == OrthoPlanLinkType.OrthoSchedule && x.OrthoCaseNum == activeOrthoCase.OrthoCaseNum);
         if (orthoScheduleLink == null)
         {
             return new OrthoCaseProcedureLinker() {PatNum = patNum};
         }
 
-        OrthoSchedule orthoSchedule = listOrthoSchedules.FirstOrDefault(x => x.OrthoScheduleNum == orthoScheduleLink.FKey);
+        var orthoSchedule = listOrthoSchedules.FirstOrDefault(x => x.OrthoScheduleNum == orthoScheduleLink.FKey);
         if (orthoSchedule == null)
         {
             return new OrthoCaseProcedureLinker() {PatNum = patNum};
         }
 
-        List<OrthoProcLink> listOrthoProcLinksForCase = listOrthoProcLinks.FindAll(x => x.OrthoCaseNum == activeOrthoCase.OrthoCaseNum);
-        List<long> listLinkedProcNums = listOrthoProcLinksForCase.Select(x => x.ProcNum).ToList();
-        Procedure bandingProcedure = listBandingProcedures.FirstOrDefault(x => listLinkedProcNums.Contains(x.ProcNum));
-        OrthoPlanLink orthoPayPlanLink = listOrthoPlanLinks.FirstOrDefault(x => x.LinkType == OrthoPlanLinkType.PatPayPlan && x.OrthoCaseNum == activeOrthoCase.OrthoCaseNum);
+        var listOrthoProcLinksForCase = listOrthoProcLinks.FindAll(x => x.OrthoCaseNum == activeOrthoCase.OrthoCaseNum);
+        var listLinkedProcNums = listOrthoProcLinksForCase.Select(x => x.ProcNum).ToList();
+        var bandingProcedure = listBandingProcedures.FirstOrDefault(x => listLinkedProcNums.Contains(x.ProcNum));
+        var orthoPayPlanLink = listOrthoPlanLinks.FirstOrDefault(x => x.LinkType == OrthoPlanLinkType.PatPayPlan && x.OrthoCaseNum == activeOrthoCase.OrthoCaseNum);
         PayPlan linkedPayPlan = null;
         List<PayPlan> listPayPlansForPat = [];
         List<PayPlanLink> listProcPayPlanLinksForPat = [];
@@ -290,7 +290,7 @@ public class OrthoCaseProcedureLinker
         if (linkedPayPlan != null)
         {
             //If a payplan is not linked to the OrthoCase, we don't care about other payplan data. Skip to avoid needless searching.
-            List<long> listPayPlanNumsForPat = listPayPlansForPat.Select(x => x.PayPlanNum).ToList();
+            var listPayPlanNumsForPat = listPayPlansForPat.Select(x => x.PayPlanNum).ToList();
             listProcPayPlanLinksForPat = listProcPayPlanLinks.FindAll(x => listPayPlanNumsForPat.Contains(x.PayPlanNum));
             listProcPayPlanChargesForPat = listProcPayPlanCharges.FindAll(x => listPayPlanNumsForPat.Contains(x.PayPlanNum));
         }
@@ -302,7 +302,7 @@ public class OrthoCaseProcedureLinker
     private void SetProcFeeForLinkedProc(Procedure procedure)
     {
         double procFee = 0;
-        OrthoProcLink orthoProcLink = ListOrthoProcLinks.FirstOrDefault(x => x.ProcNum == procedure.ProcNum);
+        var orthoProcLink = ListOrthoProcLinks.FirstOrDefault(x => x.ProcNum == procedure.ProcNum);
         switch (orthoProcLink.ProcLinkType)
         {
             case OrthoProcType.Banding:
@@ -312,10 +312,10 @@ public class OrthoCaseProcedureLinker
                 procFee = OrthoSchedule.DebondAmount;
                 break;
             case OrthoProcType.Visit:
-                double allVisitsAmount = Math.Round((ActiveOrthoCase.Fee - OrthoSchedule.BandingAmount - OrthoSchedule.DebondAmount) * 100) / 100;
-                int plannedVisitCount = OrthoSchedules.CalculatePlannedVisitsCount(OrthoSchedule.BandingAmount, OrthoSchedule.DebondAmount
+                var allVisitsAmount = Math.Round((ActiveOrthoCase.Fee - OrthoSchedule.BandingAmount - OrthoSchedule.DebondAmount) * 100) / 100;
+                var plannedVisitCount = OrthoSchedules.CalculatePlannedVisitsCount(OrthoSchedule.BandingAmount, OrthoSchedule.DebondAmount
                     , OrthoSchedule.VisitAmount, ActiveOrthoCase.Fee);
-                List<OrthoProcLink> listVisitProcLinks = ListOrthoProcLinks.FindAll(x => x.ProcLinkType == OrthoProcType.Visit);
+                var listVisitProcLinks = ListOrthoProcLinks.FindAll(x => x.ProcLinkType == OrthoProcType.Visit);
                 if (listVisitProcLinks.Count == plannedVisitCount)
                 {
                     procFee = Math.Round((allVisitsAmount - OrthoSchedule.VisitAmount * (plannedVisitCount - 1)) * 100) / 100;
@@ -360,7 +360,7 @@ public class OrthoCaseProcedureLinker
             return;
         }
 
-        PayPlanLink payPlanLink = new PayPlanLink
+        var payPlanLink = new PayPlanLink
         {
             PayPlanNum = _linkedPayPlan.PayPlanNum,
             LinkType = PayPlanLinkType.Procedure,

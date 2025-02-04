@@ -1,5 +1,4 @@
 using System;
-using System.Linq;
 using System.Windows.Forms;
 using CodeBase;
 using Imedisoft.Core.Caching;
@@ -45,12 +44,6 @@ public partial class FormLoginFailed:FormODBase {
 			}
 		}
 		var username=textUser.Text;
-		if(/* ODBuild.IsDebug() */ false) {
-			if(username=="") {
-				username="Admin";
-				password="pass";
-			}
-		}
 		//Set the PasswordTyped property prior to checking the credentials for Middle Tier.
 		Security.PasswordTyped=password;
 		try{

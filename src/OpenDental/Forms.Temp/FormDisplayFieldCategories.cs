@@ -1,12 +1,5 @@
 using System;
 using System.Linq;
-using System.Drawing;
-using System.Collections;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Windows.Forms;
-using OpenDental.UI;
-using OpenDentBusiness;
 using CodeBase;
 using Imedisoft.Core.Data;
 using Imedisoft.Core.Entities;
@@ -15,17 +8,13 @@ namespace OpenDental;
 
 /// <summary></summary>
 public partial class FormDisplayFieldCategories:FormODBase {
-	private bool _isCemtMode;
-
 		
-	public FormDisplayFieldCategories(bool isCemtMode=false)
+	public FormDisplayFieldCategories()
 	{
 		//
 		// Required for Windows Form Designer support
 		//
 		InitializeComponent();
-
-		_isCemtMode=isCemtMode;
 	}
 
 	private void FormDisplayFields_Load(object sender,EventArgs e) {
@@ -36,12 +25,8 @@ public partial class FormDisplayFieldCategories:FormODBase {
 			if(listDisplayFieldCategories[i]==DisplayFieldCategory.None) {//skip None because user not allowed to select that
 				continue;
 			}
-			var isDisplayCemtOnly=EnumTools.GetAttributeOrDefault<PermissionAttribute>(listDisplayFieldCategories[i]).IsCEMT;
-			if(_isCemtMode!=isDisplayCemtOnly) {
-				continue;
-			}
 			if(listDisplayFieldCategories[i]==DisplayFieldCategory.OrthoChart) { //orthochart tabs can have their own name.
-				listCategory.Items.Add(OrthoChartTabs.GetFirst(isShort:true).TabName,listDisplayFieldCategories[i]);
+				listCategory.Items.Add(OrthoChartTabs.GetFirst(shortList:true).TabName,listDisplayFieldCategories[i]);
 				continue;
 			}
 			listCategory.Items.Add(Lan.g("enumDisplayFieldCategory",listDisplayFieldCategories[i].GetDescription()),listDisplayFieldCategories[i]);

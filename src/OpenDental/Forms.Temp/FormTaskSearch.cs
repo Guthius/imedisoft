@@ -2,11 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Drawing;
-using System.Text;
 using System.Windows.Forms;
 using OpenDentBusiness;
 using OpenDental.UI;
-using System.ComponentModel;
 using System.Globalization;
 using System.Linq;
 using DataConnectionBase;
@@ -119,13 +117,6 @@ public partial class FormTaskSearch:FormODBase {
 		menuItemGoTo.Enabled=false;
 		menuItemGoTo.Visible=true;
 		gridTasks.ContextMenu.MenuItems.Add(menuItemGoTo);
-		if(false) {
-			var menuItemNavToJob=gridTasks.ContextMenu.MenuItems.OfType<MenuItem>().FirstOrDefault(x => x.Text == "Navigate to Job");
-			menuItemNavToJob=new MenuItem("Navigate to Job");
-			menuItemNavToJob.Enabled=false;
-			menuItemNavToJob.Visible=true;
-			gridTasks.ContextMenu.MenuItems.Add(menuItemNavToJob);
-		}
 		gridTasks.ContextMenu.Popup+=MenuPopup;
 	}
 

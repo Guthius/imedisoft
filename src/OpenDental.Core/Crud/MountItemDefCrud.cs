@@ -17,21 +17,22 @@ public class MountItemDefCrud
     public static List<MountItemDef> TableToList(DataTable table)
     {
         var retVal = new List<MountItemDef>();
-        MountItemDef mountItemDef;
         foreach (DataRow row in table.Rows)
         {
-            mountItemDef = new MountItemDef();
-            mountItemDef.MountItemDefNum = SIn.Long(row["MountItemDefNum"].ToString());
-            mountItemDef.MountDefNum = SIn.Long(row["MountDefNum"].ToString());
-            mountItemDef.Xpos = SIn.Int(row["Xpos"].ToString());
-            mountItemDef.Ypos = SIn.Int(row["Ypos"].ToString());
-            mountItemDef.Width = SIn.Int(row["Width"].ToString());
-            mountItemDef.Height = SIn.Int(row["Height"].ToString());
-            mountItemDef.ItemOrder = SIn.Int(row["ItemOrder"].ToString());
-            mountItemDef.RotateOnAcquire = SIn.Int(row["RotateOnAcquire"].ToString());
-            mountItemDef.ToothNumbers = SIn.String(row["ToothNumbers"].ToString());
-            mountItemDef.TextShowing = SIn.String(row["TextShowing"].ToString());
-            mountItemDef.FontSize = SIn.Float(row["FontSize"].ToString());
+            var mountItemDef = new MountItemDef
+            {
+                MountItemDefNum = SIn.Long(row["MountItemDefNum"].ToString()),
+                MountDefNum = SIn.Long(row["MountDefNum"].ToString()),
+                Xpos = SIn.Int(row["Xpos"].ToString()),
+                Ypos = SIn.Int(row["Ypos"].ToString()),
+                Width = SIn.Int(row["Width"].ToString()),
+                Height = SIn.Int(row["Height"].ToString()),
+                ItemOrder = SIn.Int(row["ItemOrder"].ToString()),
+                RotateOnAcquire = SIn.Int(row["RotateOnAcquire"].ToString()),
+                ToothNumbers = SIn.String(row["ToothNumbers"].ToString()),
+                TextShowing = SIn.String(row["TextShowing"].ToString()),
+                FontSize = SIn.Float(row["FontSize"].ToString())
+            };
             retVal.Add(mountItemDef);
         }
 

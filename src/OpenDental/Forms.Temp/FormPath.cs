@@ -1,40 +1,17 @@
 using System;
-using System.Drawing;
-using System.Collections;
-using System.ComponentModel;
 using System.IO;
 using System.Windows.Forms;
 using OpenDentBusiness;
 using CodeBase;
-using System.Linq;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Data;
 using Imedisoft.Core.Entities;
-using OpenDental.Cloud.Storage;
 
 namespace OpenDental;
 
 public partial class FormPath : FormODBase {
 	///<summary>If this is set to true before opening this form, then the program cannot find the AtoZ path and needs user input.</summary>
 	public bool IsStartingUp;
-	private string _errorMsg="";
-	private bool _didVerifySwitchingFromDBStorage;
-	#region Dropbox Private Variables
-	private Program _program;
-	private ProgramProperty _programPropertyDropboxPathAtoZ;
-	private ProgramProperty _programPropertyDropboxAccessToken;
-	///<summary>Set to true if the Dropbox API has been loaded already.</summary>
-	private bool _hasDropboxLoaded;
-	#endregion
-
-	#region Sftp Private Variables
-	///<summary>Set to true if the Sftp stuff has been loaded already.</summary>
-	private bool _hasSftpLoaded;
-	private ProgramProperty _programPropertySftpPathAtoZ;
-	private ProgramProperty _programPropertySftpHostname;
-	private ProgramProperty _programPropertySftpUsername;
-	private ProgramProperty _programPropertySftpPassword;
-	#endregion
 
 	///<summary>This is the database storage type that the user has chosen (or was pulled from the database.
 	///DO NOT change the value of this variable outside of SetRadioButtonChecked() or there is a chance for a stack overflow exception</summary>
@@ -84,20 +61,7 @@ public partial class FormPath : FormODBase {
 
 	/// <summary>Returns true if user really wants to continue or N/A. Verifies if there is RawBase64 data currently stored in the database. It will warn users that switching away means they are no longer able to access that data.</summary>
 	private bool VerifySwitchingAwayFromDBStorage() {
-		if(_didVerifySwitchingFromDBStorage) {
-			return true;//already verified
-		}
-		if(true) {
-			return true;//N/A
-		}
-		if(!MsgBox.Show(this,MsgBoxButtons.OKCancel,"You have chosen to switch away from storing images in the database. If you continue, you will not be able to switch back and you will lose access to your existing Imaging Module data currently stored in the database. Continue anyway?"))
-		{
-			//user will have one more chance to cancel because they can just cancel out of the form.
-			SetRadioButtonChecked();
-			return false;//changed their mind
-		}
-		_didVerifySwitchingFromDBStorage=true;
-		return true;
+		return true;//N/A
 	}
 
 	private void DisableMostControls() {

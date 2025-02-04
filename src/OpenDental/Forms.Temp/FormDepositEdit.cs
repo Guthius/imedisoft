@@ -1,21 +1,18 @@
 using System;
-using System.Data;
 using System.Drawing;
-using System.Collections;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Windows.Forms;
 using OpenDental.Bridges;
 using OpenDental.UI;
 using OpenDentBusiness;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using CodeBase;
-using System.IO;
-using OpenDental.Thinfinity;
 using System.Text.RegularExpressions;
 using DataConnectionBase;
 using Imedisoft.Core.Caching;
+using Imedisoft.Core.Data;
 using Imedisoft.Core.Entities;
 using Imedisoft.Core.Features.Clinics;
 using ClaimPayment = Imedisoft.Core.Entities.ClaimPayment;
@@ -39,14 +36,6 @@ public partial class FormDepositEdit:FormODBase {
 	private List<long> _listDepositAccounts;
 	///<summary>The accounting software selected in Manage Module preferences.</summary>
 	private AccountingSoftware _accountingSoftware;
-	///<summary>OAuth access token stored in DB for QuickBooks Online API.</summary>
-	private ProgramProperty _programPropertyQboAccessToken;
-	///<summary>OAuth refresh token stored in DB for QuickBooks Online API.</summary>
-	private ProgramProperty _programPropertyQboRefreshToken;
-	///<summary>Class Refs for QuickBooks Online.</summary>
-	private ProgramProperty _programPropertyQboClassRefs;
-	///<summary>Realm ID for QuickBooks Online.</summary>
-	private ProgramProperty _programPropertyQboRealmId;
 	///<summary>Used to store DefNums in a 1:1 ratio for listInsPayType</summary>
 	private List<long> _listInsPayTypeDefNums;
 	///<summary>Used to store DefNums in a 1:1 ratio for listPayType</summary>
@@ -61,8 +50,6 @@ public partial class FormDepositEdit:FormODBase {
 	private List<long> _listClaimPaymentNumsAttached= [];
 	///<summary>Used in UpdateToDB to detach any payments that were attached to deposit but have been deselected before clicking OK.</summary>
 	private bool _isOnOKClick=false;
-	///<summary>The current realm ID.</summary>
-	private string _realmIdPlainText;
 	///<summary>True if the accounting software pref is set to QuickBooks.</summary>
 	private bool IsQuickBooks() {
 		return _accountingSoftware==AccountingSoftware.QuickBooks;
@@ -109,10 +96,6 @@ public partial class FormDepositEdit:FormODBase {
 		}
 		if(IsNew) {
 			textDateStart.Text=SIn.Date(PrefC.GetString(PrefName.DateDepositsStarted)).ToShortDateString();
-			if(!true) {
-				comboClinic.Visible=false;
-				labelClinic.Visible=false;
-			}
 			if(Clinics.ClinicNum==0) {
 				comboClinic.IsAllSelected=true;
 			}
@@ -705,7 +688,7 @@ public partial class FormDepositEdit:FormODBase {
 		var sheetDescForName=Regex.Replace(sheet.Description, @"[^\w'@-_()&]", "");
 		var sheetName=sheetDescForName+"_"+DateTime.Now.ToString("yyyyMMdd_hhmmssfff")+".pdf";
 		var tempFile=ODFileUtils.CombinePaths(PrefC.GetTempFolderPath(),sheetName);
-		var filePathAndName=FileAtoZ.CombinePaths(EmailAttaches.GetAttachPath(),sheetName);
+		var filePathAndName=Path.Combine(EmailAttaches.GetAttachPath(),sheetName);
 		SheetPrinting.CreatePdf(sheet,tempFile,null);
 		FileAtoZ.Copy(tempFile,filePathAndName);
 		var emailMessage=new EmailMessage();

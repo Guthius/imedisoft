@@ -21,7 +21,7 @@ public class Adjustments
     public class ChargeUndoData
     {
         public int CountDeletedAdjustments;
-        public List<long> ListSkippedPatNums = [];
+        public readonly List<long> ListSkippedPatNums = [];
     }
 
     public static List<Adjustment> GetMany(List<long> adjNums)
@@ -87,14 +87,7 @@ public class Adjustments
         return AdjustmentCrud.SelectMany("SELECT * FROM adjustment WHERE ProcNum IN(" + string.Join(",", procNums) + ")");
     }
 
-    public static double GetTotForProc(long procNum, bool canIncludeTax = true)
-    {
-        var procNums = new List<long> {procNum};
-
-        return GetTotForProcs(procNums, canIncludeTax);
-    }
-
-    public static double GetTotForProcs(List<long> procNums, bool canIncludeTax = true)
+    public static double GetTotForProcs(List<long> procNums)
     {
         if (procNums.IsNullOrEmpty())
         {

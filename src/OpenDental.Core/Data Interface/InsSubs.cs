@@ -14,7 +14,7 @@ public class InsSubs
     public static InsSub GetSub(long insSubNum, List<InsSub> listInsSubs)
     {
         if (insSubNum == 0) return new InsSub();
-        if (listInsSubs == null) listInsSubs = new List<InsSub>();
+        if (listInsSubs == null) listInsSubs = [];
         //get InsSub from list if provided and exists in list, otherwise from db if exists, otherwise return a new InsSub
         //LastOrDefault to preserve old behavior. No other reason.
         var insSub = listInsSubs.LastOrDefault(x => x.InsSubNum == insSubNum);
@@ -30,7 +30,7 @@ public class InsSubs
 
     public static List<InsSub> GetMany(List<long> listInsSubNums)
     {
-        if (listInsSubNums == null || listInsSubNums.Count < 1) return new List<InsSub>();
+        if (listInsSubNums == null || listInsSubNums.Count < 1) return [];
         var command = "SELECT * FROM inssub WHERE InsSubNum IN (" + string.Join(",", listInsSubNums) + ")";
         return InsSubCrud.SelectMany(command);
     }
@@ -52,7 +52,7 @@ public class InsSubs
         for (var i = 0; i < family.ListPats.Length; i++)
         {
             if (i > 0) command += " OR";
-            command += " A.Subscriber=" + SOut.Long(family.ListPats[i].PatNum);
+            command += " A.Subscriber=" + (family.ListPats[i].PatNum);
         }
 
         //in union, distinct is implied
@@ -60,7 +60,7 @@ public class InsSubs
         for (var i = 0; i < family.ListPats.Length; i++)
         {
             if (i > 0) command += " OR";
-            command += " P.PatNum=" + SOut.Long(family.ListPats[i].PatNum);
+            command += " P.PatNum=" + (family.ListPats[i].PatNum);
         }
 
         command += "))) C "
@@ -71,9 +71,9 @@ public class InsSubs
 
     public static List<InsSub> GetListInsSubs(List<long> listPatNums)
     {
-        if (listPatNums.Count == 0) return new List<InsSub>();
+        if (listPatNums.Count == 0) return [];
 
-        var command = "SELECT * FROM inssub WHERE inssub.Subscriber IN (" + string.Join(",", listPatNums.Select(x => SOut.Long(x))) + ")";
+        var command = "SELECT * FROM inssub WHERE inssub.Subscriber IN (" + string.Join(",", listPatNums.Select(x => (x))) + ")";
         return InsSubCrud.SelectMany(command);
     }
 
@@ -86,7 +86,7 @@ public class InsSubs
     {
         //Security.CurUser.UserNum gets set on MT by the DtoProcessor so it matches the user from the client WS.
         insSub.SecUserNumEntry = Security.CurUser.UserNum;
-        insSub.InsSubNum = InsSubCrud.Insert(insSub, useExistingPK);
+        insSub.InsSubNum = InsSubCrud.Insert(insSub);
         InsEditPatLogs.MakeLogEntry(insSub, null, InsEditPatLogType.Subscriber);
         return insSub.InsSubNum;
     }
@@ -110,41 +110,41 @@ public class InsSubs
         string command;
         DataTable table;
         //Remove from the patplan table just in case it is still there.
-        command = "SELECT PatPlanNum FROM patplan WHERE InsSubNum = " + SOut.Long(insSubNum);
+        command = "SELECT PatPlanNum FROM patplan WHERE InsSubNum = " + (insSubNum);
         table = DataCore.GetTable(command);
         for (var i = 0; i < table.Rows.Count; i++)
             //benefits with this PatPlanNum are also deleted here
             PatPlans.Delete(SIn.Long(table.Rows[i]["PatPlanNum"].ToString()));
-        command = "DELETE FROM claimproc WHERE InsSubNum = " + SOut.Long(insSubNum); //Will delete all estimates, but nothing else due to ValidateNoKeys()
+        command = "DELETE FROM claimproc WHERE InsSubNum = " + (insSubNum); //Will delete all estimates, but nothing else due to ValidateNoKeys()
         Db.NonQ(command);
         InsSubCrud.Delete(insSubNum);
     }
 
     public static void ValidateNoKeys(long insSubNum, bool isStrict)
     {
-        var command = "SELECT 1 FROM claim WHERE InsSubNum=" + SOut.Long(insSubNum) + " OR InsSubNum2=" + SOut.Long(insSubNum) + " " + DbHelper.LimitAnd(1);
+        var command = "SELECT 1 FROM claim WHERE InsSubNum=" + (insSubNum) + " OR InsSubNum2=" + (insSubNum) + " " + DbHelper.LimitAnd(1);
         if (!string.IsNullOrEmpty(DataCore.GetScalar(command))) throw new ApplicationException(Lans.g("FormInsPlan", "Subscriber has existing claims and so the subscriber cannot be deleted."));
         if (isStrict)
         {
-            command = "SELECT 1 FROM claimproc WHERE InsSubNum=" + SOut.Long(insSubNum) + " AND Status!=" + SOut.Int((int) ClaimProcStatus.Estimate) + " " + DbHelper.LimitAnd(1); //ignore estimates
+            command = "SELECT 1 FROM claimproc WHERE InsSubNum=" + (insSubNum) + " AND Status!=" + SOut.Int((int) ClaimProcStatus.Estimate) + " " + DbHelper.LimitAnd(1); //ignore estimates
             if (!string.IsNullOrEmpty(DataCore.GetScalar(command))) throw new ApplicationException(Lans.g("FormInsPlan", "Subscriber has existing claim procedures and so the subscriber cannot be deleted."));
         }
 
-        command = "SELECT 1 FROM etrans WHERE InsSubNum=" + SOut.Long(insSubNum) + " " + DbHelper.LimitAnd(1);
+        command = "SELECT 1 FROM etrans WHERE InsSubNum=" + (insSubNum) + " " + DbHelper.LimitAnd(1);
         if (!string.IsNullOrEmpty(DataCore.GetScalar(command))) throw new ApplicationException(Lans.g("FormInsPlan", "Subscriber has existing etrans entry and so the subscriber cannot be deleted."));
-        command = "SELECT 1 FROM payplan WHERE InsSubNum=" + SOut.Long(insSubNum) + " " + DbHelper.LimitAnd(1);
+        command = "SELECT 1 FROM payplan WHERE InsSubNum=" + (insSubNum) + " " + DbHelper.LimitAnd(1);
         if (!string.IsNullOrEmpty(DataCore.GetScalar(command))) throw new ApplicationException(Lans.g("FormInsPlan", "Subscriber has existing insurance linked payment plans and so the subscriber cannot be deleted."));
     }
 
     public static List<InsSub> GetListForSubscriber(long subscriber)
     {
-        var command = "SELECT * FROM inssub WHERE Subscriber=" + SOut.Long(subscriber);
+        var command = "SELECT * FROM inssub WHERE Subscriber=" + (subscriber);
         return InsSubCrud.SelectMany(command);
     }
 
     public static List<InsSub> GetListForPlanNum(long planNum)
     {
-        var command = "SELECT * FROM inssub WHERE PlanNum=" + SOut.Long(planNum);
+        var command = "SELECT * FROM inssub WHERE PlanNum=" + (planNum);
         return InsSubCrud.SelectMany(command);
     }
 
@@ -152,7 +152,7 @@ public class InsSubs
     {
         var command = "SELECT COUNT(inssub.InsSubNum) "
                       + "FROM inssub "
-                      + "WHERE inssub.PlanNum=" + SOut.Long(planNum) + " ";
+                      + "WHERE inssub.PlanNum=" + (planNum) + " ";
         var retVal = SIn.Int(Db.GetCount(command));
         if (isExcludedSub) retVal = Math.Max(retVal - 1, 0);
         return retVal;
@@ -162,8 +162,8 @@ public class InsSubs
     {
         var command = "SELECT CONCAT(CONCAT(LName,', '),FName) "
                       + "FROM inssub LEFT JOIN patient ON patient.PatNum=inssub.Subscriber "
-                      + "WHERE inssub.PlanNum=" + SOut.Long(planNum) + " "
-                      + "AND inssub.InsSubNum !=" + SOut.Long(insSubNumExclude) + " "
+                      + "WHERE inssub.PlanNum=" + (planNum) + " "
+                      + "AND inssub.InsSubNum !=" + (insSubNumExclude) + " "
                       + " ORDER BY LName,FName";
         var table = DataCore.GetTable(command);
         var listSubscriberNames = new List<string>(table.Rows.Count);
@@ -173,7 +173,7 @@ public class InsSubs
 
     public static string GetBenefitNotes(long planNum, long insSubNumExclude)
     {
-        var command = "SELECT BenefitNotes FROM inssub WHERE BenefitNotes != '' AND PlanNum=" + SOut.Long(planNum) + " AND InsSubNum !=" + SOut.Long(insSubNumExclude) + " " + DbHelper.LimitAnd(1);
+        var command = "SELECT BenefitNotes FROM inssub WHERE BenefitNotes != '' AND PlanNum=" + (planNum) + " AND InsSubNum !=" + (insSubNumExclude) + " " + DbHelper.LimitAnd(1);
         var table = DataCore.GetTable(command);
         if (table.Rows.Count == 0) return "";
         return SIn.String(table.Rows[0][0].ToString());
@@ -190,28 +190,28 @@ public class InsSubs
         //insbluebook.PlanNum (insbluebook.GroupNum and insbluebook.CarrierNum will be updated in FormInsPlan as needed)
         var command = $@"UPDATE claim
 				INNER JOIN insbluebook ON claim.ClaimNum=insbluebook.ClaimNum
-				SET insbluebook.PlanNum={SOut.Long(insSub.PlanNum)}
-				WHERE claim.InsSubNum={SOut.Long(insSub.InsSubNum)} AND claim.PlanNum!={SOut.Long(insSub.PlanNum)}";
+				SET insbluebook.PlanNum={(insSub.PlanNum)}
+				WHERE claim.InsSubNum={(insSub.InsSubNum)} AND claim.PlanNum!={(insSub.PlanNum)}";
         Db.NonQ(command);
         //claim.PlanNum
-        command = "UPDATE claim SET claim.PlanNum=" + SOut.Long(insSub.PlanNum) + " "
-                  + "WHERE claim.InsSubNum=" + SOut.Long(insSub.InsSubNum) + " AND claim.PlanNum!=" + SOut.Long(insSub.PlanNum);
+        command = "UPDATE claim SET claim.PlanNum=" + (insSub.PlanNum) + " "
+                  + "WHERE claim.InsSubNum=" + (insSub.InsSubNum) + " AND claim.PlanNum!=" + (insSub.PlanNum);
         Db.NonQ(command);
         //claim.PlanNum2
-        command = "UPDATE claim SET claim.PlanNum2=" + SOut.Long(insSub.PlanNum) + " "
-                  + "WHERE claim.InsSubNum2=" + SOut.Long(insSub.InsSubNum) + " AND claim.PlanNum2!=" + SOut.Long(insSub.PlanNum);
+        command = "UPDATE claim SET claim.PlanNum2=" + (insSub.PlanNum) + " "
+                  + "WHERE claim.InsSubNum2=" + (insSub.InsSubNum) + " AND claim.PlanNum2!=" + (insSub.PlanNum);
         Db.NonQ(command);
         //claimproc.PlanNum
-        command = "UPDATE claimproc SET claimproc.PlanNum=" + SOut.Long(insSub.PlanNum) + " "
-                  + "WHERE claimproc.InsSubNum=" + SOut.Long(insSub.InsSubNum) + " AND claimproc.PlanNum!=" + SOut.Long(insSub.PlanNum);
+        command = "UPDATE claimproc SET claimproc.PlanNum=" + (insSub.PlanNum) + " "
+                  + "WHERE claimproc.InsSubNum=" + (insSub.InsSubNum) + " AND claimproc.PlanNum!=" + (insSub.PlanNum);
         Db.NonQ(command);
         //payplan.PlanNum
-        command = "UPDATE payplan SET payplan.PlanNum=" + SOut.Long(insSub.PlanNum) + " "
-                  + "WHERE payplan.InsSubNum=" + SOut.Long(insSub.InsSubNum) + " AND payplan.PlanNum!=" + SOut.Long(insSub.PlanNum);
+        command = "UPDATE payplan SET payplan.PlanNum=" + (insSub.PlanNum) + " "
+                  + "WHERE payplan.InsSubNum=" + (insSub.InsSubNum) + " AND payplan.PlanNum!=" + (insSub.PlanNum);
         Db.NonQ(command);
         //etrans.PlanNum, only used if EtransType.BenefitInquiry270 and BenefitResponse271 and Eligibility_CA.
-        command = "UPDATE etrans SET etrans.PlanNum=" + SOut.Long(insSub.PlanNum) + " "
-                  + "WHERE etrans.InsSubNum!=0 AND etrans.InsSubNum=" + SOut.Long(insSub.InsSubNum) + " AND etrans.PlanNum!=" + SOut.Long(insSub.PlanNum);
+        command = "UPDATE etrans SET etrans.PlanNum=" + (insSub.PlanNum) + " "
+                  + "WHERE etrans.InsSubNum!=0 AND etrans.InsSubNum=" + (insSub.InsSubNum) + " AND etrans.PlanNum!=" + (insSub.PlanNum);
         Db.NonQ(command);
     }
 
@@ -272,7 +272,7 @@ public class InsSubs
             //Security.CurUser.UserNum gets set on MT by the DtoProcessor so it matches the user from the client WS.
             insSub.SecUserNumEntry = Security.CurUser.UserNum;
             var insSubNumNew = Insert(insSub);
-            var command = "SELECT PatNum FROM patplan WHERE InsSubNum=" + SOut.Long(insSubNumOld);
+            var command = "SELECT PatNum FROM patplan WHERE InsSubNum=" + (insSubNumOld);
             var tablePatsForInsSub = DataCore.GetTable(command);
             if (tablePatsForInsSub.Rows.Count == 0) continue;
             insSubMovedCount++;
@@ -285,7 +285,7 @@ public class InsSubs
                     var patPlan = listPatPlans[k];
                     if (patPlan.InsSubNum == insSubNumOld)
                     {
-                        command = "DELETE FROM benefit WHERE PatPlanNum=" + SOut.Long(patPlan.PatPlanNum); //Delete patient specific benefits (rare).
+                        command = "DELETE FROM benefit WHERE PatPlanNum=" + (patPlan.PatPlanNum); //Delete patient specific benefits (rare).
                         Db.NonQ(command);
                         patPlan.InsSubNum = insSubNumNew;
                         PatPlans.Update(patPlan);

@@ -1,12 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
 using System.Globalization;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 using CodeBase;
 using DataConnectionBase;
@@ -69,9 +63,6 @@ public partial class UserControlMainWindow:UserControl {
 		checkTitleBarShowSpecialty.Checked=PrefC.GetBool(PrefName.TitleBarShowSpecialty);
 		checkTitleBarShowSite.Checked=PrefC.GetBool(PrefName.TitleBarShowSite);
 		checkUseClinicAbbr.Checked=PrefC.GetBool(PrefName.TitleBarClinicUseAbbr);
-		if(!true) {
-			checkUseClinicAbbr.Visible=false;
-		}
 		checkRefresh.Checked=!PrefC.GetBool(PrefName.PatientSelectUsesSearchButton);
 		checkPrefFName.Checked=PrefC.GetBool(PrefName.PatientSelectUseFNameForPreferred);
 		checkPatientSelectWindowShowGetAll.Checked=PrefC.GetBool(PrefName.PatientSelectWindowShowGetAll);

@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Reflection;
 using DataConnectionBase;
 using Imedisoft.Core.Entities;
 
@@ -11,11 +10,11 @@ namespace OpenDentBusiness {
 		public static DataTable GetReferralTable(DateTime dateStart,DateTime dateEnd,List<long> listProvNums
 			,bool hasAddress,bool hasOnlyNewPats) 
 		{
-			string whereProv="";
+			var whereProv="";
 			if(listProvNums.Count > 0) {
 				whereProv+=" AND procedurelog.ProvNum IN("+string.Join(",",listProvNums)+") ";
 			}
-			string query=@"SELECT referral.LName,referral.FName,
+			var query=@"SELECT referral.LName,referral.FName,
 				COUNT(DISTINCT attach.PatNum) AS HowMany,
 				SUM(procs.HowMuch) AS '$HowMuch'";
 			if(hasAddress) {
@@ -57,7 +56,7 @@ namespace OpenDentBusiness {
 			}
 			query+=" GROUP BY referral.ReferralNum"
 				+" ORDER BY HowMany Desc";
-			return ReportsComplex.GetTable(query);
+			return DataCore.GetTable(query);
 		}
 	}
 

@@ -12,6 +12,7 @@ using CodeBase;
 using DataConnectionBase;
 using Imedisoft.Core.Entities;
 using Imedisoft.Core.Features.Clinics;
+using Imedisoft.Features.Providers.Dtos;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using Newtonsoft.Json.Serialization;
@@ -27,7 +28,7 @@ namespace OpenDentBusiness.Eclaims
         public static string Benefits270(Clearinghouse clearinghouseClin, string x12message, out Etrans etransHtml)
         {
             //called from x270Controller. Clinic-level clearinghouse passed in.
-            string retVal = "";
+            var retVal = "";
             etransHtml = null;
             try
             {
@@ -39,36 +40,36 @@ namespace OpenDentBusiness.Eclaims
                 webReq.KeepAlive = false;
                 webReq.Method = "POST";
                 webReq.ContentType = "text/xml";
-                string postDataXml = "<?xml version=\"1.0\" encoding=\"us-ascii\"?>"
-                                     + "<content>"
-                                     + "<header>"
-                                     + "<userId>" + clearinghouseClin.LoginID + "</userId>"
-                                     + "<pass>" + clearinghouseClin.Password + "</pass>"
-                                     + "<process>transmitEligibility</process>"
-                                     + "<version>1</version>"
-                                     + "</header>"
-                                     + "<body>"
-                                     + "<type>EDI</type>" //Can only be EDI
-                                     + "<data><![CDATA[" + x12message.Replace("\r\n", "").Replace("\n", "") + "]]></data>"
-                                     + "<returnType>EDI</returnType>" //Can be EDI, HTML, or EDI.HTML, but should mimic the above type
-                                     + "</body>"
-                                     + "</content>";
-                ASCIIEncoding encoding = new ASCIIEncoding();
-                byte[] arrayXmlBytes = encoding.GetBytes(postDataXml);
-                Stream streamOut = webReq.GetRequestStream();
+                var postDataXml = "<?xml version=\"1.0\" encoding=\"us-ascii\"?>"
+                                  + "<content>"
+                                  + "<header>"
+                                  + "<userId>" + clearinghouseClin.LoginID + "</userId>"
+                                  + "<pass>" + clearinghouseClin.Password + "</pass>"
+                                  + "<process>transmitEligibility</process>"
+                                  + "<version>1</version>"
+                                  + "</header>"
+                                  + "<body>"
+                                  + "<type>EDI</type>" //Can only be EDI
+                                  + "<data><![CDATA[" + x12message.Replace("\r\n", "").Replace("\n", "") + "]]></data>"
+                                  + "<returnType>EDI</returnType>" //Can be EDI, HTML, or EDI.HTML, but should mimic the above type
+                                  + "</body>"
+                                  + "</content>";
+                var encoding = new ASCIIEncoding();
+                var arrayXmlBytes = encoding.GetBytes(postDataXml);
+                var streamOut = webReq.GetRequestStream();
                 streamOut.Write(arrayXmlBytes, 0, arrayXmlBytes.Length);
                 streamOut.Close();
                 webResponseXml = webReq.GetResponse();
                 //Process the response
-                StreamReader readStream = new StreamReader(webResponseXml.GetResponseStream(), Encoding.ASCII);
-                string responseXml = readStream.ReadToEnd();
+                var readStream = new StreamReader(webResponseXml.GetResponseStream(), Encoding.ASCII);
+                var responseXml = readStream.ReadToEnd();
                 readStream.Close();
-                XmlDocument xmlDoc = new XmlDocument();
+                var xmlDoc = new XmlDocument();
                 xmlDoc.LoadXml(responseXml);
-                XmlNode nodeErrorCode = xmlDoc.SelectSingleNode(@"content/body/ERROR_CODE");
-                if (nodeErrorCode != null && nodeErrorCode.InnerText.ToString() != "0")
+                var nodeErrorCode = xmlDoc.SelectSingleNode(@"content/body/ERROR_CODE");
+                if (nodeErrorCode != null && nodeErrorCode.InnerText != "0")
                 {
-                    throw new Exception("Error Code: " + nodeErrorCode.InnerText + " - " + xmlDoc.SelectSingleNode(@"content/body/ERROR_MSG").InnerText.ToString());
+                    throw new Exception("Error Code: " + nodeErrorCode.InnerText + " - " + xmlDoc.SelectSingleNode(@"content/body/ERROR_MSG").InnerText);
                 }
 
                 nodeErrorCode = xmlDoc.SelectSingleNode(@"content/error/code");
@@ -77,7 +78,7 @@ namespace OpenDentBusiness.Eclaims
                     throw new Exception("Error Code: " + nodeErrorCode.InnerText + " - " + xmlDoc.SelectSingleNode(@"content/error/description").InnerText);
                 }
 
-                string htmlMessage = xmlDoc.SelectSingleNode(@"content/body/htmlData")?.InnerText.ToString(); //can be null
+                var htmlMessage = xmlDoc.SelectSingleNode(@"content/body/htmlData")?.InnerText; //can be null
                 if (!string.IsNullOrEmpty(htmlMessage))
                 {
                     etransHtml = Etranss.CreateEtrans(DateTime.Now, clearinghouseClin.HqClearinghouseNum, htmlMessage, Security.CurUser.UserNum);
@@ -85,7 +86,7 @@ namespace OpenDentBusiness.Eclaims
                     Etranss.Insert(etransHtml);
                 }
 
-                retVal = xmlDoc.SelectSingleNode(@"content/body/ediData").InnerText.ToString();
+                retVal = xmlDoc.SelectSingleNode(@"content/body/ediData").InnerText;
             }
             catch (Exception e)
             {
@@ -105,33 +106,33 @@ namespace OpenDentBusiness.Eclaims
                 webReq.KeepAlive = false;
                 webReq.Method = "POST";
                 webReq.ContentType = "text/xml";
-                string postDataXml = "<?xml version=\"1.0\" encoding=\"us-ascii\"?>"
-                                     + "<content>"
-                                     + "<header>"
-                                     + "<userId>" + clearinghouseClin.LoginID + "</userId>"
-                                     + "<pass>" + clearinghouseClin.Password + "</pass>"
-                                     + "<process>transmitClaim</process>"
-                                     + "<version>2</version>"
-                                     + "</header>"
-                                     + "<body>"
-                                     + "<type>EDI</type>"
-                                     + "<data><![CDATA[" + x837message.Replace("\r\n", "").Replace("\n", "") + "]]></data>"
-                                     + "<returnType>XML</returnType>"
-                                     + "</body>"
-                                     + "</content>";
-                ASCIIEncoding encoding = new ASCIIEncoding();
-                byte[] arrayXmlBytes = encoding.GetBytes(postDataXml);
-                Stream streamOut = webReq.GetRequestStream();
+                var postDataXml = "<?xml version=\"1.0\" encoding=\"us-ascii\"?>"
+                                  + "<content>"
+                                  + "<header>"
+                                  + "<userId>" + clearinghouseClin.LoginID + "</userId>"
+                                  + "<pass>" + clearinghouseClin.Password + "</pass>"
+                                  + "<process>transmitClaim</process>"
+                                  + "<version>2</version>"
+                                  + "</header>"
+                                  + "<body>"
+                                  + "<type>EDI</type>"
+                                  + "<data><![CDATA[" + x837message.Replace("\r\n", "").Replace("\n", "") + "]]></data>"
+                                  + "<returnType>XML</returnType>"
+                                  + "</body>"
+                                  + "</content>";
+                var encoding = new ASCIIEncoding();
+                var arrayXmlBytes = encoding.GetBytes(postDataXml);
+                var streamOut = webReq.GetRequestStream();
                 streamOut.Write(arrayXmlBytes, 0, arrayXmlBytes.Length);
                 streamOut.Close();
                 webResponseXml = webReq.GetResponse();
                 //Process the response
-                StreamReader readStream = new StreamReader(webResponseXml.GetResponseStream(), Encoding.ASCII);
-                string responseXml = readStream.ReadToEnd();
+                var readStream = new StreamReader(webResponseXml.GetResponseStream(), Encoding.ASCII);
+                var responseXml = readStream.ReadToEnd();
                 readStream.Close();
-                XmlDocument xmlDoc = new XmlDocument();
+                var xmlDoc = new XmlDocument();
                 xmlDoc.LoadXml(responseXml);
-                XmlNode nodeErrorCode = xmlDoc.SelectSingleNode(@"content/error");
+                var nodeErrorCode = xmlDoc.SelectSingleNode(@"content/error");
                 if (nodeErrorCode != null)
                 {
                     ErrorMessage = "Error Code: " + nodeErrorCode.SelectSingleNode("code").InnerText + " - " + nodeErrorCode.SelectSingleNode("description").InnerText;
@@ -153,7 +154,7 @@ namespace OpenDentBusiness.Eclaims
         {
             progress = progress ?? new ODProgressExtendedNull();
             progress.UpdateProgress(Lans.g(progress.LanThis, "Contacting web server and downloading reports"), "reports", "17%", 17);
-            bool retVal = false;
+            var retVal = false;
             if (progress.IsPauseOrCancel())
             {
                 progress.UpdateProgress(Lans.g(progress.LanThis, "Canceled by user."));
@@ -199,7 +200,7 @@ namespace OpenDentBusiness.Eclaims
                 return false;
             }
 
-            bool retVal = Retrieve835s(clearinghouseClin);
+            var retVal = Retrieve835s(clearinghouseClin);
             if (retVal)
             {
                 progress.UpdateProgress(Lans.g(progress.LanThis, "Retrieved 835s successfully."));
@@ -222,40 +223,40 @@ namespace OpenDentBusiness.Eclaims
                 webReq.KeepAlive = false;
                 webReq.Method = "POST";
                 webReq.ContentType = "text/xml";
-                string postDataXml = "<?xml version=\"1.0\" encoding=\"us-ascii\"?>"
-                                     + "<content>"
-                                     + "<header>"
-                                     + "<userId>" + clearinghouseClin.LoginID + "</userId>"
-                                     + "<pass>" + clearinghouseClin.Password + "</pass>"
-                                     + "<process>requestEndofDay</process>"
-                                     + "<version>3</version>"
-                                     + "</header>"
-                                     + "<body>"
-                                     + "<responseType>277</responseType>"
-                                     + "</body>"
-                                     + "</content>";
-                ASCIIEncoding encoding = new ASCIIEncoding();
-                byte[] arrayXmlBytes = encoding.GetBytes(postDataXml);
-                Stream streamOut = webReq.GetRequestStream();
+                var postDataXml = "<?xml version=\"1.0\" encoding=\"us-ascii\"?>"
+                                  + "<content>"
+                                  + "<header>"
+                                  + "<userId>" + clearinghouseClin.LoginID + "</userId>"
+                                  + "<pass>" + clearinghouseClin.Password + "</pass>"
+                                  + "<process>requestEndofDay</process>"
+                                  + "<version>3</version>"
+                                  + "</header>"
+                                  + "<body>"
+                                  + "<responseType>277</responseType>"
+                                  + "</body>"
+                                  + "</content>";
+                var encoding = new ASCIIEncoding();
+                var arrayXmlBytes = encoding.GetBytes(postDataXml);
+                var streamOut = webReq.GetRequestStream();
                 streamOut.Write(arrayXmlBytes, 0, arrayXmlBytes.Length);
                 streamOut.Close();
                 webResponseXml = webReq.GetResponse();
                 //Process the response
-                StreamReader readStream = new StreamReader(webResponseXml.GetResponseStream(), Encoding.ASCII);
-                string responseXml = readStream.ReadToEnd();
+                var readStream = new StreamReader(webResponseXml.GetResponseStream(), Encoding.ASCII);
+                var responseXml = readStream.ReadToEnd();
                 readStream.Close();
-                XmlDocument xmlDoc = new XmlDocument();
+                var xmlDoc = new XmlDocument();
                 xmlDoc.LoadXml(responseXml);
-                XmlNode nodeErrorCode = xmlDoc.SelectSingleNode(@"content/error");
+                var nodeErrorCode = xmlDoc.SelectSingleNode(@"content/error");
                 if (nodeErrorCode != null)
                 {
                     ErrorMessage = "Error Code: " + nodeErrorCode.SelectSingleNode("code").InnerText + " - " + nodeErrorCode.SelectSingleNode("description").InnerText;
                     return false;
                 }
 
-                XmlNode nodeResponseFile = xmlDoc.SelectSingleNode(@"content/body/responseData");
-                string exportFilePath = ODFileUtils.CombinePaths(clearinghouseClin.ResponsePath, DateTime.Now.ToString("yyyyMMddhhmmss") + ".txt");
-                byte[] reportFileDataBytes = Encoding.UTF8.GetBytes(nodeResponseFile.InnerText);
+                var nodeResponseFile = xmlDoc.SelectSingleNode(@"content/body/responseData");
+                var exportFilePath = ODFileUtils.CombinePaths(clearinghouseClin.ResponsePath, DateTime.Now.ToString("yyyyMMddhhmmss") + ".txt");
+                var reportFileDataBytes = Encoding.UTF8.GetBytes(nodeResponseFile.InnerText);
                 File.WriteAllBytes(exportFilePath, reportFileDataBytes);
             }
             catch (Exception e)
@@ -277,41 +278,41 @@ namespace OpenDentBusiness.Eclaims
                 webReq.KeepAlive = false;
                 webReq.Method = "POST";
                 webReq.ContentType = "text/xml";
-                string postDataXml = "<?xml version=\"1.0\" encoding=\"us-ascii\"?>"
-                                     + "<content>"
-                                     + "<header>"
-                                     + "<userId>" + clearinghouseClin.LoginID + "</userId>"
-                                     + "<pass>" + clearinghouseClin.Password + "</pass>"
-                                     + "<process>listRemits</process>"
-                                     + "<version>2</version>"
-                                     + "</header>"
-                                     + "<body>"
-                                     + "<eraBatchId></eraBatchId>" //"Leave blank for open or the eraBatchId to repull".
-                                     + "</body>"
-                                     + "</content>";
-                ASCIIEncoding encoding = new ASCIIEncoding();
-                byte[] arrayXmlBytes = encoding.GetBytes(postDataXml);
-                Stream streamOut = webReq.GetRequestStream();
+                var postDataXml = "<?xml version=\"1.0\" encoding=\"us-ascii\"?>"
+                                  + "<content>"
+                                  + "<header>"
+                                  + "<userId>" + clearinghouseClin.LoginID + "</userId>"
+                                  + "<pass>" + clearinghouseClin.Password + "</pass>"
+                                  + "<process>listRemits</process>"
+                                  + "<version>2</version>"
+                                  + "</header>"
+                                  + "<body>"
+                                  + "<eraBatchId></eraBatchId>" //"Leave blank for open or the eraBatchId to repull".
+                                  + "</body>"
+                                  + "</content>";
+                var encoding = new ASCIIEncoding();
+                var arrayXmlBytes = encoding.GetBytes(postDataXml);
+                var streamOut = webReq.GetRequestStream();
                 streamOut.Write(arrayXmlBytes, 0, arrayXmlBytes.Length);
                 streamOut.Close();
                 webResponseXml = webReq.GetResponse();
                 //Process the response
-                StreamReader readStream = new StreamReader(webResponseXml.GetResponseStream(), Encoding.ASCII);
-                string responseXml = readStream.ReadToEnd();
+                var readStream = new StreamReader(webResponseXml.GetResponseStream(), Encoding.ASCII);
+                var responseXml = readStream.ReadToEnd();
                 readStream.Close();
-                XmlDocument xmlDoc = new XmlDocument();
+                var xmlDoc = new XmlDocument();
                 xmlDoc.LoadXml(responseXml);
-                XmlNode nodeErrorCode = xmlDoc.SelectSingleNode(@"content/error");
+                var nodeErrorCode = xmlDoc.SelectSingleNode(@"content/error");
                 if (nodeErrorCode != null)
                 {
                     ErrorMessage = "Error Code: " + nodeErrorCode.SelectSingleNode("code").InnerText + " - " + nodeErrorCode.SelectSingleNode("description").InnerText;
                     return false;
                 }
 
-                string eraBatchId = xmlDoc.SelectSingleNode(@"content/body/eraBatchId").InnerText;
-                string data835 = xmlDoc.SelectSingleNode(@"content/body/eraData").InnerText;
-                string exportFilePath = ODFileUtils.CombinePaths(clearinghouseClin.ResponsePath, DateTime.Now.ToString("yyyyMMddhhmmss") + "-" + eraBatchId + ".txt");
-                byte[] reportFileDataBytes = Encoding.UTF8.GetBytes(data835);
+                var eraBatchId = xmlDoc.SelectSingleNode(@"content/body/eraBatchId").InnerText;
+                var data835 = xmlDoc.SelectSingleNode(@"content/body/eraData").InnerText;
+                var exportFilePath = ODFileUtils.CombinePaths(clearinghouseClin.ResponsePath, DateTime.Now.ToString("yyyyMMddhhmmss") + "-" + eraBatchId + ".txt");
+                var reportFileDataBytes = Encoding.UTF8.GetBytes(data835);
                 File.WriteAllBytes(exportFilePath, reportFileDataBytes);
             }
             catch (Exception e)
@@ -326,13 +327,13 @@ namespace OpenDentBusiness.Eclaims
         ///<summary>Upserts electids returned by calling EDS' payer list web service. Returns an empty string on success. Otherwise, returns an error string.</summary>
         public static string GetPayerList()
         {
-            string strResponse = "";
-            XmlDocument xmlDoc = new XmlDocument();
+            var strResponse = "";
+            var xmlDoc = new XmlDocument();
             XmlNodeList xmlNodeList = null;
             try
             {
                 xmlDoc.Load("https://web2.edsedi.com/eds/List_Payers");
-                XmlNode nodeErrorCode = xmlDoc.SelectSingleNode(@"content/error");
+                var nodeErrorCode = xmlDoc.SelectSingleNode(@"content/error");
                 if (nodeErrorCode != null)
                 {
                     strResponse = "Error Code: " + nodeErrorCode.SelectSingleNode("code").InnerText + " - " + nodeErrorCode.SelectSingleNode("description").InnerText;
@@ -347,14 +348,14 @@ namespace OpenDentBusiness.Eclaims
                 return strResponse;
             }
 
-            List<IdNameAttributes> listIdNameAttributes = new List<IdNameAttributes>();
-            for (int i = 0; i < xmlNodeList.Count; i++)
+            var listIdNameAttributes = new List<IdNameAttributes>();
+            for (var i = 0; i < xmlNodeList.Count; i++)
             {
-                XmlNode xmlNodePayer = xmlNodeList.Item(i);
-                IdNameAttributes idNameAttribute = new IdNameAttributes();
+                var xmlNodePayer = xmlNodeList.Item(i);
+                var idNameAttribute = new IdNameAttributes();
                 idNameAttribute.ID = xmlNodePayer.SelectSingleNode("./id").InnerText;
                 idNameAttribute.Name = xmlNodePayer.SelectSingleNode("./name").InnerText;
-                idNameAttribute.Attributes = String.Join(",", GetAttributes(xmlNodePayer).Select(x => (int) x));
+                idNameAttribute.Attributes = string.Join(",", GetAttributes(xmlNodePayer).Select(x => (int) x));
                 listIdNameAttributes.Add(idNameAttribute);
             }
 
@@ -366,49 +367,49 @@ namespace OpenDentBusiness.Eclaims
         ///Determines the values of each Attribute attached to the payer, returning a list of EnumEDSPayerAttributes which are flagged as supported for the payer.</summary>
         public static List<EnumEDSPayerAttributes> GetAttributes(XmlNode xmlNodePayer)
         {
-            List<EnumEDSPayerAttributes> listEDSPayerAttributes = new List<EnumEDSPayerAttributes>();
+            var listEDSPayerAttributes = new List<EnumEDSPayerAttributes>();
             if (xmlNodePayer is null)
             {
                 return listEDSPayerAttributes;
             }
 
-            string defaultClaimTP = xmlNodePayer.SelectSingleNode("./defaultClaimTP").InnerText;
+            var defaultClaimTP = xmlNodePayer.SelectSingleNode("./defaultClaimTP").InnerText;
             if (defaultClaimTP == "ELEC")
             {
                 listEDSPayerAttributes.Add(EnumEDSPayerAttributes.DefaultClaimTP);
             }
 
-            string realtimeClaimTP = xmlNodePayer.SelectSingleNode("./realtimeClaimTP").InnerText;
+            var realtimeClaimTP = xmlNodePayer.SelectSingleNode("./realtimeClaimTP").InnerText;
             if (realtimeClaimTP == "Y")
             {
                 listEDSPayerAttributes.Add(EnumEDSPayerAttributes.RealtimeClaimTP);
             }
 
-            string eligibilityTP = xmlNodePayer.SelectSingleNode("./eligibilityTP").InnerText;
+            var eligibilityTP = xmlNodePayer.SelectSingleNode("./eligibilityTP").InnerText;
             if (eligibilityTP == "Y")
             {
                 listEDSPayerAttributes.Add(EnumEDSPayerAttributes.EligibilityTP);
             }
 
-            string ERATP = xmlNodePayer.SelectSingleNode("./ERATP").InnerText;
+            var ERATP = xmlNodePayer.SelectSingleNode("./ERATP").InnerText;
             if (ERATP == "Y")
             {
                 listEDSPayerAttributes.Add(EnumEDSPayerAttributes.ERATP);
             }
 
-            string claimEnrollment = xmlNodePayer.SelectSingleNode("./claimEnrollment").InnerText;
+            var claimEnrollment = xmlNodePayer.SelectSingleNode("./claimEnrollment").InnerText;
             if (claimEnrollment == "Y")
             {
                 listEDSPayerAttributes.Add(EnumEDSPayerAttributes.ClaimEnrollment);
             }
 
-            string eraEnrollment = xmlNodePayer.SelectSingleNode("./eraEnrollment").InnerText;
+            var eraEnrollment = xmlNodePayer.SelectSingleNode("./eraEnrollment").InnerText;
             if (eraEnrollment == "Y")
             {
                 listEDSPayerAttributes.Add(EnumEDSPayerAttributes.ERAEnrollment);
             }
 
-            string payerType = xmlNodePayer.SelectSingleNode("./payerType").InnerText;
+            var payerType = xmlNodePayer.SelectSingleNode("./payerType").InnerText;
             if (payerType == "D")
             {
                 listEDSPayerAttributes.Add(EnumEDSPayerAttributes.PayerType);
@@ -420,34 +421,34 @@ namespace OpenDentBusiness.Eclaims
         ///<summary>Throws exceptions. Returns a list of responses indicating whether or not EDS requires allows attachments for the carrier(s)/proccode(s) associated with this claim. This method is the first step of a three step process to add attachments to an EDS claim. Only if attachments are required for this claim are we allowed to proceed to step 2.</summary>
         public static ListPayerResponses ValidateClaim(Claim claim)
         {
-            string strJson = CreateValidateAttachmentJSON(claim);
-            string jsonReturn = MakeWebRequest(VALIDATE_ATTACHMENT_URL, strJson, claim.ClinicNum);
+            var strJson = CreateValidateAttachmentJSON(claim);
+            var jsonReturn = MakeWebRequest(VALIDATE_ATTACHMENT_URL, strJson, claim.ClinicNum);
             return JsonConvert.DeserializeObject<ListPayerResponses>(jsonReturn);
         }
 
         /// <summary>Throws exceptions. Helper method that will make a call to EDS' API using the passed in endpoint and the JSON content. Returns the JSON response from the API on success.</summary>
         private static string MakeWebRequest(string url, string strJson, long clinicNum)
         {
-            Clearinghouse clearinghouse = GetClearinghouse(clinicNum);
-            string authenticationString = Convert.ToBase64String(Encoding.UTF8.GetBytes($"{clearinghouse.LoginID}:{clearinghouse.Password}"));
-            using WebClient webClient = new WebClient();
+            var clearinghouse = GetClearinghouse(clinicNum);
+            var authenticationString = Convert.ToBase64String(Encoding.UTF8.GetBytes($"{clearinghouse.LoginID}:{clearinghouse.Password}"));
+            using var webClient = new WebClient();
             webClient.Headers.Add("Authorization", $"Basic {authenticationString}");
             webClient.Headers[HttpRequestHeader.ContentType] = "application/json";
-            string response = webClient.UploadString(url, "POST", strJson);
+            var response = webClient.UploadString(url, "POST", strJson);
             return response;
         }
 
         /// <summary>Throws exceptions. Returns a JSON blob containing all the necessary claim info to ask EDS if this claim requires attachments. </summary>
         private static string CreateValidateAttachmentJSON(Claim claim)
         {
-            List<ProcedureCode> listProcedureCodes = ProcedureCodes.GetForClaim(claim.ClaimNum);
-            List<Carrier> listCarriers = Carriers.GetForClaim(claim);
-            PMSLocation pmsLocation = GetPMSLocation(claim);
-            ListPayers listOfPayers = new ListPayers();
+            var listProcedureCodes = ProcedureCodes.GetForClaim(claim.ClaimNum);
+            var listCarriers = Carriers.GetForClaim(claim);
+            var pmsLocation = GetPMSLocation(claim);
+            var listOfPayers = new ListPayers();
             listOfPayers.Payers = new List<Payer>();
             Payer payer;
-            Clearinghouse clearingHouseEDS = GetClearinghouse(claim.ClinicNum);
-            for (int i = 0; i < listCarriers.Count; i++)
+            var clearingHouseEDS = GetClearinghouse(claim.ClinicNum);
+            for (var i = 0; i < listCarriers.Count; i++)
             {
                 payer = new Payer();
                 payer.ID = SOut.Long(listCarriers[i].CarrierNum);
@@ -468,7 +469,7 @@ namespace OpenDentBusiness.Eclaims
         /// <summary>Returns a PMS location populated with information about the clinic that is associated with this claim. If the office is not using clinics, uses practice information.</summary>
         private static PMSLocation GetPMSLocation(Claim claim)
         {
-            PMSLocation pmsLocation = new PMSLocation();
+            var pmsLocation = new PMSLocation();
             var clinic = Clinics.GetClinic(claim.ClinicNum);
             if (clinic != null)
             {
@@ -481,7 +482,7 @@ namespace OpenDentBusiness.Eclaims
         /// <summary>Creates a new PMSLocation based on the given parameters.</summary>
         private static PMSLocation CreatePMSLocation(long id, string name, string address, string address2, string city, string state, string zipcode, string phoneNumber)
         {
-            PMSLocation pmsLocation = new PMSLocation();
+            var pmsLocation = new PMSLocation();
             pmsLocation.ID = id;
             pmsLocation.Name = name;
             pmsLocation.Address1 = address;
@@ -496,61 +497,61 @@ namespace OpenDentBusiness.Eclaims
         /// <summary>Throws exceptions. The second part of EDS' three part system for sending attachments. Returns the unique AttachmentID on EDS' side that will be used as a 'folder' to store attachments for the given claim. AttachmentIDs are only available if EDS requires attachments for this claim (see ValidateClaim).</summary>
         public static AttachmentIDResponse GetAttachmentID(Claim claim)
         {
-            string strJson = CreateGetAttachmentIdJSON(claim);
-            string jsonReturn = MakeWebRequest(ATTACHMENTS_URL, strJson, claim.ClinicNum);
+            var strJson = CreateGetAttachmentIdJSON(claim);
+            var jsonReturn = MakeWebRequest(ATTACHMENTS_URL, strJson, claim.ClinicNum);
             return JsonConvert.DeserializeObject<AttachmentIDResponse>(jsonReturn);
         }
 
         /// <summary>Throws an exception if unable to locate the clearinghouse associated with EDS. Otherwise returns the clearinghouse associated with EDS.</summary>
         private static Clearinghouse GetClearinghouse(long clinicNum)
         {
-            Clearinghouse clearinghousehq = Clearinghouses.GetFirstOrDefault(x => x.CommBridge == EclaimsCommBridge.EDS && x.ClinicNum == 0);
+            var clearinghousehq = Clearinghouses.GetFirstOrDefault(x => x.CommBridge == EclaimsCommBridge.EDS && x.ClinicNum == 0);
             if (clearinghousehq == null)
             {
                 throw new ODException("Unable to locate EDS clearinghouse.");
             }
 
-            Clearinghouse clearinghoustClin = Clearinghouses.OverrideFields(clearinghousehq, clinicNum);
+            var clearinghoustClin = Clearinghouses.OverrideFields(clearinghousehq, clinicNum);
             return clearinghoustClin;
         }
 
         /// <summary>Throws exceptions. Returns a JSON blob with all the info needed to request an attachmentid from EDS. </summary>
         private static string CreateGetAttachmentIdJSON(Claim claim)
         {
-            Clearinghouse clearinghouse = GetClearinghouse(claim.ClinicNum);
-            PMSLocation pmsLocation = GetPMSLocation(claim);
-            PatPlan patPlan = PatPlans.GetPatPlansForPat(claim.PatNum).FirstOrDefault();
+            var clearinghouse = GetClearinghouse(claim.ClinicNum);
+            var pmsLocation = GetPMSLocation(claim);
+            var patPlan = PatPlans.GetPatPlansForPat(claim.PatNum).FirstOrDefault();
             InsSub insSub = null;
             if (patPlan != null)
             {
                 insSub = InsSubs.GetOne(patPlan.InsSubNum);
             }
 
-            Provider providerBill = Providers.GetFirstOrDefault(x => x.ProvNum == claim.ProvBill);
-            Provider providerTreat = Providers.GetFirstOrDefault(x => x.ProvNum == claim.ProvTreat);
-            Patient patient = Patients.GetPat(claim.PatNum);
-            Patient patientInsured = Patients.GetPat(insSub.Subscriber);
-            Carrier carrier = Carriers.GetForClaim(claim).FirstOrDefault();
-            string error = ValidateAttatchmentResources(patPlan, insSub, providerBill, providerTreat, patient, patientInsured, carrier);
+            var providerBill = Providers.GetFirstOrDefault(x => x.Id == claim.ProvBill);
+            var providerTreat = Providers.GetFirstOrDefault(x => x.Id == claim.ProvTreat);
+            var patient = Patients.GetPat(claim.PatNum);
+            var patientInsured = Patients.GetPat(insSub.Subscriber);
+            var carrier = Carriers.GetForClaim(claim).FirstOrDefault();
+            var error = ValidateAttatchmentResources(patPlan, insSub, providerBill, providerTreat, patient, patientInsured, carrier);
             if (!string.IsNullOrEmpty(error))
             {
                 throw new ODException("Unable to retrieve attachment ID for claim:\r\n" + error);
             }
 
-            AttachmentIDRequest attachmentIDRequest = new AttachmentIDRequest();
+            var attachmentIDRequest = new AttachmentIDRequest();
             attachmentIDRequest.ProviderEntityType = EnumProviderEntityType.Person; //Default the entity type to person
             attachmentIDRequest.VendorClaimId = claim.ClaimIdentifier;
             attachmentIDRequest.PayerId = carrier.ElectID;
             attachmentIDRequest.PayerName = carrier.CarrierName;
-            attachmentIDRequest.BillingProviderTaxId = providerBill.SSN;
-            attachmentIDRequest.BillingProviderNpi = providerBill.NationalProvID;
-            attachmentIDRequest.BillingProviderLastName = providerBill.LName;
-            attachmentIDRequest.BillingProviderFirstName = providerBill.FName;
+            attachmentIDRequest.BillingProviderTaxId = providerBill.Ssn;
+            attachmentIDRequest.BillingProviderNpi = providerBill.NationalProviderId;
+            attachmentIDRequest.BillingProviderLastName = providerBill.LastName;
+            attachmentIDRequest.BillingProviderFirstName = providerBill.FirstName;
             attachmentIDRequest.BillingProviderTaxonomyCode = X12Generator.GetTaxonomy(providerBill);
             attachmentIDRequest = SetBillingProviderAddress(attachmentIDRequest, claim);
-            attachmentIDRequest.RenderingProviderNpi = providerTreat.NationalProvID;
-            attachmentIDRequest.RenderingProviderLastName = providerTreat.LName;
-            attachmentIDRequest.RenderingProviderFirstName = providerTreat.FName;
+            attachmentIDRequest.RenderingProviderNpi = providerTreat.NationalProviderId;
+            attachmentIDRequest.RenderingProviderLastName = providerTreat.LastName;
+            attachmentIDRequest.RenderingProviderFirstName = providerTreat.FirstName;
             attachmentIDRequest.PatientControlNumber = patient.PatNum.ToString();
             attachmentIDRequest.PatientLastName = patient.LName;
             attachmentIDRequest.PatientFirstName = patient.FName;
@@ -570,9 +571,9 @@ namespace OpenDentBusiness.Eclaims
         }
 
         /// <summary>Helper method to validate all the objects used to create an AttachmentID request. Returns error message(s) if any of the passed in arguments are invalid, otherwise returns an empty string.</summary>
-        private static string ValidateAttatchmentResources(PatPlan patPlan, InsSub insSub, Provider providerBill, Provider providerTreat, Patient patient, Patient patientInsured, Carrier carrier)
+        private static string ValidateAttatchmentResources(PatPlan patPlan, InsSub insSub, ProviderDto providerBill, ProviderDto providerTreat, Patient patient, Patient patientInsured, Carrier carrier)
         {
-            StringBuilder stringBuilder = new StringBuilder();
+            var stringBuilder = new StringBuilder();
             if (insSub == null || patientInsured == null || patPlan == null)
             {
                 stringBuilder.AppendLine("Insurance subscriber not found");
@@ -585,17 +586,17 @@ namespace OpenDentBusiness.Eclaims
             else
             {
                 //Valid provider so check EDS required fields
-                if (!providerBill.UsingTIN)
+                if (!providerBill.IsTin)
                 {
                     stringBuilder.AppendLine("Billing provider Tax ID Number is required");
                 }
 
-                if (providerBill.SSN.Length != 9)
+                if (providerBill.Ssn.Length != 9)
                 {
                     stringBuilder.AppendLine("Billing provider Tax ID Number must be 9 digits");
                 }
 
-                if (providerBill.NationalProvID.Length != 10)
+                if (providerBill.NationalProviderId.Length != 10)
                 {
                     stringBuilder.AppendLine("Billing provider National Provider ID must be 10 digits");
                 }
@@ -608,7 +609,7 @@ namespace OpenDentBusiness.Eclaims
             else
             {
                 //Valid provider so check EDS required fields
-                if (providerTreat.NationalProvID.Length != 10)
+                if (providerTreat.NationalProviderId.Length != 10)
                 {
                     stringBuilder.AppendLine("Treating provider National Provider ID must be 10 digits");
                 }
@@ -670,15 +671,15 @@ namespace OpenDentBusiness.Eclaims
         ///<summary>Throws exceptions. Saves the provided list of attachments to EDS and returns the response from EDS. This is the third and final step for sending attachments to EDS and can only be done when steps 1 & 2 are complete (ValidateClaim and GetAttachmentID).</summary>
         public static SaveAttachmentsResponse SaveAttachments(string attachmentId, List<ImageAttachment> listImageAttachments, long clinicNum)
         {
-            string strJson = CreateSaveAttachmentsJSON(listImageAttachments);
-            string jsonResponse = MakeWebRequest(ATTACHMENTS_URL + @$"/{attachmentId}/images", strJson, clinicNum);
+            var strJson = CreateSaveAttachmentsJSON(listImageAttachments);
+            var jsonResponse = MakeWebRequest(ATTACHMENTS_URL + @$"/{attachmentId}/images", strJson, clinicNum);
             return JsonConvert.DeserializeObject<SaveAttachmentsResponse>(jsonResponse);
         }
 
         ///<summary>Returns a JSON blob with all the needed info to save the given list of attachments to EDS.</summary>
         private static string CreateSaveAttachmentsJSON(List<ImageAttachment> listImageAttachments)
         {
-            SaveAttachmentsRequest saveAttachmentsRequest = new SaveAttachmentsRequest();
+            var saveAttachmentsRequest = new SaveAttachmentsRequest();
             saveAttachmentsRequest.RequestType = "JSON";
             saveAttachmentsRequest.EdsClaimId = null;
             saveAttachmentsRequest.ImageCount = listImageAttachments.Count;
@@ -803,7 +804,7 @@ namespace OpenDentBusiness.Eclaims
                     return new ImageAttachment();
                 }
 
-                ImageAttachment imageAttachment = new ImageAttachment();
+                var imageAttachment = new ImageAttachment();
                 imageAttachment.FileDate = dateTimeCreated;
                 imageAttachment.DocumentTypeCode = documentTypeCode;
                 imageAttachment.FileData = ConvertImageToBytes(imageClaim);
@@ -827,7 +828,7 @@ namespace OpenDentBusiness.Eclaims
             /// <summary>Helper method to parse out the image attachment extension (e.g. .JPEG). If the extension can't be determined from the image.RawFormat, then the default is JPEG.</summary>
             private static string GetImageExtension(Image image)
             {
-                ImageCodecInfo imageCodecInfo = ImageCodecInfo.GetImageEncoders().FirstOrDefault(x => x.FormatID == image.RawFormat.Guid);
+                var imageCodecInfo = ImageCodecInfo.GetImageEncoders().FirstOrDefault(x => x.FormatID == image.RawFormat.Guid);
                 if (imageCodecInfo == null)
                 {
                     //Typically only happens when dealing with in-memory bitmaps (e.g. snipped image) that haven't been saved to disk yet. Default to JPEG.
@@ -835,7 +836,7 @@ namespace OpenDentBusiness.Eclaims
                 }
 
                 //FileNameExtension refers to all the file extensions that this image could have in the format *.{extension};*.{extension}; etc. We'll just use the first extension.
-                string fileExtension = imageCodecInfo.FilenameExtension.Split(";", StringSplitOptions.RemoveEmptyEntries).FirstOrDefault();
+                var fileExtension = imageCodecInfo.FilenameExtension.Split(";", StringSplitOptions.RemoveEmptyEntries).FirstOrDefault();
                 if (fileExtension == null)
                 {
                     return ".jpeg"; //The FileExtension list did not have any entries. Not likely, but just incase default to .jpeg.
@@ -847,16 +848,16 @@ namespace OpenDentBusiness.Eclaims
             ///<summary>Takes an image and converts it to a base64 byte representation. EDS requires the image to be in this format when sending attachments.</summary>
             private static byte[] ConvertImageToBytes(Image image)
             {
-                using MemoryStream memoryStream = new MemoryStream();
-                ImageFormat imageFormat = image.RawFormat;
-                ImageCodecInfo imageCodecInfo = ImageCodecInfo.GetImageEncoders().FirstOrDefault(x => x.FormatID == image.RawFormat.Guid);
+                using var memoryStream = new MemoryStream();
+                var imageFormat = image.RawFormat;
+                var imageCodecInfo = ImageCodecInfo.GetImageEncoders().FirstOrDefault(x => x.FormatID == image.RawFormat.Guid);
                 if (imageCodecInfo == null)
                 {
                     //Typically only happens when dealing with in-memory bitmaps (e.g. snipped image) that haven't been saved to disk yet. Default to JPEG.
                     imageFormat = ImageFormat.Jpeg;
                 }
 
-                using Bitmap bitmap = new Bitmap(image);
+                using var bitmap = new Bitmap(image);
                 bitmap.Save(memoryStream, imageFormat);
                 return memoryStream.ToArray();
             }

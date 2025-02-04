@@ -26,23 +26,24 @@ public class CertCrud
     public static List<Cert> TableToList(DataTable table)
     {
         var retVal = new List<Cert>();
-        Cert cert;
         foreach (DataRow row in table.Rows)
         {
-            cert = new Cert();
-            cert.CertNum = SIn.Long(row["CertNum"].ToString());
-            cert.Description = SIn.String(row["Description"].ToString());
-            cert.WikiPageLink = SIn.String(row["WikiPageLink"].ToString());
-            cert.ItemOrder = SIn.Int(row["ItemOrder"].ToString());
-            cert.IsHidden = SIn.Bool(row["IsHidden"].ToString());
-            cert.CertCategoryNum = SIn.Long(row["CertCategoryNum"].ToString());
+            var cert = new Cert
+            {
+                CertNum = SIn.Long(row["CertNum"].ToString()),
+                Description = SIn.String(row["Description"].ToString()),
+                WikiPageLink = SIn.String(row["WikiPageLink"].ToString()),
+                ItemOrder = SIn.Int(row["ItemOrder"].ToString()),
+                IsHidden = SIn.Bool(row["IsHidden"].ToString()),
+                CertCategoryNum = SIn.Long(row["CertCategoryNum"].ToString())
+            };
             retVal.Add(cert);
         }
 
         return retVal;
     }
 
-    public static long Insert(Cert cert)
+    public static void Insert(Cert cert)
     {
         var command = "INSERT INTO cert (";
 
@@ -57,7 +58,6 @@ public class CertCrud
         {
             cert.CertNum = Db.NonQ(command, true, "CertNum", "cert");
         }
-        return cert.CertNum;
     }
 
     public static void Update(Cert cert)

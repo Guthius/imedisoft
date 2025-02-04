@@ -1,8 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Data;
-using System.Reflection;
-using System.Text;
 using DataConnectionBase;
 
 namespace OpenDentBusiness {
@@ -30,7 +27,7 @@ namespace OpenDentBusiness {
 			//15-DoctorName
 			//16-IsNewPatient
 			//17-WirelessPhone
-			string command=@"SELECT patient.LName,patient.FName,patient.Preferred
+			var command=@"SELECT patient.LName,patient.FName,patient.Preferred
 				,patient.PatNum,patient.ChartNumber,patient.HmPhone,patient.WkPhone
 				,patient.Email,patient.Address,patient.Address2,patient.City,patient.State
 				,patient.Zip
@@ -40,9 +37,9 @@ namespace OpenDentBusiness {
 				patient.WirelessPhone
 				FROM patient,appointment 
 				WHERE patient.PatNum=appointment.PatNum "
-				+"AND (appointment.AptStatus=1 OR appointment.AptStatus=4) "//sched or ASAP
-				+"AND appointment.AptDateTime > "+SOut.Date(FromDate)//> midnight
-				+" AND appointment.AptDateTime < "+SOut.Date(ToDate.AddDays(1));//< midnight
+			            +"AND (appointment.AptStatus=1 OR appointment.AptStatus=4) "//sched or ASAP
+			            +"AND appointment.AptDateTime > "+SOut.Date(FromDate)//> midnight
+			            +" AND appointment.AptDateTime < "+SOut.Date(ToDate.AddDays(1));//< midnight
 			return DataCore.GetTable(command);
 		}
 

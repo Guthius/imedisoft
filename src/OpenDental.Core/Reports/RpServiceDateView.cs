@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Data;
-using System.Linq;
-using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Data;
 using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Entities;
@@ -12,11 +6,11 @@ using Imedisoft.Core.Entities;
 namespace OpenDentBusiness {
 	public class RpServiceDateView {
 		public static DataTable GetData(long patNum,bool isFamily,bool isDetailed) {
-			int payPlanVersion=SIn.Int(PrefC.GetStringNoCache(PrefName.PayPlansVersion));
+			var payPlanVersion=SIn.Int(PrefC.GetStringNoCache(PrefName.PayPlansVersion));
 			if(payPlanVersion==0) {
 				payPlanVersion=1;
 			}
-			string command=$@"
+			var command=$@"
 				/*top layer gets final columns for display*/
 				SELECT
 					IF(display.TranDate != '', '',display.ProcDate) AS 'Date',
@@ -186,10 +180,10 @@ namespace OpenDentBusiness {
 		///<summary>Get core data ordered by procedure date and transactions attached to procs first, with specific ordering for transaction type. 
 		///Using aging preference to get payment plan info. Defining transaction type separate from reference for specific ordering.</summary>
 		private static string GetCoreQuery(long patNum,bool isFamily,int payPlanVersion) {
-			string wherePatOrFam=isFamily ? $"patient.Guarantor={SOut.Long(patNum)}":$"patient.PatNum={SOut.Long(patNum)}";
+			var wherePatOrFam=isFamily ? $"patient.Guarantor={SOut.Long(patNum)}":$"patient.PatNum={SOut.Long(patNum)}";
 			#region Procedures
 			//Get all completed procedures for patient/family with charges and credits. Also includes separate column for insurance credits only.
-			string command=$@"SELECT 'Proc' AS 'Type', 
+			var command=$@"SELECT 'Proc' AS 'Type', 
 				procedurelog.ProcNum AS 'TranNum', 
 				procedurelog.ProcDate, 
 				'0001-01-01' AS 'TranDate', 

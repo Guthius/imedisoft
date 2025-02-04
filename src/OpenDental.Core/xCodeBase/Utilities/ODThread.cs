@@ -20,8 +20,7 @@ public class ODThread
     private static readonly object LockObj = new();
     private bool _isAutoCleanup;
     private static Action<Exception, Thread> _actionUnhandledException;
-
-    public int TimeIntervalMs;
+    public readonly int TimeIntervalMs;
     private bool _wasAbortAttempted;
     public object Tag;
     public readonly object[] Parameters;

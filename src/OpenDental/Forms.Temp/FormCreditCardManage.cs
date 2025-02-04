@@ -8,10 +8,8 @@ using System.Windows.Forms;
 using OpenDental.UI;
 using OpenDentBusiness;
 using System.Text.RegularExpressions;
-using OpenDental.Bridges;
 using CodeBase;
 using System.Text;
-using System.Globalization;
 using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Entities;
@@ -316,10 +314,6 @@ public partial class FormCreditCardManage:FormODBase {
 			}
 		}
 		if(hasXCharge) {
-			if(/* ODEnvironment.IsCloudServer */ false) {
-				MsgBox.Show(this,"XCharge is not available while using Open Dental Cloud.");
-				return;
-			}
 			var program=Programs.GetCur(ProgramName.Xcharge);
 			var path=Programs.GetProgramPath(program);
 			var xUsername=ProgramProperties.GetPropVal(program.ProgramNum,"Username",Clinics.ClinicNum).Trim();

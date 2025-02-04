@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Reflection;
 using DataConnectionBase;
 
 namespace OpenDentBusiness {
@@ -11,9 +10,9 @@ namespace OpenDentBusiness {
 			,bool hasClaimTypeExpanded,ClaimNotSentStatuses claimStatusFilter)
 		{
 			const bool hasClinicsEnabled = true;
-			string command="";
-			string whereClin="";
-			string claimFilter="";
+			var command="";
+			var whereClin="";
+			var claimFilter="";
 			if(listClinicNums.Count>0) {//construct the IN statement for all of the selected clinics
 				whereClin+=" AND claim.ClinicNum IN(" + string.Join(",",listClinicNums)+")";
 			}
@@ -28,7 +27,7 @@ namespace OpenDentBusiness {
 				command+="claim.DateService,claim.ClaimType,";
 			}
 			//Claim statuses of Unsent, Hold until pri, and Waiting are considered for "All" in this report.
-			string claimStatusAll="AND claim.ClaimStatus IN ('U','H','W','I')";
+			var claimStatusAll="AND claim.ClaimStatus IN ('U','H','W','I')";
 			switch(claimStatusFilter) {
 				case ClaimNotSentStatuses.Primary:
 					claimFilter="AND claim.ClaimType='P' "+claimStatusAll;
@@ -43,7 +42,7 @@ namespace OpenDentBusiness {
 					claimFilter+=claimStatusAll;
 					break;
 			}
-			string clinJoin="";
+			var clinJoin="";
 			if(hasClinicsEnabled) {
 				clinJoin=" LEFT JOIN clinic ON clinic.ClinicNum=claim.ClinicNum";
 			}

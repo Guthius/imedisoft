@@ -2,7 +2,6 @@ using OpenDental.ReportingComplex;
 using OpenDentBusiness;
 using System;
 using System.Collections.Generic;
-using System.Data;
 using System.Drawing;
 using System.Linq;
 using System.Windows.Forms;
@@ -32,40 +31,24 @@ public partial class FormRpUnearnedIncome:FormODBase {
 
 	#region Fill Methods
 	private void FillClinics() {
-		if(true) {//fill clinic list
-			var listClinics=Clinics.GetForUserod(Security.CurUser,true,Lan.g(this,"Unassigned"));
-			foreach(var clinCur in listClinics) {
-				listUnearnedAllocationClins.Items.Add(clinCur.Abbr,clinCur);
-				listNetUnearnedClins.Items.Add(clinCur.Abbr,clinCur);
-				listLineItemClins.Items.Add(clinCur.Abbr,clinCur);
-				listUnearnedAcctClins.Items.Add(clinCur.Abbr,clinCur);
-				if(clinCur.Id == Clinics.ClinicNum) {
-					listUnearnedAllocationClins.SetSelectedKey<ClinicDto>(clinCur.Id,x => x.Id);
-					listNetUnearnedClins.SetSelectedKey<ClinicDto>(clinCur.Id,x => x.Id);
-					listLineItemClins.SetSelectedKey<ClinicDto>(clinCur.Id,x => x.Id);
-					listUnearnedAcctClins.SetSelectedKey<ClinicDto>(clinCur.Id,x => x.Id);;
-				}
-			}
-			if(Clinics.ClinicNum==0) {
-				checkUnearnedAllocationAllClins.Checked=true;
-				checkNetUnearnedAllClins.Checked=true;
-				checkLineItemAllClins.Checked=true;
-				checkUnearnedAcctAllClins.Checked=true;
+		var listClinics=Clinics.GetForUserod(Security.CurUser,true,Lan.g(this,"Unassigned"));
+		foreach(var clinCur in listClinics) {
+			listUnearnedAllocationClins.Items.Add(clinCur.Abbr,clinCur);
+			listNetUnearnedClins.Items.Add(clinCur.Abbr,clinCur);
+			listLineItemClins.Items.Add(clinCur.Abbr,clinCur);
+			listUnearnedAcctClins.Items.Add(clinCur.Abbr,clinCur);
+			if(clinCur.Id == Clinics.ClinicNum) {
+				listUnearnedAllocationClins.SetSelectedKey<ClinicDto>(clinCur.Id,x => x.Id);
+				listNetUnearnedClins.SetSelectedKey<ClinicDto>(clinCur.Id,x => x.Id);
+				listLineItemClins.SetSelectedKey<ClinicDto>(clinCur.Id,x => x.Id);
+				listUnearnedAcctClins.SetSelectedKey<ClinicDto>(clinCur.Id,x => x.Id);;
 			}
 		}
-		else {//hide label,list,and check box if clinics are not enabled
-			listUnearnedAllocationClins.Visible=false;
-			labelUnearnedAllocationClins.Visible=false;
-			checkUnearnedAllocationAllClins.Visible=false;
-			listNetUnearnedClins.Visible=false;
-			labelNetUnearnedClins.Visible=false;
-			checkNetUnearnedAllClins.Visible=false;
-			listLineItemClins.Visible=false;
-			labelLineItemClins.Visible=false;
-			checkLineItemAllClins.Visible=false;
-			listUnearnedAcctClins.Visible=false;
-			labelUnearnedAcctClins.Visible=false;
-			checkUnearnedAcctAllClins.Visible=false;
+		if(Clinics.ClinicNum==0) {
+			checkUnearnedAllocationAllClins.Checked=true;
+			checkNetUnearnedAllClins.Checked=true;
+			checkLineItemAllClins.Checked=true;
+			checkUnearnedAcctAllClins.Checked=true;
 		}
 	}
 
@@ -365,27 +348,15 @@ public partial class FormRpUnearnedIncome:FormODBase {
 			}
 		}
 		QueryObject query;
-		if(true) {
-			query=report.AddQuery(table,"","",SplitByKind.None,1,true);
-			query.AddColumn("Date",100,FieldValueType.Date);
-			query.AddColumn("Patient",180,FieldValueType.String);
-			query.AddColumn("Type",120,FieldValueType.String);
-			query.AddColumn("Clinic",80,FieldValueType.String);
-			if(checkLineItemShowProv.Checked) {
-				query.AddColumn("Prov",50,FieldValueType.String);
-			}
-			query.AddColumn("Amount",100,FieldValueType.Number);
+		query=report.AddQuery(table,"","",SplitByKind.None,1,true);
+		query.AddColumn("Date",100,FieldValueType.Date);
+		query.AddColumn("Patient",180,FieldValueType.String);
+		query.AddColumn("Type",120,FieldValueType.String);
+		query.AddColumn("Clinic",80,FieldValueType.String);
+		if(checkLineItemShowProv.Checked) {
+			query.AddColumn("Prov",50,FieldValueType.String);
 		}
-		else {
-			query=report.AddQuery(table,"","",SplitByKind.None,1,true);
-			query.AddColumn("Date",100,FieldValueType.String);
-			query.AddColumn("Patient",260,FieldValueType.String);
-			query.AddColumn("Type",120,FieldValueType.String);
-			if(checkLineItemShowProv.Checked) {
-				query.AddColumn("Prov",50,FieldValueType.String);
-			}
-			query.AddColumn("Amount",100,FieldValueType.Number);
-		}
+		query.AddColumn("Amount",100,FieldValueType.Number);
 		report.AddPageNum();
 		report.AddGridLines();
 		if(!report.SubmitQueries()) {
@@ -438,19 +409,12 @@ public partial class FormRpUnearnedIncome:FormODBase {
 			}
 		}
 		QueryObject query;
-		if(true) {
-			query=report.AddQuery(table,"","",SplitByKind.None,1,true);
-			query.AddColumn("Guarantor",280,FieldValueType.String);
-			query.AddColumn("Type",120,FieldValueType.String);
-			query.AddColumn("Clinic",80,FieldValueType.String);
-			query.AddColumn("Amount",100,FieldValueType.Number);
-		}
-		else {
-			query=report.AddQuery(table,"","",SplitByKind.None,1,true);
-			query.AddColumn("Guarantor",360,FieldValueType.String);
-			query.AddColumn("Type",120,FieldValueType.String);
-			query.AddColumn("Amount",100,FieldValueType.Number);
-		}
+		query=report.AddQuery(table,"","",SplitByKind.None,1,true);
+		query.AddColumn("Guarantor",280,FieldValueType.String);
+		query.AddColumn("Type",120,FieldValueType.String);
+		query.AddColumn("Clinic",80,FieldValueType.String);
+		query.AddColumn("Amount",100,FieldValueType.Number);
+
 		report.AddPageNum();
 		report.AddGridLines();
 		if(!report.SubmitQueries()) {
@@ -480,7 +444,7 @@ public partial class FormRpUnearnedIncome:FormODBase {
 					butUnearnedAllocationOK.Enabled=false;
 				}
 			}
-			catch(Exception ex) {
+			catch {
 			}
 		}
 	}

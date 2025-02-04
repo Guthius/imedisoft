@@ -1,18 +1,6 @@
-using System;
-using System.Drawing;
-using System.Collections;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Text;
 using System.Windows.Forms;
 using OpenDentBusiness;
 using OpenDental.UI;
-using System.Linq;
-using CodeBase;
-using System.Net;
-using System.Xml;
-using System.Text.RegularExpressions;
-using System.IO;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Entities;
 

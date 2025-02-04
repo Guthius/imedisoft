@@ -24,7 +24,7 @@ public partial class FormXchargeSetup : FormODBase {
 	private List<ProgramProperty> _listProgramPropertiesWebPay= [];
 	///<summary>Used to revert the clinic drop down if the user tries to change clinics and the payment type hasn't been set.</summary>
 	private long _clinicNumRevert;
-	private bool _isLoading = false;
+
 	private List<Def> _listDefsPayTypes;
 
 		
@@ -37,28 +37,18 @@ public partial class FormXchargeSetup : FormODBase {
 	}
 
 	private void FormXchargeSetup_Load(object sender,EventArgs e) {
-		_isLoading=true;
 		_program=Programs.GetCur(ProgramName.Xcharge);
 		if(_program==null) {
 			return;//should never happen
 		}
-		if(/* ODEnvironment.IsCloudServer */ false) {
-			linkLabel1.Text+="\r\n"+Lans.g("X-Charge is not supported while using Open Dental Cloud. Use EdgeExpress instead.");
+		groupPaySettings.Text=Lan.g(this,"Clinic Payment Settings");
+		if(Security.CurUser.ClinicIsRestricted) {
+			//if program link is enabled, disable the enable check box so the restricted user cannot disable for all clinics
+			checkEnabled.Enabled=!_program.Enabled;
 		}
-		if(true) {
-			groupPaySettings.Text=Lan.g(this,"Clinic Payment Settings");
-			if(Security.CurUser.ClinicIsRestricted) {
-				//if program link is enabled, disable the enable check box so the restricted user cannot disable for all clinics
-				checkEnabled.Enabled=!_program.Enabled;
-			}
-			comboClinic.ClinicNumSelected=Clinics.ClinicNum;
-			_clinicNumRevert=Clinics.ClinicNum;
-		}
-		else {//clinics not enabled
-			checkEnabled.Text=Lan.g(this,"Enabled");
-			labelClinicEnable.Visible=false;
-			groupPaySettings.Text=Lan.g(this,"Payment Settings");
-		}
+		comboClinic.ClinicNumSelected=Clinics.ClinicNum;
+		_clinicNumRevert=Clinics.ClinicNum;
+
 		checkEnabled.Checked=_program.Enabled;
 		textPath.Text=_program.Path;
 		textOverride.Text=ProgramProperties.GetLocalPathOverrideForProgram(_program.ProgramNum);
@@ -72,7 +62,6 @@ public partial class FormXchargeSetup : FormODBase {
 			textPassword.ReadOnly=true;
 		}
 		FillFields();
-		_isLoading=false;
 	}
 
 	///<summary>Fills all but comboClinic, checkEnabled, textPath, and textOverride which are filled on load.</summary>
@@ -409,15 +398,6 @@ public partial class FormXchargeSetup : FormODBase {
 	}
 
 	private void checkEnabled_CheckedChanged(object sender,EventArgs e) {
-		if(/* ODEnvironment.IsCloudServer */ false) {
-			var isDisabledForWeb=Programs.GetListDisabledForWeb().Contains(_program.ProgName);
-			if(checkEnabled.Checked && isDisabledForWeb) {
-				checkEnabled.Checked=false;
-				if(!_isLoading){
-					MsgBox.Show(this,"Web users cannot currently enable this bridge");
-				}
-			}
-		}
 	}
 
 	private void butSave_Click(object sender,System.EventArgs e) {

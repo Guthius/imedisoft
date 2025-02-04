@@ -196,12 +196,6 @@ public partial class FormLimitedStatementSelect : FormODBase
         gridMain.BeginUpdate();
         gridMain.Columns.Clear();
         var listDisplayFields = DisplayFields.GetForCategory(DisplayFieldCategory.LimitedCustomStatement);
-        if (!true)
-        {
-            //remove clinics from displayfields if clinics are disabled
-            listDisplayFields.RemoveAll(x => x.InternalName.ToLower().Contains("clinic"));
-        }
-
         listDisplayFields.RemoveAll(x => x.InternalName.In("Balance"));
         HorizontalAlignment align;
         GridSortingStrategy sort;

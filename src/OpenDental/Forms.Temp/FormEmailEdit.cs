@@ -1,16 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Windows.Forms;
-using CodeBase;
-using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Data;
 using Imedisoft.Core.Entities;
-using Imedisoft.Core.Features.Clinics;
 using OpenDental.UI;
 using OpenDentBusiness;
 
@@ -38,9 +34,6 @@ public partial class FormEmailEdit:FormODBase {
 	public bool AreReplacementsAllowed=false;
 	///<summary>When true, the caller of FormEmailEdit() is the FormMassEmail() window.</summary>
 	public bool IsMassEmail=false;
-	///<summary>A list of email image names and urls hosted at Email Hosting. Just for temporary caching so that we do not upload the same image
-	///twice while in this window.</summary>
-	private List<FileNameUrl> _listFileNameUrls= [];
 	///<summary>When true, disables some buttons that are not allowed when EmailSignature.</summary>
 	public bool IsEmailSignature=false;
 
@@ -290,56 +283,12 @@ public partial class FormEmailEdit:FormODBase {
 		}
 		textContentEmail.SelectionLength=0;
 		var imgName=formImagePicker.ImageNameSelected;
-		if(IsMassEmail) {
-			try {
-				imgName=GetMassEmailImageLink(formImagePicker.ImageNameSelected);
-			}
-			catch(Exception e) {
-				FriendlyException.Show($"An error occurred: {e.Message}",e);
-				return;
-			}
-			if(string.IsNullOrEmpty(imgName)) {//if user cancelled
-				return;
-			}
-		}
 		if(checkIsRaw.Checked) {
 			textContentEmail.SelectedText=$"<img src=\"{imgName}\" />";
 		}
 		else {
 			textContentEmail.SelectedText=$"[[img:{imgName}]]";
 		}
-	}
-
-	///<summary>Attempts to get the selected image name and upload the file to the EmailHosting api. May throw exception.</summary>
-	private string GetMassEmailImageLink(string selectedImgName) {
-		if(string.IsNullOrEmpty(selectedImgName)) {
-			throw new ApplicationException("Please select an image");
-		}
-		var fileNameUrl=_listFileNameUrls.FirstOrDefault(x=>x.FileName==selectedImgName);
-		if(fileNameUrl!=null){
-			return fileNameUrl.Url;
-		}
-		var imagePath=ImageStore.GetEmailImagePath();
-		var fullPath=FileAtoZ.CombinePaths(imagePath,SOut.String(selectedImgName));
-		byte[] byteArray;
-		byteArray=File.ReadAllBytes(fullPath);
-		var iAccountApi=EmailHostingTemplates.GetAccountApi(Clinics.ClinicNum);
-		UploadS3ObjectResponse uploadS3ObjectResponse=null;
-		var progress=new ProgressWin();
-		var uploadS3ObjectRequest=new UploadS3ObjectRequest { 
-			FileName=Path.GetFileNameWithoutExtension(fullPath),
-			Extension=Path.GetExtension(fullPath),
-			ObjectBytesBase64=Convert.ToBase64String(byteArray),
-			ObjectPurpose=S3ObjectPurpose.MassEmailImages,
-			ObjectType=S3ObjectType.Image,
-		};
-		progress.ActionMain=() => uploadS3ObjectResponse=iAccountApi.UploadS3Object(uploadS3ObjectRequest);
-		progress.ShowDialog();
-		if(progress.IsCancelled) {
-			return "";
-		}
-		_listFileNameUrls.Add(new FileNameUrl {FileName=selectedImgName,Url=uploadS3ObjectResponse.Url });
-		return uploadS3ObjectResponse.Url;
 	}
 
 	private void Autograph_Click() {
@@ -509,7 +458,7 @@ public partial class FormEmailEdit:FormODBase {
 			webBrowserEmail.DocumentText=text;
 			_isInvalidPreview=false;
 		}
-		catch(Exception ex) {
+		catch {
 			_isInvalidPreview=true;
 		}
 	}
@@ -541,7 +490,7 @@ public partial class FormEmailEdit:FormODBase {
 			MsgBox.Show(this,"Email must contain the \"[EmailDisclaimer]\" tag.");
 			return;
 		}
-		var errorText=PrefC.GetFirstShortURL(textContentEmail.Text);
+		var errorText=PrefC.GetFirstShortUrl(textContentEmail.Text);
 		if(!string.IsNullOrWhiteSpace(errorText)) {
 			MsgBox.Show(this,Lan.g(this,"Message cannot contain the URL")+" "+errorText+" "+Lan.g(this,"as this is only allowed for eServices."));
 			return;
@@ -560,10 +509,4 @@ public partial class FormEmailEdit:FormODBase {
 			e.Cancel=true;//don't close the form if there are errors (prevents OK click)
 		}
 	}
-
-	private class FileNameUrl{
-		public string FileName;
-		public string Url;
-	}
-
 }

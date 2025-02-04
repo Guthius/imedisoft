@@ -1,9 +1,6 @@
 using System;
 using System.Collections.Generic;
-using System.Data;
 using System.Drawing;
-using System.Drawing.Drawing2D;
-using System.Drawing.Text;
 using System.Linq;
 using System.Windows.Forms;
 using OpenDentBusiness;
@@ -14,6 +11,7 @@ using OpenDentBusiness.Eclaims;
 using System.Text;
 using DataConnectionBase;
 using Imedisoft.Core.Caching;
+using Imedisoft.Core.Data;
 using Imedisoft.Core.Entities;
 
 namespace OpenDental;

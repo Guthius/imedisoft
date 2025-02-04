@@ -18,17 +18,18 @@ public class DisplayReportCrud
     public static List<DisplayReport> TableToList(DataTable table)
     {
         var retVal = new List<DisplayReport>();
-        DisplayReport displayReport;
         foreach (DataRow row in table.Rows)
         {
-            displayReport = new DisplayReport();
-            displayReport.DisplayReportNum = SIn.Long(row["DisplayReportNum"].ToString());
-            displayReport.InternalName = SIn.String(row["InternalName"].ToString());
-            displayReport.ItemOrder = SIn.Int(row["ItemOrder"].ToString());
-            displayReport.Description = SIn.String(row["Description"].ToString());
-            displayReport.Category = (DisplayReportCategory) SIn.Int(row["Category"].ToString());
-            displayReport.IsHidden = SIn.Bool(row["IsHidden"].ToString());
-            displayReport.IsVisibleInSubMenu = SIn.Bool(row["IsVisibleInSubMenu"].ToString());
+            var displayReport = new DisplayReport
+            {
+                DisplayReportNum = SIn.Long(row["DisplayReportNum"].ToString()),
+                InternalName = SIn.String(row["InternalName"].ToString()),
+                ItemOrder = SIn.Int(row["ItemOrder"].ToString()),
+                Description = SIn.String(row["Description"].ToString()),
+                Category = (DisplayReportCategory) SIn.Int(row["Category"].ToString()),
+                IsHidden = SIn.Bool(row["IsHidden"].ToString()),
+                IsVisibleInSubMenu = SIn.Bool(row["IsVisibleInSubMenu"].ToString())
+            };
             retVal.Add(displayReport);
         }
 
@@ -135,15 +136,13 @@ public class DisplayReportCrud
         var idxNew = 0;
         var idxDB = 0;
         var rowsUpdatedCount = 0;
-        DisplayReport fieldNew;
-        DisplayReport fieldDB;
         //Because both lists have been sorted using the same criteria, we can now walk each list to determine which list contians the next element.  The next element is determined by Primary Key.
         //If the New list contains the next item it will be inserted.  If the DB contains the next item, it will be deleted.  If both lists contain the next item, the item will be updated.
         while (idxNew < listNew.Count || idxDB < listDB.Count)
         {
-            fieldNew = null;
+            DisplayReport fieldNew = null;
             if (idxNew < listNew.Count) fieldNew = listNew[idxNew];
-            fieldDB = null;
+            DisplayReport fieldDB = null;
             if (idxDB < listDB.Count) fieldDB = listDB[idxDB];
             //begin compare
             if (fieldNew != null && fieldDB == null)

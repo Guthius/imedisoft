@@ -1,6 +1,7 @@
 using System.Drawing;
 using System.Windows.Forms;
 using DataConnectionBase;
+using Imedisoft.Core.Data;
 using Imedisoft.Core.Entities;
 using Imedisoft.Core.Features.Clinics;
 using OpenDental.Bridges;

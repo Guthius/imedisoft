@@ -27,10 +27,11 @@ public class ProcFeeHelper(long patNum)
     {
         if (Pat != null && ListPatPlans != null && ListInsSubs != null && ListInsPlans != null && ListBenefitsPrimary != null)
         {
-            return; //all data has already been filled.
+            return;
         }
 
-        ProcFeeHelper procFeeHelper = GetData(patNum, this);
+        var procFeeHelper = GetData(patNum, this);
+        
         Pat = procFeeHelper.Pat;
         ListPatPlans = procFeeHelper.ListPatPlans;
         ListInsSubs = procFeeHelper.ListInsSubs;
@@ -40,21 +41,23 @@ public class ProcFeeHelper(long patNum)
 
     public static ProcFeeHelper GetData(long patNum, ProcFeeHelper procFeeHelper)
     {
-        procFeeHelper = procFeeHelper ?? new ProcFeeHelper(patNum);
-        procFeeHelper.Pat = procFeeHelper.Pat ?? Patients.GetPat(patNum);
-        procFeeHelper.ListPatPlans = procFeeHelper.ListPatPlans ?? PatPlans.GetPatPlansForPat(patNum);
-        procFeeHelper.ListInsSubs = procFeeHelper.ListInsSubs ?? InsSubs.GetMany(procFeeHelper.ListPatPlans.Select(x => x.InsSubNum).ToList());
-        procFeeHelper.ListInsPlans = procFeeHelper.ListInsPlans ?? InsPlans.GetPlans(procFeeHelper.ListInsSubs.Select(x => x.PlanNum).ToList());
+        procFeeHelper ??= new ProcFeeHelper(patNum);
+        procFeeHelper.Pat ??= Patients.GetPat(patNum);
+        procFeeHelper.ListPatPlans ??= PatPlans.GetPatPlansForPat(patNum);
+        procFeeHelper.ListInsSubs ??= InsSubs.GetMany(procFeeHelper.ListPatPlans.Select(x => x.InsSubNum).ToList());
+        procFeeHelper.ListInsPlans ??= InsPlans.GetPlans(procFeeHelper.ListInsSubs.Select(x => x.PlanNum).ToList());
+        
         if (procFeeHelper.ListPatPlans.Count > 0)
         {
-            PatPlan priPatPlan = procFeeHelper.ListPatPlans[0];
-            InsSub priInsSub = InsSubs.GetSub(priPatPlan.InsSubNum, procFeeHelper.ListInsSubs);
-            InsPlan priInsPlan = InsPlans.GetPlan(priInsSub.PlanNum, procFeeHelper.ListInsPlans);
-            procFeeHelper.ListBenefitsPrimary = procFeeHelper.ListBenefitsPrimary ?? Benefits.GetForPlanOrPatPlan(priInsPlan.PlanNum, priPatPlan.PatPlanNum);
+            var priPatPlan = procFeeHelper.ListPatPlans[0];
+            var priInsSub = InsSubs.GetSub(priPatPlan.InsSubNum, procFeeHelper.ListInsSubs);
+            var priInsPlan = InsPlans.GetPlan(priInsSub.PlanNum, procFeeHelper.ListInsPlans);
+            
+            procFeeHelper.ListBenefitsPrimary ??= Benefits.GetForPlanOrPatPlan(priInsPlan.PlanNum, priPatPlan.PatPlanNum);
         }
         else
         {
-            procFeeHelper.ListBenefitsPrimary = new List<Benefit>();
+            procFeeHelper.ListBenefitsPrimary = [];
         }
 
         return procFeeHelper;

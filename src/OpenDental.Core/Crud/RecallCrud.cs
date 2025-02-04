@@ -1,14 +1,9 @@
-#region
-
 using System.Collections.Generic;
 using System.Data;
-using System.Linq;
 using System.Text;
 using DataConnectionBase;
 using Imedisoft.Core.Entities;
 using OpenDentBusiness;
-
-#endregion
 
 namespace Imedisoft.Core.Crud;
 
@@ -23,13 +18,6 @@ public class RecallCrud
         return list[0];
     }
 
-    public static Recall SelectOne(string command)
-    {
-        var list = TableToList(DataCore.GetTable(command));
-        if (list.Count == 0) return null;
-        return list[0];
-    }
-
     public static List<Recall> SelectMany(string command)
     {
         var list = TableToList(DataCore.GetTable(command));
@@ -39,63 +27,34 @@ public class RecallCrud
     public static List<Recall> TableToList(DataTable table)
     {
         var retVal = new List<Recall>();
-        Recall recall;
         foreach (DataRow row in table.Rows)
         {
-            recall = new Recall();
-            recall.RecallNum = SIn.Long(row["RecallNum"].ToString());
-            recall.PatNum = SIn.Long(row["PatNum"].ToString());
-            recall.DateDueCalc = SIn.Date(row["DateDueCalc"].ToString());
-            recall.DateDue = SIn.Date(row["DateDue"].ToString());
-            recall.DatePrevious = SIn.Date(row["DatePrevious"].ToString());
-            recall.RecallInterval = new Interval(SIn.Int(row["RecallInterval"].ToString()));
-            recall.RecallStatus = SIn.Long(row["RecallStatus"].ToString());
-            recall.Note = SIn.String(row["Note"].ToString());
-            recall.IsDisabled = SIn.Bool(row["IsDisabled"].ToString());
-            recall.DateTStamp = SIn.DateTime(row["DateTStamp"].ToString());
-            recall.RecallTypeNum = SIn.Long(row["RecallTypeNum"].ToString());
-            recall.DisableUntilBalance = SIn.Double(row["DisableUntilBalance"].ToString());
-            recall.DisableUntilDate = SIn.Date(row["DisableUntilDate"].ToString());
-            recall.DateScheduled = SIn.Date(row["DateScheduled"].ToString());
-            recall.Priority = (RecallPriority) SIn.Int(row["Priority"].ToString());
-            recall.TimePatternOverride = SIn.String(row["TimePatternOverride"].ToString());
+            var recall = new Recall
+            {
+                RecallNum = SIn.Long(row["RecallNum"].ToString()),
+                PatNum = SIn.Long(row["PatNum"].ToString()),
+                DateDueCalc = SIn.Date(row["DateDueCalc"].ToString()),
+                DateDue = SIn.Date(row["DateDue"].ToString()),
+                DatePrevious = SIn.Date(row["DatePrevious"].ToString()),
+                RecallInterval = new Interval(SIn.Int(row["RecallInterval"].ToString())),
+                RecallStatus = SIn.Long(row["RecallStatus"].ToString()),
+                Note = SIn.String(row["Note"].ToString()),
+                IsDisabled = SIn.Bool(row["IsDisabled"].ToString()),
+                DateTStamp = SIn.DateTime(row["DateTStamp"].ToString()),
+                RecallTypeNum = SIn.Long(row["RecallTypeNum"].ToString()),
+                DisableUntilBalance = SIn.Double(row["DisableUntilBalance"].ToString()),
+                DisableUntilDate = SIn.Date(row["DisableUntilDate"].ToString()),
+                DateScheduled = SIn.Date(row["DateScheduled"].ToString()),
+                Priority = (RecallPriority) SIn.Int(row["Priority"].ToString()),
+                TimePatternOverride = SIn.String(row["TimePatternOverride"].ToString())
+            };
             retVal.Add(recall);
         }
 
         return retVal;
     }
 
-    public static DataTable ListToTable(List<Recall> listRecalls, string tableName = "")
-    {
-        if (string.IsNullOrEmpty(tableName)) tableName = "Recall";
-        var table = new DataTable(tableName);
-        table.Columns.Add("RecallNum");
-        table.Columns.Add("PatNum");
-        table.Columns.Add("DateDueCalc");
-        table.Columns.Add("DateDue");
-        table.Columns.Add("DatePrevious");
-        table.Columns.Add("RecallInterval");
-        table.Columns.Add("RecallStatus");
-        table.Columns.Add("Note");
-        table.Columns.Add("IsDisabled");
-        table.Columns.Add("DateTStamp");
-        table.Columns.Add("RecallTypeNum");
-        table.Columns.Add("DisableUntilBalance");
-        table.Columns.Add("DisableUntilDate");
-        table.Columns.Add("DateScheduled");
-        table.Columns.Add("Priority");
-        table.Columns.Add("TimePatternOverride");
-        foreach (var recall in listRecalls)
-            table.Rows.Add(SOut.Long(recall.RecallNum), SOut.Long(recall.PatNum), SOut.DateTime(recall.DateDueCalc, false), SOut.DateTime(recall.DateDue, false), SOut.DateTime(recall.DatePrevious, false), SOut.Int(recall.RecallInterval.ToInt()), SOut.Long(recall.RecallStatus), recall.Note, SOut.Bool(recall.IsDisabled), SOut.DateTime(recall.DateTStamp, false), SOut.Long(recall.RecallTypeNum), SOut.Double(recall.DisableUntilBalance), SOut.DateTime(recall.DisableUntilDate, false), SOut.DateTime(recall.DateScheduled, false), SOut.Int((int) recall.Priority), recall.TimePatternOverride);
-        return table;
-    }
-
-    public static long Insert(Recall recall)
-    {
-        return Insert(recall, false);
-    }
-
-    public static long Insert(Recall recall, bool useExistingPK)
+    public static void Insert(Recall recall)
     {
         var command = "INSERT INTO recall (";
 
@@ -122,7 +81,6 @@ public class RecallCrud
         {
             recall.RecallNum = Db.NonQ(command, true, "RecallNum", "recall", paramNote);
         }
-        return recall.RecallNum;
     }
 
     public static void InsertMany(List<Recall> listRecalls)
@@ -202,43 +160,6 @@ public class RecallCrud
                 index++;
             }
         }
-    }
-
-    public static long InsertNoCache(Recall recall)
-    {
-        return InsertNoCache(recall, false);
-    }
-
-    public static long InsertNoCache(Recall recall, bool useExistingPK)
-    {
-        const bool isRandomKeys = false;
-        var command = "INSERT INTO recall (";
-        if (isRandomKeys || useExistingPK) command += "RecallNum,";
-        command += "PatNum,DateDueCalc,DateDue,DatePrevious,RecallInterval,RecallStatus,Note,IsDisabled,RecallTypeNum,DisableUntilBalance,DisableUntilDate,DateScheduled,Priority,TimePatternOverride) VALUES(";
-        if (isRandomKeys || useExistingPK) command += SOut.Long(recall.RecallNum) + ",";
-        command +=
-            SOut.Long(recall.PatNum) + ","
-                                     + SOut.Date(recall.DateDueCalc) + ","
-                                     + SOut.Date(recall.DateDue) + ","
-                                     + SOut.Date(recall.DatePrevious) + ","
-                                     + SOut.Int(recall.RecallInterval.ToInt()) + ","
-                                     + SOut.Long(recall.RecallStatus) + ","
-                                     + DbHelper.ParamChar + "paramNote,"
-                                     + SOut.Bool(recall.IsDisabled) + ","
-                                     //DateTStamp can only be set by MySQL
-                                     + SOut.Long(recall.RecallTypeNum) + ","
-                                     + SOut.Double(recall.DisableUntilBalance) + ","
-                                     + SOut.Date(recall.DisableUntilDate) + ","
-                                     + SOut.Date(recall.DateScheduled) + ","
-                                     + SOut.Int((int) recall.Priority) + ","
-                                     + "'" + SOut.String(recall.TimePatternOverride) + "')";
-        if (recall.Note == null) recall.Note = "";
-        var paramNote = new OdSqlParameter("paramNote", SOut.StringParam(recall.Note));
-        if (useExistingPK || isRandomKeys)
-            Db.NonQ(command, paramNote);
-        else
-            recall.RecallNum = Db.NonQ(command, true, "RecallNum", "recall", paramNote);
-        return recall.RecallNum;
     }
 
     public static void Update(Recall recall)
@@ -360,40 +281,5 @@ public class RecallCrud
                                        + " WHERE RecallNum = " + SOut.Long(recall.RecallNum);
         Db.NonQ(command, paramNote);
         return true;
-    }
-
-    public static bool UpdateComparison(Recall recall, Recall oldRecall)
-    {
-        if (recall.PatNum != oldRecall.PatNum) return true;
-        if (recall.DateDueCalc.Date != oldRecall.DateDueCalc.Date) return true;
-        if (recall.DateDue.Date != oldRecall.DateDue.Date) return true;
-        if (recall.DatePrevious.Date != oldRecall.DatePrevious.Date) return true;
-        if (recall.RecallInterval != oldRecall.RecallInterval) return true;
-        if (recall.RecallStatus != oldRecall.RecallStatus) return true;
-        if (recall.Note != oldRecall.Note) return true;
-        if (recall.IsDisabled != oldRecall.IsDisabled) return true;
-        //DateTStamp can only be set by MySQL
-        if (recall.RecallTypeNum != oldRecall.RecallTypeNum) return true;
-        if (recall.DisableUntilBalance != oldRecall.DisableUntilBalance) return true;
-        if (recall.DisableUntilDate.Date != oldRecall.DisableUntilDate.Date) return true;
-        if (recall.DateScheduled.Date != oldRecall.DateScheduled.Date) return true;
-        if (recall.Priority != oldRecall.Priority) return true;
-        if (recall.TimePatternOverride != oldRecall.TimePatternOverride) return true;
-        return false;
-    }
-
-    public static void Delete(long recallNum)
-    {
-        var command = "DELETE FROM recall "
-                      + "WHERE RecallNum = " + SOut.Long(recallNum);
-        Db.NonQ(command);
-    }
-
-    public static void DeleteMany(List<long> listRecallNums)
-    {
-        if (listRecallNums == null || listRecallNums.Count == 0) return;
-        var command = "DELETE FROM recall "
-                      + "WHERE RecallNum IN(" + string.Join(",", listRecallNums.Select(x => SOut.Long(x))) + ")";
-        Db.NonQ(command);
     }
 }

@@ -1,12 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Globalization;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 using CodeBase;
 using DataConnectionBase;
@@ -158,7 +153,7 @@ public partial class UserControlEnterpriseAccount:UserControl {
 		try {
 			prefHidden=Prefs.GetOne(prefName);
 		}
-		catch(Exception ex) {
+		catch {
 			return null;
 		}
 		return prefHidden.ValueString;
@@ -170,7 +165,7 @@ public partial class UserControlEnterpriseAccount:UserControl {
 		try {
 			FillHiddenPrefs();
 		}
-		catch(Exception ex) {
+		catch {
 		}
 		checkAgingCalculateOnBatchClaimReceipt.Checked=PrefC.GetBool(PrefName.AgingCalculateOnBatchClaimReceipt);
 		comboPaymentClinicSetting.Items.AddEnums<PayClinicSetting>();

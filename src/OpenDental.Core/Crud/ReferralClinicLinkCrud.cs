@@ -18,13 +18,14 @@ public class ReferralClinicLinkCrud
     public static List<ReferralClinicLink> TableToList(DataTable table)
     {
         var retVal = new List<ReferralClinicLink>();
-        ReferralClinicLink referralClinicLink;
         foreach (DataRow row in table.Rows)
         {
-            referralClinicLink = new ReferralClinicLink();
-            referralClinicLink.ReferralClinicLinkNum = SIn.Long(row["ReferralClinicLinkNum"].ToString());
-            referralClinicLink.ReferralNum = SIn.Long(row["ReferralNum"].ToString());
-            referralClinicLink.ClinicNum = SIn.Long(row["ClinicNum"].ToString());
+            var referralClinicLink = new ReferralClinicLink
+            {
+                ReferralClinicLinkNum = SIn.Long(row["ReferralClinicLinkNum"].ToString()),
+                ReferralNum = SIn.Long(row["ReferralNum"].ToString()),
+                ClinicNum = SIn.Long(row["ClinicNum"].ToString())
+            };
             retVal.Add(referralClinicLink);
         }
 

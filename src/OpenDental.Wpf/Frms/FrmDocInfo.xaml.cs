@@ -1,24 +1,15 @@
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
 using System.IO;
-using System.Linq;
-using System.Text;
 using System.Windows;
 using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
 using CodeBase;
 using DataConnectionBase;
-using Imedisoft.Core.Caching;
 using Imedisoft.Core.Entities;
 using Imedisoft.Core.Features.Clinics;
-using OpenDental.Thinfinity;
-using OpenDental.UI;
+using Imedisoft.Features.Providers.Dtos;
 using OpenDentBusiness;
 using WpfControls;
-using WpfControls.UI;
 
 namespace OpenDental {
 
@@ -116,22 +107,7 @@ namespace OpenDental {
 					textSize.Text=fileInfo.Length.ToString("n0");
 				}
 			}
-			else if(false) {
-				string patFolderName=TryGetPatientFolder();
-				if(patFolderName.IsNullOrEmpty()) {
-					IsDialogCancel=true;
-					this.Close();
-					return;
-				}
-				textFileName.Text=ODFileUtils.CombinePaths(patFolderName,_document.FileName,'/');
-				butOpen.Text="Open File";//Open Folder seems like a nice idea. Maybe someone could build that. But this indicates what it currently does.
-			}
-			else {//storing in db?
-				labelFileName.Visible=false;
-				textFileName.Visible=false;
-				butOpen.Visible=false;
-				textSize.Text=_document.RawBase64.Length.ToString("n0");
-			}
+
 			if(Clinics.IsMedicalPracticeOrClinic(Clinics.ClinicNum)) {
 				labelToothNums.Visible=false;
 				textToothNumbers.Visible=false;
@@ -165,15 +141,10 @@ namespace OpenDental {
 
 		private void FillComboProv(){
 			long provNum=comboProv.GetSelectedProvNum();
-			List<Provider> listProviders=Providers.GetProvsForClinic(Clinics.ClinicNum);
+			List<ProviderDto> listProviders=Providers.GetProvsForClinic(Clinics.ClinicNum);
 			comboProv.Items.Clear();
 			comboProv.Items.AddProvNone();
-			if(true) {//not dental school
-				comboProv.Items.AddProvsAbbr(listProviders);
-			}
-			else{
-				comboProv.Items.AddProvsFull(listProviders);
-			}
+			comboProv.Items.AddProvsAbbr(listProviders);
 			comboProv.SetSelectedProvNum(provNum);
 		}
 

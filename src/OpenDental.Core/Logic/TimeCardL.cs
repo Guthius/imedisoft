@@ -45,11 +45,10 @@ public class TimeCardL
             dayOfWeekComplete = (DayOfWeek) dayOfWeekCompleteWeek;
         }
 
-        var dateTimeEndOfCompleteWeek = new DateTime(dateTime.Ticks);
-
         for (var i = 0; i < 7; i++)
         {
-            dateTimeEndOfCompleteWeek = dateTime.AddDays(-i);
+            var dateTimeEndOfCompleteWeek = dateTime.AddDays(-i);
+
             if (dateTimeEndOfCompleteWeek.DayOfWeek == dayOfWeekComplete)
             {
                 return dateTimeEndOfCompleteWeek;

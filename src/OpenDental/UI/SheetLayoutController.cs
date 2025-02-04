@@ -9,15 +9,12 @@ using Imedisoft.Core.Caching;
 using Imedisoft.Core.Data;
 using Imedisoft.Core.Entities;
 using Imedisoft.Core.Features.Clinics;
-using OpenDental.UI;
 using OpenDentBusiness;
 
 namespace OpenDental;
 
 ///<summary>A class that directly manipulates a UserControl which uses the dynamic sheetDef framework.</summary>
 public class SheetLayoutController {
-	///<summary>Gets set in constructor.</summary>
-	public LayoutManagerForms LayoutManager;
 	///<summary>List of all custom and internal SheetDefs for this dynamic control based on given _sheetType.  Will always contain the internal definition as last item in list.</summary>
 	public List<SheetDef> ListSheetDefsLayout;
 	///<summary>The control that contains other controls that are placed and sized based on their corresponding sheetFieldDefs.</summary>
@@ -35,16 +32,8 @@ public class SheetLayoutController {
 	///<summary>The selected ClinicNum the last time the SheetLayout was initialized.</summary>
 	private long _clinicNumCur;
 
-	///<summary>Returns the currently loaded layout. May be null if ListLayoutSheetDefs is empty and the layout hasn't been initialized.</summary>
-	public SheetDef SheetDefDynamicLayoutCur {
-		get {
-			return _sheetDefDynamicLayoutCur;
-		}
-	}
-
 	///<summary>Set arrayStaticControls to any controls that are always visible or handle their own layout logic.  Controls that are dynamically resized will never impinge on these static controls.</summary>
-	public SheetLayoutController(LayoutManagerForms layoutManager,UserControl controlHosting,params Control[] arrayStaticControls) {
-		LayoutManager=layoutManager;
+	public SheetLayoutController(UserControl controlHosting,params Control[] arrayStaticControls) {
 		_controlHosting=controlHosting;
 		if(controlHosting is ControlChart) {
 			_sheetType=SheetTypeEnum.ChartModule;

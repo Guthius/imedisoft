@@ -17,20 +17,20 @@ public class AlertReadCrud
     public static List<AlertRead> TableToList(DataTable table)
     {
         var retVal = new List<AlertRead>();
-        AlertRead alertRead;
         foreach (DataRow row in table.Rows)
         {
-            alertRead = new AlertRead();
-            alertRead.AlertReadNum = SIn.Long(row["AlertReadNum"].ToString());
-            alertRead.AlertItemNum = SIn.Long(row["AlertItemNum"].ToString());
-            alertRead.UserNum = SIn.Long(row["UserNum"].ToString());
+            var alertRead = new AlertRead
+            {
+                AlertItemNum = SIn.Long(row["AlertItemNum"].ToString()),
+                UserNum = SIn.Long(row["UserNum"].ToString())
+            };
             retVal.Add(alertRead);
         }
 
         return retVal;
     }
 
-    public static long Insert(AlertRead alertRead)
+    public static void Insert(AlertRead alertRead)
     {
         var command = "INSERT INTO alertread (";
 
@@ -40,8 +40,7 @@ public class AlertReadCrud
             SOut.Long(alertRead.AlertItemNum) + ","
                                               + SOut.Long(alertRead.UserNum) + ")";
         {
-            alertRead.AlertReadNum = Db.NonQ(command, true, "AlertReadNum", "alertRead");
+            Db.NonQ(command, true, "AlertReadNum", "alertRead");
         }
-        return alertRead.AlertReadNum;
     }
 }

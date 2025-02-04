@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Linq;
 using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Crud;
@@ -12,9 +11,9 @@ namespace Imedisoft.Core.Data;
 
 public static class UserOdPrefs
 {
-    public static bool Sync(List<UserOdPref> listUserOdPrefsNew, List<UserOdPref> listUserOdPrefsOld)
+    public static bool Sync(List<UserOdPref> userOdPrefsNew, List<UserOdPref> userOdPrefsOld)
     {
-        return UserOdPrefCrud.Sync(listUserOdPrefsNew, listUserOdPrefsOld);
+        return UserOdPrefCrud.Sync(userOdPrefsNew, userOdPrefsOld);
     }
 
     public static bool Update(UserOdPref userOdPref, UserOdPref userOdPrefOld = null)
@@ -54,11 +53,6 @@ public static class UserOdPrefs
         UserOdPrefCrud.Delete(userOdPrefNum);
     }
 
-    public static void DeleteMany(long userNum, long fkey, UserOdFkeyType fkeyType)
-    {
-        Db.NonQ("DELETE FROM userodpref WHERE UserNum=" + userNum + " AND FkeyType=" + (int) fkeyType + " AND Fkey=" + fkey);
-    }
-
     public static void DeleteManyForUserAndFkeyType(long userNum, UserOdFkeyType fkeyType)
     {
         Db.NonQ("DELETE FROM userodpref WHERE UserNum=" + userNum + " AND FkeyType=" + (int) fkeyType);
@@ -95,18 +89,6 @@ public static class UserOdPrefs
         return userOdPref;
     }
 
-    public static List<UserOdPref> GetByUserAndFkeyAndFkeyType(long userNum, long fkey, UserOdFkeyType fkeyType, List<long> clinicNums = null)
-    {
-        var prefs = GetWhere(x => x.UserNum == userNum && x.Fkey == fkey && x.FkeyType == fkeyType);
-
-        if (clinicNums is {Count: > 0})
-        {
-            prefs = prefs.Where(x => clinicNums.Contains(x.ClinicNum)).ToList();
-        }
-
-        return prefs;
-    }
-
     public static UserOdPref GetByCompositeKey(long userNum, long fkey, UserOdFkeyType fkeyType, long clinicNum = 0)
     {
         var pref = GetFirstOrDefault(x =>
@@ -130,11 +112,6 @@ public static class UserOdPrefs
     public static List<UserOdPref> GetByFkeyType(UserOdFkeyType userOdFkeyType)
     {
         return GetWhere(pref => pref.FkeyType == userOdFkeyType);
-    }
-
-    public static List<UserOdPref> GetAllByFkeyAndFkeyType(long fkey, UserOdFkeyType fkeyType)
-    {
-        return GetWhere(x => x.Fkey == fkey && x.FkeyType == fkeyType);
     }
 
     public static void DeleteForFkey(long userNum, UserOdFkeyType fkeyType, long fkey)

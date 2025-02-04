@@ -1,12 +1,10 @@
 using System;
 using System.Collections.Generic;
-using System.Data;
 using System.Drawing;
 using System.Linq;
 using System.Windows.Forms;
 using OpenDental.UI;
 using OpenDentBusiness;
-using OpenDentBusiness.UI;
 using OpenDentBusiness.HL7;
 using CodeBase;
 using Imedisoft.Core.Caching;
@@ -209,7 +207,7 @@ public partial class FormApptsOther:FormODBase {
 			dateTimeApt=DateTimeClicked;
 		}
 		try{
-			appointment=AppointmentL.CreateRecallApt(_patient,listInsPlans,-1,listInsSubs,dateTimeApt);
+			appointment=AppointmentL.CreateRecallApt(_patient,-1,dateTimeApt);
 		}
 		catch(Exception ex) {
 			ODMessageBox.Show(ex.Message);
@@ -248,9 +246,6 @@ public partial class FormApptsOther:FormODBase {
 					hl7Msg.MsgText=messageHL7.ToString();
 					hl7Msg.PatNum=_patient.PatNum;
 					HL7Msgs.Insert(hl7Msg);
-					if(/* ODBuild.IsDebug() */ false) {
-						ODMessageBox.Show(this,messageHL7.ToString());
-					}
 				}
 			}
 			if(HieClinics.IsEnabled()) {
@@ -317,9 +312,9 @@ public partial class FormApptsOther:FormODBase {
 			listInsSubs=InsSubs.RefreshForFam(_family);
 			listInsPlans=InsPlans.RefreshForSubList(listInsSubs);
 			try {
-				appointment=AppointmentL.CreateRecallApt(patientCur,listInsPlans,-1,listInsSubs);
+				appointment=AppointmentL.CreateRecallApt(patientCur,-1);
 			}
-			catch(Exception ex) {
+			catch {
 				continue;
 			}
 			ListAptNumsSelected.Add(appointment.AptNum);
@@ -657,9 +652,6 @@ public partial class FormApptsOther:FormODBase {
 		gridMain.ListGridRows.Clear();
 		GridRow row;
 		var idxDate=3;
-		if(!true) {
-			idxDate=2;
-		}
 		var listProceduresForPlannedAppts=Procedures.GetProcsMultApts(ListApptOthers
 			.Where(x => x.AptStatus==ApptStatus.Planned)
 			.Select(x => x.AptNum)

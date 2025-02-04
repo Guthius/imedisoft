@@ -8,6 +8,7 @@ using DataConnectionBase;
 using Imedisoft.Core.Entities;
 using Imedisoft.Core.Features.Clinics;
 using Imedisoft.Core.Features.Clinics.Dtos;
+using Imedisoft.Features.Providers.Dtos;
 
 namespace OpenDental;
 
@@ -32,7 +33,7 @@ public partial class FormRpRouting:FormODBase {
 	///<summary>Stores the date for the currently selected date from the appointment module.</summary>
 	public DateTime DateSelected;
 	private List<ClinicDto> _listClinics;
-	private List<Provider> _listProviders;
+	private List<ProviderDto> _listProviders;
 
 		
 	public FormRpRouting()
@@ -71,24 +72,16 @@ public partial class FormRpRouting:FormODBase {
 			DialogResult=DialogResult.OK;
 			return;
 		}
-		listProv.Items.AddList(_listProviders,x => x.GetLongDesc());
+		listProv.Items.AddList(_listProviders,x => x.Description);
 		checkProvAll.Checked=true;
 		textDate.Text=DateTime.Today.ToShortDateString();
-		if(!true) {
-			listClin.Visible=false;
-			listClin.Visible=false;
-			checkClinAll.Visible=false;
-			labelClin.Visible=false;
+		_listClinics=Clinics.GetForUserod(Security.CurUser,true,Lan.g(this,"Unassigned"));
+		for(var i=0;i<_listClinics.Count;i++) {
+			listClin.Items.Add(_listClinics[i].Abbr);
+			listClin.SetSelected(listClin.Items.Count-1,(Clinics.ClinicNum!=0 && Clinics.ClinicNum==_listClinics[i].Id));
 		}
-		else {
-			_listClinics=Clinics.GetForUserod(Security.CurUser,true,Lan.g(this,"Unassigned"));
-			for(var i=0;i<_listClinics.Count;i++) {
-				listClin.Items.Add(_listClinics[i].Abbr);
-				listClin.SetSelected(listClin.Items.Count-1,(Clinics.ClinicNum!=0 && Clinics.ClinicNum==_listClinics[i].Id));
-			}
-			if(Clinics.ClinicNum==0) {
-				checkClinAll.Checked=true;
-			}
+		if(Clinics.ClinicNum==0) {
+			checkClinAll.Checked=true;
 		}
 	}
 
@@ -180,7 +173,7 @@ public partial class FormRpRouting:FormODBase {
 		}
 		var listProvNums=new List<long>();
 		if(!checkProvAll.Checked) {
-			listProvNums=listProv.SelectedIndices.Select(x => _listProviders[x].ProvNum).ToList();
+			listProvNums=listProv.SelectedIndices.Select(x => _listProviders[x].Id).ToList();
 		}
 		var listClinicNums=new List<long>();
 		if(true) {

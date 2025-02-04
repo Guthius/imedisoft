@@ -12,38 +12,39 @@ public class ComputerPrefCrud
     public static List<ComputerPref> TableToList(DataTable table)
     {
         var retVal = new List<ComputerPref>();
-        ComputerPref computerPref;
         foreach (DataRow row in table.Rows)
         {
-            computerPref = new ComputerPref();
-            computerPref.ComputerPrefNum = SIn.Long(row["ComputerPrefNum"].ToString());
-            computerPref.ComputerName = SIn.String(row["ComputerName"].ToString());
-            computerPref.GraphicsUseHardware = SIn.Bool(row["GraphicsUseHardware"].ToString());
-            computerPref.GraphicsSimple = (DrawingMode) SIn.Int(row["GraphicsSimple"].ToString());
-            computerPref.SensorType = SIn.String(row["SensorType"].ToString());
-            computerPref.SensorBinned = SIn.Bool(row["SensorBinned"].ToString());
-            computerPref.SensorPort = SIn.Int(row["SensorPort"].ToString());
-            computerPref.SensorExposure = SIn.Int(row["SensorExposure"].ToString());
-            computerPref.GraphicsDoubleBuffering = SIn.Bool(row["GraphicsDoubleBuffering"].ToString());
-            computerPref.PreferredPixelFormatNum = SIn.Int(row["PreferredPixelFormatNum"].ToString());
-            computerPref.AtoZpath = SIn.String(row["AtoZpath"].ToString());
-            computerPref.TaskKeepListHidden = SIn.Bool(row["TaskKeepListHidden"].ToString());
-            computerPref.TaskDock = SIn.Int(row["TaskDock"].ToString());
-            computerPref.TaskX = SIn.Int(row["TaskX"].ToString());
-            computerPref.TaskY = SIn.Int(row["TaskY"].ToString());
-            computerPref.DirectXFormat = SIn.String(row["DirectXFormat"].ToString());
-            computerPref.ScanDocSelectSource = SIn.Bool(row["ScanDocSelectSource"].ToString());
-            computerPref.ScanDocShowOptions = SIn.Bool(row["ScanDocShowOptions"].ToString());
-            computerPref.ScanDocDuplex = SIn.Bool(row["ScanDocDuplex"].ToString());
-            computerPref.ScanDocGrayscale = SIn.Bool(row["ScanDocGrayscale"].ToString());
-            computerPref.ScanDocResolution = SIn.Int(row["ScanDocResolution"].ToString());
-            computerPref.ScanDocQuality = SIn.Byte(row["ScanDocQuality"].ToString());
-            computerPref.ClinicNum = SIn.Long(row["ClinicNum"].ToString());
-            computerPref.ApptViewNum = SIn.Long(row["ApptViewNum"].ToString());
-            computerPref.RecentApptView = SIn.Byte(row["RecentApptView"].ToString());
-            computerPref.PatSelectSearchMode = (SearchMode) SIn.Int(row["PatSelectSearchMode"].ToString());
-            computerPref.NoShowLanguage = SIn.Bool(row["NoShowLanguage"].ToString());
-            computerPref.NoShowDecimal = SIn.Bool(row["NoShowDecimal"].ToString());
+            var computerPref = new ComputerPref
+            {
+                ComputerPrefNum = SIn.Long(row["ComputerPrefNum"].ToString()),
+                ComputerName = SIn.String(row["ComputerName"].ToString()),
+                GraphicsUseHardware = SIn.Bool(row["GraphicsUseHardware"].ToString()),
+                GraphicsSimple = (DrawingMode) SIn.Int(row["GraphicsSimple"].ToString()),
+                SensorType = SIn.String(row["SensorType"].ToString()),
+                SensorBinned = SIn.Bool(row["SensorBinned"].ToString()),
+                SensorPort = SIn.Int(row["SensorPort"].ToString()),
+                SensorExposure = SIn.Int(row["SensorExposure"].ToString()),
+                GraphicsDoubleBuffering = SIn.Bool(row["GraphicsDoubleBuffering"].ToString()),
+                PreferredPixelFormatNum = SIn.Int(row["PreferredPixelFormatNum"].ToString()),
+                AtoZpath = SIn.String(row["AtoZpath"].ToString()),
+                TaskKeepListHidden = SIn.Bool(row["TaskKeepListHidden"].ToString()),
+                TaskDock = SIn.Int(row["TaskDock"].ToString()),
+                TaskX = SIn.Int(row["TaskX"].ToString()),
+                TaskY = SIn.Int(row["TaskY"].ToString()),
+                DirectXFormat = SIn.String(row["DirectXFormat"].ToString()),
+                ScanDocSelectSource = SIn.Bool(row["ScanDocSelectSource"].ToString()),
+                ScanDocShowOptions = SIn.Bool(row["ScanDocShowOptions"].ToString()),
+                ScanDocDuplex = SIn.Bool(row["ScanDocDuplex"].ToString()),
+                ScanDocGrayscale = SIn.Bool(row["ScanDocGrayscale"].ToString()),
+                ScanDocResolution = SIn.Int(row["ScanDocResolution"].ToString()),
+                ScanDocQuality = SIn.Byte(row["ScanDocQuality"].ToString()),
+                ClinicNum = SIn.Long(row["ClinicNum"].ToString()),
+                ApptViewNum = SIn.Long(row["ApptViewNum"].ToString()),
+                RecentApptView = SIn.Byte(row["RecentApptView"].ToString()),
+                PatSelectSearchMode = (SearchMode) SIn.Int(row["PatSelectSearchMode"].ToString()),
+                NoShowLanguage = SIn.Bool(row["NoShowLanguage"].ToString()),
+                NoShowDecimal = SIn.Bool(row["NoShowDecimal"].ToString())
+            };
             var computerOS = row["ComputerOS"].ToString();
             if (computerOS == "")
                 computerPref.ComputerOS = 0;
@@ -67,7 +68,7 @@ public class ComputerPrefCrud
         return retVal;
     }
 
-    public static long Insert(ComputerPref computerPref)
+    public static void Insert(ComputerPref computerPref)
     {
         var command = "INSERT INTO computerpref (";
 
@@ -109,7 +110,6 @@ public class ComputerPrefCrud
         {
             computerPref.ComputerPrefNum = Db.NonQ(command, true, "ComputerPrefNum", "computerPref");
         }
-        return computerPref.ComputerPrefNum;
     }
 
     public static void Update(ComputerPref computerPref)

@@ -1,10 +1,7 @@
 #if !DISABLE_WINDOWS_BRIDGES
 using System;
-using System.Collections;
 using System.Diagnostics;
 using System.IO;
-using System.Runtime.InteropServices;
-using System.Text;
 using System.Threading;
 using System.Windows.Forms;
 using NDde;
@@ -78,8 +75,8 @@ namespace OpenDental.Bridges{
 			command+=pat.FName+"|";//Firstname
 			command+=pat.MiddleI+"|";//
 			command+="|";//Comments: blank
-			Provider prov=Providers.GetProv(Patients.GetProvNum(pat));
-			command+=prov.LName+", "+prov.FName+"|";//Provider
+			var prov=Providers.GetById(Patients.GetProvNum(pat));
+			command+=prov.LastName+", "+prov.FirstName+"|";//Provider
 			command+="|";//Provider phone
 			command+="|";//Addr
 			command+="|";//Addr2

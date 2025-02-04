@@ -39,8 +39,8 @@ public class Procedures
     public static List<Procedure> GetForPlanned(long patNum, long plannedAptNum)
     {
         if (patNum == 0 || plannedAptNum == 0) return [];
-        var command = "SELECT * FROM procedurelog WHERE PatNum=" + SOut.Long(patNum)
-                                                                 + " AND PlannedAptNum=" + SOut.Long(plannedAptNum)
+        var command = "SELECT * FROM procedurelog WHERE PatNum=" + (patNum)
+                                                                 + " AND PlannedAptNum=" + (plannedAptNum)
                                                                  + " AND ProcStatus !=" + SOut.Int((int) ProcStat.D); //don't include deleted
         return ProcedureCrud.SelectMany(command);
     }
@@ -64,7 +64,7 @@ public class Procedures
 
     public static List<Procedure> GetPatientData(long patNum)
     {
-        var command = "SELECT * FROM procedurelog WHERE PatNum=" + SOut.Long(patNum)
+        var command = "SELECT * FROM procedurelog WHERE PatNum=" + (patNum)
                                                                  + " AND ProcStatus !=" + SOut.Int((int) ProcStat.D) //don't include deleted
                                                                  + " ORDER BY ProcDate";
         return ProcedureCrud.SelectMany(command);
@@ -72,7 +72,7 @@ public class Procedures
 
     public static List<Procedure> Refresh(long patNum)
     {
-        var command = "SELECT * FROM procedurelog WHERE PatNum=" + SOut.Long(patNum)
+        var command = "SELECT * FROM procedurelog WHERE PatNum=" + (patNum)
                                                                  + " AND ProcStatus !=" + SOut.Int((int) ProcStat.D) //don't include deleted
                                                                  + " ORDER BY ProcDate";
         return ProcedureCrud.SelectMany(command);
@@ -80,7 +80,7 @@ public class Procedures
 
     public static List<Procedure> RefreshForStatus(long patNum, ProcStat procStatus, bool isNotOnApt = true)
     {
-        var command = "SELECT * FROM procedurelog WHERE PatNum=" + SOut.Long(patNum) + " "
+        var command = "SELECT * FROM procedurelog WHERE PatNum=" + (patNum) + " "
                       + "AND ProcStatus =" + SOut.Int((int) procStatus) + " "
                       + (isNotOnApt ? "AND AptNum=0" : "");
         return ProcedureCrud.SelectMany(command);
@@ -89,7 +89,7 @@ public class Procedures
     public static List<Procedure> RefreshForProcCodeNums(long patNum, List<long> listProcCodeNums)
     {
         if (listProcCodeNums == null || listProcCodeNums.Count == 0) return [];
-        var command = "SELECT * FROM procedurelog WHERE PatNum=" + SOut.Long(patNum) + " " +
+        var command = "SELECT * FROM procedurelog WHERE PatNum=" + (patNum) + " " +
                       "AND CodeNum IN (" + string.Join(",", listProcCodeNums) + ") " +
                       "AND ProcStatus !=" + SOut.Int((int) ProcStat.D) + " " + //don't include deleted
                       "ORDER BY ProcDate";
@@ -101,7 +101,7 @@ public class Procedures
         if (listPatNums == null || listPatNums.Count == 0) return [];
 
         var command = "SELECT * FROM procedurelog WHERE PatNum IN" + " (" + string.Join(",", listPatNums) + ") " +
-                      "AND CodeNum=" + SOut.Long(codeNum) + " " +
+                      "AND CodeNum=" + (codeNum) + " " +
                       "AND ProcStatus =" + SOut.Int((int) ProcStat.C) + " " + //include Complete
                       "ORDER BY ProcDate";
         return ProcedureCrud.SelectMany(command);
@@ -209,27 +209,27 @@ public class Procedures
                       + SOut.Int((int) ClaimProcStatus.Supplemental) + ","
                       + SOut.Int((int) ClaimProcStatus.CapComplete)
                       + @")
-				AND claimproc.PatNum IN (" + string.Join(",", listAllFamilyPatNums.Select(x => SOut.Long(x))) + @")
+				AND claimproc.PatNum IN (" + string.Join(",", listAllFamilyPatNums.Select(x => (x))) + @")
 				AND claimproc.ProcNum != 0
 				GROUP BY claimproc.ProcNum
 			)cp ON cp.ProcNum = procedurelog.ProcNum
 			LEFT JOIN (
 				SELECT adjustment.ProcNum, SUM(adjustment.AdjAmt) AdjAmt
 				FROM adjustment
-				WHERE adjustment.PatNum IN (" + string.Join(",", listAllFamilyPatNums.Select(x => SOut.Long(x))) + @")
+				WHERE adjustment.PatNum IN (" + string.Join(",", listAllFamilyPatNums.Select(x => (x))) + @")
 				AND adjustment.ProcNum != 0
 				GROUP BY adjustment.ProcNum
 			)adj ON adj.ProcNum = procedurelog.ProcNum
 			LEFT JOIN (
 				SELECT paysplit.ProcNum, SUM(paysplit.SplitAmt) Amt
 				FROM paysplit
-				WHERE paysplit.PatNum IN (" + string.Join(",", listAllFamilyPatNums.Select(x => SOut.Long(x))) + @")
+				WHERE paysplit.PatNum IN (" + string.Join(",", listAllFamilyPatNums.Select(x => (x))) + @")
 				AND paysplit.ProcNum != 0
 				GROUP BY paysplit.ProcNum
 			)patpay ON patpay.ProcNum = procedurelog.ProcNum
 			INNER JOIN patient ON patient.PatNum = procedurelog.PatNum
 			WHERE procedurelog.ProcStatus = " + SOut.Int((int) ProcStat.C) + @"
-			AND procedurelog.PatNum IN (" + string.Join(",", listAllFamilyPatNums.Select(x => SOut.Long(x))) + @")
+			AND procedurelog.PatNum IN (" + string.Join(",", listAllFamilyPatNums.Select(x => (x))) + @")
 			AND (procedurelog.ProcFee *(procedurelog.BaseUnits + procedurelog.UnitQty)) + COALESCE(adj.AdjAmt,0)
 				- (COALESCE(cp.WriteOff,0) + COALESCE(cp.InsPay,0) + COALESCE(cp.InsEst,0) + COALESCE(patpay.Amt,0)) > 0.005";
         var table = DataCore.GetTable(command);
@@ -249,7 +249,7 @@ public class Procedures
         var proc = ProcedureCrud.SelectOne(procNum);
         if (proc == null) return new Procedure(); //This will throw if Middle Tier. Haven't come up with a good solution yet.
         if (!includeNote) return proc;
-        var command = "SELECT * FROM procnote WHERE ProcNum=" + SOut.Long(procNum) + " ORDER BY EntryDateTime DESC";
+        var command = "SELECT * FROM procnote WHERE ProcNum=" + (procNum) + " ORDER BY EntryDateTime DESC";
         DbHelper.LimitOrderBy(command, 1);
         var table = DataCore.GetTable(command);
         if (table.Rows.Count == 0) return proc;
@@ -296,36 +296,36 @@ public class Procedures
     {
         string command;
         if (isPlanned)
-            command = "SELECT * from procedurelog WHERE PlannedAptNum = '" + SOut.Long(aptNum) + "'";
+            command = "SELECT * from procedurelog WHERE PlannedAptNum = '" + (aptNum) + "'";
         else
-            command = "SELECT * from procedurelog WHERE AptNum = '" + SOut.Long(aptNum) + "'";
+            command = "SELECT * from procedurelog WHERE AptNum = '" + (aptNum) + "'";
         return ProcedureCrud.SelectMany(command);
     }
 
     public static List<Procedure> GetProcsForApptEdit(Appointment appt)
     {
         var command = "SELECT procedurelog.* FROM procedurelog "
-                      + "WHERE procedurelog.PatNum=" + SOut.Long(appt.PatNum) + " "
-                      + "AND (procedurelog.ProcStatus=" + SOut.Long((int) ProcStat.TP) + " ";
+                      + "WHERE procedurelog.PatNum=" + (appt.PatNum) + " "
+                      + "AND (procedurelog.ProcStatus=" + ((int) ProcStat.TP) + " ";
         if (appt.AptNum != 0)
         {
             //Filling grid for a new appt
             command += "OR ";
             if (appt.AptStatus == ApptStatus.Planned)
-                command += "procedurelog.PlannedAptNum=" + SOut.Long(appt.AptNum) + " ";
+                command += "procedurelog.PlannedAptNum=" + (appt.AptNum) + " ";
             else //Scheduled
-                command += "procedurelog.AptNum=" + SOut.Long(appt.AptNum) + " ";
+                command += "procedurelog.AptNum=" + (appt.AptNum) + " ";
         }
 
         if (appt.AptStatus == ApptStatus.Scheduled || appt.AptStatus == ApptStatus.Complete
                                                    || appt.AptStatus == ApptStatus.Broken)
-            command += "OR (procedurelog.AptNum=0 AND procedurelog.ProcStatus=" + SOut.Long((int) ProcStat.C) + " AND "
+            command += "OR (procedurelog.AptNum=0 AND procedurelog.ProcStatus=" + ((int) ProcStat.C) + " AND "
                        + "DATE(procedurelog.ProcDate)=" + SOut.Date(appt.AptDateTime) + ") ";
-        command += ") AND procedurelog.ProcStatus != " + SOut.Long((int) ProcStat.D);
+        command += ") AND procedurelog.ProcStatus != " + ((int) ProcStat.D);
         var result = ProcedureCrud.SelectMany(command);
         for (var i = 0; i < result.Count; i++)
         {
-            command = "SELECT * FROM procnote WHERE ProcNum=" + SOut.Long(result[i].ProcNum) + " ORDER BY EntryDateTime DESC LIMIT 1";
+            command = "SELECT * FROM procnote WHERE ProcNum=" + (result[i].ProcNum) + " ORDER BY EntryDateTime DESC LIMIT 1";
             var table = DataCore.GetTable(command);
             if (table.Rows.Count == 0) continue;
             result[i].UserNum = SIn.Long(table.Rows[0]["UserNum"].ToString());
@@ -341,13 +341,13 @@ public class Procedures
     public static List<Procedure> GetProcsForPatByDate(long patNum, DateTime date)
     {
         var command = "SELECT * FROM procedurelog "
-                      + "WHERE PatNum=" + SOut.Long(patNum) + " "
+                      + "WHERE PatNum=" + (patNum) + " "
                       + "AND (ProcDate=" + SOut.Date(date) + " OR DateEntryC=" + SOut.Date(date) + ") "
                       + "AND ProcStatus!=" + SOut.Int((int) ProcStat.D); //exclude deleted procs
         var result = ProcedureCrud.SelectMany(command);
         for (var i = 0; i < result.Count; i++)
         {
-            command = "SELECT * FROM procnote WHERE ProcNum=" + SOut.Long(result[i].ProcNum) + " ORDER BY EntryDateTime DESC";
+            command = "SELECT * FROM procnote WHERE ProcNum=" + (result[i].ProcNum) + " ORDER BY EntryDateTime DESC";
             command = DbHelper.LimitOrderBy(command, 1);
             var table = DataCore.GetTable(command);
             if (table.Rows.Count == 0) continue;
@@ -424,32 +424,16 @@ public class Procedures
                       + "AND appointment.AptStatus=" + SOut.Int((int) ApptStatus.Scheduled) + " "
                       + "AND procedurelog.ProcStatus=" + SOut.Int((int) ProcStat.TP) + " "
                       + "AND procedurelog.IsCpoe=0 "
-                      + "AND procedurelog.ProvNum=" + SOut.Long(provNum) + " "
+                      + "AND procedurelog.ProvNum=" + (provNum) + " "
                       + "AND DATE(appointment.AptDateTime) >= CURDATE() "
                       + "ORDER BY appointment.AptDateTime";
-        return ProcedureCrud.SelectMany(command);
-    }
-
-    public static List<Procedure> GetProcsRadiologyCpoeForPat(long patNum)
-    {
-        //Since this is used for the dashboard and not directly used in any reporting calculations, we do not need to worry about the date that the
-        // office updated past v15.4.1.
-        var dateStart = new DateTime(DateTime.Now.Year, 1, 1); //January first of this year.
-        var dateEnd = dateStart.AddYears(1).AddDays(-1); //Last day in December of this year.
-        var command = "SELECT procedurelog.* "
-                      + "FROM procedurelog "
-                      + "INNER JOIN procedurecode ON procedurelog.CodeNum=procedurecode.CodeNum AND procedurecode.IsRadiology=1 "
-                      + "WHERE procedurelog.ProcStatus IN (" + SOut.Int((int) ProcStat.C) + "," + SOut.Int((int) ProcStat.TP) + ") "
-                      + "AND procedurelog.PatNum=" + SOut.Long(patNum) + " "
-                      + "AND procedurelog.IsCpoe=1 "
-                      + "AND procedurelog.DateEntryC BETWEEN " + SOut.Date(dateStart) + " AND " + SOut.Date(dateEnd);
         return ProcedureCrud.SelectMany(command);
     }
 
     public static List<Procedure> GetProcsByStatusForPat(long patNum, params ProcStat[] procStatuses)
     {
         if (procStatuses == null || procStatuses.Length == 0) return [];
-        var command = "SELECT * FROM procedurelog WHERE PatNum=" + SOut.Long(patNum) + " AND ProcStatus IN (" + string.Join(",", procStatuses.Select(x => (int) x)) + ")";
+        var command = "SELECT * FROM procedurelog WHERE PatNum=" + (patNum) + " AND ProcStatus IN (" + string.Join(",", procStatuses.Select(x => (int) x)) + ")";
         return ProcedureCrud.SelectMany(command);
     }
 
@@ -472,7 +456,7 @@ public class Procedures
 
         var command = "SELECT MAX(ProcDate) FROM procedurelog "
                       + "LEFT JOIN procedurecode ON procedurecode.CodeNum=procedurelog.CodeNum "
-                      + "WHERE PatNum=" + SOut.Long(patNum) + " "
+                      + "WHERE PatNum=" + (patNum) + " "
                       //+"AND CodeNum="+POut.Long(codeNum)+" "
                       + "AND ProcDate < " + SOut.Date(aptDate) + " "
                       + "AND (ProcStatus =" + SOut.Int((int) ProcStat.C) + " "
@@ -493,8 +477,8 @@ public class Procedures
         for (var i = 0; i < listAptNums.Count; i++)
         {
             if (i > 0) strAptNums += " OR";
-            strAptNums += " (AptNum=" + SOut.Long(listAptNums[i]);
-            strAptNums += " OR PlannedAptNum=" + SOut.Long(listAptNums[i]) + ")";
+            strAptNums += " (AptNum=" + (listAptNums[i]);
+            strAptNums += " OR PlannedAptNum=" + (listAptNums[i]) + ")";
         }
 
         var command = "SELECT * FROM procedurelog WHERE" + strAptNums;
@@ -521,7 +505,7 @@ public class Procedures
         var listBandingProcedures = OrthoCases.GetListProcTypeProcCodes(PrefName.OrthoBandingCodes);
         var command = $@"SELECT procedurelog.* FROM procedurelog
 				JOIN procedurecode ON procedurelog.CodeNum=procedurecode.CodeNum
-				WHERE procedurelog.PatNum={SOut.Long(patNum)}
+				WHERE procedurelog.PatNum={(patNum)}
 				AND procedurelog.ProcStatus={SOut.Int((int) ProcStat.TP)}
 				AND procedurecode.ProcCode IN({string.Join(",", listBandingProcedures.Select(x => "'" + SOut.String(x) + "'").ToList())})";
         return ProcedureCrud.SelectMany(command);
@@ -606,7 +590,7 @@ public class Procedures
         if (insPlanPrimary != null && insPlanPrimary.PlanType == "p")
         {
             //PPO
-            var ucrFee = Fees.GetAmount0(procedure.CodeNum, Providers.GetProv(Patients.GetProvNum(pat)).FeeSched, procedure.ClinicNum, procedure.ProvNum, listFees);
+            var ucrFee = Fees.GetAmount0(procedure.CodeNum, Providers.GetById(Patients.GetProvNum(pat)).FeeScheduleId??0, procedure.ClinicNum, procedure.ProvNum, listFees);
             if (procFeeRet < ucrFee || PrefC.GetBool(PrefName.InsPpoAlwaysUseUcrFee)) procFeeRet = ucrFee;
         }
 
@@ -623,20 +607,10 @@ public class Procedures
                 || Benefits.GetPercent(ProcedureCodes.GetStringProcCode(procedure.CodeNum), priInsPlan.PlanType, priInsPlan.PlanNum, priPatPlan.PatPlanNum,
                     listBenefits) == 0)
                 //Get the fee from the provider's fee schedule (ucr fee)
-                procFeeRet = Fees.GetAmount0(procedure.CodeNum, Providers.GetProv(Patients.GetProvNum(pat)).FeeSched, procedure.ClinicNum, procedure.ProvNum, listFees);
+                procFeeRet = Fees.GetAmount0(procedure.CodeNum, Providers.GetById(Patients.GetProvNum(pat)).FeeScheduleId??0, procedure.ClinicNum, procedure.ProvNum, listFees);
         }
 
         return procFeeRet;
-    }
-
-    public static Procedure GetProcForPatByToothSurfStat(long patNum, int toothNum, string surf, ProcStat procStat)
-    {
-        var command = "SELECT * FROM procedurelog "
-                      + "WHERE PatNum=" + SOut.Long(patNum) + " "
-                      + "AND Surf='" + SOut.String(surf) + "' "
-                      + "AND ToothNum='" + SOut.Int(toothNum) + "' "
-                      + "AND ProcStatus=" + SOut.Int((int) procStat);
-        return ProcedureCrud.SelectOne(command);
     }
 
     public static DataTable GetTablePatProvUsed(List<long> listPatNums)
@@ -651,7 +625,7 @@ public class Procedures
         return DataCore.GetTable(command);
     }
 
-    public static long GetProvNumFromAppointment(Appointment apt, Procedure proc, ProcedureCode procCode)
+    public static long GetProvNumFromAppointment(Appointment apt, ProcedureCode procCode)
     {
         long provNum;
         if (procCode.ProvNumDefault != 0) //Override provider for procedures with a default provider
@@ -714,7 +688,7 @@ public class Procedures
     {
         if (procNum == 0) //By Total payment rows do not have labs.
             return [];
-        var command = "SELECT * FROM procedurelog WHERE ProcStatus<>" + SOut.Int((int) ProcStat.D) + " AND ProcNumLab=" + SOut.Long(procNum);
+        var command = "SELECT * FROM procedurelog WHERE ProcStatus<>" + SOut.Int((int) ProcStat.D) + " AND ProcNumLab=" + (procNum);
         return ProcedureCrud.SelectMany(command);
     }
 
@@ -740,7 +714,7 @@ public class Procedures
         if (numPerGroup < 1) return retval;
         var listWhereClauses = new List<string>();
         if (listProcStatuses != null && listProcStatuses.Count > 0) listWhereClauses.Add("ProcStatus IN(" + string.Join(",", listProcStatuses.Select(x => SOut.Int((int) x))) + ")");
-        if (true && clinicNum > -1) listWhereClauses.Add("ClinicNum=" + SOut.Long(clinicNum));
+        if (true && clinicNum > -1) listWhereClauses.Add("ClinicNum=" + (clinicNum));
         var whereClause = "";
         if (listWhereClauses.Count > 0) whereClause = "WHERE " + string.Join(" AND ", listWhereClauses) + " ";
         var command = "SET @row=0,@maxProcNum=0;"
@@ -767,7 +741,7 @@ public class Procedures
     
     public static long GetClinicNum(long procNum)
     {
-        var command = "SELECT ClinicNum FROM procedurelog WHERE ProcNum=" + SOut.Long(procNum);
+        var command = "SELECT ClinicNum FROM procedurelog WHERE ProcNum=" + (procNum);
         return SIn.Long(DataCore.GetScalar(command));
     }
 
@@ -881,27 +855,6 @@ public class Procedures
         return listProcsLim;
     }
 
-    public static List<ProcExtended> GetProcExtendedEntriesFromProcedures(List<Procedure> listProcs, List<Adjustment> listAdjs, List<PaySplit> listPaySplits, List<ClaimProc> listClaimProcs, List<PayPlanCharge> listPayPlanCharges, List<PaySplit> listSplitsCur = null, params ProcAttachTypes[] excludedTypes)
-    {
-        var retVal = new List<ProcExtended>();
-        foreach (var proc in listProcs)
-        {
-            var procE = new ProcExtended
-            {
-                Proc = proc,
-                Adjustments = listAdjs.Where(x => x.ProcNum == proc.ProcNum).ToList(),
-                PaySplits = listPaySplits.Where(x => x.ProcNum == proc.ProcNum).ToList(),
-                ClaimProcs = listClaimProcs.Where(x => x.ProcNum == proc.ProcNum).ToList(),
-                PayPlanCredits = listPayPlanCharges.Where(x => x.ProcNum == proc.ProcNum).ToList(),
-                ExcludedTypes = excludedTypes.ToList(),
-                SplitsCur = listSplitsCur.Where(x => x.ProcNum == proc.ProcNum).ToList()
-            };
-            retVal.Add(procE);
-        }
-
-        return retVal;
-    }
-    
     public static long Insert(Procedure procedure, bool skipDiscountPlanAdjustment = false)
     {
         //Security.CurUser.UserNum gets set on MT by the DtoProcessor so it matches the user from the client WS.
@@ -979,46 +932,25 @@ public class Procedures
         return GetDiscountAmountForDiscountPlan(procedure, discountPlanSub.PatNum, dateEffectiveFinal, dateTermFinal, dictDiscountFees.First().Value, discountPlan, runningTotal, listAddHistProcs);
     }
 
-    public static double GetDiscountAmountForDiscountPlanEstimate(Procedure procedure, long patNum, DateTime dateEffective, DateTime dateTerm, DiscountPlan discountPlan = null, double runningTotal = 0, List<Procedure> listAddHistProcs = null)
-    {
-        ExceedsFreqLimitation = false;
-        ExceedsAnnualMax = false;
-        if (discountPlan == null) return 0;
-        dateEffective = DiscountPlanSubs.GetAnnualMaxDateEffective(dateEffective);
-        dateTerm = DiscountPlanSubs.GetAnnualMaxDateTerm(dateTerm);
-        if (procedure.ProcDate < dateEffective || procedure.ProcDate > dateTerm) return 0;
-        var dateEffectiveFinal = DiscountPlanSubs.GetDateEffectiveForAnnualDateRangeSegment(procedure.ProcDate, dateEffective, dateTerm);
-        var dateTermFinal = DiscountPlanSubs.GetDateTermForAnnualDateRangeSegment(procedure.ProcDate, dateEffective, dateTerm);
-        //Check if the frequency limitation is exceeded
-        var discountPlanFrequencyLimits = DiscountPlans.CheckDiscountFrequency(ListTools.FromSingle(procedure), procedure.PatNum, procedure.ProcDate, dateEffective, dateTerm, discountPlan, listAddHistProcs);
-        if (!string.IsNullOrEmpty(discountPlanFrequencyLimits))
-        {
-            ExceedsFreqLimitation = true;
-            return 0;
-        }
-
-        return GetDiscountAmountForDiscountPlan(procedure, patNum, dateEffectiveFinal, dateTermFinal, discountPlan.FeeSchedNum, discountPlan, runningTotal, listAddHistProcs);
-    }
-
     public static double GetDiscountAmountForDiscountPlan(Procedure procedure, long patNum, DateTime dateStart, DateTime dateStop, long feeSchedNum, DiscountPlan discountPlan = null, double runningTotal = 0, List<Procedure> listAddHistProcs = null)
     {
         var procFee = Fees.GetFee(procedure.CodeNum, feeSchedNum, procedure.ClinicNum, procedure.ProvNum);
         if (procFee == null)
         {
             //No fee for discount plan's feesched
-            var procProv = Providers.GetProv(procedure.ProvNum);
-            procFee = Fees.GetFee(procedure.CodeNum, procProv.FeeSched, procedure.ClinicNum, procProv.ProvNum);
+            var procProv = Providers.GetById(procedure.ProvNum);
+            procFee = Fees.GetFee(procedure.CodeNum, procProv.FeeScheduleId??0, procedure.ClinicNum, procProv.Id);
             if (procFee == null)
             {
                 //No fee for discount plan's feesched and proc's provider
                 var pat = Patients.GetPat(procedure.PatNum);
-                var patProv = Providers.GetProv(pat.PriProv);
-                procFee = Fees.GetFee(procedure.CodeNum, patProv.FeeSched, procedure.ClinicNum, patProv.ProvNum);
+                var patProv = Providers.GetById(pat.PriProv);
+                procFee = Fees.GetFee(procedure.CodeNum, patProv.FeeScheduleId??0, procedure.ClinicNum, patProv.Id);
                 if (procFee == null)
                 {
                     //No fee for pat's pri prov feesched and pat's pri prov
-                    patProv = Providers.GetProv(PrefC.GetLong(PrefName.PracticeDefaultProv));
-                    procFee = Fees.GetFee(procedure.CodeNum, patProv.FeeSched, procedure.ClinicNum, patProv.ProvNum);
+                    patProv = Providers.GetById(PrefC.GetLong(PrefName.PracticeDefaultProv));
+                    procFee = Fees.GetFee(procedure.CodeNum, patProv.FeeScheduleId??0, procedure.ClinicNum, patProv.Id);
                 }
             }
         }
@@ -1192,8 +1124,8 @@ public class Procedures
         if (listProcNums == null || listProcNums.Count == 0) return;
 
         var command = "UPDATE procedurelog "
-                      + "SET " + (isPlannedAptNum ? "PlannedAptNum =" : "AptNum =") + SOut.Long(newAptNum) + " "
-                      + "WHERE ProcNum IN (" + string.Join(",", listProcNums.Select(x => SOut.Long(x))) + ")";
+                      + "SET " + (isPlannedAptNum ? "PlannedAptNum =" : "AptNum =") + (newAptNum) + " "
+                      + "WHERE ProcNum IN (" + string.Join(",", listProcNums.Select(x => (x))) + ")";
         Db.NonQ(command);
     }
 
@@ -1223,7 +1155,7 @@ public class Procedures
         var command = "SELECT COUNT(*) from procedurelog "
                       + "INNER JOIN procedurecode on procedurecode.CodeNum = procedurelog.CodeNum "
                       + "AND procedurecode.ProcCode NOT IN ('D9986','D9987') "
-                      + "WHERE PatNum = '" + SOut.Long(pat.PatNum) + "' "
+                      + "WHERE PatNum = '" + (pat.PatNum) + "' "
                       + "AND ProcStatus = '2'";
         var table = DataCore.GetTable(command);
         if (SIn.Long(table.Rows[0][0].ToString()) > 0) return; //there are already completed procs (for all situations)
@@ -1235,31 +1167,13 @@ public class Procedures
         if (situation == 3)
             command = "UPDATE patient SET DateFirstVisit =" + SOut.Date(new DateTime(0001, 01, 01))
                                                             + " WHERE PatNum ='"
-                                                            + SOut.Long(pat.PatNum) + "'";
+                                                            + (pat.PatNum) + "'";
         else
             command = "UPDATE patient SET DateFirstVisit ="
                       + SOut.Date(visitDate) + " WHERE PatNum ='"
-                      + SOut.Long(pat.PatNum) + "'";
+                      + (pat.PatNum) + "'";
         //MessageBox.Show(cmd.CommandText);
         //dcon.NonQ(command);
-        Db.NonQ(command);
-    }
-
-    public static void AttachToApt(List<long> procNums, long aptNum, bool isPlanned)
-    {
-        if (procNums.Count == 0) return;
-        var command = "UPDATE procedurelog SET ";
-        if (isPlanned)
-            command += "PlannedAptNum";
-        else
-            command += "AptNum";
-        command += "=" + SOut.Long(aptNum) + " WHERE ";
-        for (var i = 0; i < procNums.Count; i++)
-        {
-            if (i > 0) command += " OR ";
-            command += "ProcNum=" + SOut.Long(procNums[i]);
-        }
-
         Db.NonQ(command);
     }
 
@@ -1367,7 +1281,7 @@ public class Procedures
     {
         var command = "UPDATE procedurelog SET IsLocked=1 "
                       + "WHERE (ProcStatus=" + SOut.Int((int) ProcStat.C) + " " //completed
-                      + "OR CodeNum=" + SOut.Long(ProcedureCodes.GetCodeNum(ProcedureCodes.GroupProcCode)) + ") " //or group note
+                      + "OR CodeNum=" + (ProcedureCodes.GetCodeNum(ProcedureCodes.GroupProcCode)) + ") " //or group note
                       + "AND ProcDate >= " + SOut.Date(date1) + " "
                       + "AND ProcDate <= " + SOut.Date(date2);
         Db.NonQ(command);
@@ -1381,7 +1295,7 @@ public class Procedures
 
     public static void SetTPActive(long patNum, List<long> listProcNums)
     {
-        var command = "UPDATE procedurelog SET ProcStatus=" + SOut.Int((int) ProcStat.TPi) + " WHERE PatNum=" + SOut.Long(patNum) + " " +
+        var command = "UPDATE procedurelog SET ProcStatus=" + SOut.Int((int) ProcStat.TPi) + " WHERE PatNum=" + (patNum) + " " +
                       "AND ProcStatus=" + SOut.Int((int) ProcStat.TP) + " ";
         if (listProcNums.Count == 0)
         {
@@ -1391,7 +1305,7 @@ public class Procedures
 
         command += "AND ProcNum NOT IN (" + string.Join(",", listProcNums) + ") ";
         Db.NonQ(command);
-        command = "UPDATE procedurelog SET ProcStatus=" + SOut.Int((int) ProcStat.TP) + " WHERE PatNum=" + SOut.Long(patNum) + " " +
+        command = "UPDATE procedurelog SET ProcStatus=" + SOut.Int((int) ProcStat.TP) + " WHERE PatNum=" + (patNum) + " " +
                   "AND ProcStatus=" + SOut.Int((int) ProcStat.TPi) + " AND ProcNum IN (" + string.Join(",", listProcNums) + ") ";
         Db.NonQ(command);
     }
@@ -1452,7 +1366,7 @@ public class Procedures
     public static void UpdateDiscountPlanAmt(long procNum, double newDiscountPlanAmt)
     {
         var command = "UPDATE procedurelog SET DiscountPlanAmt = " + SOut.Double(newDiscountPlanAmt)
-                                                                   + " WHERE ProcNum = " + SOut.Long(procNum);
+                                                                   + " WHERE ProcNum = " + (procNum);
         Db.NonQ(command);
     }
 
@@ -1473,10 +1387,10 @@ public class Procedures
         if (forceDelete)
         {
             //Delete referral attaches
-            command = "DELETE FROM refattach WHERE ProcNum=" + SOut.Long(procNum);
+            command = "DELETE FROM refattach WHERE ProcNum=" + (procNum);
             Db.NonQ(command);
             //Remove the procedure from the pay split
-            command = "UPDATE paysplit SET ProcNum=0 WHERE ProcNum=" + SOut.Long(procNum);
+            command = "UPDATE paysplit SET ProcNum=0 WHERE ProcNum=" + (procNum);
             Db.NonQ(command);
             //Claimprocs deleted below
         }
@@ -1488,15 +1402,15 @@ public class Procedures
         //delete adjustments, audit logs added from Adjustments.DeleteForProcedure()
         Adjustments.DeleteForProcedure(procNum);
         //delete claimprocs
-        command = "DELETE from claimproc WHERE ProcNum = '" + SOut.Long(procNum) + "'";
+        command = "DELETE from claimproc WHERE ProcNum = '" + (procNum) + "'";
         Db.NonQ(command);
         //detach procedure labs
-        command = "UPDATE procedurelog SET ProcNumLab=0 WHERE ProcNumLab='" + SOut.Long(procNum) + "'";
+        command = "UPDATE procedurelog SET ProcNumLab=0 WHERE ProcNumLab='" + (procNum) + "'";
         Db.NonQ(command);
         PayPlanCharges.DeleteForProc(procNum);
         //delete and update procmultivisits
         ProcMultiVisits.UpdateGroupForProc(procNum, ProcStat.D);
-        command = "SELECT AptNum,PlannedAptNum,DateComplete FROM procedurelog WHERE ProcNum = " + SOut.Long(procNum);
+        command = "SELECT AptNum,PlannedAptNum,DateComplete FROM procedurelog WHERE ProcNum = " + (procNum);
         var table = DataCore.GetTable(command);
         var dateComplete = SIn.Date(table.Rows[0]["DateComplete"].ToString());
         var aptNum = SIn.Long(table.Rows[0]["AptNum"].ToString());
@@ -1507,7 +1421,7 @@ public class Procedures
                   + "PlannedAptNum=0";
         if (dateComplete.Date == DateTime.Today.Date) command += ", DateComplete=" + SOut.Date(DateTime.MinValue);
         if (hideGraphics) command += ", HideGraphics=1";
-        command += " WHERE ProcNum=" + SOut.Long(procNum);
+        command += " WHERE ProcNum=" + (procNum);
         Db.NonQ(command);
         //resynch appointment description-------------------------------------------------------------------------------------
         if (aptNum != 0)
@@ -1596,111 +1510,36 @@ public class Procedures
     public static List<long> GetForInvoice(long statementNum)
     {
         if (statementNum == 0) return [];
-        var command = "SELECT ProcNum FROM procedurelog WHERE procedurelog.StatementNum = " + SOut.Long(statementNum);
+        var command = "SELECT ProcNum FROM procedurelog WHERE procedurelog.StatementNum = " + (statementNum);
         return Db.GetListLong(command);
     }
 
     public static void ValidateDelete(long procNum)
     {
         //Test to see if the procedure is attached to a claim (excluding pre-auths)
-        var command = "SELECT COUNT(*) FROM claimproc WHERE ProcNum=" + SOut.Long(procNum)
+        var command = "SELECT COUNT(*) FROM claimproc WHERE ProcNum=" + (procNum)
                                                                       + " AND ClaimNum > 0 AND Status!=" + SOut.Int((int) ClaimProcStatus.Preauth);
         if (Db.GetCount(command) != "0") throw new Exception(Lans.g("Procedures", "Not allowed to delete a procedure that is attached to a claim."));
         //Test to see if any payment at all has been received for this proc
-        command = "SELECT COUNT(*) FROM claimproc WHERE ProcNum=" + SOut.Long(procNum)
+        command = "SELECT COUNT(*) FROM claimproc WHERE ProcNum=" + (procNum)
                                                                   + " AND InsPayAmt > 0 AND Status IN (" + SOut.Int((int) ClaimProcStatus.Received) + "," + SOut.Int((int) ClaimProcStatus.Supplemental) + ","
                                                                   + SOut.Int((int) ClaimProcStatus.CapClaim) + "," + SOut.Int((int) ClaimProcStatus.CapComplete) + ")";
         if (Db.GetCount(command) != "0") throw new Exception(Lans.g("Procedures", "Not allowed to delete a procedure that is attached to an insurance payment."));
         //Test to see if any referrals exist for this proc
-        command = "SELECT COUNT(*) FROM refattach WHERE ProcNum=" + SOut.Long(procNum);
+        command = "SELECT COUNT(*) FROM refattach WHERE ProcNum=" + (procNum);
         if (Db.GetCount(command) != "0") throw new Exception(Lans.g("Procedures", "Not allowed to delete a procedure with referrals attached."));
         //Test to see if any paysplits are attached to this proc
-        command = "SELECT COUNT(*) FROM paysplit WHERE ProcNum=" + SOut.Long(procNum);
+        command = "SELECT COUNT(*) FROM paysplit WHERE ProcNum=" + (procNum);
         if (Db.GetCount(command) != "0") throw new Exception(Lans.g("Procedures", "Not allowed to delete a procedure that is attached to a patient payment."));
-        command = "SELECT COUNT(*) FROM adjustment WHERE ProcNum=" + SOut.Long(procNum);
+        command = "SELECT COUNT(*) FROM adjustment WHERE ProcNum=" + (procNum);
         if (Db.GetCount(command) != "0") throw new Exception(Lans.g("Procedures", "Not allowed to delete a procedure that is attached to an adjustment."));
-        command = "SELECT COUNT(*) FROM rxpat WHERE ProcNum=" + SOut.Long(procNum);
+        command = "SELECT COUNT(*) FROM rxpat WHERE ProcNum=" + (procNum);
         if (Db.GetCount(command) != "0") throw new Exception(Lans.g("Procedures", "Not allowed to delete a procedure that is attached to a prescription."));
-        command = $"SELECT COUNT(*) FROM payplancharge WHERE payplancharge.ProcNum={SOut.Long(procNum)}";
+        command = $"SELECT COUNT(*) FROM payplancharge WHERE payplancharge.ProcNum={(procNum)}";
         if (Db.GetCount(command) != "0") throw new Exception(Lans.g("Procedures", "Not allowed to delete a procedure that is attached to a payment plan."));
-        command = $"SELECT COUNT(*) FROM payplanlink WHERE payplanlink.FKey={SOut.Long(procNum)} " +
+        command = $"SELECT COUNT(*) FROM payplanlink WHERE payplanlink.FKey={(procNum)} " +
                   $"AND payplanlink.LinkType={SOut.Int((int) PayPlanLinkType.Procedure)}";
         if (Db.GetCount(command) != "0") throw new Exception(Lans.g("Procedures", "Not allowed to delete a procedure that is attached to a payment plan."));
-    }
-
-    public static Procedure CreateProcForPatNum(long patNum, long codeNum, string surf, string toothNum, ProcStat procStatus, long provNum)
-    {
-        var pat = Patients.GetPat(patNum);
-        return CreateProcForPat(pat, codeNum, surf, toothNum, procStatus, provNum);
-    }
-
-    public static Procedure CreateProcForPat(Patient pat, long codeNum, string surf, string toothNum, ProcStat procStatus, long provNum, long aptNum = 0, List<InsSub> subList = null, List<InsPlan> insPlanList = null, List<PatPlan> patPlanList = null, List<Benefit> benefitList = null, long clinicNum = -1, DateTime dateAppt = default)
-    {
-        if (codeNum < 1) return null;
-        if (provNum == 0) provNum = Patients.GetProvNum(pat);
-        var proc = new Procedure();
-        proc.PatNum = pat.PatNum;
-        if (clinicNum == -1)
-            proc.ClinicNum = Clinics.ClinicNum;
-        else
-            proc.ClinicNum = clinicNum;
-        proc.ProcStatus = procStatus;
-        proc.ProvNum = provNum;
-        proc.AptNum = aptNum;
-        if (surf == "")
-            proc.Surf = "";
-        else
-            proc.Surf = surf; //Note: Sealant code D1351 is not a surface code by default, but can be manually set.  For screens they will be surface specific.
-        if (toothNum == "")
-            proc.ToothNum = "";
-        else
-            proc.ToothNum = toothNum;
-        proc.UserNum = Security.CurUser.UserNum;
-        proc.CodeNum = codeNum;
-        if (dateAppt == default)
-        {
-            //01/01/01
-            proc.ProcDate = DateTime.Today;
-            proc.DateTP = DateTime.Today;
-        }
-        else
-        {
-            proc.ProcDate = dateAppt;
-            proc.DateTP = dateAppt;
-        }
-
-        //The below logic is a trimmed down version of the code existing in ContrChart.AddQuick()
-        InsPlan insPlanPrimary = null;
-        InsSub insSubPrimary = null;
-        if (subList == null) subList = InsSubs.RefreshForFam(Patients.GetFamily(pat.PatNum));
-        if (insPlanList == null) insPlanList = InsPlans.RefreshForSubList(subList);
-        if (patPlanList == null) patPlanList = PatPlans.Refresh(pat.PatNum);
-        if (benefitList == null) benefitList = Benefits.Refresh(patPlanList, subList);
-        if (patPlanList.Count > 0)
-        {
-            insSubPrimary = InsSubs.GetSub(patPlanList[0].InsSubNum, subList);
-            insPlanPrimary = InsPlans.GetPlan(insSubPrimary.PlanNum, insPlanList);
-        }
-
-        //Get fee schedule and fee amount for dental or medical.
-        var feeSch = FeeScheds.GetFeeSched(pat, insPlanList, patPlanList, subList, provNum);
-        proc.ProcFee = Fees.GetAmount0(proc.CodeNum, feeSch, proc.ClinicNum, provNum);
-        if (insPlanPrimary != null && insPlanPrimary.PlanType == "p")
-        {
-            //PPO
-            var provFee = Fees.GetAmount0(proc.CodeNum, Providers.GetProv(provNum).FeeSched, proc.ClinicNum, provNum);
-            proc.ProcFee = Math.Max(proc.ProcFee, provFee); //use greater of standard fee or ins fee
-        }
-
-        var procCodeCur = ProcedureCodes.GetProcCode(proc.CodeNum);
-        proc.BaseUnits = procCodeCur.BaseUnits;
-        proc.SiteNum = pat.SiteNum;
-        proc.RevCode = procCodeCur.RevenueCodeDefault;
-        proc.DateEntryC = DateTime.Now;
-        proc.PlaceService = Clinics.GetPlaceService(proc.ClinicNum);
-        proc.ProcNum = Insert(proc);
-        ComputeEstimates(proc, pat.PatNum, [], true, insPlanList, patPlanList, benefitList, pat.Age, subList);
-        return proc;
     }
 
     public static Procedure CreateOrthoAutoProcsForPat(long patNum, long codeNum, long provNum, long clinicNum, DateTime procDate)
@@ -1770,7 +1609,7 @@ public class Procedures
         //first, check for missing teeth
         var command = "SELECT COUNT(*) FROM toothinitial "
                       + "WHERE ToothNum='" + toothNum + "' "
-                      + "AND PatNum=" + SOut.Long(patNum)
+                      + "AND PatNum=" + (patNum)
                       + " AND InitialType=0"; //missing
         var table = DataCore.GetTable(command);
         if (table.Rows[0][0].ToString() != "0") return true;
@@ -1872,7 +1711,7 @@ public class Procedures
     public static bool IsAttachedToClaim(long procNum)
     {
         var command = "SELECT COUNT(*) FROM claimproc "
-                      + "WHERE ProcNum=" + SOut.Long(procNum) + " "
+                      + "WHERE ProcNum=" + (procNum) + " "
                       + "AND ClaimNum>0";
         var table = DataCore.GetTable(command);
         if (table.Rows[0][0].ToString() == "0") return false;
@@ -1893,7 +1732,7 @@ public class Procedures
 
     public static bool IsReferralAttached(long referralNum)
     {
-        var command = "SELECT COUNT(*) FROM procedurelog WHERE OrderingReferralNum=" + SOut.Long(referralNum);
+        var command = "SELECT COUNT(*) FROM procedurelog WHERE OrderingReferralNum=" + (referralNum);
         if (Db.GetCount(command) == "0") return false;
         return true;
     }
@@ -2002,7 +1841,7 @@ public class Procedures
         if (proc.ProcStatus != ProcStat.C)
         {
             var procCode = ProcedureCodes.GetProcCode(proc.CodeNum);
-            proc.ProvNum = GetProvNumFromAppointment(apt, proc, procCode);
+            proc.ProvNum = GetProvNumFromAppointment(apt, procCode);
         }
 
         proc.ClinicNum = apt.ClinicNum;
@@ -2169,9 +2008,9 @@ public class Procedures
         lookupFeesByCodeAndSched = (Lookup<FeeKey2, Fee>) listFeesHQandClinic.ToLookup(x => new FeeKey2(x.CodeNum, x.FeeSched));
         //lookup will make it very fast to look up the fees we need.
         var practDefaultProvNum = PrefC.GetLong(PrefName.PracticeDefaultProv);
-        var practDefaultProvFeeSched = Providers.GetFirstOrDefault(x => x.ProvNum == practDefaultProvNum)?.FeeSched ?? 0; //default to 0 if prov is not found
-        var firstNonHiddenProvFeeSched = Providers.GetFirstOrDefault(x => !x.IsHidden)?.FeeSched ?? 0; //default to 0 if all provs hidden (not likely to happen)
-        var dictProvFeeSched = Providers.GetDeepCopy().ToDictionary(x => x.ProvNum, x => x.FeeSched);
+        var practDefaultProvFeeSched = Providers.GetFirstOrDefault(x => x.Id == practDefaultProvNum)?.FeeScheduleId ?? 0; //default to 0 if prov is not found
+        var firstNonHiddenProvFeeSched = Providers.GetFirstOrDefault(x => !x.IsHidden)?.FeeScheduleId ?? 0; //default to 0 if all provs hidden (not likely to happen)
+        var dictProvFeeSched = Providers.GetDeepCopy().ToDictionary(x => x.Id, x => x.FeeScheduleId??0);
         //dictionary of fee key linked to a list of lists of longs in order to keep each update statement limited to updating 1000 procedures per query
         var dictFeeListCodes = new Dictionary<double, List<List<long>>>();
         var table = new DataTable();
@@ -3489,7 +3328,7 @@ public class Procedures
             procCur.ClinicNum = apt.ClinicNum;
             procCur.SiteNum = patient.SiteNum;
             procCur.PlaceService = Clinics.GetPlaceService(procCur.ClinicNum);
-            procCur.ProvNum = GetProvNumFromAppointment(apt, procCur, procCode);
+            procCur.ProvNum = GetProvNumFromAppointment(apt, procCode);
             //if procedure was already complete, then don't add more notes.
             if (procOld.ProcStatus != ProcStat.C)
             {
@@ -3498,7 +3337,7 @@ public class Procedures
                 procCur.Note += procNoteDefault;
             }
 
-            if (Userods.IsUserCpoe(curUser))
+            if (Userods.IsUserCpoe())
                 //Only change the status of IsCpoe to true.  Never set it back to false for any reason.  Once true, always true.
                 procCur.IsCpoe = true;
             var orthoProcLink = orthoCaseProcedureLinker.LinkProcedureToActiveOrthoCaseIfNeeded(procCur);
@@ -3572,7 +3411,7 @@ public class Procedures
             return;
         if (PrefC.GetString(PrefName.OrthoDebondCodes).Contains(procCode.ProcCode) && PrefC.GetBool(PrefName.OrthoDebondProcCompletedSetsMonthsTreat))
         {
-            SetAutoOrthoMonthsTreat(procCur, procCode.ProcCode); //Check if completed code is debond and needs to update Months Treatment.
+            SetAutoOrthoMonthsTreat(procCur); //Check if completed code is debond and needs to update Months Treatment.
             return;
         }
 
@@ -3618,7 +3457,7 @@ public class Procedures
         }
     }
 
-    private static void SetAutoOrthoMonthsTreat(Procedure procCur, string procCode)
+    private static void SetAutoOrthoMonthsTreat(Procedure procCur)
     {
         var patCur = Patients.GetLim(procCur.PatNum);
         var patNoteCur = PatientNotes.Refresh(patCur.PatNum, patCur.Guarantor);
@@ -3819,7 +3658,7 @@ public class Procedures
         proc.RevCode = procCodeCur.RevenueCodeDefault;
         SetDiagnosticCodesToDefault(proc, procCodeCur);
         proc.PlaceService = Clinics.GetPlaceService(proc.ClinicNum);
-        if (Userods.IsUserCpoe(Security.CurUser))
+        if (Userods.IsUserCpoe())
             //This procedure is considered CPOE because the provider is the one that has added it.
             proc.IsCpoe = true;
         return proc;
@@ -4881,110 +4720,6 @@ public class Procedures
                 ClaimProcs.InsertClaimProcForInsHist(procedure, planNum, insSubNum);
         }
     }
-}
-
-public class ProcExtended
-{
-    private static long _procExtendedAutoIncrementValue = 1;
-
-    //Variables below will be changed as needed.
-    public List<Adjustment> Adjustments = [];
-    public List<ClaimProc> ClaimProcs = [];
-    public List<ProcAttachTypes> ExcludedTypes = [];
-    public List<PayPlanCharge> PayPlanCredits = [];
-
-    public List<PaySplit> PaySplits = [];
-
-    //Read only data.  Do not modify.
-    public Procedure Proc;
-
-    public List<PaySplit> SplitsCur = [];
-
-    public double NegativeAdjTotals
-    {
-        get { return Adjustments.Where(x => x.AdjAmt < 0).Sum(x => x.AdjAmt); }
-    }
-
-    public double PositiveAdjTotal
-    {
-        get { return Adjustments.Where(x => x.AdjAmt > 0).Sum(x => x.AdjAmt); }
-    }
-
-    public double InsPayTotal
-    {
-        get { return ClaimProcs.Where(x => OpenDentBusiness.ClaimProcs.GetInsPaidStatuses().Contains(x.Status)).Sum(x => x.InsPayAmt); }
-    }
-
-    public double WriteOffTotal
-    {
-        get { return ClaimProcs.Where(x => OpenDentBusiness.ClaimProcs.GetInsPaidStatuses().Contains(x.Status)).Sum(x => x.WriteOff); }
-    }
-
-    public double WriteOffEstTotal
-    {
-        get
-        {
-            return ClaimProcs.Where(x => OpenDentBusiness.ClaimProcs.GetEstimatedStatuses().Contains(x.Status))
-                .Sum(x => x.WriteOffEstOverride == -1 ? x.WriteOffEst == -1 ? 0 : x.WriteOffEst : x.WriteOffEstOverride);
-        }
-    }
-
-    public double InsEstTotal
-    {
-        get
-        {
-            return ClaimProcs.Where(x => OpenDentBusiness.ClaimProcs.GetEstimatedStatuses().Contains(x.Status))
-                .Sum(x => x.InsEstTotalOverride == -1 ? x.InsEstTotal == -1 ? 0 : x.InsEstTotal : x.InsEstTotalOverride);
-        }
-    }
-
-    public double PaySplitTotal
-    {
-        //If a split exists for a payment plan procedure, do not count it, the credit is what pays off the procedure. 
-        get { return PaySplits.FindAll(x => x.PayPlanNum == 0).Sum(x => x.SplitAmt); }
-    }
-
-    public double SplitsCurTotal
-    {
-        //If a split exists for a payment plan procedure, do not count it, the credit is what pays off the procedure. 
-        get { return SplitsCur.FindAll(x => x.PayPlanNum == 0).Sum(x => x.SplitAmt); }
-    }
-
-    public double PayPlanCreditTotal
-    {
-        get { return PayPlanCredits.Sum(x => x.Principal); }
-    }
-
-    public double AmountOriginal => Proc.ProcFeeTotal;
-
-    public double AmountStart
-    {
-        get
-        {
-            var amt = AmountOriginal;
-            if (!ExcludedTypes.Contains(ProcAttachTypes.Adjustments)) amt += PositiveAdjTotal + NegativeAdjTotals;
-            if (!ExcludedTypes.Contains(ProcAttachTypes.InsEsts)) amt -= InsEstTotal;
-            if (!ExcludedTypes.Contains(ProcAttachTypes.InsPays)) amt -= InsPayTotal;
-            if (!ExcludedTypes.Contains(ProcAttachTypes.PayPlanCredits)) amt -= PayPlanCreditTotal;
-            if (!ExcludedTypes.Contains(ProcAttachTypes.PaySplits)) amt -= PaySplitTotal - SplitsCurTotal;
-            if (!ExcludedTypes.Contains(ProcAttachTypes.WriteOffEsts)) amt -= WriteOffEstTotal;
-            if (!ExcludedTypes.Contains(ProcAttachTypes.WriteOffs)) amt -= WriteOffTotal;
-            return amt;
-        }
-    }
-
-    public double AmountEnd => AmountStart - SplitsCurTotal;
-}
-
-public enum ProcAttachTypes
-{
-    PaySplits,
-    Adjustments,
-    InsPays,
-    InsEsts,
-    WriteOffs,
-    WriteOffEsts,
-    PayPlanCredits
 }
 
 public enum CreditCalcType

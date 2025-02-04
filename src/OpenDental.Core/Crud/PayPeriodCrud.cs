@@ -24,14 +24,15 @@ public class PayPeriodCrud
     public static List<PayPeriod> TableToList(DataTable table)
     {
         var retVal = new List<PayPeriod>();
-        PayPeriod payPeriod;
         foreach (DataRow row in table.Rows)
         {
-            payPeriod = new PayPeriod();
-            payPeriod.PayPeriodNum = SIn.Long(row["PayPeriodNum"].ToString());
-            payPeriod.DateStart = SIn.Date(row["DateStart"].ToString());
-            payPeriod.DateStop = SIn.Date(row["DateStop"].ToString());
-            payPeriod.DatePaycheck = SIn.Date(row["DatePaycheck"].ToString());
+            var payPeriod = new PayPeriod
+            {
+                PayPeriodNum = SIn.Long(row["PayPeriodNum"].ToString()),
+                DateStart = SIn.Date(row["DateStart"].ToString()),
+                DateStop = SIn.Date(row["DateStop"].ToString()),
+                DatePaycheck = SIn.Date(row["DatePaycheck"].ToString())
+            };
             retVal.Add(payPeriod);
         }
 

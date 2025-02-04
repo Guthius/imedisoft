@@ -1,9 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Reflection;
-using System.Text;
-using System.Linq;
 using CodeBase;
 using DataConnectionBase;
 using Imedisoft.Core.Entities;
@@ -13,10 +10,10 @@ namespace OpenDentBusiness {
 			
 		public static DataTable GetData(List<long> listProvNums,List<long> listClinicNums,DateTime dateStart,DateTime dateEnd,bool includeNoNotes,
 			bool includeUnsignedNotes,ToothNumberingNomenclature toothNumberFormat,ProcNoteGroupBy groupBy, bool showExcludedCodes = false,bool includeAllNoNotes=false) {
-			string [] arrayExcludedCodes = PrefName.ReportsIncompleteProcsExcludeCodes.GetValueAsText().Split(",",StringSplitOptions.RemoveEmptyEntries);
-			string whereNoNote="";
-			string whereUnsignedNote="";
-			string whereNotesClause="";
+			var arrayExcludedCodes = PrefName.ReportsIncompleteProcsExcludeCodes.GetValueAsText().Split(",",StringSplitOptions.RemoveEmptyEntries);
+			var whereNoNote="";
+			var whereUnsignedNote="";
+			var whereNotesClause="";
 			if(includeNoNotes) {
 				whereNoNote=@"
 					LEFT JOIN (
@@ -79,38 +76,38 @@ namespace OpenDentBusiness {
 								FROM procnote n2 
 								WHERE unsignedNotes.ProcNum = n2.ProcNum) ";
 			}
-			string command=@"SELECT MAX(procedurelog.ProcDate) ProcDate,MAX(CONCAT(CONCAT(patient.LName, ', '),patient.FName)) PatName,procedurelog.PatNum,
+			var command=@"SELECT MAX(procedurelog.ProcDate) ProcDate,MAX(CONCAT(CONCAT(patient.LName, ', '),patient.FName)) PatName,procedurelog.PatNum,
 				(CASE WHEN COUNT(procedurelog.ProcNum)=1 THEN MAX(procedurecode.ProcCode) ELSE '' END) ProcCode,
 				(CASE WHEN COUNT(procedurelog.ProcNum)=1 THEN MAX(procedurecode.Descript) ELSE '"+Lans.g("FormRpProcNote","Multiple procedures")+@"' END) Descript,
 				(CASE WHEN COUNT(procedurelog.ProcNum)=1 THEN MAX(procedurelog.ToothNum) ELSE '' END) ToothNum,
 				(CASE WHEN COUNT(procedurelog.ProcNum)=1 THEN MAX(procedurelog.Surf) ELSE '' END) Surf "
-				+(includeAllNoNotes || includeNoNotes || includeUnsignedNotes?",(CASE WHEN MAX(n1.ProcNum) IS NOT NULL THEN 'X' ELSE '' END) AS Incomplete ":"")
-				+(includeNoNotes?",(CASE WHEN MAX(hasNotes.PatNum) IS NULL THEN 'X' ELSE '' END) AS HasNoNote ":"")
-				+(includeAllNoNotes? ",(CASE WHEN MAX(hasNotes.ProcNum) IS NULL THEN 'X' ELSE '' END) AS HasNoNote ":"")
-				+(includeUnsignedNotes?",(CASE WHEN MAX(unsignedNotes.ProcNum) IS NOT NULL THEN 'X' ELSE '' END) AS HasUnsignedNote ":"")+@" 
+			            +(includeAllNoNotes || includeNoNotes || includeUnsignedNotes?",(CASE WHEN MAX(n1.ProcNum) IS NOT NULL THEN 'X' ELSE '' END) AS Incomplete ":"")
+			            +(includeNoNotes?",(CASE WHEN MAX(hasNotes.PatNum) IS NULL THEN 'X' ELSE '' END) AS HasNoNote ":"")
+			            +(includeAllNoNotes? ",(CASE WHEN MAX(hasNotes.ProcNum) IS NULL THEN 'X' ELSE '' END) AS HasNoNote ":"")
+			            +(includeUnsignedNotes?",(CASE WHEN MAX(unsignedNotes.ProcNum) IS NOT NULL THEN 'X' ELSE '' END) AS HasUnsignedNote ":"")+@" 
 				FROM procedurelog
 				INNER JOIN patient ON procedurelog.PatNum = patient.PatNum 
 				INNER JOIN procedurecode ON procedurelog.CodeNum = procedurecode.CodeNum 
 				"+(includeAllNoNotes || includeNoNotes || includeUnsignedNotes?"LEFT":"INNER")+@" JOIN procnote n1 ON procedurelog.ProcNum = n1.ProcNum 
 					AND (n1.Note LIKE '%""""%' OR n1.Note REGEXP '"+@"\[Prompt:""[a-zA-Z_0-9 ]+""\]') "//looks for either "" (pre 17.3) or [Prompt:"{word}"] (post 17.3)
-				+@" AND n1.EntryDateTime= (SELECT MAX(n2.EntryDateTime) 
+			            +@" AND n1.EntryDateTime= (SELECT MAX(n2.EntryDateTime) 
 				FROM procnote n2 
 				WHERE n1.ProcNum = n2.ProcNum) "
-				+whereNoNote+" "
-				+whereUnsignedNote+@"
+			            +whereNoNote+" "
+			            +whereUnsignedNote+@"
 				WHERE procedurelog.ProcDate BETWEEN "+SOut.Date(dateStart)+" AND "+SOut.Date(dateEnd)+@"
 				AND (procedurelog.ProcStatus="+SOut.Int((int)ProcStat.C)
-				+" OR (procedurelog.ProcStatus="+SOut.Int((int)ProcStat.EC)+" "
-				+@" AND procedurecode.ProcCode='~GRP~')) ";
+			            +" OR (procedurelog.ProcStatus="+SOut.Int((int)ProcStat.EC)+" "
+			            +@" AND procedurecode.ProcCode='~GRP~')) ";
 				if(!showExcludedCodes) {
 					command+=$"AND procedurecode.ProcCode NOT IN ('{string.Join("','",arrayExcludedCodes)}') ";
 				}
 				command+=whereNotesClause;
 			if(listProvNums.Count>0) {
-				command+=@"AND procedurelog.ProvNum IN ("+String.Join(",",listProvNums)+") ";
+				command+=@"AND procedurelog.ProvNum IN ("+string.Join(",",listProvNums)+") ";
 			}
 			if(listClinicNums.Count>0) {
-				command+=@"AND procedurelog.ClinicNum IN ("+String.Join(",",listClinicNums)+") ";
+				command+=@"AND procedurelog.ClinicNum IN ("+string.Join(",",listClinicNums)+") ";
 			}
 			if(groupBy==ProcNoteGroupBy.Patient) {
 				command+=@"GROUP BY procedurelog.PatNum ";
@@ -122,7 +119,7 @@ namespace OpenDentBusiness {
 				command+="GROUP BY procedurelog.ProcNum ";
 			}
 			command+=@"ORDER BY ProcDate, LName";
-			DataTable table=DataCore.GetTable(command);
+			var table=DataCore.GetTable(command);
 			foreach(DataRow row in table.Rows) {
 				row["ToothNum"]=Tooth.Display(row["ToothNum"].ToString(),toothNumberFormat);
 			}

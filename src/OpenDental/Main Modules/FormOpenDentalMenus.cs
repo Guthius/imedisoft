@@ -1,6 +1,10 @@
 ﻿using System.Globalization;
 using System.Windows.Forms;
+using Imedisoft.Core.Entities;
+using OpenDental.Forms;
+using OpenDental.Logic;
 using OpenDental.UI;
+using OpenDentalImaging;
 
 namespace OpenDental;
 
@@ -12,31 +16,26 @@ partial class FormOpenDental
     private MenuItemOD _menuItemClinics;
     private MenuItemOD _menuItemCounties;
     private MenuItemOD _menuItemCreateAtoZ;
-    private MenuItemOD _menuItemEForms;
     private MenuItemOD _menuItemFeeSchedGroups;
     private MenuItemOD _menuItemFinanceCharges;
     private MenuItemOD _menuItemHL7;
     private MenuItemOD _menuItemLateCharges;
     private MenuItemOD _menuItemLocalHelpWindows;
     private MenuItemOD _menuItemPatDashboards;
-    private MenuItemOD _menuItemERouting;
     private MenuItemOD _menuItemPatPortalTransactions;
     private MenuItemOD _menuItemOnlinePayments;
     private MenuItemOD _menuItemProcLockTool;
-    private MenuItemOD _menuItemPublicHealthScreening;
     private MenuItemOD _menuItemQueryFavorites;
-    private MenuItemOD _menuItemQueryMonitor;
     private MenuItemOD _menuItemReports;
     private MenuItemOD _menuItemReactivation;
     private MenuItemOD _menuItemRepeatingCharges;
     private MenuItemOD _menuItemSites;
     private MenuItemOD _menuItemStandard;
     private MenuItemOD _menuItemStandardFiltered;
-    private MenuItemOD _menuItemActivityLog;
     private MenuItemOD _menuItemPrinter;
     private MenuItemOD _menuItemUnfinalizedPay;
     private MenuItemOD _menuItemUserQuery;
-    
+
     private void LayoutMenu()
     {
         menuMain.BeginUpdate();
@@ -65,8 +64,6 @@ partial class FormOpenDental
         //Clinics--------------------------------------------------------------------------------------------------------
         _menuItemClinicsMain = new MenuItemOD("&Clinics");
         menuMain.Add(_menuItemClinicsMain);
-        //eServices------------------------------------------------------------------------------------------------------
-        menuMain.Add("eServices", menuItemEServices_Click);
         //Alerts---------------------------------------------------------------------------------------------------------
         _menuItemAlerts = new MenuItemOD("Alerts (0)", menuItemAlerts_Click);
         menuMain.Add(_menuItemAlerts);
@@ -76,10 +73,10 @@ partial class FormOpenDental
         LayoutMenuHelp(menuItemHelp);
         menuMain.EndUpdate();
     }
-    
+
     private void LayoutMenuFile(MenuItemOD menuItemFile)
     {
-        menuItemFile.Add("User Password", menuItemPassword_Click);
+        menuItemFile.Add("User Password", (_, _) => SecurityL.ChangePassword(false));
         menuItemFile.Add("User Email Address", menuItemUserEmailAddress_Click);
         menuItemFile.Add("User Settings", menuItemUserSettings_Click);
         menuItemFile.AddSeparator();
@@ -89,9 +86,9 @@ partial class FormOpenDental
         menuItemFile.AddSeparator();
         menuItemFile.Add("&Choose Database", menuItemConfig_Click);
         menuItemFile.AddSeparator();
-        menuItemFile.Add("E&xit", menuItemExit_Click);
+        menuItemFile.Add("E&xit", (_, _) => Application.Exit());
     }
-    
+
     private void LayoutMenuSetup(MenuItemOD menuItemSetup)
     {
         //Preferences-----------------------------------------------------------------------------------------------------
@@ -128,124 +125,117 @@ partial class FormOpenDental
         menuItemSetup.Add(menuItemAdvSetup);
         LayoutSubMenuAdvSetup(menuItemAdvSetup);
         //Menus below have no submenus (name as shown)--------------------------------------------------------------------
-        menuItemSetup.Add("Alert Categories", menuItemAlertCategories_Click);
-        menuItemSetup.Add("Auto Codes", menuItemAutoCodes_Click);
-        menuItemSetup.Add("Automation", menuItemAutomation_Click);
-        menuItemSetup.Add("Auto Notes", menuItemAutoNotes_Click);
-        menuItemSetup.Add("Code Groups", menuItemCodeGroups_Click);
+        menuItemSetup.Add("Alert Categories", (_, _) => Open<FormAlertCategorySetup>(EnumPermType.SecurityAdmin, "Alert Categories"));
+        menuItemSetup.Add("Auto Codes", (_, _) => Open<FormAutoCode>(EnumPermType.Setup, "Auto Codes"));
+        menuItemSetup.Add("Automation", (_, _) => Open<FormAutomation>(EnumPermType.Setup, "Automation"));
+        menuItemSetup.Add("Auto Notes", (_, _) => Open<FormAutoNotes>(EnumPermType.AutoNoteQuickNoteEdit, "Auto Notes Setup"));
+        menuItemSetup.Add("Code Groups", (_, _) => Open<FormCodeGroups>(EnumPermType.Setup, "Code Groups"));
         menuItemSetup.Add("Data Paths", menuItemDataPath_Click);
         menuItemSetup.Add("Definitions", menuItemDefinitions_Click);
         menuItemSetup.Add("Display Fields", menuItemDisplayFields_Click);
-        _menuItemEForms = new MenuItemOD("eForms", menuItemEForms_Click);
-        menuItemSetup.Add(_menuItemEForms);
         menuItemSetup.Add("Fee Schedules", menuItemFeeScheds_Click);
         _menuItemFeeSchedGroups = new MenuItemOD("Fee Schedule Groups", menuFeeSchedGroups_Click);
         menuItemSetup.Add(_menuItemFeeSchedGroups);
-        menuItemSetup.Add("Laboratories", menuItemLaboratories_Click);
+        menuItemSetup.Add("Laboratories", (_, _) => Open<FormLaboratories>(EnumPermType.Setup, "Laboratories"));
         menuItemSetup.Add("Practice", menuItemPractice_Click);
         menuItemSetup.Add("Program Links", menuItemLinks_Click);
         menuItemSetup.Add("Quick Paste Notes", menuItemQuickPasteNotes_Click);
         menuItemSetup.Add("Reports", menuItemReports_Click);
-        menuItemSetup.Add("Required Fields", menuItemRequiredFields_Click);
+        menuItemSetup.Add("Required Fields", (_, _) => Open<FormRequiredFields>(EnumPermType.Setup, "Required Fields"));
         menuItemSetup.Add("Schedules", menuItemSched_Click);
         menuItemSetup.Add("Security", menuItemSecurity_Click);
         menuItemSetup.Add("Security Add User", menuItemSecurityAddUser_Click);
         menuItemSetup.Add("Security Badges", menuItemSecurityBadges_Click);
-        menuItemSetup.Add("Sheets", menuItemSheets_Click);
-        menuItemSetup.Add("Spell Check", menuItemSpellCheck_Click);
-        menuItemSetup.Add("Tasks", menuItemTask_Click);
-        menuItemSetup.Add("Web Forms", menuItemWebForm_Click);
+        menuItemSetup.Add("Sheets", (_, _) => Open<FormSheetDefs>(EnumPermType.Setup, "Sheets"));
+        menuItemSetup.Add("Spell Check", (_, _) => Open<FormSpellCheck>());
+        menuItemSetup.Add("Tasks", MenuItemTask_Click);
         menuItemSetup.AddSeparator();
     }
-    
+
     private void LayoutSubMenuAppts(MenuItemOD menuItemAppts)
     {
-        menuItemAppts.Add("Appointment Field Defs", menuItemApptFieldDefs_Click);
-        menuItemAppts.Add("Appointment Rules", menuItemApptRules_Click);
-        menuItemAppts.Add("Appointment Types", menuItemApptTypes_Click);
+        menuItemAppts.Add("Appointment Field Defs", (_, _) => Open<FormApptFieldDefs>(EnumPermType.Setup, "Appointment Field Defs"));
+        menuItemAppts.Add("Appointment Rules", (_, _) => Open<FormApptRules>(EnumPermType.Setup, "Appointment Rules"));
+        menuItemAppts.Add("Appointment Types", (_, _) => Open<FormApptTypes>(EnumPermType.Setup, "Appointment Types"));
         menuItemAppts.Add("Appointment Views", menuItemApptViews_Click);
-        menuItemAppts.Add("ASAP List", menuItemAsapList_Click);
-        menuItemAppts.Add("Confirmations", menuItemConfirmations_Click);
-        menuItemAppts.Add("Insurance Verification", menuItemInsVerify_Click);
+        menuItemAppts.Add("ASAP List", (_, _) => Open<FormAsapSetup>(EnumPermType.Setup, "ASAP List Setup"));
+        menuItemAppts.Add("Confirmations", (_, _) => Open<FormConfirmationSetup>(EnumPermType.Setup, "Confirmation Setup"));
+        menuItemAppts.Add("Insurance Verification", (_, _) => Open<FormInsVerificationSetup>(EnumPermType.Setup, "Insurance Verification"));
         menuItemAppts.Add("Operatories", menuItemOperatories_Click);
-        menuItemAppts.Add("Recall", menuItemRecall_Click);
-        menuItemAppts.Add("Recall Types", menuItemRecallTypes_Click);
-        _menuItemReactivation = new MenuItemOD("Reactivation", menuItemReactivation_Click);
+        menuItemAppts.Add("Recall", (_, _) => Open<FormRecallSetup>(EnumPermType.Setup, "Recall"));
+        menuItemAppts.Add("Recall Types", (_, _) => Open<FormRecallTypes>(EnumPermType.Setup, "Recall Types"));
+        _menuItemReactivation = new MenuItemOD("Reactivation", (_, _) => Open<FormReactivationSetup>(EnumPermType.Setup, "Reactivation"));
         menuItemAppts.Add(_menuItemReactivation);
     }
 
     private void LayoutSubMenuFamIns(MenuItemOD menuItemFamIns)
     {
-        menuItemFamIns.Add("Claim Forms", menuItemClaimForms_Click);
-        menuItemFamIns.Add("Clearinghouses", menuItemClearinghouses_Click);
-        menuItemFamIns.Add("Insurance Blue Book", menuItemInsBlueBook_Click);
-        menuItemFamIns.Add("Insurance Categories", menuItemInsCats_Click);
-        menuItemFamIns.Add("Insurance Filing Codes", menuItemInsFilingCodes_Click);
+        menuItemFamIns.Add("Claim Forms", (_, _) => Open<FormClaimForms>(EnumPermType.Setup, "Claim Forms"));
+        menuItemFamIns.Add("Clearinghouses", (_, _) => Open<FormClearinghouses>(EnumPermType.Setup, "Clearinghouses"));
+        menuItemFamIns.Add("Insurance Blue Book", (_, _) => Open<FormInsBlueBookRules>(EnumPermType.Setup, "Insurance Blue Book"));
+        menuItemFamIns.Add("Insurance Categories", (_, _) => Open<FormInsCatsSetup>(EnumPermType.Setup, "Insurance Categories"));
+        menuItemFamIns.Add("Insurance Filing Codes", (_, _) => Open<FormInsFilingCodes>(EnumPermType.Setup, "Insurance Filing Codes"));
         menuItemFamIns.Add("Patient Field Defs", menuItemPatFieldDefs_Click);
-        menuItemFamIns.Add("Payer IDs", menuItemPayerIDs_Click);
+        menuItemFamIns.Add("Payer IDs", (_, _) => Open<FormElectIDs>(EnumPermType.Setup, "Payer IDs"));
     }
 
     private void LayoutSubMenuAccount(MenuItemOD menuItemAccount)
     {
-        menuItemAccount.Add("Allocations", menuItemAllocations_Click);
-        menuItemAccount.Add("Pay Plan Templates", menuItemPayPlanTemplates_Click);
+        menuItemAccount.Add("Allocations", (_, _) => Open<FormAllocationsSetup>());
+        menuItemAccount.Add("Pay Plan Templates", (_, _) => Open<FormPayPlanTemplates>(EnumPermType.Setup, "Pay Plan Templates"));
     }
 
     private void LayoutSubMenuChart(MenuItemOD menuItemChart)
     {
         menuItemChart.Add("Procedure Buttons", menuItemProcedureButtons_Click);
     }
-    
+
     private void LayoutSubMenuImaging(MenuItemOD menuItemImaging)
     {
-        var menuItemImagingDevices = new MenuItemOD("Devices", menuItemImagingDevices_Click);
-        menuItemImaging.Add(menuItemImagingDevices);
-        menuItemImaging.Add("Mounts", menuItemMounts_Click);
-        menuItemImaging.Add("Scanning", menuItemScanning_Click);
+        menuItemImaging.Add("Devices", (_, _) => Open<FormImagingDevices>(EnumPermType.Setup, "Imaging Devices"));
+        menuItemImaging.Add("Mounts", (_, _) => Open<FormMountDefs>(EnumPermType.Setup, "Mounts"));
+        menuItemImaging.Add("Scanning", (_, _) => Open<FormImagingSetup>(EnumPermType.Setup, "Imaging"));
     }
 
     private void LayoutSubMenuManage(MenuItemOD menuItemManage)
     {
-        menuItemManage.Add("E-mail", menuItemEmail_Click);
-        menuItemManage.Add("Messaging", menuItemMessaging_Click);
-        menuItemManage.Add("Messaging Buttons", menuItemMessagingButs_Click);
-        menuItemManage.Add("Time Cards", menuItemTimeCards_Click);
+        menuItemManage.Add("E-mail", (_, _) => Open<FormEmailAddresses>(EnumPermType.Setup, "Email"));
+        menuItemManage.Add("Time Cards", (_, _) => Open<FormTimeCardSetup>(EnumPermType.Setup, "Time Card Setup"));
     }
-    
+
     private void LayoutSubMenuAdvSetup(MenuItemOD menuItemAdvSetup)
     {
-        menuItemAdvSetup.Add("API", menuItemFHIR_Click);
-        menuItemAdvSetup.Add("Computers", menuItemComputers_Click);
-        menuItemAdvSetup.Add("HIE", menuItemHIE_Click);
+        menuItemAdvSetup.Add("Computers", (_, _) => Open<FormComputers>(EnumPermType.Setup, "Computers"));
+        menuItemAdvSetup.Add("HIE", (_, _) => Open<FormHieSetup>(EnumPermType.Setup, "HIE"));
         _menuItemHL7 = new MenuItemOD("HL7", menuItemHL7_Click);
         menuItemAdvSetup.Add(_menuItemHL7);
-        menuItemAdvSetup.Add("Show Features", menuItemEasy_Click);
-        menuItemAdvSetup.Add("Scheduled Processes", MenuItemScheduledProcesses_Click);
+        menuItemAdvSetup.Add("Show Features", MenuItemEasy_Click);
+        menuItemAdvSetup.Add("Scheduled Processes", (_, _) => Open<FormScheduledProcesses>());
     }
-    
+
     private void LayoutMenuLists(MenuItemOD menuItemLists)
     {
         var menuItemProcedureCodes = new MenuItemOD("&Procedure Codes", menuItemProcCodes_Click);
         menuItemProcedureCodes.ShortcutKeys = Keys.Control | Keys.Shift | Keys.F;
         menuItemLists.Add(menuItemProcedureCodes);
         menuItemLists.AddSeparator();
-        menuItemLists.Add("Allergies", menuItemAllergies_Click);
+        menuItemLists.Add("Allergies", (_, _) => Open<FormAllergySetup>());
         _menuItemClinics = new MenuItemOD("Clinics", menuItemClinics_Click);
         menuItemLists.Add(_menuItemClinics);
-        var menuItemContacts = new MenuItemOD("&Contacts", menuItemContacts_Click);
+        var menuItemContacts = new MenuItemOD("&Contacts", (_, _) => Open<FormContacts>());
         menuItemContacts.ShortcutKeys = Keys.Control | Keys.Shift | Keys.C;
         menuItemLists.Add(menuItemContacts);
-        _menuItemCounties = new MenuItemOD("Counties", menuItemCounties_Click);
+        _menuItemCounties = new MenuItemOD("Counties", (_, _) => Open<FormCounties>(EnumPermType.Setup, "Counties"));
         menuItemLists.Add(_menuItemCounties);
-        menuItemLists.Add("Discount Plans", menuItemDiscountPlans_Click);
-        menuItemLists.Add("&Employees", menuItemEmployees_Click);
-        menuItemLists.Add("Employers", menuItemEmployers_Click);
+        menuItemLists.Add("Discount Plans", (_, _) => Open<FormDiscountPlans>(EnumPermType.Setup, "Discount Plans"));
+        menuItemLists.Add("&Employees", (_, _) => Open<FormEmployeeSelect>(EnumPermType.Setup, "Employees"));
+        menuItemLists.Add("Employers", (_, _) => Open<FormEmployers>());
         menuItemLists.Add("Insurance Carriers", menuItemCarriers_Click);
         menuItemLists.Add("&Insurance Plans", menuItemInsPlans_Click);
         menuItemLists.Add("Lab Cases", menuItemLabCases_Click);
-        menuItemLists.Add("&Medications", menuItemMedications_Click);
-        menuItemLists.Add("Pharmacies", menuItemPharmacies_Click);
-        menuItemLists.Add("Problems", menuItemProblems_Click);
+        menuItemLists.Add("&Medications", (_, _) => Open<FormMedications>());
+        menuItemLists.Add("Pharmacies", (_, _) => Open<FormPharmacies>());
+        menuItemLists.Add("Problems", (_, _) => Open<FormDiseaseDefs>());
         menuItemLists.Add("Providers", menuItemProviders_Click);
         menuItemLists.Add("&Referrals", menuItemReferrals_Click);
         _menuItemSites = new MenuItemOD("Sites", menuItemSites_Click);
@@ -253,31 +243,28 @@ partial class FormOpenDental
         menuItemLists.Add("State Abbreviations", menuItemStateAbbrs_Click);
         menuItemLists.Add(CultureInfo.CurrentCulture.Name.EndsWith("CA") ? "Postal Codes" : "&Zip Codes", menuItemZipCodes_Click);
     }
-    
+
     private void LayoutMenuReports(MenuItemOD menuItemReports)
     {
         _menuItemStandard = new MenuItemOD("&Standard", menuItemReportsStandard_Click);
         menuItemReports.Add(_menuItemStandard);
         _menuItemStandardFiltered = new MenuItemOD("Standard Favorites", menuItemReportsFilteredClick_Click);
         menuItemReports.Add(_menuItemStandardFiltered);
-        menuItemReports.Add("&Graphic", menuItemReportsGraphic_Click);
         _menuItemUserQuery = new MenuItemOD("&User Query", menuItemReportsUserQuery_Click);
         menuItemReports.Add(_menuItemUserQuery);
         _menuItemQueryFavorites = new MenuItemOD("User Query Favorites", menuItemReportsQueryFavorites_Click);
         _menuItemReports.Add(_menuItemQueryFavorites);
-        _menuItemActivityLog = new MenuItemOD("eService Activity Log", menuItemReportsActivityLog_Click);
-        menuItemReports.Add(_menuItemActivityLog);
         menuItemReports.AddSeparator();
         _menuItemUnfinalizedPay = new MenuItemOD("Unfinalized Payments", menuItemReportsUnfinalizedPay_Click);
         menuItemReports.Add(_menuItemUnfinalizedPay);
     }
-    
+
     private void LayoutMenuTools(MenuItemOD menuItemTools)
     {
         //Snipping Tool-----------------------------------------------------------------------------------------------
         menuItemTools.Add("&Screen Snipping Tool", menuItemScreenSnip_Click);
         //Print Screen Tool-----------------------------------------------------------------------------------------------
-        menuItemTools.Add("&Print Screen Tool", menuItemPrintScreen_Click);
+        menuItemTools.Add("&Print Screen Tool", MenuItemPrintScreen_Click);
         //Misc Tools------------------------------------------------------------------------------------------------------
         var menuItemMiscTools = new MenuItemOD("Misc Tools");
         menuItemTools.Add(menuItemMiscTools);
@@ -297,21 +284,16 @@ partial class FormOpenDental
         menuItemTools.Add("Ortho Auto Claims", menuItemOrthoAuto_Click);
         _menuItemPatDashboards = new MenuItemOD("Patient Dashboards");
         menuItemTools.Add(_menuItemPatDashboards);
-        _menuItemERouting = new MenuItemOD("eRouting", _menuItemERouting_Click);
-        menuItemTools.Add(_menuItemERouting);
         _menuItemPatPortalTransactions = new MenuItemOD("Patient Portal Transactions", menuItemXWebTrans_Click);
         menuItemTools.Add(_menuItemPatPortalTransactions);
         _menuItemOnlinePayments = new MenuItemOD("&Online Payments", menuItemOnlinePayments_Click);
         menuItemTools.Add(_menuItemOnlinePayments);
-        _menuItemPublicHealthScreening = new MenuItemOD("Public Health Screening", menuItemScreening_Click);
-        menuItemTools.Add(_menuItemPublicHealthScreening);
         _menuItemRepeatingCharges = new MenuItemOD("Repeating Charges", menuItemRepeatingCharges_Click);
         menuItemTools.Add(_menuItemRepeatingCharges);
         menuItemTools.Add("Setup Wizard", menuItemSetupWizard_Click);
-        menuItemTools.Add("Web Forms", menuItemWebForms_Click);
         menuItemTools.Add("Zoom", menuItemZoom_Click);
     }
-    
+
     private void LayoutSubMenuMiscTools(MenuItemOD menuItemMiscTools)
     {
         menuItemMiscTools.Add("Close Payment Plans", menuItemAutoClosePayPlans_Click);
@@ -332,22 +314,19 @@ partial class FormOpenDental
         menuItemMiscTools.Add("Telephone Numbers", menuTelephone_Click);
         menuItemMiscTools.Add("Test Latency", menuItemTestLatency_Click);
     }
-    
+
     private void LayoutMenuHelp(MenuItemOD menuItemHelp)
     {
-        menuItemHelp.Add("Online Support", menuItemRemote_Click);
-        _menuItemLocalHelpWindows = new MenuItemOD("Local Help-Windows", menuItemHelpWindows_Click);
+        menuItemHelp.Add("Online Support", MenuItemRemote_Click);
+        _menuItemLocalHelpWindows = new MenuItemOD("Local Help-Windows", MenuItemHelpWindows_Click);
         menuItemHelp.Add(_menuItemLocalHelpWindows);
-        menuItemHelp.Add("Online Help - Contents", menuItemHelpContents_Click);
-        var menuItemOnlineHelpIndex = new MenuItemOD("Online Help - Index", menuItemHelpIndex_Click);
+        menuItemHelp.Add("Online Help - Contents", MenuItemHelpContents_Click);
+        var menuItemOnlineHelpIndex = new MenuItemOD("Online Help - Index", MenuItemHelpIndex_Click);
         menuItemOnlineHelpIndex.ShortcutKeys = Keys.Shift | Keys.F1;
         menuItemHelp.Add(menuItemOnlineHelpIndex);
-        menuItemHelp.Add("Training Videos", menuItemWebinar_Click);
-        _menuItemQueryMonitor = new MenuItemOD("Query Monitor", MenuItemQueryMonitor_Click);
-        menuItemHelp.Add(_menuItemQueryMonitor);
-        menuItemHelp.Add("Support Status", MenuItemSupportStatus_Click);
-        menuItemHelp.Add("&Update", menuItemUpdate_Click);
+        menuItemHelp.Add("Training Videos", MenuItemWebinar_Click);
+        menuItemHelp.Add("Query Monitor", MenuItemQueryMonitor_Click);
         menuItemHelp.AddSeparator();
-        menuItemHelp.Add("About", menuItemAbout_Click);
+        menuItemHelp.Add("About", (_, _) => Open<FormAbout>());
     }
 }

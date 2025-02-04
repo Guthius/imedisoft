@@ -1,14 +1,9 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Printing;
 using System.IO;
 using System.Linq;
-using System.Text.RegularExpressions;
-using System.Threading;
 using System.Windows.Forms;
 using CodeBase;
 using DataConnectionBase;
@@ -20,7 +15,6 @@ using OpenDental.Logic;
 using OpenDental.UI;
 using OpenDental.UI.Voice;
 using OpenDentBusiness;
-using SparksToothChart;
 using WpfControls.UI;
 
 namespace OpenDental;
@@ -28,14 +22,12 @@ namespace OpenDental;
 /// <summary></summary>
 public partial class FormPerio : FormODBase {
 	#region Fields - private
-	private bool _isExamInUse;
+	private const bool _isExamInUse = false;
 	private bool _isLocalDefsChanged;
 	private bool _isTenDown;
 	private List<Def> _listDefsMiscColors;
 	///<summary>Gets a list of missing teeth as strings on load. Includes "1"-"32", and "A"-"Z".</summary>
 	private List<string> _listMissingTeeth;
-	///<summary>This is not a list of valid procedures.  The only values to be trusted in this list are the ToothNum and CodeNum.  Never used.</summary>
-	private List<Procedure> _listProcedures;
 	private Patient _patient;
 	//private int pagesPrinted;
 	private PerioCell _perioCellCurLocation;
@@ -55,38 +47,10 @@ public partial class FormPerio : FormODBase {
 		InitializeComponent();
 		LayoutMenu();
 		_patient=patient;
-		_listProcedures=listProcedures;
-			
 	}
 	#endregion Constructor
 
 	#region Methods - private
-	///<summary>Checks if perio is active on a MAD row with the current patient. If it is, locks editing.</summary>
-	private void CheckMobileActivity() {
-		if(!ClinicPrefs.IsOdTouchAllowed(Clinics.ClinicNum)) {
-			labelIsMobileActive.Enabled=false;
-			labelIsMobileActive.Visible=false;
-			butUnlockEClip.Enabled=false;
-			butUnlockEClip.Visible=false;
-			return;
-		}
-		//If someone is currently using this patients exams in eClipboard, ask if this user would like to kick off the other user.
-		var isExamInUse=MobileAppDevices.IsInUse(_patient.PatNum,MADPage.PerioExamEditPage,MADPage.PerioExamListPage,MADPage.PerioExamOverviewPage,MADPage.FileViewerPage,MADPage.Undefined);
-		var hasUIChanged=!(_isExamInUse && isExamInUse); //This checks if the state has changed, we don't want to keep refreshing UI if it hasn't.
-		if(!hasUIChanged) {
-			return;
-		}
-		_isExamInUse=isExamInUse;
-		if(_isExamInUse) { //Answered No, they would not like to force eClip to checkin, or this method got called by the timer.
-			timerEClipCheck.Start();
-			SetEClipBoardEditing(true);
-			return;
-		}
-		else {
-			timerEClipCheck.Stop();
-			SetEClipBoardEditing(false);
-		}
-	}
 
 	private string ConvertListToString(List<string> listStringsTeeth){
 		if(listStringsTeeth.Count==0){
@@ -540,8 +504,6 @@ public partial class FormPerio : FormODBase {
 		butDelete.Enabled=!isEditingOnEClipBoard;
 		butListen.Enabled=!isEditingOnEClipBoard;
 		butDefault.Enabled=!isEditingOnEClipBoard;
-		butUnlockEClip.Enabled=isEditingOnEClipBoard;
-		labelIsMobileActive.Visible=isEditingOnEClipBoard;
 	}
 
 	///<summary>Sets Forward/Reverse label in Current Direction groupbox based on expected direction from the path and the current direction</summary>
@@ -583,9 +545,6 @@ public partial class FormPerio : FormODBase {
 	#region Methods - Event Handlers public
 
 	protected override void ProcessSignalODs(List<Signalod> signals) {
-		if(signals.Any(x => x.IType==InvalidType.EClipboard)) {
-			CheckMobileActivity();
-		}
 		//This signal comes in for every action taken by a user on eClipboard - Perio.
 		if(_perioExam!=null && signals.Any(x=>x.FKeyType==KeyType.PatNum && x.FKey==_perioExam.PatNum && x.IType==InvalidType.PerioExams)) {
 			RefreshListExams(false);
@@ -701,7 +660,6 @@ public partial class FormPerio : FormODBase {
 			contrPerio.EnumAdvanceSequence_=EnumAdvanceSequence.FacialsFirst;
 		}
 		FillGrid();
-		CheckMobileActivity();
 	}
 
 	/// <summary>Used to force focus to the hidden textbox when showing this form.</summary>
@@ -866,10 +824,6 @@ public partial class FormPerio : FormODBase {
 			,font,Brushes.Black,xPos,yPos);
 		//pagesPrinted++;
 		printPageEventArgs.HasMorePages=false;
-	}
-
-	private void timerEClipCheck_Tick(object sender,EventArgs e) {
-		CheckMobileActivity();
 	}
 
 	private void updownRed_MouseDown(object sender, System.Windows.Forms.MouseEventArgs e) {
@@ -1197,10 +1151,6 @@ public partial class FormPerio : FormODBase {
 	}
 
 	private void butListen_Click(object sender,EventArgs e) {
-		if(false) {
-			MsgBox.Show(this,"Voice Perio is not available for the Web version at this time.");
-			return;
-		}
 		if(_voiceController!=null && _voiceController.IsListening) {
 			_voiceController.StopListening();
 			labelListening.Visible=false;
@@ -1367,29 +1317,6 @@ public partial class FormPerio : FormODBase {
 		contrPerio.ToggleSkip(_perioExam.PerioExamNum);
 	}
 
-	private void butUnlockEClip_Click(object sender,EventArgs e) {
-		var isExamInUse=MobileAppDevices.IsInUse(_patient.PatNum,MADPage.PerioExamEditPage,MADPage.PerioExamListPage);
-		var isAllowingEdit=false;
-		if(isExamInUse) {
-			isAllowingEdit=MsgBox.Show(MsgBoxButtons.YesNo,Lans.g("This patient has a perio exam currently being edited in ODTouch. Would you like to edit anyway? (Not recommended)."));
-		}
-		else {
-			SetEClipBoardEditing(false);
-			return;
-		}
-		if(isAllowingEdit) {
-			var mobileAppDevice=MobileAppDevices.GetForPat(_patient.PatNum);
-			if(mobileAppDevice==null) {
-				return;
-			}
-			MobileNotifications.CI_GoToCheckin(mobileAppDevice.MobileAppDeviceNum);
-			mobileAppDevice.DevicePage=MADPage.CheckinPage;
-			MobileAppDevices.Update(mobileAppDevice);
-			SetEClipBoardEditing(false);
-		}
-		return;
-	}
-
 	private void but0_Click(object sender, System.EventArgs e) {
 		NumberClicked(0);
 	}
@@ -1453,7 +1380,7 @@ public partial class FormPerio : FormODBase {
 			try {
 				ODFileUtils.ProcessStart(pathExpanded);
 			}
-			catch(Exception ex) {
+			catch {
 				MsgBox.Show(this, "There was an error launching Bola AI.");
 			}
 		}

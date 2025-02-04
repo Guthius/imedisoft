@@ -1,18 +1,12 @@
 using System;
 using System.Collections.Generic;
-using System.Data;
-using System.Drawing;
-using System.Drawing.Drawing2D;
-using System.Drawing.Text;
 using System.Linq;
 using System.Windows.Forms;
 using OpenDentBusiness;
 using OpenDental.UI;
-using System.IO;
 using CodeBase;
 using OpenDentBusiness.Eclaims;
 using System.Text;
-using OpenDental.Thinfinity;
 using System.Diagnostics;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Entities;
@@ -163,7 +157,7 @@ public partial class FormClaimAttachHistory:FormODBase {
 		try {
 			Process.Start(pathAndFileName);
 		}
-		catch(Exception ex) {
+		catch {
 			MsgBox.Show(this,"Could not open the attachment.");
 		}
 	}
@@ -227,7 +221,7 @@ public partial class FormClaimAttachHistory:FormODBase {
 		try {
 			ClaimConnect.AddNarrative(ClaimCur,textNarrative.Text);//revises existing narrative
 		}
-		catch(Exception ex) {
+		catch {
 			return;//form will close. Fails silently.
 		}
 		ClaimCur.Narrative=textNarrative.Text;

@@ -5,13 +5,13 @@ using System.Drawing;
 using System.Drawing.Printing;
 using System.Globalization;
 using System.Linq;
-using System.Windows.Forms;
 using CodeBase;
 using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Entities;
 using Imedisoft.Core.Features.Clinics;
 using Imedisoft.Core.Features.Clinics.Dtos;
+using Imedisoft.Features.Providers.Dtos;
 using OpenDental.ReportingComplex;
 using OpenDentBusiness;
 
@@ -31,10 +31,10 @@ public partial class FormRpProdInc : FormODBase {
 	///This is used instead of Providers.GetListReports() because we need the full list of providers when running All Providers
 	///This is also so we can show provider specific information in the report.
 	///Includes providers that share the same name as the provider currently logged if user has the ReportProdIncAllProviders permission.</summary>
-	private List<Provider> _listProviders;
+	private List<ProviderDto> _listProviders;
 	///<summary>Includes hidden providers, excludes hidden on reports providers.</summary>
 	///This list directly resembles all providers that are showing within the providers list box that is showing to the user.</summary>
-	private List<Provider> _listFilteredProviders;
+	private List<ProviderDto> _listFilteredProviders;
 
 		
 	public FormRpProdInc(){
@@ -42,25 +42,25 @@ public partial class FormRpProdInc : FormODBase {
 	}
 
 	private void FormProduction_Load(object sender, System.EventArgs e) {
-		_listProviders=Providers.GetWhere(x => x.ProvStatus!=ProviderStatus.Deleted);
+		_listProviders=Providers.GetWhere(x => !x.IsDeleted);
 		_listProviders.Insert(0,Providers.GetUnearnedProv());
 		_listFilteredProviders= [];
 		textToday.Text=DateTime.Today.ToShortDateString();
 		if(!Security.IsAuthorized(EnumPermType.ReportProdIncAllProviders,true)) {
-			var prov=Providers.GetFirstOrDefault(x => x.ProvNum==Security.CurUser.ProvNum);
+			var prov=Providers.GetFirstOrDefault(x => x.Id==Security.CurUser.ProvNum);
 			if(prov!=null) {
-				_listProviders=_listProviders.FindAll(x => x.FName == prov.FName && x.LName == prov.LName);
+				_listProviders=_listProviders.FindAll(x => x.FirstName == prov.FirstName && x.LastName == prov.LastName);
 			}
 			checkAllProv.Checked=false;
 			checkAllProv.Enabled=false;
 		}
 		//Fill the short list of providers, ignoring those marked "hidden on reports"
 		for(var i=0;i<_listProviders.Count;i++){
-			if(_listProviders[i].IsHiddenReport) {
+			if(_listProviders[i].IsHiddenFromReports) {
 				continue;
 			}
-			listProv.Items.Add(_listProviders[i].GetLongDesc());
-			_listFilteredProviders.Add(_listProviders[i].Copy());
+			listProv.Items.Add(_listProviders[i].Description);
+			_listFilteredProviders.Add(_listProviders[i]);
 		}
 		//If the user is not allowed to run the report for all providers, default the selection to the first in the list box.
 		if(checkAllProv.Enabled==false && listProv.Items.Count > 0) {
@@ -70,31 +70,22 @@ public partial class FormRpProdInc : FormODBase {
 		if(!Security.IsAuthorized(EnumPermType.ReportProdIncAllProviders,true)) {
 			listProv.SetAll(true);
 		}
-		if(!true){
-			listClin.Visible=false;
-			labelClin.Visible=false;
-			checkAllClin.Visible=false;
-			checkClinicInfo.Visible=false;
-			checkClinicBreakdown.Visible=false;
+		checkClinicInfo.Checked=PrefC.GetBool(PrefName.ReportPandIhasClinicInfo);
+		checkClinicBreakdown.Checked=PrefC.GetBool(PrefName.ReportPandIhasClinicBreakdown);
+		_listClinics=Clinics.GetForUserod(Security.CurUser);
+		if(!Security.CurUser.ClinicIsRestricted) {
+			listClin.Items.Add(Lan.g(this,"Unassigned"));
+			listClin.SetSelected(0);
 		}
-		else {
-			checkClinicInfo.Checked=PrefC.GetBool(PrefName.ReportPandIhasClinicInfo);
-			checkClinicBreakdown.Checked=PrefC.GetBool(PrefName.ReportPandIhasClinicBreakdown);
-			_listClinics=Clinics.GetForUserod(Security.CurUser);
-			if(!Security.CurUser.ClinicIsRestricted) {
-				listClin.Items.Add(Lan.g(this,"Unassigned"));
-				listClin.SetSelected(0);
+		for(var i=0;i<_listClinics.Count;i++) { //adds visible clinics
+			listClin.Items.Add(_listClinics[i].Abbr);
+			if(Clinics.ClinicNum==0) {
+				listClin.SetSelected(listClin.Items.Count-1);
+				checkAllClin.Checked=true;
 			}
-			for(var i=0;i<_listClinics.Count;i++) { //adds visible clinics
-				listClin.Items.Add(_listClinics[i].Abbr);
-				if(Clinics.ClinicNum==0) {
-					listClin.SetSelected(listClin.Items.Count-1);
-					checkAllClin.Checked=true;
-				}
-				if(_listClinics[i].Id==Clinics.ClinicNum) {
-					listClin.SelectedIndices.Clear();
-					listClin.SetSelected(listClin.Items.Count-1);
-				}
+			if(_listClinics[i].Id==Clinics.ClinicNum) {
+				listClin.SelectedIndices.Clear();
+				listClin.SetSelected(listClin.Items.Count-1);
 			}
 		}
 		switch(DailyMonthlyAnnual){
@@ -131,7 +122,6 @@ public partial class FormRpProdInc : FormODBase {
 			}
 			Close();
 		}
-		Text+=PrefC.ReportingServer.DisplayStr=="" ? "" : " - "+Lan.g(this,"Reporting Server:") +" "+ PrefC.ReportingServer.DisplayStr;
 	}
 
 	private void checkAllProv_Click(object sender,EventArgs e) {
@@ -356,7 +346,7 @@ public partial class FormRpProdInc : FormODBase {
 		}
 		dateFrom=SIn.Date(textDateFrom.Text);
 		dateTo=SIn.Date(textDateTo.Text);
-		var listProvs=new List<Provider>();
+		var listProvs=new List<ProviderDto>();
 		if(checkAllProv.Checked) {
 			listProvs=_listProviders;
 		}
@@ -655,7 +645,7 @@ public partial class FormRpProdInc : FormODBase {
 		}
 		dateFrom=SIn.Date(textDateFrom.Text);
 		dateTo=SIn.Date(textDateTo.Text);
-		var listProvs=new List<Provider>();
+		var listProvs=new List<ProviderDto>();
 		if(checkAllProv.Checked) {
 			listProvs=_listProviders;
 		}
@@ -845,7 +835,7 @@ public partial class FormRpProdInc : FormODBase {
 		}
 		dateFrom=SIn.Date(textDateFrom.Text);
 		dateTo=SIn.Date(textDateTo.Text);
-		var listProvs=new List<Provider>();
+		var listProvs=new List<ProviderDto>();
 		if(checkAllProv.Checked) {
 			listProvs=_listProviders;
 		}
@@ -1025,7 +1015,7 @@ public partial class FormRpProdInc : FormODBase {
 		if(checkAllClin.Checked) {
 			listClin.SetAll(true);
 		}
-		var listProvs=new List<Provider>();
+		var listProvs=new List<ProviderDto>();
 		if(checkAllProv.Checked) {
 			listProvs=_listProviders;
 		}

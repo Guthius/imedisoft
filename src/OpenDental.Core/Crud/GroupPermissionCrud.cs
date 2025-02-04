@@ -18,16 +18,17 @@ public class GroupPermissionCrud
     public static List<GroupPermission> TableToList(DataTable table)
     {
         var retVal = new List<GroupPermission>();
-        GroupPermission groupPermission;
         foreach (DataRow row in table.Rows)
         {
-            groupPermission = new GroupPermission();
-            groupPermission.GroupPermNum = SIn.Long(row["GroupPermNum"].ToString());
-            groupPermission.NewerDate = SIn.Date(row["NewerDate"].ToString());
-            groupPermission.NewerDays = SIn.Int(row["NewerDays"].ToString());
-            groupPermission.UserGroupNum = SIn.Long(row["UserGroupNum"].ToString());
-            groupPermission.PermType = (EnumPermType) SIn.Int(row["PermType"].ToString());
-            groupPermission.FKey = SIn.Long(row["FKey"].ToString());
+            var groupPermission = new GroupPermission
+            {
+                GroupPermNum = SIn.Long(row["GroupPermNum"].ToString()),
+                NewerDate = SIn.Date(row["NewerDate"].ToString()),
+                NewerDays = SIn.Int(row["NewerDays"].ToString()),
+                UserGroupNum = SIn.Long(row["UserGroupNum"].ToString()),
+                PermType = (EnumPermType) SIn.Int(row["PermType"].ToString()),
+                FKey = SIn.Long(row["FKey"].ToString())
+            };
             retVal.Add(groupPermission);
         }
 
@@ -138,15 +139,13 @@ public class GroupPermissionCrud
         var idxNew = 0;
         var idxDB = 0;
         var rowsUpdatedCount = 0;
-        GroupPermission fieldNew;
-        GroupPermission fieldDB;
         //Because both lists have been sorted using the same criteria, we can now walk each list to determine which list contians the next element.  The next element is determined by Primary Key.
         //If the New list contains the next item it will be inserted.  If the DB contains the next item, it will be deleted.  If both lists contain the next item, the item will be updated.
         while (idxNew < listNew.Count || idxDB < listDB.Count)
         {
-            fieldNew = null;
+            GroupPermission fieldNew = null;
             if (idxNew < listNew.Count) fieldNew = listNew[idxNew];
-            fieldDB = null;
+            GroupPermission fieldDB = null;
             if (idxDB < listDB.Count) fieldDB = listDB[idxDB];
             //begin compare
             if (fieldNew != null && fieldDB == null)

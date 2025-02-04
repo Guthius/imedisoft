@@ -25,37 +25,38 @@ public class CarrierCrud
     public static List<Carrier> TableToList(DataTable table)
     {
         var retVal = new List<Carrier>();
-        Carrier carrier;
         foreach (DataRow row in table.Rows)
         {
-            carrier = new Carrier();
-            carrier.CarrierNum = SIn.Long(row["CarrierNum"].ToString());
-            carrier.CarrierName = SIn.String(row["CarrierName"].ToString());
-            carrier.Address = SIn.String(row["Address"].ToString());
-            carrier.Address2 = SIn.String(row["Address2"].ToString());
-            carrier.City = SIn.String(row["City"].ToString());
-            carrier.State = SIn.String(row["State"].ToString());
-            carrier.Zip = SIn.String(row["Zip"].ToString());
-            carrier.Phone = SIn.String(row["Phone"].ToString());
-            carrier.ElectID = SIn.String(row["ElectID"].ToString());
-            carrier.NoSendElect = (NoSendElectType) SIn.Int(row["NoSendElect"].ToString());
-            carrier.IsCDA = SIn.Bool(row["IsCDA"].ToString());
-            carrier.CDAnetVersion = SIn.String(row["CDAnetVersion"].ToString());
-            carrier.CanadianNetworkNum = SIn.Long(row["CanadianNetworkNum"].ToString());
-            carrier.IsHidden = SIn.Bool(row["IsHidden"].ToString());
-            carrier.CanadianEncryptionMethod = SIn.Byte(row["CanadianEncryptionMethod"].ToString());
-            carrier.CanadianSupportedTypes = (CanSupTransTypes) SIn.Int(row["CanadianSupportedTypes"].ToString());
-            carrier.SecUserNumEntry = SIn.Long(row["SecUserNumEntry"].ToString());
-            carrier.SecDateEntry = SIn.Date(row["SecDateEntry"].ToString());
-            carrier.SecDateTEdit = SIn.DateTime(row["SecDateTEdit"].ToString());
-            carrier.TIN = SIn.String(row["TIN"].ToString());
-            carrier.CarrierGroupName = SIn.Long(row["CarrierGroupName"].ToString());
-            carrier.ApptTextBackColor = Color.FromArgb(SIn.Int(row["ApptTextBackColor"].ToString()));
-            carrier.IsCoinsuranceInverted = SIn.Bool(row["IsCoinsuranceInverted"].ToString());
-            carrier.TrustedEtransFlags = (TrustedEtransTypes) SIn.Int(row["TrustedEtransFlags"].ToString());
-            carrier.CobInsPaidBehaviorOverride = (EclaimCobInsPaidBehavior) SIn.Int(row["CobInsPaidBehaviorOverride"].ToString());
-            carrier.EraAutomationOverride = (EraAutomationMode) SIn.Int(row["EraAutomationOverride"].ToString());
-            carrier.OrthoInsPayConsolidate = (EnumOrthoInsPayConsolidate) SIn.Int(row["OrthoInsPayConsolidate"].ToString());
+            var carrier = new Carrier
+            {
+                CarrierNum = SIn.Long(row["CarrierNum"].ToString()),
+                CarrierName = SIn.String(row["CarrierName"].ToString()),
+                Address = SIn.String(row["Address"].ToString()),
+                Address2 = SIn.String(row["Address2"].ToString()),
+                City = SIn.String(row["City"].ToString()),
+                State = SIn.String(row["State"].ToString()),
+                Zip = SIn.String(row["Zip"].ToString()),
+                Phone = SIn.String(row["Phone"].ToString()),
+                ElectID = SIn.String(row["ElectID"].ToString()),
+                NoSendElect = (NoSendElectType) SIn.Int(row["NoSendElect"].ToString()),
+                IsCDA = SIn.Bool(row["IsCDA"].ToString()),
+                CDAnetVersion = SIn.String(row["CDAnetVersion"].ToString()),
+                CanadianNetworkNum = SIn.Long(row["CanadianNetworkNum"].ToString()),
+                IsHidden = SIn.Bool(row["IsHidden"].ToString()),
+                CanadianEncryptionMethod = SIn.Byte(row["CanadianEncryptionMethod"].ToString()),
+                CanadianSupportedTypes = (CanSupTransTypes) SIn.Int(row["CanadianSupportedTypes"].ToString()),
+                SecUserNumEntry = SIn.Long(row["SecUserNumEntry"].ToString()),
+                SecDateEntry = SIn.Date(row["SecDateEntry"].ToString()),
+                SecDateTEdit = SIn.DateTime(row["SecDateTEdit"].ToString()),
+                TIN = SIn.String(row["TIN"].ToString()),
+                CarrierGroupName = SIn.Long(row["CarrierGroupName"].ToString()),
+                ApptTextBackColor = Color.FromArgb(SIn.Int(row["ApptTextBackColor"].ToString())),
+                IsCoinsuranceInverted = SIn.Bool(row["IsCoinsuranceInverted"].ToString()),
+                TrustedEtransFlags = (TrustedEtransTypes) SIn.Int(row["TrustedEtransFlags"].ToString()),
+                CobInsPaidBehaviorOverride = (EclaimCobInsPaidBehavior) SIn.Int(row["CobInsPaidBehaviorOverride"].ToString()),
+                EraAutomationOverride = (EraAutomationMode) SIn.Int(row["EraAutomationOverride"].ToString()),
+                OrthoInsPayConsolidate = (EnumOrthoInsPayConsolidate) SIn.Int(row["OrthoInsPayConsolidate"].ToString())
+            };
             retVal.Add(carrier);
         }
 

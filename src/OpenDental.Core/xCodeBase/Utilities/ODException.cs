@@ -89,15 +89,14 @@ public class ODException : ApplicationException
         }
     }
 
-    public static void SwallowAndLogAnyException(string subDirectory, Action a)
+    public static void SwallowAndLogAnyException(Action a)
     {
         try
         {
             a();
         }
-        catch (Exception ex)
+        catch
         {
-            Logger.WriteLine(MiscUtils.GetExceptionText(ex));
         }
     }
 

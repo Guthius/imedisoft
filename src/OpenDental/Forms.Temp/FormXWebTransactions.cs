@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Drawing;
 using System.Linq;
 using System.Windows.Forms;
 using CodeBase;
@@ -28,13 +27,7 @@ public partial class FormXWebTransactions:FormODBase {
 	}
 
 	private void FormXWebTransactions_Load(object sender,EventArgs e) {
-		if(true) {
-			FillClinics();
-		}
-		else {
-			comboClinic.Visible=false;
-			labelClinic.Visible=false;
-		}
+		FillClinics();
 		textDateFrom.Text=DateTime.Today.ToShortDateString();
 		textDateTo.Text=DateTime.Today.ToShortDateString();
 		FillGrid();
@@ -317,12 +310,12 @@ public partial class FormXWebTransactions:FormODBase {
 				return;
 			}
 			var amt=SIn.Double(_tableTrans.Rows[gridMain.SelectedIndices[0]]["Amount"].ToString());
-			using var formXWeb=new FormXWeb(patNum,listCreditCards.FirstOrDefault(),XWebTransactionType.CreditReturnTransaction,createPayment:false,amt);
+			using var formXWeb=new FormXWeb(listCreditCards.FirstOrDefault(),XWebTransactionType.CreditReturnTransaction,createPayment:false,amt);
 			formXWeb.LockCardInfo=true;
 			if(formXWeb.ShowDialog()==DialogResult.OK) {
-				var paymentReturn=Payments.InsertReturnXWebPayment(payment,formXWeb.XWebResponse_.GetFormattedNote(false),(-formXWeb.XWebResponse_.Amount));
-				formXWeb.XWebResponse_.PaymentNum=paymentReturn.PayNum;
-				XWebResponses.Update(formXWeb.XWebResponse_);
+				var paymentReturn=Payments.InsertReturnXWebPayment(payment,formXWeb.XWebResponse.GetFormattedNote(false),(-formXWeb.XWebResponse.Amount));
+				formXWeb.XWebResponse.PaymentNum=paymentReturn.PayNum;
+				XWebResponses.Update(formXWeb.XWebResponse);
 				SecurityLogs.MakeLogEntry(EnumPermType.PaymentCreate,paymentReturn.PatNum,
 					Patients.GetLim(paymentReturn.PatNum).GetNameLF() + ", " + paymentReturn.PayAmt.ToString("c"));
 				FillGrid();

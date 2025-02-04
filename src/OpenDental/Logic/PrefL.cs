@@ -1,13 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Net;
-using System.ServiceProcess;
 using System.Windows.Forms;
-using CodeBase;
-using Imedisoft.Core.Caching;
-using Imedisoft.Core.Entities;
-using OpenDentBusiness;
 
 namespace OpenDental;
 
@@ -116,99 +110,5 @@ public class PrefL
     public static void DownloadInstallPatchFromURI(string downloadUri, string destinationPath, bool runSetupAfterDownload, bool showShutdownWindow, string destinationPath2)
     {
         // TODO: Implement me
-    }
-
-    public static bool UpgradeOrInstallEConnector(bool isSilent, string updateServerName = null, bool doOverrideBlankUpdateServerName = false, bool isInvalidUpdateServerNameAllowed = false)
-    {
-        if (updateServerName == null)
-        {
-            updateServerName = PrefC.GetString(PrefName.WebServiceServerName);
-        }
-
-        if ( /* ODEnvironment.IsCloudServer */ false)
-        {
-            //We do not want to install in case this is a pre-test cloud database.
-            if (!isSilent)
-            {
-                ODMessageBox.Show(Lans.g("ServicesHelper", "Not allowed to install the OpenDentalEConnector service in cloud mode."));
-            }
-
-            return false;
-        }
-
-        if (string.IsNullOrWhiteSpace(updateServerName))
-        {
-            //The calling method wants to install the eConnector which is going to be attempted farther down.
-            //This will only be permitted if there haven't been any heartbeats within the last 24hrs.
-            if (EServiceSignals.HasEverHadHeartbeat())
-            {
-                //If there is any Econnector activity don't install the Econnector.
-                return false; //This is not an error and there is simply another eConnector installed somewhere.
-            }
-
-            //Check to see if the calling method wants this computer to take over the WebServiceServerName preference.
-            if (doOverrideBlankUpdateServerName)
-            {
-                try
-                {
-                    Prefs.UpdateString(PrefName.WebServiceServerName, Dns.GetHostName());
-                }
-                catch (Exception ex)
-                {
-                    if (!isSilent)
-                    {
-                        ODMessageBox.Show(Lans.g("ServicesHelper", "Failed to get host name:") + " " + ex.Message);
-                    }
-
-                    return false;
-                }
-            }
-        }
-        else if (!ODEnvironment.IdIsThisComputer(updateServerName) && !isInvalidUpdateServerNameAllowed)
-        {
-            return false; //This is not an error and is simply not the correct computer that should have the eConnector installed on it.
-        }
-
-        var hadCustListener = UninstallCustListenerServices();
-
-        //Installing and starting a new eConnector service was successful at this point so we should always return true past this point.
-        //Tell HQ that this registration key is now running the eConnector service.
-        try
-        {
-            var listenerServiceType = WebServiceMainHQProxy.SetEConnectorOn();
-            var logText = Lan.g("PrefL", "eConnector status automatically set to") + " " + listenerServiceType + ".";
-            SecurityLogs.MakeLogEntry(EnumPermType.EServicesSetup, 0, logText);
-        }
-        catch (Exception)
-        {
-            //Only notify the customer if they upgraded from the CustListener service and was unable to communicate with HQ.
-            //Otherwise, the most likely scenario is that there was a network hiccup and the office already had the service installed and was already on the correct listener type.
-            if (hadCustListener && !isSilent)
-            {
-                //Notify the user that HQ was not updated regarding the status of the eConnector (important).
-                //Do not invoke the display error function since we do not want to return false at this point.
-                MsgBox.Show("PrefL", "Could not update the eConnector communication status.  Please contact us to enable eServices.");
-            }
-        }
-
-        return true;
-    }
-
-    private static bool UninstallCustListenerServices()
-    {
-        var hadCustListener = false;
-        //Check to see if CustListener service is installed and uninstall any that are detected.
-        var listServiceControllersCustListener = new List<ServiceController>();
-        ODException.SwallowAnyException(() => listServiceControllersCustListener = ServicesHelper.GetServicesByExe("OpenDentalCustListener.exe"));
-        for (var i = 0; i < listServiceControllersCustListener.Count; i++)
-        {
-            //Attempts to uninstall the service and does not throw UEs if the uninstall failed.
-            if (ServicesHelper.Uninstall(listServiceControllersCustListener[i]))
-            {
-                hadCustListener = true;
-            }
-        }
-
-        return hadCustListener;
     }
 }

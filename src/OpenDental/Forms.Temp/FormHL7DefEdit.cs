@@ -376,10 +376,6 @@ public partial class FormHL7DefEdit:FormODBase {
 		if(!checkEnabled.Checked) {
 			return true;
 		}
-		if(/* ODEnvironment.IsCloudServer */ false) {
-			MsgBox.Show(this,"HL7 is not supported while using Open Dental Cloud.");
-			return false;
-		}
 		if(textHL7Server.Text=="") {
 			MsgBox.Show(this,"HL7 Server may not be blank.");
 			return false;
@@ -455,13 +451,11 @@ public partial class FormHL7DefEdit:FormODBase {
 					try {
 						int.Parse(strAddressPort[1]);
 					}
-					catch(Exception ex) {
+					catch {
 						MsgBox.Show(this,"The Sftp Server Port must be a valid integer.");
 						return false;
 					}
 				}
-				break;
-			default:
 				break;
 		}
 		if(textFieldSep.Text.Length!=1) {

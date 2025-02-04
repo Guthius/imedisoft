@@ -72,7 +72,6 @@
 			this.Name = "UserControlSecurityTree";
 			this.Size = new System.Drawing.Size(384, 662);
 			this.Load += new System.EventHandler(this.UserControlSecurityTree_Load);
-			this.SizeChanged += new System.EventHandler(this.UserControlSecurityTree_SizeChanged);
 			this.ResumeLayout(false);
 			this.PerformLayout();
 

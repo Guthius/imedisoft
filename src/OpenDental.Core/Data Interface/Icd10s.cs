@@ -24,23 +24,10 @@ public class Icd10s
         return Icd10Crud.SelectMany(command);
     }
 
-    public static long GetCodeCount()
-    {
-        var command = "SELECT COUNT(*) FROM icd10 WHERE IsCode!=0";
-        return SIn.Long(Db.GetCount(command));
-    }
-
     public static Icd10 GetByCode(string Icd10Code)
     {
         var command = "SELECT * FROM icd10 WHERE Icd10Code='" + SOut.String(Icd10Code) + "'";
         return Icd10Crud.SelectOne(command);
-    }
-
-    public static List<Icd10> GetByCodes(List<string> listIcd10Codes)
-    {
-        if (listIcd10Codes == null || listIcd10Codes.Count == 0) return new List<Icd10>();
-        var command = "SELECT * FROM icd10 WHERE Icd10Code IN('" + string.Join("','", listIcd10Codes) + "')";
-        return Icd10Crud.SelectMany(command);
     }
 
     public static List<Icd10> GetBySearchText(string searchText)

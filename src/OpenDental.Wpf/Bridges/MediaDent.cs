@@ -1,8 +1,4 @@
-using System;
-using System.Collections;
 using System.IO;
-using System.Runtime.InteropServices;
-using System.Text;
 using System.Windows.Forms;
 using OpenDentBusiness;
 using System.Collections.Generic;
@@ -83,8 +79,8 @@ namespace OpenDental.Bridges {
 				return;
 			}
 			string info="/P"+Cleanup(pat.FName+" "+pat.LName);
-			Provider prov=Providers.GetProv(Patients.GetProvNum(pat));
-			info+=" /D"+prov.FName+" "+prov.LName
+			var prov=Providers.GetById(Patients.GetProvNum(pat));
+			info+=" /D"+prov.FirstName+" "+prov.LastName
 				+" /L1 /F";
 			ProgramProperty PPCur=ProgramProperties.GetCur(ForProgram,ProgramProperties.PropertyDescs.ImageFolder);
 			info+=PPCur.PropertyValue;

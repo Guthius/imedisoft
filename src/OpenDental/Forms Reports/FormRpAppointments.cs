@@ -12,6 +12,7 @@ using Imedisoft.Core.Caching;
 using Imedisoft.Core.Entities;
 using Imedisoft.Core.Features.Clinics;
 using Imedisoft.Core.Features.Clinics.Dtos;
+using Imedisoft.Features.Providers.Dtos;
 
 namespace OpenDental;
 
@@ -20,9 +21,7 @@ namespace OpenDental;
 /// </summary>
 public partial class FormRpAppointments : FormODBase {
 	private List<ClinicDto> _listClinics;
-	private List<Provider> _listProviders;
-	private bool _hasClinicsEnabled;
-
+	private List<ProviderDto> _listProviders;
 		
 	public FormRpAppointments()
 	{
@@ -34,27 +33,19 @@ public partial class FormRpAppointments : FormODBase {
 
 	private void FormRpApptWithPhones_Load(object sender,System.EventArgs e) {
 		_listProviders=Providers.GetListReports();
-		listProvs.Items.AddList(_listProviders,x => x.GetLongDesc());
-		if(!true) {
-			labelClinics.Visible=false;
-			checkAllClinics.Visible=false;
-			listClinics.Visible=false;
-			_hasClinicsEnabled=false;
+		listProvs.Items.AddList(_listProviders,x => x.Description);
+		//Clinics enabled.
+		_listClinics=Clinics.GetForUserod(Security.CurUser);
+		listClinics.Items.Clear();
+		if(!Security.CurUser.ClinicIsRestricted) {
+			listClinics.Items.Add(Lan.g(this,"Unassigned"));
+			listClinics.SetSelected(0);
 		}
-		else {//Clinics enabled.
-			_hasClinicsEnabled=true;
-			_listClinics=Clinics.GetForUserod(Security.CurUser);
-			listClinics.Items.Clear();
-			if(!Security.CurUser.ClinicIsRestricted) {
-				listClinics.Items.Add(Lan.g(this,"Unassigned"));
-				listClinics.SetSelected(0);
-			}
-			for(var i=0;i<_listClinics.Count;i++) {
-				listClinics.Items.Add(_listClinics[i].Abbr);
-				if(_listClinics[i].Id==Clinics.ClinicNum) {
-					listClinics.SelectedIndices.Clear();
-					listClinics.SetSelected(listClinics.Items.Count-1);
-				}
+		for(var i=0;i<_listClinics.Count;i++) {
+			listClinics.Items.Add(_listClinics[i].Abbr);
+			if(_listClinics[i].Id==Clinics.ClinicNum) {
+				listClinics.SelectedIndices.Clear();
+				listClinics.SetSelected(listClinics.Items.Count-1);
 			}
 		}
 		SetTomorrow();
@@ -88,7 +79,7 @@ public partial class FormRpAppointments : FormODBase {
 			ODMessageBox.Show(Lan.g(this,"You must select at least one provider."));
 			return false;
 		}
-		if(_hasClinicsEnabled) {//Not no clinics.
+		if(true) {//Not no clinics.
 			if(!checkAllClinics.Checked && listClinics.SelectedIndices.Count==0) {
 				MsgBox.Show(this,"You must select at least one clinic.");
 				return false;
@@ -163,12 +154,12 @@ public partial class FormRpAppointments : FormODBase {
 		var listProvNums=new List<long>();
 		if(checkAllProvs.Checked) {
 			for(var i = 0;i<_listProviders.Count;i++) {
-				listProvNums.Add(_listProviders[i].ProvNum);
+				listProvNums.Add(_listProviders[i].Id);
 			}
 		}
 		else {
 			for(var i=0;i<listProvs.SelectedIndices.Count;i++) {
-				listProvNums.Add(_listProviders[listProvs.SelectedIndices[i]].ProvNum);
+				listProvNums.Add(_listProviders[listProvs.SelectedIndices[i]].Id);
 			}
 		}
 		var report=new ReportComplex(true,true);
@@ -181,7 +172,7 @@ public partial class FormRpAppointments : FormODBase {
 			listStatuses.Add(ApptStatus.PtNoteCompleted);
 		}
 		var sortBy=radioDateAptCreated.Checked ? RpAppointments.SortAndFilterBy.SecDateTEntry : RpAppointments.SortAndFilterBy.AptDateTime;
-		table=RpAppointments.GetAppointmentTable(dateFrom,dateTo,listProvNums,listClinicNums,_hasClinicsEnabled,checkWebSchedRecall.Checked,
+		table=RpAppointments.GetAppointmentTable(dateFrom,dateTo,listProvNums,listClinicNums,true,checkWebSchedRecall.Checked,
 			checkWebSchedNewPat.Checked,checkWebSchedASAP.Checked,checkWebSchedExistingPat.Checked,sortBy,listStatuses, [],nameof(FormRpAppointments));
 		//create the report
 		var font=new Font("Tahoma",9);
@@ -206,7 +197,7 @@ public partial class FormRpAppointments : FormODBase {
 		}
 		QueryObject query;
 		//setup query
-		if(!_hasClinicsEnabled) {
+		if(!true) {
 			query=report.AddQuery(table,"","",SplitByKind.None,1,true);
 		}
 		else {

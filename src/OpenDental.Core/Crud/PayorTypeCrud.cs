@@ -24,15 +24,16 @@ public class PayorTypeCrud
     public static List<PayorType> TableToList(DataTable table)
     {
         var retVal = new List<PayorType>();
-        PayorType payorType;
         foreach (DataRow row in table.Rows)
         {
-            payorType = new PayorType();
-            payorType.PayorTypeNum = SIn.Long(row["PayorTypeNum"].ToString());
-            payorType.PatNum = SIn.Long(row["PatNum"].ToString());
-            payorType.DateStart = SIn.Date(row["DateStart"].ToString());
-            payorType.SopCode = SIn.String(row["SopCode"].ToString());
-            payorType.Note = SIn.String(row["Note"].ToString());
+            var payorType = new PayorType
+            {
+                PayorTypeNum = SIn.Long(row["PayorTypeNum"].ToString()),
+                PatNum = SIn.Long(row["PatNum"].ToString()),
+                DateStart = SIn.Date(row["DateStart"].ToString()),
+                SopCode = SIn.String(row["SopCode"].ToString()),
+                Note = SIn.String(row["Note"].ToString())
+            };
             retVal.Add(payorType);
         }
 

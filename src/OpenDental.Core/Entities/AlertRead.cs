@@ -1,30 +1,22 @@
-﻿using System;
-using OpenDentBusiness;
+﻿using OpenDentBusiness;
 
 namespace Imedisoft.Core.Entities;
 
-[Serializable]
-[CrudTable(IsSynchable=true)]
-public class AlertRead:TableBase{
-	///<summary>Primary key.</summary>
-	[CrudColumn(IsPriKey=true)]
-	public long AlertReadNum;
-	///<summary>FK to alertitem.AlertItemNum.</summary>
-	public long AlertItemNum;
-	///<summary>FK to userod.UserNum.</summary>
-	public long UserNum;
+public class AlertRead : TableBase
+{
+    ///<summary>FK to alertitem.AlertItemNum.</summary>
+    public long AlertItemNum;
 
-	public AlertRead() {
-			
-	}
+    ///<summary>FK to userod.UserNum.</summary>
+    public long UserNum;
 
-	public AlertRead(long alertItemNum,long userNum) {
-		AlertItemNum=alertItemNum;
-		UserNum=userNum;
-	}
+    public AlertRead()
+    {
+    }
 
-		
-	public AlertRead Copy() {
-		return (AlertRead)MemberwiseClone();
-	}
+    public AlertRead(long alertItemNum, long userNum)
+    {
+        AlertItemNum = alertItemNum;
+        UserNum = userNum;
+    }
 }

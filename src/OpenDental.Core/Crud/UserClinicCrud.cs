@@ -1,5 +1,3 @@
-#region
-
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
@@ -7,28 +5,10 @@ using DataConnectionBase;
 using Imedisoft.Core.Entities;
 using OpenDentBusiness;
 
-#endregion
-
 namespace Imedisoft.Core.Crud;
 
 public class UserClinicCrud
 {
-    public static UserClinic SelectOne(long userClinicNum)
-    {
-        var command = "SELECT * FROM userclinic "
-                      + "WHERE UserClinicNum = " + SOut.Long(userClinicNum);
-        var list = TableToList(DataCore.GetTable(command));
-        if (list.Count == 0) return null;
-        return list[0];
-    }
-
-    public static UserClinic SelectOne(string command)
-    {
-        var list = TableToList(DataCore.GetTable(command));
-        if (list.Count == 0) return null;
-        return list[0];
-    }
-
     public static List<UserClinic> SelectMany(string command)
     {
         var list = TableToList(DataCore.GetTable(command));
@@ -38,13 +18,14 @@ public class UserClinicCrud
     public static List<UserClinic> TableToList(DataTable table)
     {
         var retVal = new List<UserClinic>();
-        UserClinic userClinic;
         foreach (DataRow row in table.Rows)
         {
-            userClinic = new UserClinic();
-            userClinic.UserClinicNum = SIn.Long(row["UserClinicNum"].ToString());
-            userClinic.UserNum = SIn.Long(row["UserNum"].ToString());
-            userClinic.ClinicNum = SIn.Long(row["ClinicNum"].ToString());
+            var userClinic = new UserClinic
+            {
+                UserClinicNum = SIn.Long(row["UserClinicNum"].ToString()),
+                UserNum = SIn.Long(row["UserNum"].ToString()),
+                ClinicNum = SIn.Long(row["ClinicNum"].ToString())
+            };
             retVal.Add(userClinic);
         }
 
@@ -63,12 +44,7 @@ public class UserClinicCrud
         return table;
     }
 
-    public static long Insert(UserClinic userClinic)
-    {
-        return Insert(userClinic, false);
-    }
-
-    public static long Insert(UserClinic userClinic, bool useExistingPK)
+    public static void Insert(UserClinic userClinic)
     {
         var command = "INSERT INTO userclinic (";
 
@@ -80,38 +56,6 @@ public class UserClinicCrud
         {
             userClinic.UserClinicNum = Db.NonQ(command, true, "UserClinicNum", "userClinic");
         }
-        return userClinic.UserClinicNum;
-    }
-
-    public static long InsertNoCache(UserClinic userClinic)
-    {
-        return InsertNoCache(userClinic, false);
-    }
-
-    public static long InsertNoCache(UserClinic userClinic, bool useExistingPK)
-    {
-        const bool isRandomKeys = false;
-        var command = "INSERT INTO userclinic (";
-        if (isRandomKeys || useExistingPK) command += "UserClinicNum,";
-        command += "UserNum,ClinicNum) VALUES(";
-        if (isRandomKeys || useExistingPK) command += SOut.Long(userClinic.UserClinicNum) + ",";
-        command +=
-            SOut.Long(userClinic.UserNum) + ","
-                                          + SOut.Long(userClinic.ClinicNum) + ")";
-        if (useExistingPK || isRandomKeys)
-            Db.NonQ(command);
-        else
-            userClinic.UserClinicNum = Db.NonQ(command, true, "UserClinicNum", "userClinic");
-        return userClinic.UserClinicNum;
-    }
-
-    public static void Update(UserClinic userClinic)
-    {
-        var command = "UPDATE userclinic SET "
-                      + "UserNum      =  " + SOut.Long(userClinic.UserNum) + ", "
-                      + "ClinicNum    =  " + SOut.Long(userClinic.ClinicNum) + " "
-                      + "WHERE UserClinicNum = " + SOut.Long(userClinic.UserClinicNum);
-        Db.NonQ(command);
     }
 
     public static bool Update(UserClinic userClinic, UserClinic oldUserClinic)
@@ -136,20 +80,6 @@ public class UserClinicCrud
         return true;
     }
 
-    public static bool UpdateComparison(UserClinic userClinic, UserClinic oldUserClinic)
-    {
-        if (userClinic.UserNum != oldUserClinic.UserNum) return true;
-        if (userClinic.ClinicNum != oldUserClinic.ClinicNum) return true;
-        return false;
-    }
-
-    public static void Delete(long userClinicNum)
-    {
-        var command = "DELETE FROM userclinic "
-                      + "WHERE UserClinicNum = " + SOut.Long(userClinicNum);
-        Db.NonQ(command);
-    }
-
     public static void DeleteMany(List<long> listUserClinicNums)
     {
         if (listUserClinicNums == null || listUserClinicNums.Count == 0) return;
@@ -170,15 +100,13 @@ public class UserClinicCrud
         var idxNew = 0;
         var idxDB = 0;
         var rowsUpdatedCount = 0;
-        UserClinic fieldNew;
-        UserClinic fieldDB;
         //Because both lists have been sorted using the same criteria, we can now walk each list to determine which list contians the next element.  The next element is determined by Primary Key.
         //If the New list contains the next item it will be inserted.  If the DB contains the next item, it will be deleted.  If both lists contain the next item, the item will be updated.
         while (idxNew < listNew.Count || idxDB < listDB.Count)
         {
-            fieldNew = null;
+            UserClinic fieldNew = null;
             if (idxNew < listNew.Count) fieldNew = listNew[idxNew];
-            fieldDB = null;
+            UserClinic fieldDB = null;
             if (idxDB < listDB.Count) fieldDB = listDB[idxDB];
             //begin compare
             if (fieldNew != null && fieldDB == null)

@@ -1,14 +1,4 @@
 using System;
-using System.Diagnostics;
-using System.Drawing;
-using System.Collections;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.IO;
-using System.Net;
-using System.Text;
-using System.Threading;
-using System.Xml;
 using System.Windows.Forms;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Entities;
@@ -21,7 +11,6 @@ public partial class FormMountainside:FormODBase {
 	/// <summary>This Program link is new.</summary>
 	public bool IsNew;
 	public Program ProgramCur;
-	private List<ProgramProperty> _listProgramProperties;
 	//private static Thread thread;
 
 		
@@ -39,7 +28,7 @@ public partial class FormMountainside:FormODBase {
 
 	private void FillForm(){
 		ProgramProperties.RefreshCache();
-		_listProgramProperties=ProgramProperties.GetForProgram(ProgramCur.ProgramNum);
+		ProgramProperties.GetForProgram(ProgramCur.ProgramNum);
 		textProgName.Text=ProgramCur.ProgName;
 		textProgDesc.Text=ProgramCur.ProgDesc;
 		checkEnabled.Checked=ProgramCur.Enabled;

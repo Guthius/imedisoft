@@ -12,6 +12,7 @@ public class FormProgressBase : Form
     public FormProgressBase()
     {
         FormClosed += FormProgressStatus_FormClosed;
+        
         Shown += FormProgressStatus_Shown;
     }
 
@@ -67,7 +68,7 @@ public class FormProgressBase : Form
         {
             if (InvokeRequired)
             {
-                Invoke((Action) delegate() { ODEvent_Fired(e); });
+                Invoke((Action) delegate { ODEvent_Fired(e); });
                 return;
             }
 
@@ -103,7 +104,7 @@ public class FormProgressBase : Form
         }
     }
 
-    public virtual void UpdateProgress(string status, ProgressBarHelper progHelper, bool hasProgHelper)
+    protected virtual void UpdateProgress(string status, ProgressBarHelper progHelper, bool hasProgHelper)
     {
         throw new NotImplementedException();
     }

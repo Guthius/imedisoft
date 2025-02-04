@@ -17,21 +17,22 @@ public class CdcrecCrud
     public static List<Cdcrec> TableToList(DataTable table)
     {
         var retVal = new List<Cdcrec>();
-        Cdcrec cdcrec;
         foreach (DataRow row in table.Rows)
         {
-            cdcrec = new Cdcrec();
-            cdcrec.CdcrecNum = SIn.Long(row["CdcrecNum"].ToString());
-            cdcrec.CdcrecCode = SIn.String(row["CdcrecCode"].ToString());
-            cdcrec.HeirarchicalCode = SIn.String(row["HeirarchicalCode"].ToString());
-            cdcrec.Description = SIn.String(row["Description"].ToString());
+            var cdcrec = new Cdcrec
+            {
+                CdcrecNum = SIn.Long(row["CdcrecNum"].ToString()),
+                CdcrecCode = SIn.String(row["CdcrecCode"].ToString()),
+                HeirarchicalCode = SIn.String(row["HeirarchicalCode"].ToString()),
+                Description = SIn.String(row["Description"].ToString())
+            };
             retVal.Add(cdcrec);
         }
 
         return retVal;
     }
 
-    public static long Insert(Cdcrec cdcrec)
+    public static void Insert(Cdcrec cdcrec)
     {
         var command = "INSERT INTO cdcrec (";
 
@@ -44,7 +45,6 @@ public class CdcrecCrud
         {
             cdcrec.CdcrecNum = Db.NonQ(command, true, "CdcrecNum", "cdcrec");
         }
-        return cdcrec.CdcrecNum;
     }
 
     public static void Update(Cdcrec cdcrec)

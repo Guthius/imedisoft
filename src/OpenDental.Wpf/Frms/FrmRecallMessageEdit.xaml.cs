@@ -1,16 +1,7 @@
 using System;
-using System.Collections.Generic;
-using System.Data;
-using System.Linq;
-using System.Text;
-using System.Windows;
 using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Entities;
-using OpenDentBusiness;
-using WpfControls.UI;
 
 namespace OpenDental {
 	public partial class FrmRecallMessageEdit:FrmODBase {
@@ -78,7 +69,7 @@ namespace OpenDental {
 					return;
 				}
 			}
-			string errorText=PrefC.GetFirstShortURL(textMain.Text);
+			string errorText=PrefC.GetFirstShortUrl(textMain.Text);
 			if(!string.IsNullOrWhiteSpace(errorText)) {
 				MsgBox.Show(this,"Message cannot contain the URL "+errorText+" as this is only allowed for eServices.");
 				return;

@@ -1,8 +1,6 @@
 using System;
 using System.Drawing;
-using System.Collections;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.IO;
 using System.Windows.Forms;
 using OpenDentBusiness;
@@ -10,6 +8,7 @@ using OpenDental.UI;
 using CodeBase;
 using System.Linq;
 using DataConnectionBase;
+using Imedisoft.Core.Data;
 using Imedisoft.Core.Entities;
 using Imedisoft.Core.Features.Clinics;
 using OpenDental.Bridges;
@@ -74,14 +73,11 @@ public partial class FormProgramLinkEdit : FormODBase {
 		}
 	}
 
-	private bool CanEnableProgram() {
-		if(!/* ODEnvironment.IsCloudServer */ false) {
-			return true;
-		}
-		if(Programs.GetListDisabledForWeb().Contains(ProgramCur.ProgName)) {
-			return false;//these programs are not currently allowed for web users
-		}
-		return true;//it was not one of the programs listed
+	private bool CanEnableProgram()
+	{
+		return true;
+		//these programs are not currently allowed for web users
+		//it was not one of the programs listed
 	}
 
 	private void FillForm(){
@@ -115,7 +111,6 @@ public partial class FormProgramLinkEdit : FormODBase {
 
 	private void FillGrid(){
 		var listProgramProperties=ProgramProperties.GetForProgram(ProgramCur.ProgramNum);
-		listProgramProperties=ProgramProperties.FilterProperties(ProgramCur,listProgramProperties);
 		gridMain.BeginUpdate();
 		gridMain.Columns.Clear();
 		var col=new GridColumn(Lan.g(this,"Property"),260);
@@ -192,18 +187,6 @@ public partial class FormProgramLinkEdit : FormODBase {
 	/// <summary>Chooses which type of form to open based on current program and selected property.</summary>
 	private void gridMain_CellDoubleClick(object sender,OpenDental.UI.ODGridClickEventArgs e) {
 		var programProperty=(ProgramProperty)gridMain.ListGridRows[e.Row].Tag;
-		switch(ProgramCur.ProgName) {
-			case nameof(ProgramName.PDMP):
-			case nameof(ProgramName.Bamboo):
-				switch(programProperty.PropertyDesc) {
-					case PdmpProperty.PdmpProvLicenseField:
-						var listLicenseOptions=new List<string> { nameof(ProviderClinic.StateLicense), nameof(ProviderClinic.StateRxID)};
-						var listLicenseDisplays=listLicenseOptions.Select(x=>Lans.g(x)).ToList();
-						ShowComboBoxForProgramProperty(programProperty,listLicenseOptions,listLicenseDisplays,Lans.g("Choose License Type for PDMP Program"));
-						return;
-				}	
-				break;
-		}
 		ShowFormProgramProperty(programProperty);
 	}
 
@@ -326,10 +309,6 @@ public partial class FormProgramLinkEdit : FormODBase {
 			return;
 		}
 		if(checkEnabled.Checked && textPluginDllName.Text!="") {
-			if(/* ODEnvironment.IsCloudServer */ false) {
-				ODMessageBox.Show(Lan.g(this,"Plugins are not allowed while using Open Dental Cloud."));
-				return;
-			}
 			var dllPath=ODFileUtils.CombinePaths(Application.StartupPath,textPluginDllName.Text);
 			if(dllPath.Contains("[VersionMajMin]")) {
 				var version = new Version(Application.ProductVersion);

@@ -115,7 +115,7 @@ namespace OpenDental {
 			this.butChange.Size = new System.Drawing.Size(75, 26);
 			this.butChange.TabIndex = 5;
 			this.butChange.Text = "Change";
-			this.butChange.Click += new System.EventHandler(this.butChange_Click);
+			this.butChange.Click += new System.EventHandler(this.ButtonChange_Click);
 			// 
 			// textCredit
 			// 
@@ -145,7 +145,7 @@ namespace OpenDental {
 			this.butDelete.Size = new System.Drawing.Size(75, 26);
 			this.butDelete.TabIndex = 8;
 			this.butDelete.Text = "&Delete";
-			this.butDelete.Click += new System.EventHandler(this.butDelete_Click);
+			this.butDelete.Click += new System.EventHandler(this.ButtonDelete_Click);
 			// 
 			// butSave
 			// 
@@ -155,7 +155,7 @@ namespace OpenDental {
 			this.butSave.Size = new System.Drawing.Size(75, 26);
 			this.butSave.TabIndex = 6;
 			this.butSave.Text = "&Save";
-			this.butSave.Click += new System.EventHandler(this.butSave_Click);
+			this.butSave.Click += new System.EventHandler(this.ButtonSave_Click);
 			// 
 			// labelReconcile
 			// 

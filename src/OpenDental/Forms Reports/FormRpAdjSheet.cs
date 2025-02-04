@@ -1,26 +1,22 @@
 using System;
-using System.Data;
 using System.Drawing;
-using System.Collections;
-using System.ComponentModel;
 using System.Windows.Forms;
 using OpenDentBusiness;
 using System.Collections.Generic;
 using OpenDental.ReportingComplex;
-using CodeBase;
 using System.Linq;
 using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Entities;
 using Imedisoft.Core.Features.Clinics;
 using Imedisoft.Core.Features.Clinics.Dtos;
+using Imedisoft.Features.Providers.Dtos;
 
 namespace OpenDental;
 
 public partial class FormRpAdjSheet : FormODBase {
 	private List<ClinicDto> _listClinics;
-	private List<Provider> _listProviders;
-	private bool _hasClinicsEnabled;
+	private List<ProviderDto> _listProviders;
 	///<summary>Holds all adjustment types, does NOT include hidden.</summary>
 	private List<Def> _listAdjTypeDefs;
 
@@ -35,37 +31,28 @@ public partial class FormRpAdjSheet : FormODBase {
 		_listProviders=Providers.GetListReports();
 		if(!Security.IsAuthorized(EnumPermType.ReportDailyAllProviders,true)) {
 			//They either have permission or have a provider at this point.  If they don't have permission they must have a provider.
-			_listProviders=_listProviders.FindAll(x => x.ProvNum==Security.CurUser.ProvNum);
+			_listProviders=_listProviders.FindAll(x => x.Id==Security.CurUser.ProvNum);
 			checkAllProv.Checked=false;
 			checkAllProv.Enabled=false;
 		}
-		listProv.Items.AddList(_listProviders,x => x.GetLongDesc());
+		listProv.Items.AddList(_listProviders,x => x.Description);
 		if(checkAllProv.Enabled==false && _listProviders.Count>0) {
 			listProv.SetSelected(0,true);
 		}
-		if(!true) {
-			listClin.Visible=false;
-			labelClin.Visible=false;
-			checkAllClin.Visible=false;
-			_hasClinicsEnabled=false;
+		_listClinics=Clinics.GetForUserod(Security.CurUser);
+		if(!Security.CurUser.ClinicIsRestricted) {
+			listClin.Items.Add(Lan.g(this,"Unassigned"));
+			listClin.SetSelected(0);
 		}
-		else {
-			_listClinics=Clinics.GetForUserod(Security.CurUser);
-			_hasClinicsEnabled=true;
-			if(!Security.CurUser.ClinicIsRestricted) {
-				listClin.Items.Add(Lan.g(this,"Unassigned"));
-				listClin.SetSelected(0);
+		for(var i=0;i<_listClinics.Count;i++) {
+			listClin.Items.Add(_listClinics[i].Abbr);
+			if(Clinics.ClinicNum==0) {
+				listClin.SetSelected(listClin.Items.Count-1);
+				checkAllClin.Checked=true;
 			}
-			for(var i=0;i<_listClinics.Count;i++) {
-				listClin.Items.Add(_listClinics[i].Abbr);
-				if(Clinics.ClinicNum==0) {
-					listClin.SetSelected(listClin.Items.Count-1);
-					checkAllClin.Checked=true;
-				}
-				if(_listClinics[i].Id==Clinics.ClinicNum) {
-					listClin.SelectedIndices.Clear();
-					listClin.SetSelected(listClin.Items.Count-1);
-				}
+			if(_listClinics[i].Id==Clinics.ClinicNum) {
+				listClin.SelectedIndices.Clear();
+				listClin.SetSelected(listClin.Items.Count-1);
 			}
 		}
 		_listAdjTypeDefs=Defs.GetDefsForCategory(DefCat.AdjTypes,true);//Exclude hidden.
@@ -121,7 +108,7 @@ public partial class FormRpAdjSheet : FormODBase {
 			MsgBox.Show(this,"At least one provider must be selected.");
 			return;
 		}
-		if(_hasClinicsEnabled) {
+		if(true) {
 			if(!checkAllClin.Checked && listClin.SelectedIndices.Count==0) {
 				MsgBox.Show(this,"At least one clinic must be selected.");
 				return;
@@ -151,12 +138,12 @@ public partial class FormRpAdjSheet : FormODBase {
 		var listProvNums=new List<long>();
 		if(checkAllProv.Checked) {
 			for(var i = 0;i<_listProviders.Count;i++) {
-				listProvNums.Add(_listProviders[i].ProvNum);
+				listProvNums.Add(_listProviders[i].Id);
 			}
 		}
 		else {
 			for(var i=0;i<listProv.SelectedIndices.Count;i++) {
-				listProvNums.Add(_listProviders[listProv.SelectedIndices[i]].ProvNum);
+				listProvNums.Add(_listProviders[listProv.SelectedIndices[i]].Id);
 			}
 		}
 		var listAdjType=new List<string>();
@@ -171,7 +158,7 @@ public partial class FormRpAdjSheet : FormODBase {
 		}
 		var report=new ReportComplex(true,false);	 
 		var table=RpAdjSheet.GetAdjTable(date1.SelectionStart,date2.SelectionStart,listProvNums,
-			listClinicNums,listAdjType,checkAllClin.Checked,_hasClinicsEnabled);
+			listClinicNums,listAdjType,checkAllClin.Checked,true);
 		var font=new Font("Tahoma",9);
 		var fontTitle=new Font("Tahoma",17,FontStyle.Bold);
 		var fontSubTitle=new Font("Tahoma",10,FontStyle.Bold);
@@ -192,7 +179,7 @@ public partial class FormRpAdjSheet : FormODBase {
 			}
 			report.AddSubTitle("Provider SubTitle",provNames);
 		}
-		if(_hasClinicsEnabled) {
+		if(true) {
 			if(checkAllClin.Checked) {
 				report.AddSubTitle("Clinic SubTitle",Lan.g(this,"All Clinics (includes hidden)"));
 			}
@@ -221,7 +208,7 @@ public partial class FormRpAdjSheet : FormODBase {
 		query.AddColumn("Date",90,FieldValueType.Date);
 		query.AddColumn("Patient Name",130,FieldValueType.String);
 		query.AddColumn("Prov",60,FieldValueType.String);
-		if(_hasClinicsEnabled) {
+		if(true) {
 			query.AddColumn("Clinic",70,FieldValueType.String);
 		}
 		query.AddColumn("AdjustmentType",150,FieldValueType.String);

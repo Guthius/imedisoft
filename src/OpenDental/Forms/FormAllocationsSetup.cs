@@ -75,7 +75,7 @@ public partial class FormAllocationsSetup : FormODBase
 
         SetIncomeTransfersMadeUponClaimReceivedDesc();
 
-        checkAllowPrePayToTpProcs.Checked = PrefC.GetYN(PrefName.PrePayAllowedForTpProcs);
+        checkAllowPrePayToTpProcs.Checked = PrefC.GetYn(PrefName.PrePayAllowedForTpProcs);
         checkIsRefundable.Checked = PrefC.GetBool(PrefName.TpPrePayIsNonRefundable);
         checkIsRefundable.Visible = checkAllowPrePayToTpProcs.Checked; //pref will be unchecked if parent gets turned off.
         labelRefundable.Visible = checkAllowPrePayToTpProcs.Checked;

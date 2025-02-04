@@ -2,10 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using CodeBase;
-using DataConnectionBase;
 using Imedisoft.Core.Crud;
 using Imedisoft.Core.Entities;
-using OpenDentBusiness.FileIO;
 
 namespace OpenDentBusiness;
 
@@ -104,23 +102,11 @@ public class EmailAttaches
             if (!Directory.Exists(attachPath)) Directory.CreateDirectory(attachPath);
             return attachPath;
         }
-
-        if (false)
-        {
-            attachPath = ODFileUtils.CombinePaths(ImageStore.GetDataFolder(), "EmailAttachments", '/'); //Gets Cloud path with EmailAttachments folder.
-            return attachPath;
-        }
-
-        //For users who have the A to Z folders disabled, there is no defined image path, so we
-        //have to use a temp path.  This means that the attachments might be available immediately afterward,
-        //but probably not later.
-        attachPath = ODFileUtils.CombinePaths(Path.GetTempPath(), "opendental"); //Have to use Path.GetTempPath() here instead of PrefL.GetTempPathFolder() because we can't access PrefL.
-        return attachPath;
     }
 
     public static List<EmailAttach> GetForTemplate(long emailTemplateNum)
     {
-        var command = "SELECT * FROM emailattach WHERE EmailTemplateNum=" + SOut.Long(emailTemplateNum);
+        var command = "SELECT * FROM emailattach WHERE EmailTemplateNum=" + (emailTemplateNum);
         return EmailAttachCrud.SelectMany(command);
     }
 

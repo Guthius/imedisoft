@@ -1,191 +1,89 @@
 ﻿using System;
-using CodeBase;
-using Newtonsoft.Json;
 using OpenDentBusiness;
 using OpenDentBusiness.PayConnectService;
 
 namespace Imedisoft.Core.Entities;
 
-///<summary>This table will never delete records, only upsert.  PayConnectResponseWeb rows are records of all payments made from the
-///Patient Portal via either PayConnect's Web Portal, or PayConnect's Merchant Services WebService if using a credit card token as a result of PayConnect's Web Portal.</summary>
-[Serializable]
-public class PayConnectResponseWeb:TableBase {
-	/// <summary>Primary key.</summary>
-	[CrudColumn(IsPriKey=true)]
-	public long PayConnectResponseWebNum;
-	///<summary>FK to patient.PatNum.</summary>
-	public long PatNum;
-	///<summary>FK to payment.PayNum.</summary>
-	public long PayNum;
-	///<summary>Enum:CreditCardSource .</summary>
-	public CreditCardSource CCSource;
-	///<summary>The amount of the payment that is attempting to be made.</summary>
-	public double Amount;
-	///<summary>The note entered when making a payment.</summary>
-	public string PayNote;
-	///<summary>The account token used to poll the processing status.</summary>
-	public string AccountToken;
-	///<summary>The payment token used to poll the processing status.</summary>
-	public string PayToken;
-	///<summary>Enum:PayConnectWebStatus Used to determine if the payment is pending, needs action, or is completed and attached to a payment.</summary>
-	[CrudColumn(SpecialType=CrudSpecialColType.EnumAsString)]
-	public PayConnectWebStatus ProcessingStatus;
-	///<summary>Timestamp automatically generated and user not allowed to change.  The actual datetime of entry.</summary>
-	[CrudColumn(SpecialType=CrudSpecialColType.DateTEntry)]
-	public DateTime DateTimeEntry;
-	///<summary>DateTime that the payment went to the pending status.</summary>
-	[CrudColumn(SpecialType=CrudSpecialColType.DateT)]
-	public DateTime DateTimePending;
-	///<summary>DateTime that the payment went to the completed status and is attached to a payment.</summary>
-	[CrudColumn(SpecialType=CrudSpecialColType.DateT)]
-	public DateTime DateTimeCompleted;
-	///<summary>DateTime that the payment opportunity time expired.</summary>
-	[CrudColumn(SpecialType=CrudSpecialColType.DateT)]
-	public DateTime DateTimeExpired;
-	///<summary>DateTime of the last time that the payment had an error.</summary>
-	[CrudColumn(SpecialType=CrudSpecialColType.DateT)]
-	public DateTime DateTimeLastError;
-	///<summary>Raw JSON response (or error) from PayConnect.</summary>
-	[CrudColumn(SpecialType=CrudSpecialColType.IsText)]
-	public string LastResponseStr;
-	///<summary>Whether or not the credit card token can be saved for future uses.</summary>
-	public bool IsTokenSaved;
-	///<summary>The payment token used for future payments.</summary>
-	public string PaymentToken;
-	///<summary>Provides the Expiration Date of the account being accessed. Format is yyMM from XWeb gateway. Will be converted to ExpirationDate.</summary>
-	public string ExpDateToken;
-	///<summary>The RefNumber associated to this transaction.  Will only be set for Completed PayConnectWebStatuses.</summary>
-	public string RefNumber;
-	///<summary>The Transaction Type associated to this transaction.  Will only be set for Completed PayConnectWebStatuses.</summary>
-	[CrudColumn(SpecialType=CrudSpecialColType.EnumAsString)]
-	public transType TransType;
-	///<summary>Email address used for a requested receipt provided by the user when making a payment via the patient portal.</summary>
-	public string EmailResponse;
-	///<summary>The GUID used in EserviceLogs related to this response. May be blank.</summary>
-	public string LogGuid;
+public class PayConnectResponseWeb : TableBase
+{
+    [CrudColumn(IsPriKey = true)]
+    public long PayConnectResponseWebNum;
 
-	///<summary>Returns whether or not this payment was made from PayConnect's Web Portal (where they would need to enter their credit card information).
-	///If false, the payment was made via existing credit card token that was saved from PayConnect's Web Portal.</summary>
-	public bool IsFromWebPortal {
-		get {
-			return !string.IsNullOrWhiteSpace(AccountToken) && !string.IsNullOrWhiteSpace(LastResponseStr);
-		}
-	}
+    ///<summary>FK to patient.PatNum.</summary>
+    public long PatNum;
 
-	///<summary>Returns the DateTime of the greatest value between DateTimeEntry, DateTimePending, and DateTimeLastError.
-	///This does not consider DateTimeCompleted or DateTimeExpired, as those are DateTimes that make the PayConnectResponseWeb done.</summary>
-	public DateTime GetLastPendingUpdateDateTime() {
-		return ODMathLib.Max(DateTimeEntry,ODMathLib.Max(DateTimePending,DateTimeLastError));
-	}
+    ///<summary>FK to payment.PayNum.</summary>
+    public long PayNum;
 
-	public CreditCard ToCreditCard() {
-		try {
-			//This is the class layout for the fields to be pulled out from the successful response string stored in the table
-			var responseTypeParial=new {
-				CreditCardNumber="",
-				CreditCardExpireDate="",
-			};
-			//Pull out all of the field values we care about from the response string
-			var responseValues=JsonConvert.DeserializeAnonymousType(LastResponseStr,responseTypeParial);
-			return new CreditCard {
-				PatNum=PatNum,
-				PayConnectToken=PaymentToken,
-				CCNumberMasked=responseValues.CreditCardNumber,
-				CCExpiration=new DateTime(2000+int.Parse(responseValues.CreditCardExpireDate.Substring(2,2)),int.Parse(responseValues.CreditCardExpireDate.Substring(0,2)),1),//CCExpDate is stored as MMyy from PayConnect
-				CCSource=CCSource,
-				ClinicNum=Patients.GetPat(PatNum).ClinicNum,
-				ItemOrder=CreditCards.RefreshAll(PatNum).Count,
-				Address="",
-				Zip="",
-				ChargeAmt=0,
-				DateStart=DateTime.MinValue,
-				DateStop=DateTime.MinValue,
-				Note="",
-				PayPlanNum=0,
-				XChargeToken="",
-				PayConnectTokenExp=new DateTime(2000+int.Parse(ExpDateToken.Substring(0,2)),int.Parse(ExpDateToken.Substring(2,2)),1),//ExpDateToken is stored as yyMM
-				PaySimpleToken="",
-				Procedures="",
-			};
-		}
-		catch(Exception e) {
-			throw new Exception("Error creating credit card from PayConnect web payment: "+e.Message,e);
-		}
-	}
+    public CreditCardSource CCSource;
 
-	///<summary>Formats a note that can be used as a PayNote on a payment. If the PayConnectResponseWeb is a return or a void of a positive payment, pass in
-	///false for keepAmountPositive.</summary>
-	public string GetFormattedNote(bool keepAmountPositive) {
-		//This is the class layout for the fields to be pulled out from the successful response string stored in the table
-		var responseTypePartial=new {
-			CreditCardNumber="",
-			TransactionID=0,
-		};
-		//Pull out all of the field values we care about from the response string
-		var responseValues=JsonConvert.DeserializeAnonymousType(LastResponseStr,responseTypePartial);
-		DateTime dateTimeProcessed;
-		if(DateTimeEntry.Year>1880 || DateTimeCompleted.Year>1880) {
-			dateTimeProcessed=(DateTimeEntry>DateTimeCompleted ? DateTimeEntry : DateTimeCompleted);//The greater of the two dates
-		}
-		else {
-			dateTimeProcessed=DateTime.Now;
-		}
-		return Lans.g("Amount:")+" "+(keepAmountPositive ? Amount : -Amount).ToString("f")+"\r\n"
-		       +Lans.g("Card Number:")+" "+responseValues.CreditCardNumber+"\r\n"
-		       +Lans.g("Transaction ID:")+" "+responseValues.TransactionID+"\r\n"
-		       +Lans.g("Processed:")+" "+dateTimeProcessed.ToShortDateString()+" "+dateTimeProcessed.ToShortTimeString()+"\r\n"
-		       +Lans.g("Note:")+" "+PayNote;
-	}
+    ///<summary>The amount of the payment that is attempting to be made.</summary>
+    public double Amount;
 
-	///<summary>Formats a note that can be used as a PayNote on a PayConnect2 payment. Pass in the amount of the payment and a surcharge optionally.</summary>
-	public string GetPayConnect2FormattedNote(double amount,double surchargeAmount=0) {
-		//This is the class layout for the fields to be pulled out from the successful response string stored in the table
-		var responseTypePartial=new {
-			Status="",
-			AuthCode="",
-			PaymentMethod=new {
-				CardPaymentMethod=new {
-					CardLast4Digits="",
-					Network=""//Card Type
-				}
-			},
-		};
-		//Pull out all of the field values we care about from the response string
-		var responseValues=JsonConvert.DeserializeAnonymousType(LastResponseStr,responseTypePartial);
-		string resultNote=Lans.g("Transaction Type")+": "+Enum.GetName(typeof(transType),TransType)+"\r\n"
-		                  +Lans.g("Status")+": "+responseValues.Status+"\r\n"
-		                  +Lans.g("Amount")+": "+amount.ToString("C")+"\r\n"
-		                  +Lans.g("Card Type")+": "+responseValues.PaymentMethod.CardPaymentMethod.Network+"\r\n"
-		                  +Lans.g("Account")+": "+responseValues.PaymentMethod.CardPaymentMethod.CardLast4Digits+"\r\n"
-		                  +Lans.g("Auth Code")+": "+responseValues.AuthCode+"\r\n"
-		                  +Lans.g("Ref Number")+": "+RefNumber+"\r\n";
-		if(surchargeAmount>0) {
-			resultNote+=Lans.g("Surcharge Fee Amount")+": "+surchargeAmount.ToString("C")+"\r\n";
-		}
-		return resultNote+=Lans.g("Note:")+" "+PayNote;
-	}
+    ///<summary>The note entered when making a payment.</summary>
+    public string PayNote;
+
+    ///<summary>The account token used to poll the processing status.</summary>
+    public string AccountToken;
+
+    ///<summary>The payment token used to poll the processing status.</summary>
+    public string PayToken;
+
+    ///<summary>Enum:PayConnectWebStatus Used to determine if the payment is pending, needs action, or is completed and attached to a payment.</summary>
+    public PayConnectWebStatus ProcessingStatus;
+
+    ///<summary>Timestamp automatically generated and user not allowed to change.  The actual datetime of entry.</summary>
+    public DateTime DateTimeEntry;
+
+    ///<summary>DateTime that the payment went to the pending status.</summary>
+    public DateTime DateTimePending;
+
+    ///<summary>DateTime that the payment went to the completed status and is attached to a payment.</summary>
+    public DateTime DateTimeCompleted;
+
+    ///<summary>DateTime that the payment opportunity time expired.</summary>
+    public DateTime DateTimeExpired;
+
+    ///<summary>DateTime of the last time that the payment had an error.</summary>
+    public DateTime DateTimeLastError;
+
+    ///<summary>Raw JSON response (or error) from PayConnect.</summary>
+    public string LastResponseStr;
+
+    ///<summary>Whether or not the credit card token can be saved for future uses.</summary>
+    public bool IsTokenSaved;
+
+    ///<summary>The payment token used for future payments.</summary>
+    public string PaymentToken;
+
+    ///<summary>Provides the Expiration Date of the account being accessed. Format is yyMM from XWeb gateway. Will be converted to ExpirationDate.</summary>
+    public string ExpDateToken;
+
+    ///<summary>The RefNumber associated to this transaction.  Will only be set for Completed PayConnectWebStatuses.</summary>
+    public string RefNumber;
+
+    ///<summary>The Transaction Type associated to this transaction.  Will only be set for Completed PayConnectWebStatuses.</summary>
+    public transType TransType;
+
+    ///<summary>Email address used for a requested receipt provided by the user when making a payment via the patient portal.</summary>
+    public string EmailResponse;
+
+    ///<summary>The GUID used in EserviceLogs related to this response. May be blank.</summary>
+    public string LogGuid;
+
+    public bool IsFromWebPortal => !string.IsNullOrWhiteSpace(AccountToken) && !string.IsNullOrWhiteSpace(LastResponseStr);
 }
 
-
-public enum PayConnectWebStatus {
-	///<summary>0.</summary>
-	Created,
-	///<summary>1.</summary>
-	CreatedError,
-	///<summary>2.</summary>
-	Pending,
-	///<summary>3.</summary>
-	PendingError,
-	///<summary>4.</summary>
-	Expired,
-	///<summary>5.</summary>
-	Completed,
-	///<summary>6.</summary>
-	Cancelled,
-	///<summary>7.</summary>
-	Declined,
-	///<summary>8.</summary>
-	Unknown,
-	///<summary>9.</summary>
-	UnknownError,
+public enum PayConnectWebStatus
+{
+    Created,
+    CreatedError,
+    Pending,
+    PendingError,
+    Expired,
+    Completed,
+    Cancelled,
+    Declined,
+    Unknown,
+    UnknownError
 }

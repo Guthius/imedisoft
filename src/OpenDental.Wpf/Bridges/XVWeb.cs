@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Collections;
 using System.IO;
-using System.Runtime.InteropServices;
 using System.Text;
 using System.Windows.Forms;
 using OpenDentBusiness;
@@ -9,8 +7,6 @@ using System.Net;
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json;
 using System.Collections.Generic;
-using System.Linq;
-using System.Drawing;
 using CodeBase;
 using Imedisoft.Core.Entities;
 

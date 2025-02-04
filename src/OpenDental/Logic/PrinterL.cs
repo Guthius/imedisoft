@@ -56,7 +56,7 @@ public class PrinterL
         return isForcedPreview ? RpPreview(printout) : TryPrint(printout);
     }
     
-    public static bool TryPrintOrDebugClassicPreview(PrintPageEventHandler printPageEventHandler, string auditDescription, Margins margins = null, int totalPages = 1, PrintSituation printSituation = PrintSituation.Default, PrintoutOrigin printoutOrigin = PrintoutOrigin.Default, PrintoutOrientation printoutOrientation = PrintoutOrientation.Default, bool isForcedPreview = false, long auditPatNum = 0, PaperSize paperSize = null, bool isRemotePrint = false, long printerNumOverride = 0)
+    public static void TryPrintOrDebugClassicPreview(PrintPageEventHandler printPageEventHandler, string auditDescription, Margins margins = null, int totalPages = 1, PrintSituation printSituation = PrintSituation.Default, PrintoutOrigin printoutOrigin = PrintoutOrigin.Default, PrintoutOrientation printoutOrientation = PrintoutOrientation.Default, bool isForcedPreview = false, long auditPatNum = 0, PaperSize paperSize = null, bool isRemotePrint = false, long printerNumOverride = 0)
     {
         var printout = new ODprintout(
             printPageEventHandler,
@@ -72,10 +72,11 @@ public class PrinterL
         
         if (isForcedPreview && !isRemotePrint)
         {
-            return PreviewClassic(printout);
+            PreviewClassic(printout);
+            return;
         }
 
-        return TryPrint(printout, isRemotePrint: isRemotePrint, printerNumOverride: printerNumOverride);
+        TryPrint(printout, isRemotePrint: isRemotePrint, printerNumOverride: printerNumOverride);
     }
     
     public static bool TryPrint(PrintPageEventHandler printPageEventHandler, string auditDescription = "", long auditPatNum = 0, PrintSituation printSituation = PrintSituation.Default, Margins margins = null, PrintoutOrigin printoutOrigin = PrintoutOrigin.Default, PrintoutOrientation printoutOrientation = PrintoutOrientation.Default, Duplex duplex = Duplex.Default)
@@ -400,8 +401,7 @@ public class PrinterL
             marginsDefault.Right = marginsHard.Right;
         }
     }
-
-  
+    
     public static bool HasValidSettings()
     {
         var odPrintout = new ODprintout();

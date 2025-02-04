@@ -19,16 +19,17 @@ public class UserOdPrefCrud
     public static List<UserOdPref> TableToList(DataTable table)
     {
         var retVal = new List<UserOdPref>();
-        UserOdPref userOdPref;
         foreach (DataRow row in table.Rows)
         {
-            userOdPref = new UserOdPref();
-            userOdPref.UserOdPrefNum = SIn.Long(row["UserOdPrefNum"].ToString());
-            userOdPref.UserNum = SIn.Long(row["UserNum"].ToString());
-            userOdPref.Fkey = SIn.Long(row["Fkey"].ToString());
-            userOdPref.FkeyType = (UserOdFkeyType) SIn.Int(row["FkeyType"].ToString());
-            userOdPref.ValueString = SIn.String(row["ValueString"].ToString());
-            userOdPref.ClinicNum = SIn.Long(row["ClinicNum"].ToString());
+            var userOdPref = new UserOdPref
+            {
+                UserOdPrefNum = SIn.Long(row["UserOdPrefNum"].ToString()),
+                UserNum = SIn.Long(row["UserNum"].ToString()),
+                Fkey = SIn.Long(row["Fkey"].ToString()),
+                FkeyType = (UserOdFkeyType) SIn.Int(row["FkeyType"].ToString()),
+                ValueString = SIn.String(row["ValueString"].ToString()),
+                ClinicNum = SIn.Long(row["ClinicNum"].ToString())
+            };
             retVal.Add(userOdPref);
         }
 
@@ -213,15 +214,13 @@ public class UserOdPrefCrud
         var idxNew = 0;
         var idxDb = 0;
         var rowsUpdatedCount = 0;
-        UserOdPref fieldNew;
-        UserOdPref fieldDb;
         //Because both lists have been sorted using the same criteria, we can now walk each list to determine which list contians the next element.  The next element is determined by Primary Key.
         //If the New list contains the next item it will be inserted.  If the DB contains the next item, it will be deleted.  If both lists contain the next item, the item will be updated.
         while (idxNew < listNew.Count || idxDb < listDb.Count)
         {
-            fieldNew = null;
+            UserOdPref fieldNew = null;
             if (idxNew < listNew.Count) fieldNew = listNew[idxNew];
-            fieldDb = null;
+            UserOdPref fieldDb = null;
             if (idxDb < listDb.Count) fieldDb = listDb[idxDb];
             //begin compare
             if (fieldNew != null && fieldDb == null)

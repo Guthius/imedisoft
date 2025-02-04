@@ -74,8 +74,6 @@ namespace OpenDental {
 			this.checkUseUnearned = new OpenDental.UI.CheckBox();
 			this.labelProviderName = new System.Windows.Forms.Label();
 			this.textProvName = new System.Windows.Forms.TextBox();
-			this.textZipwhipChargeAmount = new OpenDental.ValidDouble();
-			this.labelZipwhipAmt = new System.Windows.Forms.Label();
 			this.comboUnearnedTypes = new OpenDental.UI.ComboBox();
 			this.label2 = new System.Windows.Forms.Label();
 			this.labelFrequency = new System.Windows.Forms.Label();
@@ -438,26 +436,6 @@ namespace OpenDental {
 			this.textProvName.TabIndex = 67;
 			this.textProvName.Visible = false;
 			// 
-			// textZipwhipChargeAmount
-			// 
-			this.textZipwhipChargeAmount.Location = new System.Drawing.Point(362, 136);
-			this.textZipwhipChargeAmount.MaxVal = 100000000D;
-			this.textZipwhipChargeAmount.MinVal = -100000000D;
-			this.textZipwhipChargeAmount.Name = "textZipwhipChargeAmount";
-			this.textZipwhipChargeAmount.Size = new System.Drawing.Size(75, 20);
-			this.textZipwhipChargeAmount.TabIndex = 69;
-			this.textZipwhipChargeAmount.Visible = false;
-			// 
-			// labelZipwhipAmt
-			// 
-			this.labelZipwhipAmt.Location = new System.Drawing.Point(270, 139);
-			this.labelZipwhipAmt.Name = "labelZipwhipAmt";
-			this.labelZipwhipAmt.Size = new System.Drawing.Size(90, 16);
-			this.labelZipwhipAmt.TabIndex = 70;
-			this.labelZipwhipAmt.Text = "Zipwhip Amount";
-			this.labelZipwhipAmt.TextAlign = System.Drawing.ContentAlignment.MiddleRight;
-			this.labelZipwhipAmt.Visible = false;
-			// 
 			// comboUnearnedTypes
 			// 
 			this.comboUnearnedTypes.BackColor = System.Drawing.SystemColors.Window;
@@ -502,8 +480,6 @@ namespace OpenDental {
 			this.Controls.Add(this.labelFrequency);
 			this.Controls.Add(this.label2);
 			this.Controls.Add(this.comboUnearnedTypes);
-			this.Controls.Add(this.textZipwhipChargeAmount);
-			this.Controls.Add(this.labelZipwhipAmt);
 			this.Controls.Add(this.labelProviderName);
 			this.Controls.Add(this.textProvName);
 			this.Controls.Add(this.checkUseUnearned);
@@ -590,8 +566,6 @@ namespace OpenDental {
 		private OpenDental.UI.CheckBox checkUseUnearned;
 		private Label labelProviderName;
 		private TextBox textProvName;
-		private ValidDouble textZipwhipChargeAmount;
-		private Label labelZipwhipAmt;
 		private UI.ComboBox comboUnearnedTypes;
 		private Label label2;
 		private Label labelFrequency;

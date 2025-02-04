@@ -1,3 +1,5 @@
+#nullable enable
+
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -8,6 +10,7 @@ using Imedisoft.Core.Data;
 using Imedisoft.Core.Entities;
 using Imedisoft.Core.Features.Clinics;
 using Imedisoft.Core.Features.Clinics.Dtos;
+using Imedisoft.Features.Providers.Dtos;
 using OpenDental.User_Controls.SetupWizard;
 using OpenDentBusiness;
 
@@ -18,92 +21,68 @@ public class SetupWizard
     public abstract class SetupWizClass
     {
         public abstract string Name { get; }
-        public abstract string GetDescript { get; }
-        public abstract ODSetupCategory GetCategory { get; }
-        public abstract ODSetupStatus GetStatus { get; }
+        public abstract string Description { get; }
+        public abstract ODSetupCategory Category { get; }
+        public abstract ODSetupStatus Status { get; }
         public abstract SetupWizControl SetupControl { get; }
     }
 
-    #region Intro and Complete
-
-    public class SetupIntro : SetupWizClass
+    public class SetupIntro(string name, string descript) : SetupWizClass
     {
-        public SetupIntro(string name, string descript)
-        {
-            Name = name;
-            SetupControl = new UserControlSetupWizIntro(name, descript);
-        }
+        public override ODSetupCategory Category => throw new Exception("This should not get called.");
 
-        public override ODSetupCategory GetCategory => throw new Exception("This should not get called.");
+        public override ODSetupStatus Status => throw new Exception("This should not get called.");
 
-        public override ODSetupStatus GetStatus => throw new Exception("This should not get called.");
+        public override string Name { get; } = name;
 
-        public override string Name { get; }
+        public override SetupWizControl SetupControl { get; } = new UserControlSetupWizIntro(name, descript);
 
-        public override SetupWizControl SetupControl { get; }
-
-        public override string GetDescript => throw new Exception("This should not get called.");
+        public override string Description => throw new Exception("This should not get called.");
     }
 
-
-    public class SetupComplete : SetupWizClass
+    public class SetupComplete(string name) : SetupWizClass
     {
-        public SetupComplete(string name)
-        {
-            Name = name;
-            SetupControl = new UserControlSetupWizComplete(name);
-        }
+        public override ODSetupCategory Category => throw new Exception("This should not get called.");
 
-        public override ODSetupCategory GetCategory => throw new Exception("This should not get called.");
+        public override ODSetupStatus Status => throw new Exception("This should not get called.");
 
-        public override ODSetupStatus GetStatus => throw new Exception("This should not get called.");
+        public override string Name { get; } = name;
 
-        public override string Name { get; }
+        public override string Description => throw new Exception("This should not get called.");
 
-        public override string GetDescript => throw new Exception("This should not get called.");
-
-        public override SetupWizControl SetupControl { get; }
+        public override SetupWizControl SetupControl { get; } = new UserControlSetupWizComplete(name);
     }
-
-    #endregion
-
-    #region PreSetup
 
     public class RegKeySetup : SetupWizClass
     {
-        public override ODSetupCategory GetCategory => ODSetupCategory.PreSetup;
+        public override ODSetupCategory Category => ODSetupCategory.PreSetup;
 
-        public override string GetDescript
+        public override string Description
         {
             get
             {
-                var retVal = "Some items need to be set up before the program can be used effectively. "
-                             + "\r\nThis wizard's purpose is to help you quickly set those items up so that you can get started using the program.";
-                if (GetStatus != ODSetupStatus.Complete)
+                var description =
+                    "Some items need to be set up before the program can be used effectively.\r\n" +
+                    "This wizard's purpose is to help you quickly set those items up so that you can get started using the program.";
+
+                if (Status != ODSetupStatus.Complete)
                 {
-                    retVal += "\r\n\r\nIt looks like you have yet to enter your Registration Key. ";
+                    description += "\r\n\r\nIt looks like you have yet to enter your Registration Key. ";
                 }
 
-                retVal += "\r\nEntering your Registration Key is a necessary first step in order for the program to function.";
-                return retVal;
+                description += "\r\nEntering your Registration Key is a necessary first step in order for the program to function.";
+
+                return description;
             }
         }
 
-        public override ODSetupStatus GetStatus => GetSetupStatus();
+        public override ODSetupStatus Status => GetSetupStatus();
 
-        public ODSetupStatus GetSetupStatus(string regKey = null)
+        public ODSetupStatus GetSetupStatus(string? regKey = null)
         {
-            if (regKey == null)
-            {
-                regKey = PrefC.GetString(PrefName.RegistrationKey);
-            }
+            regKey ??= PrefC.GetString(PrefName.RegistrationKey);
 
-            if (string.IsNullOrEmpty(regKey))
-            {
-                return ODSetupStatus.NotStarted;
-            }
-
-            return ODSetupStatus.Complete;
+            return string.IsNullOrEmpty(regKey) ? ODSetupStatus.NotStarted : ODSetupStatus.Complete;
         }
 
         public override string Name => "Registration Key";
@@ -111,15 +90,13 @@ public class SetupWizard
         public override SetupWizControl SetupControl { get; } = new UserControlSetupWizRegKey();
     }
 
-    #endregion
-
     public class FeatureSetup : SetupWizClass
     {
-        public override ODSetupCategory GetCategory => ODSetupCategory.Basic;
+        public override ODSetupCategory Category => ODSetupCategory.Basic;
 
-        public override string GetDescript => "Turn features that your office uses on/off. Settings will affect all computers using the same database.";
+        public override string Description => "Turn features that your office uses on/off. Settings will affect all computers using the same database.";
 
-        public override ODSetupStatus GetStatus => ODSetupStatus.Optional;
+        public override ODSetupStatus Status => ODSetupStatus.Optional;
 
         public override string Name => "Basic Features";
 
@@ -130,30 +107,30 @@ public class SetupWizard
     {
         public override string Name => "Clinics";
 
-        public override string GetDescript =>
+        public override string Description =>
             "You have indicated that you will be using the Clinics feature. "
             + "Clinics can be used when you have multiple locations. Once clinics are set up, you can assign clinics throughout Open Dental. "
             + "If you follow basic guidelines, default clinic assignments for patient information should be accurate, thus reducing data entry.";
 
-        public override ODSetupCategory GetCategory => ODSetupCategory.Basic;
+        public override ODSetupCategory Category => ODSetupCategory.Basic;
 
-        public override ODSetupStatus GetStatus => GetSetupStatus();
+        public override ODSetupStatus Status => GetSetupStatus();
 
-        public ODSetupStatus GetSetupStatus(List<ClinicDto> listClinics = null)
+        public ODSetupStatus GetSetupStatus(List<ClinicDto>? clinicDtos = null)
         {
-            if (listClinics == null)
-            {
-                listClinics = Clinics.GetDeepCopy(true);
-            }
+            clinicDtos ??= Clinics.GetDeepCopy(true);
 
-            if (listClinics.Count == 0)
+            if (clinicDtos.Count == 0)
             {
                 return ODSetupStatus.NotStarted;
             }
 
-            foreach (var clin in listClinics)
+            foreach (var clinicDto in clinicDtos)
             {
-                if (string.IsNullOrEmpty(clin.Abbr) || string.IsNullOrEmpty(clin.Description) || string.IsNullOrEmpty(clin.PhoneNumber) || string.IsNullOrEmpty(clin.AddressLine1))
+                if (string.IsNullOrEmpty(clinicDto.Abbr) ||
+                    string.IsNullOrEmpty(clinicDto.Description) ||
+                    string.IsNullOrEmpty(clinicDto.PhoneNumber) ||
+                    string.IsNullOrEmpty(clinicDto.AddressLine1))
                 {
                     return ODSetupStatus.NeedsAttention;
                 }
@@ -169,13 +146,13 @@ public class SetupWizard
     {
         public override string Name => "Definitions";
 
-        public override string GetDescript =>
+        public override string Description =>
             "Definitions are an easy way to customize your software experience. Setup the colors, categories, and other customizable areas " +
             "within the program from this window.\r\n We've selected some of the definitions you may be interested in customizing for this Setup Wizard. " +
             "You may view the entire list of definitions by going to Setup -> Definitions from the main tool bar.";
 
-        public override ODSetupCategory GetCategory => ODSetupCategory.Basic;
-        public override ODSetupStatus GetStatus => ODSetupStatus.Optional;
+        public override ODSetupCategory Category => ODSetupCategory.Basic;
+        public override ODSetupStatus Status => ODSetupStatus.Optional;
         public override SetupWizControl SetupControl { get; } = new UserControlSetupWizDefinitions();
     }
 
@@ -183,34 +160,34 @@ public class SetupWizard
     {
         public override string Name => "Providers";
 
-        public override string GetDescript =>
+        public override string Description =>
             "Providers will show up in almost every part of OpenDental. " +
             "It is important that all provider information is up-to-date so that " +
             "claims, reports, procedures, fee schedules, and estimates will function correctly.";
 
-        public override ODSetupCategory GetCategory => ODSetupCategory.Basic;
+        public override ODSetupCategory Category => ODSetupCategory.Basic;
 
-        public override ODSetupStatus GetStatus => GetSetupStatus();
+        public override ODSetupStatus Status => GetSetupStatus();
 
-        public static ODSetupStatus GetSetupStatus(List<Provider> listProviders = null)
+        public static ODSetupStatus GetSetupStatus(List<ProviderDto>? providers = null)
         {
-            listProviders ??= Providers.GetDeepCopy(true);
-            if (listProviders.Count == 0)
+            providers ??= Providers.GetDeepCopy(true);
+            if (providers.Count == 0)
             {
                 return ODSetupStatus.NotStarted;
             }
 
-            foreach (var prov in listProviders)
+            foreach (var provider in providers)
             {
-                var isDentist = IsPrimary(prov);
-                var isHyg = prov.IsSecondary;
-                if (((isDentist || isHyg) && string.IsNullOrEmpty(prov.Abbr))
-                    || ((isDentist || isHyg) && string.IsNullOrEmpty(prov.LName))
-                    || ((isDentist || isHyg) && string.IsNullOrEmpty(prov.FName))
-                    || ((isDentist) && string.IsNullOrEmpty(prov.Suffix))
-                    || ((isDentist) && string.IsNullOrEmpty(prov.SSN))
-                    || ((isDentist) && string.IsNullOrEmpty(prov.NationalProvID))
-                   )
+                var isDentist = IsPrimary(provider);
+                var isHyg = provider.IsSecondary;
+
+                if (((isDentist || isHyg) && string.IsNullOrEmpty(provider.Abbr)) ||
+                    ((isDentist || isHyg) && string.IsNullOrEmpty(provider.LastName)) ||
+                    ((isDentist || isHyg) && string.IsNullOrEmpty(provider.FirstName)) ||
+                    (isDentist && string.IsNullOrEmpty(provider.Suffix)) ||
+                    (isDentist && string.IsNullOrEmpty(provider.Ssn)) ||
+                    (isDentist && string.IsNullOrEmpty(provider.NationalProviderId)))
                 {
                     return ODSetupStatus.NeedsAttention;
                 }
@@ -221,19 +198,15 @@ public class SetupWizard
 
         public override SetupWizControl SetupControl { get; } = new UserControlSetupWizProvider();
 
-        public static bool IsPrimary(Provider prov)
+        public static bool IsPrimary(ProviderDto prov)
         {
             if (prov.IsSecondary)
             {
                 return false;
             }
 
-            if (Defs.GetName(DefCat.ProviderSpecialties, prov.Specialty).ToLower() == "hygienist" ||
-                Defs.GetName(DefCat.ProviderSpecialties, prov.Specialty).ToLower() == "assistant" ||
-                Defs.GetName(DefCat.ProviderSpecialties, prov.Specialty).ToLower() == "labtech" ||
-                Defs.GetName(DefCat.ProviderSpecialties, prov.Specialty).ToLower() == "other" ||
-                Defs.GetName(DefCat.ProviderSpecialties, prov.Specialty).ToLower() == "notes" ||
-                Defs.GetName(DefCat.ProviderSpecialties, prov.Specialty).ToLower() == "none")
+            var description = prov.Specialty.Description.ToLower();
+            if (description is "hygienist" or "assistant" or "labtech" or "other" or "notes" or "none")
             {
                 return false;
             }
@@ -246,22 +219,22 @@ public class SetupWizard
     {
         public override string Name => "Operatories";
 
-        public override string GetDescript => "Operatories define locations in which appointments take place, and are used to organize appointment columns. Normally, every chair in your office will have an unique operatory. ";
+        public override string Description => "Operatories define locations in which appointments take place, and are used to organize appointment columns. Normally, every chair in your office will have an unique operatory. ";
 
-        public override ODSetupCategory GetCategory => ODSetupCategory.Basic;
+        public override ODSetupCategory Category => ODSetupCategory.Basic;
 
-        public override ODSetupStatus GetStatus => GetSetupStatus();
+        public override ODSetupStatus Status => GetSetupStatus();
 
-        public static ODSetupStatus GetSetupStatus(List<Operatory> listOperatories = null)
+        public static ODSetupStatus GetSetupStatus(List<Operatory>? operatories = null)
         {
-            listOperatories ??= Operatories.GetDeepCopy(true);
+            operatories ??= Operatories.GetDeepCopy(true);
 
-            if (listOperatories.Count == 0)
+            if (operatories.Count == 0)
             {
                 return ODSetupStatus.NotStarted;
             }
 
-            foreach (var op in listOperatories)
+            foreach (var op in operatories)
             {
                 if (string.IsNullOrEmpty(op.OpName) || string.IsNullOrEmpty(op.Abbrev))
                 {
@@ -277,22 +250,22 @@ public class SetupWizard
 
     public class EmployeeSetup : SetupWizClass
     {
-        public override ODSetupCategory GetCategory => ODSetupCategory.Basic;
+        public override ODSetupCategory Category => ODSetupCategory.Basic;
 
-        public override string GetDescript => "The Employee list is used to set up User profiles in Security and to set up Schedules.� This list also determines who can use the Time Clock.";
+        public override string Description => "The Employee list is used to set up User profiles in Security and to set up Schedules.� This list also determines who can use the Time Clock.";
 
-        public override ODSetupStatus GetStatus => GetSetupStatus();
+        public override ODSetupStatus Status => GetSetupStatus();
 
-        public static ODSetupStatus GetSetupStatus(List<Employee> listEmployees = null)
+        public static ODSetupStatus GetSetupStatus(List<Employee>? employees = null)
         {
-            listEmployees ??= Employees.GetDeepCopy(true);
+            employees ??= Employees.GetDeepCopy(true);
 
-            if (listEmployees.Count == 0)
+            if (employees.Count == 0)
             {
                 return ODSetupStatus.NotStarted;
             }
 
-            foreach (var employee in listEmployees)
+            foreach (var employee in employees)
             {
                 if (string.IsNullOrEmpty(employee.FName) || string.IsNullOrEmpty(employee.LName))
                 {
@@ -310,23 +283,23 @@ public class SetupWizard
 
     public class FeeSchedSetup : SetupWizClass
     {
-        public override ODSetupCategory GetCategory => ODSetupCategory.Basic;
+        public override ODSetupCategory Category => ODSetupCategory.Basic;
 
-        public override string GetDescript => "Fee Schedules determine the fees billed for each procedure.";
+        public override string Description => "Fee Schedules determine the fees billed for each procedure.";
 
-        public override ODSetupStatus GetStatus => GetSetupStatus();
+        public override ODSetupStatus Status => GetSetupStatus();
 
-        public static ODSetupStatus GetSetupStatus(List<FeeSched> listFeeScheds = null)
+        public static ODSetupStatus GetSetupStatus(List<FeeSched>? feeScheds = null)
         {
-            listFeeScheds ??= FeeScheds.GetDeepCopy(true);
-
-            if (listFeeScheds.Count == 0)
+            feeScheds ??= FeeScheds.GetDeepCopy(true);
+            
+            if (feeScheds.Count == 0)
             {
                 return ODSetupStatus.NotStarted;
             }
 
-            var listFeeSchedNums = listFeeScheds.Select(x => x.FeeSchedNum).ToList();
-            foreach (var schedNum in listFeeSchedNums)
+            var feeSchedNums = feeScheds.Select(x => x.FeeSchedNum).ToList();
+            foreach (var schedNum in feeSchedNums)
             {
                 if (Fees.GetCountByFeeSchedNum(schedNum) <= 0)
                 {
@@ -344,13 +317,13 @@ public class SetupWizard
 
     public class PrinterSetup : SetupWizClass
     {
-        public override ODSetupCategory GetCategory => ODSetupCategory.Basic;
+        public override ODSetupCategory Category => ODSetupCategory.Basic;
 
-        public override string GetDescript =>
+        public override string Description =>
             "Set up print and scan options for the current workstation. " +
             "You can leave all settings to the default, or you can control where specific items are are printed.";
 
-        public override ODSetupStatus GetStatus => ODSetupStatus.Optional;
+        public override ODSetupStatus Status => ODSetupStatus.Optional;
 
         public override string Name => "Printer/Scanner";
 
@@ -359,19 +332,12 @@ public class SetupWizard
 
     public static Color GetColor(ODSetupStatus stat)
     {
-        switch (stat)
+        return stat switch
         {
-            case ODSetupStatus.NotStarted:
-            case ODSetupStatus.NeedsAttention:
-                return Color.FromArgb(255, 255, 204, 204);
-
-            case ODSetupStatus.Complete:
-            case ODSetupStatus.Optional:
-                return Color.FromArgb(255, 204, 255, 204);
-
-            default:
-                return Color.White;
-        }
+            ODSetupStatus.NotStarted or ODSetupStatus.NeedsAttention => Color.FromArgb(255, 255, 204, 204),
+            ODSetupStatus.Complete or ODSetupStatus.Optional => Color.FromArgb(255, 204, 255, 204),
+            _ => Color.White
+        };
     }
 }
 
@@ -394,19 +360,15 @@ public enum ODSetupCategory
 
 public enum ODSetupStatus
 {
-    /// <summary>User hasn't started this setup item.</summary>
     [Description("Needs Input")]
     NotStarted,
 
-    /// <summary>User has left this setup item in an incomplete state.</summary>
     [Description("Needs Input")]
     NeedsAttention,
 
-    /// <summary>Setup item has been considered and required elements have been filled in.</summary>
     [Description("OK")]
     Complete,
 
-    /// <summary>Setup item is not required.</summary>
     [Description("Optional")]
     Optional
 }

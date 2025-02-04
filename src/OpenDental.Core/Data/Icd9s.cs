@@ -22,17 +22,6 @@ public static class Icd9s
         return ICD9Crud.SelectMany("SELECT * FROM icd9");
     }
 
-    public static long GetCodeCount()
-    {
-        return SIn.Long(Db.GetCount("SELECT COUNT(*) FROM icd9"));
-    }
-    
-    public static bool CodeExists(string icd9Code)
-    {
-        var count = Db.GetCount("SELECT COUNT(*) FROM icd9 WHERE ICD9Code = '" + SOut.String(icd9Code) + "'");
-        return count != "0";
-    }
-    
     public static void Insert(ICD9 icd9)
     {
         ICD9Crud.Insert(icd9);
@@ -112,14 +101,14 @@ public static class Icd9s
 
     private static readonly ICD9Cache Cache = new();
 
-    public static ICD9 GetFirstOrDefault(Func<ICD9, bool> match, bool isShort = false)
+    public static ICD9 GetFirstOrDefault(Func<ICD9, bool> predicate, bool shortList = false)
     {
-        return Cache.GetFirstOrDefault(match, isShort);
+        return Cache.GetFirstOrDefault(predicate, shortList);
     }
 
-    public static DataTable GetTableFromCache(bool doRefreshCache)
+    public static DataTable GetTableFromCache(bool refreshCache)
     {
-        return Cache.GetTableFromCache(doRefreshCache);
+        return Cache.GetTableFromCache(refreshCache);
     }
 
     public static void ClearCache()

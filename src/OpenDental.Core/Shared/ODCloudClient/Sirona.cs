@@ -2,12 +2,9 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Runtime.InteropServices;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 using System.Diagnostics;
 using CodeBase;
-using System.Windows.Forms;
 
 namespace OpenDentBusiness.Shared {
 	public class Sirona {
@@ -28,7 +25,7 @@ namespace OpenDentBusiness.Shared {
 		public static void WriteToSendBoxFile(string pathExe,List<string> listIniLines) {
 			#region Read / Write .ini
 			//read file C:\sidexis\sifiledb.ini
-			string iniFile=Path.GetDirectoryName(pathExe)+"\\sifiledb.ini";
+			var iniFile=Path.GetDirectoryName(pathExe)+"\\sifiledb.ini";
 			if(!File.Exists(iniFile)) {
 				throw new ODException(iniFile+" "+Lans_g("Sirona","could not be found. Is Sidexis installed properly?"));
 			}
@@ -36,9 +33,9 @@ namespace OpenDentBusiness.Shared {
 			//example:
 			//[FromStation0]
 			//File=F:\PDATA\siomin.sdx  //only one sendBox on entire network.
-			StringBuilder retVal=new StringBuilder(255);
+			var retVal=new StringBuilder(255);
 			GetPrivateProfileString("FromStation0","File","",retVal,255,iniFile);
-			string sendBox=retVal.ToString();
+			var sendBox=retVal.ToString();
 			//read Multistations | GetRequest (=1) to determine if station can take xrays.
 			//but we don't care at this point, so ignore
 			//set OfficeManagement | OffManConnected = 1 to make sidexis ready to accept a message.
@@ -47,12 +44,12 @@ namespace OpenDentBusiness.Shared {
 				sendBox=@"C:\Bridges\Sirona\iniFile.ini";
 			}
 			#endregion
-			using FileStream fs=new FileStream(sendBox,FileMode.Append);
-			using BinaryWriter bw=new BinaryWriter(fs);
-			for(int i=0;i<listIniLines.Count;i++) {
+			using var fs=new FileStream(sendBox,FileMode.Append);
+			using var bw=new BinaryWriter(fs);
+			for(var i=0;i<listIniLines.Count;i++) {
 				string line=line=listIniLines[i];
 				//Only write the first two bytes to preserve old behavior.
-				byte[] arrayBytes=BitConverter.GetBytes(line.Length+2);//the 2 accounts for these two chars.
+				var arrayBytes=BitConverter.GetBytes(line.Length+2);//the 2 accounts for these two chars.
 				bw.Write(arrayBytes[0]);
 				bw.Write(arrayBytes[1]);
 				bw.Write(StrToBytes(line));
@@ -60,8 +57,8 @@ namespace OpenDentBusiness.Shared {
 		}
 
 		private static byte[] StrToBytes(string str) {
-			byte[] retVal=new byte[str.Length];
-			for(int i=0;i<retVal.Length;i++) {
+			var retVal=new byte[str.Length];
+			for(var i=0;i<retVal.Length;i++) {
 				switch(str[i]) {
 					default:
 						retVal[i]=(byte)str[i];

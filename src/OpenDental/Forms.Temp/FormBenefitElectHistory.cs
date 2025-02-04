@@ -1,97 +1,103 @@
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Text;
-using System.Windows.Forms;
-using OpenDentBusiness;
-using OpenDental.UI;
 using System.Linq;
-using CodeBase;
 using Imedisoft.Core.Entities;
+using OpenDental.UI;
+using OpenDentBusiness;
 
 namespace OpenDental;
 
-public partial class FormBenefitElectHistory:FormODBase {
-	private List<Etrans> listEtrans;
-	private long _planNum;
-	private long _patPlanNum;
-	public List<Benefit> ListBenefits;
-	private long _subNum;
-	private Patient[] _patientArray;
-	private long _subPatNum;
-	private long _carrierNum;
+public partial class FormBenefitElectHistory : FormODBase
+{
+    private List<Etrans> _etranses;
+    private readonly long _planNum;
+    private readonly long _patPlanNum;
+    private readonly long _subNum;
+    private readonly long _subPatNum;
+    private readonly long _carrierNum;
+    private Patient[] _patients;
+    public List<Benefit> ListBenefits;
 
-	public FormBenefitElectHistory(long planNum,long patPlanNum,long subNum,long subPatNum,long carrierNum) {
-		InitializeComponent();
+    public FormBenefitElectHistory(long planNum, long patPlanNum, long subNum, long subPatNum, long carrierNum)
+    {
+        InitializeComponent();
 
-		_planNum=planNum;
-		_patPlanNum=patPlanNum;
-		_subNum=subNum;
-		_subPatNum=subPatNum;
-		_carrierNum=carrierNum;
-	}
+        _planNum = planNum;
+        _patPlanNum = patPlanNum;
+        _subNum = subNum;
+        _subPatNum = subPatNum;
+        _carrierNum = carrierNum;
+    }
 
-	private void FormBenefitElectHistory_Load(object sender,EventArgs e) {
-		FillGrid();
-	}
+    private void FormBenefitElectHistory_Load(object sender, EventArgs e)
+    {
+        FillGrid();
+    }
 
-	private void FillGrid(){
-		listEtrans=Etranss.GetList270ForPlan(_planNum,_subNum);
-		var listPatNums=listEtrans.Select(x => x.PatNum).ToList();
-		listPatNums.Add(_subPatNum);
-		_patientArray=Patients.GetMultPats(listPatNums);//Can contain 0.
-		gridMain.BeginUpdate();
-		gridMain.Columns.Clear();
-		var column=new GridColumn(Lan.g(this,"Date"),100);
-		gridMain.Columns.Add(column);
-		column=new GridColumn(Lan.g(this,"Patient"),100);
-		gridMain.Columns.Add(column);
-		column=new GridColumn(Lan.g(this,"Response"),100);
-		gridMain.Columns.Add(column);
-		gridMain.ListGridRows.Clear();
-		GridRow row;
-		for(var i=0;i<listEtrans.Count;i++){
-			row=new GridRow();
-			row.Cells.Add(listEtrans[i].DateTimeTrans.ToShortDateString());
-			//All old 270s do not have a patNum set, so they were subscriber request.
-			long patNum;
-			if(listEtrans[i].PatNum==0) {
-				patNum=_subPatNum;
-			}
-			else {
-				patNum=listEtrans[i].PatNum;
-			}
-			var patName=Patients.GetOnePat(_patientArray,patNum).GetNameLFnoPref();
-			row.Cells.Add(patName);
-			row.Cells.Add(listEtrans[i].Note);
-			gridMain.ListGridRows.Add(row);
-		}
-		gridMain.EndUpdate();
-	}
+    private void FillGrid()
+    {
+        _etranses = Etranss.GetList270ForPlan(_planNum, _subNum);
 
-	private void gridMain_CellDoubleClick(object sender,ODGridClickEventArgs e) {
-		var etrans=listEtrans[e.Row];
-		if(etrans.Etype==EtransType.Eligibility_CA) {
-			using var formEtransEdit=new FormEtransEdit();
-			formEtransEdit.EtransCur=etrans;
-			formEtransEdit.ShowDialog();
-		}
-		else {
-			var settingErrors271=X271.ValidateSettings();
-			if(settingErrors271!="") {
-				ODMessageBox.Show(settingErrors271);
-				return;
-			}
-			var isDependent=(etrans.PatNum!=0 && _subPatNum!=etrans.PatNum);//Old rows will be 0, but when 0 then request was for subscriber.
-			var carrier=Carriers.GetCarrier(_carrierNum);
-			using var formEtrans270Edit=new FormEtrans270Edit(_patPlanNum,_planNum,_subNum,isDependent,_subPatNum,carrier.IsCoinsuranceInverted);
-			formEtrans270Edit.EtransCur=etrans;
-			formEtrans270Edit.ListBenefits=ListBenefits;
-			formEtrans270Edit.ShowDialog();
-		}
-		FillGrid();
-	}
+        var patNums = _etranses.Select(x => x.PatNum).ToList();
 
+        patNums.Add(_subPatNum);
+
+        _patients = Patients.GetMultPats(patNums);
+
+        gridMain.BeginUpdate();
+
+        gridMain.Columns.Clear();
+        gridMain.Columns.Add(new GridColumn("Date", 100));
+        gridMain.Columns.Add(new GridColumn("Patient", 100));
+        gridMain.Columns.Add(new GridColumn("Response", 100));
+
+        gridMain.ListGridRows.Clear();
+        foreach (var etrans in _etranses)
+        {
+            var patNum = etrans.PatNum == 0 ? _subPatNum : etrans.PatNum;
+            var patName = Patients.GetOnePat(_patients, patNum).GetNameLFnoPref();
+
+            var gridRow = new GridRow();
+
+            gridRow.Cells.Add(etrans.DateTimeTrans.ToShortDateString());
+            gridRow.Cells.Add(patName);
+            gridRow.Cells.Add(etrans.Note);
+
+            gridMain.ListGridRows.Add(gridRow);
+        }
+
+        gridMain.EndUpdate();
+    }
+
+    private void GridMain_CellDoubleClick(object sender, ODGridClickEventArgs e)
+    {
+        var etrans = _etranses[e.Row];
+        if (etrans.Etype == EtransType.Eligibility_CA)
+        {
+            using var formEtransEdit = new FormEtransEdit();
+
+            formEtransEdit.EtransCur = etrans;
+            formEtransEdit.ShowDialog();
+        }
+        else
+        {
+            var errorMessage = X271.ValidateSettings();
+            if (!string.IsNullOrEmpty(errorMessage))
+            {
+                ShowError(errorMessage);
+                return;
+            }
+
+            var isDependent = etrans.PatNum != 0 && _subPatNum != etrans.PatNum;
+            var carrier = Carriers.GetCarrier(_carrierNum);
+
+            using var formEtrans270Edit = new FormEtrans270Edit(_patPlanNum, _planNum, _subNum, isDependent, _subPatNum, carrier.IsCoinsuranceInverted);
+
+            formEtrans270Edit.EtransCur = etrans;
+            formEtrans270Edit.ListBenefits = ListBenefits;
+            formEtrans270Edit.ShowDialog();
+        }
+
+        FillGrid();
+    }
 }

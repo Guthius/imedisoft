@@ -17,25 +17,25 @@ public class AllergyCrud
     public static List<Allergy> TableToList(DataTable table)
     {
         var retVal = new List<Allergy>();
-        Allergy allergy;
         foreach (DataRow row in table.Rows)
         {
-            allergy = new Allergy();
-            allergy.AllergyNum = SIn.Long(row["AllergyNum"].ToString());
-            allergy.AllergyDefNum = SIn.Long(row["AllergyDefNum"].ToString());
-            allergy.PatNum = SIn.Long(row["PatNum"].ToString());
-            allergy.Reaction = SIn.String(row["Reaction"].ToString());
-            allergy.StatusIsActive = SIn.Bool(row["StatusIsActive"].ToString());
-            allergy.DateTStamp = SIn.DateTime(row["DateTStamp"].ToString());
-            allergy.DateAdverseReaction = SIn.Date(row["DateAdverseReaction"].ToString());
-            allergy.SnomedReaction = SIn.String(row["SnomedReaction"].ToString());
+            var allergy = new Allergy
+            {
+                AllergyNum = SIn.Long(row["AllergyNum"].ToString()),
+                AllergyDefNum = SIn.Long(row["AllergyDefNum"].ToString()),
+                PatNum = SIn.Long(row["PatNum"].ToString()),
+                Reaction = SIn.String(row["Reaction"].ToString()),
+                StatusIsActive = SIn.Bool(row["StatusIsActive"].ToString()),
+                DateAdverseReaction = SIn.Date(row["DateAdverseReaction"].ToString()),
+                SnomedReaction = SIn.String(row["SnomedReaction"].ToString())
+            };
             retVal.Add(allergy);
         }
 
         return retVal;
     }
 
-    public static long Insert(Allergy allergy)
+    public static void Insert(Allergy allergy)
     {
         var command = "INSERT INTO allergy (";
 
@@ -52,7 +52,6 @@ public class AllergyCrud
         {
             allergy.AllergyNum = Db.NonQ(command, true, "AllergyNum", "allergy");
         }
-        return allergy.AllergyNum;
     }
 
     public static void Update(Allergy allergy)

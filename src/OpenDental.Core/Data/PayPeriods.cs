@@ -116,34 +116,34 @@ public static class PayPeriods
 
     private static readonly PayPeriodCache Cache = new();
 
-    public static List<PayPeriod> GetDeepCopy(bool isShort = false)
+    public static List<PayPeriod> GetDeepCopy(bool shortList = false)
     {
-        return Cache.GetDeepCopy(isShort);
+        return Cache.GetDeepCopy(shortList);
     }
 
-    public static int GetCount(bool isShort = false)
+    public static int GetCount(bool shortList = false)
     {
-        return Cache.GetCount(isShort);
+        return Cache.GetCount(shortList);
     }
 
-    public static int GetFindIndex(Predicate<PayPeriod> match, bool isShort = false)
+    public static int GetFindIndex(Predicate<PayPeriod> predicate, bool shortList = false)
     {
-        return Cache.GetFindIndex(match, isShort);
+        return Cache.GetFindIndex(predicate, shortList);
     }
 
-    public static PayPeriod GetFirstOrDefault(Func<PayPeriod, bool> match, bool isShort = false)
+    public static PayPeriod GetFirstOrDefault(Func<PayPeriod, bool> predicate, bool shortList = false)
     {
-        return Cache.GetFirstOrDefault(match, isShort);
+        return Cache.GetFirstOrDefault(predicate, shortList);
     }
 
-    public static PayPeriod GetLast(bool isShort = false)
+    public static PayPeriod GetLast(bool shortList = false)
     {
-        return Cache.GetLast(isShort);
+        return Cache.GetLast(shortList);
     }
 
-    public static List<PayPeriod> GetWhere(Predicate<PayPeriod> match, bool isShort = false)
+    public static List<PayPeriod> GetWhere(Predicate<PayPeriod> predicate, bool shortList = false)
     {
-        return Cache.GetWhere(match, isShort);
+        return Cache.GetWhere(predicate, shortList);
     }
 
     public static void RefreshCache()
@@ -151,9 +151,9 @@ public static class PayPeriods
         GetTableFromCache(true);
     }
 
-    public static DataTable GetTableFromCache(bool doRefreshCache)
+    public static DataTable GetTableFromCache(bool refreshCache)
     {
-        return Cache.GetTableFromCache(doRefreshCache);
+        return Cache.GetTableFromCache(refreshCache);
     }
 
     public static void ClearCache()

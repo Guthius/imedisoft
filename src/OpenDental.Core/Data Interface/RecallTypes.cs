@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
-using System.Text;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Crud;
+using Imedisoft.Core.Data;
 using Imedisoft.Core.Entities;
 
 namespace OpenDentBusiness;
@@ -40,7 +40,7 @@ public class RecallTypes
     public static List<string> GetProcs(long recallTypeNum)
     {
         var recallType = GetFirstOrDefault(x => x.RecallTypeNum == recallTypeNum);
-        return recallType == null || string.IsNullOrEmpty(recallType.Procedures) ? new List<string>() : recallType.Procedures.Split(',').ToList();
+        return recallType == null || string.IsNullOrEmpty(recallType.Procedures) ? [] : recallType.Procedures.Split(',').ToList();
     }
 
     public static bool PerioAndProphyBothHaveTriggers()
@@ -57,37 +57,11 @@ public class RecallTypes
         return recallType == null ? "" : recallType.TimePattern;
     }
 
-    public static string ConvertTimePattern(string timePattern)
-    {
-        //convert time pattern to 5 minute increment
-        var patternConverted = new StringBuilder();
-        for (var i = 0; i < timePattern.Length; i++)
-        {
-            patternConverted.Append(timePattern.Substring(i, 1));
-            if (PrefC.GetLong(PrefName.AppointmentTimeIncrement) == 10) patternConverted.Append(timePattern.Substring(i, 1));
-            if (PrefC.GetLong(PrefName.AppointmentTimeIncrement) == 15)
-            {
-                patternConverted.Append(timePattern.Substring(i, 1));
-                patternConverted.Append(timePattern.Substring(i, 1));
-            }
-        }
-
-        if (patternConverted.ToString() == "")
-        {
-            if (PrefC.GetLong(PrefName.AppointmentTimeIncrement) == 15)
-                patternConverted.Append("///XXX///");
-            else
-                patternConverted.Append("//XX//");
-        }
-
-        return patternConverted.ToString();
-    }
-
     public static string GetSpecialTypeStr(long recallTypeNum)
     {
-        if (recallTypeNum == PrefC.GetLong(PrefName.RecallTypeSpecialProphy)) return Lans.g("FormRecallTypeEdit", "Prophy");
-        if (recallTypeNum == PrefC.GetLong(PrefName.RecallTypeSpecialChildProphy)) return Lans.g("FormRecallTypeEdit", "ChildProphy");
-        if (recallTypeNum == PrefC.GetLong(PrefName.RecallTypeSpecialPerio)) return Lans.g("FormRecallTypeEdit", "Perio");
+        if (recallTypeNum == PrefC.GetLong(PrefName.RecallTypeSpecialProphy)) return "Prophy";
+        if (recallTypeNum == PrefC.GetLong(PrefName.RecallTypeSpecialChildProphy)) return "ChildProphy";
+        if (recallTypeNum == PrefC.GetLong(PrefName.RecallTypeSpecialPerio)) return "Perio";
         return "";
     }
 
@@ -101,16 +75,19 @@ public class RecallTypes
 
     public static List<RecallType> GetActive()
     {
-        var retVal = new List<RecallType>();
-        List<RecallTrigger> triggers;
-        var listRecallTypes = GetDeepCopy();
-        for (var i = 0; i < listRecallTypes.Count; i++)
+        var results = new List<RecallType>();
+        
+        var recallTypes = GetDeepCopy();
+        foreach (var recallType in recallTypes)
         {
-            triggers = RecallTriggers.GetForType(listRecallTypes[i].RecallTypeNum);
-            if (triggers.Count > 0) retVal.Add(listRecallTypes[i].Copy());
+            var triggers = RecallTriggers.GetForType(recallType.RecallTypeNum);
+            if (triggers.Count > 0)
+            {
+                results.Add(recallType.Copy());
+            }
         }
 
-        return retVal;
+        return results;
     }
 
     public static void SetToDefault()
@@ -216,27 +193,20 @@ public class RecallTypes
         Db.NonQ(command);
         command = "INSERT INTO recalltrigger (RecallTriggerNum,RecallTypeNum,CodeNum) VALUES (14,5," + ProcedureCodes.GetCodeNum("01103") + ")";
         Db.NonQ(command);
-        //Update the special types in preference table.
-        command = "UPDATE preference SET ValueString='1' WHERE PrefName='RecallTypeSpecialProphy'";
-        Db.NonQ(command);
-        command = "UPDATE preference SET ValueString='2' WHERE PrefName='RecallTypeSpecialChildProphy'";
-        Db.NonQ(command);
-        command = "UPDATE preference SET ValueString='3' WHERE PrefName='RecallTypeSpecialPerio'";
-        Db.NonQ(command);
-        command = "UPDATE preference SET ValueString='1,2,3' WHERE PrefName='RecallTypesShowingInList'";
-        Db.NonQ(command);
-        //Delete recalls for manually added recall types.  This is the same strategy we use in FormRecallTypeEdit
-        //Types 1 through 5 were reinserted above, and thus the foreign keys will still be correct.
-        command = "DELETE FROM recall WHERE RecallTypeNum < 1 OR RecallTypeNum > 5";
-        Db.NonQ(command);
+        
+        Db.NonQ("UPDATE preference SET ValueString='1' WHERE PrefName='RecallTypeSpecialProphy'");
+        Db.NonQ("UPDATE preference SET ValueString='2' WHERE PrefName='RecallTypeSpecialChildProphy'");
+        Db.NonQ("UPDATE preference SET ValueString='3' WHERE PrefName='RecallTypeSpecialPerio'");
+        Db.NonQ("UPDATE preference SET ValueString='1,2,3' WHERE PrefName='RecallTypesShowingInList'");
+
+        Db.NonQ("DELETE FROM recall WHERE RecallTypeNum < 1 OR RecallTypeNum > 5");
     }
     
     private class RecallTypeCache : CacheListAbs<RecallType>
     {
         protected override List<RecallType> GetCacheFromDb()
         {
-            var command = "SELECT * FROM recalltype ORDER BY Description";
-            return RecallTypeCrud.SelectMany(command);
+            return RecallTypeCrud.SelectMany("SELECT * FROM recalltype ORDER BY Description");
         }
 
         protected override List<RecallType> TableToList(DataTable dataTable)
@@ -262,19 +232,19 @@ public class RecallTypes
     
     private static readonly RecallTypeCache Cache = new();
 
-    public static List<RecallType> GetDeepCopy(bool isShort = false)
+    public static List<RecallType> GetDeepCopy(bool shortList = false)
     {
-        return Cache.GetDeepCopy(isShort);
+        return Cache.GetDeepCopy(shortList);
     }
 
-    public static List<RecallType> GetWhere(Predicate<RecallType> match, bool isShort = false)
+    public static List<RecallType> GetWhere(Predicate<RecallType> predicate, bool shortList = false)
     {
-        return Cache.GetWhere(match, isShort);
+        return Cache.GetWhere(predicate, shortList);
     }
 
-    public static RecallType GetFirstOrDefault(Func<RecallType, bool> match, bool isShort = false)
+    public static RecallType GetFirstOrDefault(Func<RecallType, bool> predicate, bool shortList = false)
     {
-        return Cache.GetFirstOrDefault(match, isShort);
+        return Cache.GetFirstOrDefault(predicate, shortList);
     }
 
     public static void RefreshCache()
@@ -282,9 +252,9 @@ public class RecallTypes
         GetTableFromCache(true);
     }
 
-    public static DataTable GetTableFromCache(bool doRefreshCache)
+    public static DataTable GetTableFromCache(bool refreshCache)
     {
-        return Cache.GetTableFromCache(doRefreshCache);
+        return Cache.GetTableFromCache(refreshCache);
     }
 
     public static void ClearCache()

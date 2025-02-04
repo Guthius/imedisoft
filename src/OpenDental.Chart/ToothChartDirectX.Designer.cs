@@ -1,4 +1,4 @@
-namespace SparksToothChart {
+namespace OpenDental.Chart {
 	partial class ToothChartDirectX {
 		/// <summary>
 		/// Required designer variable. 
@@ -18,9 +18,9 @@ namespace SparksToothChart {
 				//	g.Dispose();
 				//}
 				CleanupDirectX();
-				if(device!=null) {
-					device.Dispose();
-					device=null;
+				if(Device!=null) {
+					Device.Dispose();
+					Device=null;
 				}
 			}
 			base.Dispose(disposing);

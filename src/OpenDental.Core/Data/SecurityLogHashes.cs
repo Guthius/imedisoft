@@ -54,9 +54,9 @@ public static class SecurityLogHashes
         });
     }
 
-    public static void InsertMany(List<SecurityLogHash> listSecurityLogHashes)
+    public static void InsertMany(List<SecurityLogHash> securityLogHashes)
     {
-        SecurityLogHashCrud.InsertMany(listSecurityLogHashes);
+        SecurityLogHashCrud.InsertMany(securityLogHashes);
     }
 
     public static string GetHashString(SecurityLog securityLog)
@@ -80,15 +80,5 @@ public static class SecurityLogHashes
         var hash = hashAlgorithm.ComputeHash(bytes);
 
         return Convert.ToBase64String(hash);
-    }
-
-    public static void DeleteForSecurityLogEntries(List<long> securityLogNums)
-    {
-        if (securityLogNums.Count < 1)
-        {
-            return;
-        }
-
-        Db.NonQ($"DELETE FROM securityloghash WHERE SecurityLogNum IN ({string.Join(",", securityLogNums)})");
     }
 }

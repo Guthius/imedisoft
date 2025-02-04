@@ -1,9 +1,7 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Drawing;
-using System.Net;
-using System.Security.Cryptography.X509Certificates;
+using System.IO;
 using System.Windows.Forms;
 using OpenDentBusiness;
 using CodeBase;
@@ -702,7 +700,7 @@ public partial class FormEmailInbox:FormODBase {
 			if(emailMessage.Attachments[i].DisplayedFileName.ToLower()!="smime.p7s") {
 				continue;
 			}
-			var smimeP7sFilePath=FileAtoZ.CombinePaths(EmailAttaches.GetAttachPath(),emailMessage.Attachments[i].ActualFileName);
+			var smimeP7sFilePath=Path.Combine(EmailAttaches.GetAttachPath(),emailMessage.Attachments[i].ActualFileName);
 			var localFile=PrefC.GetRandomTempFile(".p7s");
 			FileAtoZ.Copy(smimeP7sFilePath,localFile);
 			var x509Certificate2=EmailMessages.GetEmailSignatureFromSmimeP7sFile(localFile);

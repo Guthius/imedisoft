@@ -55,13 +55,13 @@ public class AccountModules
         var dataSetAccount = new DataSet();
         //Done building the tree.
         //Get Patient and family fetching out of the way.  These would be called first if a part of the tree anyway.
-        Logger.LogAction(() => fam = Patients.GetFamily(patNum));
+        fam = Patients.GetFamily(patNum);
         if (intermingled)
         {
             patNum = fam.ListPats[0].PatNum; //guarantor
         }
 
-        Logger.LogAction(() => pat = fam.GetPatient(patNum));
+        pat = fam.GetPatient(patNum);
         //We've gotten the patient and family objects, so now we can make a plethora of actions to run in parallel.
 
         #region Actions
@@ -69,22 +69,22 @@ public class AccountModules
         //Actions that have leaves
         var refreshForFam = new Action(() =>
         {
-            Logger.LogAction(() => retVal.ListInsSubs = InsSubs.RefreshForFam(fam));
-            Logger.LogAction(() => retVal.ListInsPlans = InsPlans.RefreshForSubList(retVal.ListInsSubs));
+            retVal.ListInsSubs = InsSubs.RefreshForFam(fam);
+            retVal.ListInsPlans = InsPlans.RefreshForSubList(retVal.ListInsSubs);
         }); //InsSubs.RefreshForFam
         var refreshOrGetFirstOrthoProcDate = new Action(() =>
         {
-            Logger.LogAction(() => retVal.PatNote = PatientNotes.Refresh(pat.PatNum, pat.Guarantor));
+            retVal.PatNote = PatientNotes.Refresh(pat.PatNum, pat.Guarantor);
             if (doGetOrtho)
             {
-                Logger.LogAction(() => retVal.FirstOrthoProcDate = Procedures.GetFirstOrthoProcDate(retVal.PatNote));
+                retVal.FirstOrthoProcDate = Procedures.GetFirstOrthoProcDate(retVal.PatNote);
             }
         }); //PatientNotes.Refresh / Procedures.GetFirstOrthoProcDate
-        var refreshBenefits = new Action(() => { Logger.LogAction(() => retVal.ListBenefits = Benefits.Refresh(retVal.ListPatPlans, retVal.ListInsSubs)); }); //Benefits.Refresh
+        var refreshBenefits = new Action(() => { retVal.ListBenefits = Benefits.Refresh(retVal.ListPatPlans, retVal.ListInsSubs); }); //Benefits.Refresh
         var getAccount = new Action(() =>
         {
-            Logger.LogAction(() => dataSetAccount = GetAccount(patNum, fromDate, toDate, intermingled, singlePatient, 0
-                , showProcBreakdown, showPayNotes, false, showAdjNotes, false, pat, fam, out patientPayPlanDue, out dynamicPayPlanDue, out balanceForward));
+            dataSetAccount = GetAccount(patNum, fromDate, toDate, intermingled, singlePatient, 0
+                , showProcBreakdown, showPayNotes, false, showAdjNotes, false, pat, fam, out patientPayPlanDue, out dynamicPayPlanDue, out balanceForward);
             for (var i = 0; i < dataSetAccount.Tables.Count; i++)
             {
                 retVal.DataSetMain.Tables.Add(dataSetAccount.Tables[i].Copy());
@@ -93,18 +93,15 @@ public class AccountModules
         //Actions that are leaves
         var getMergeLinks = new Action(() =>
         {
-            Logger.LogAction(() =>
-                retVal.ListMergeLinks = PatientLinks.GetLinks(fam.GetPatNums(), PatientLinkType.Merge));
+            retVal.ListMergeLinks = PatientLinks.GetLinks(fam.GetPatNums(), PatientLinkType.Merge);
         });
         var getPrePayForFam = new Action(() =>
         {
-            Logger.LogAction(() =>
-                retVal.ListUnearnedSplits = PaySplits.GetUnearnedForAccount(
-                    fam.GetPatNums().Union(Patients.GetAllFamilyPatNumsForSuperFam(new List<long> {pat.SuperFamily})).ToList()));
+            retVal.ListUnearnedSplits = PaySplits.GetUnearnedForAccount(fam.GetPatNums().Union(Patients.GetAllFamilyPatNumsForSuperFam(new List<long> {pat.SuperFamily})).ToList());
         }); //PaySplits.GetPrepayForFam
-        var refreshRepeatCharges = new Action(() => { Logger.LogAction(() => retVal.ArrRepeatCharges = RepeatCharges.Refresh(pat.PatNum)); }); //RepeatCharges.Refresh
-        var getProgNotesCommLog = new Action(() => { Logger.LogAction(() => retVal.DataSetMain.Tables.Add(GetCommLog(pat, fam))); }); //GetProgNotes / GetCommLog
-        var refreshPatFields = new Action(() => { Logger.LogAction(() => retVal.ArrPatFields = PatFields.Refresh(pat.PatNum)); }); //PatFields.Refresh
+        var refreshRepeatCharges = new Action(() => { retVal.ArrRepeatCharges = RepeatCharges.Refresh(pat.PatNum); }); //RepeatCharges.Refresh
+        var getProgNotesCommLog = new Action(() => { retVal.DataSetMain.Tables.Add(GetCommLog(pat, fam)); }); //GetProgNotes / GetCommLog
+        var refreshPatFields = new Action(() => { retVal.ArrPatFields = PatFields.Refresh(pat.PatNum); }); //PatFields.Refresh
         var dateOrthoLastClaims = new Action(() =>
         {
             if (doGetOrtho)
@@ -113,44 +110,40 @@ public class AccountModules
                 foreach (var patPlan in retVal.ListPatPlans)
                 {
                     var plan = new InsPlan();
-                    Logger.LogAction(() => plan = InsPlans.GetPlan(InsSubs.GetSub(patPlan.InsSubNum, retVal.ListInsSubs).PlanNum, retVal.ListInsPlans));
-                    Logger.LogAction(() => retVal.DictDateLastOrthoClaims.Add(patPlan.PatPlanNum, Claims.GetDateLastOrthoClaim(patPlan, plan.OrthoType)));
+                    plan = InsPlans.GetPlan(InsSubs.GetSub(patPlan.InsSubNum, retVal.ListInsSubs).PlanNum, retVal.ListInsPlans);
+                    retVal.DictDateLastOrthoClaims.Add(patPlan.PatPlanNum, Claims.GetDateLastOrthoClaim(patPlan, plan.OrthoType));
                 }
             }
         }); //InsPlans.GetPlans / DateOrthoLastClaims
-        var refreshClaims = new Action(() => { Logger.LogAction(() => retVal.ListClaims = Claims.Refresh(pat.PatNum)); }); //Claims.Refresh
+        var refreshClaims = new Action(() => { retVal.ListClaims = Claims.Refresh(pat.PatNum); }); //Claims.Refresh
         var claimProcsGetHistList = new Action(() =>
         {
-            Logger.LogAction(() => retVal.HistList = ClaimProcs.GetHistList(pat.PatNum, retVal.ListBenefits, retVal.ListPatPlans
-                , retVal.ListInsPlans, DateTime.Today, retVal.ListInsSubs));
+            retVal.HistList = ClaimProcs.GetHistList(pat.PatNum, retVal.ListBenefits, retVal.ListPatPlans
+                , retVal.ListInsPlans, DateTime.Today, retVal.ListInsSubs);
         }); //ClaimProcs.GetHistList
         var getMisc = new Action(() =>
         {
-            Logger.LogAction(() =>
-                retVal.DataSetMain.Tables.Add(GetMisc(fam, patNum, patientPayPlanDue, dynamicPayPlanDue, balanceForward, StmtType.NotSet, null)));
+                retVal.DataSetMain.Tables.Add(GetMisc(fam, patNum, patientPayPlanDue, dynamicPayPlanDue, balanceForward, StmtType.NotSet, null));
         }); //GetMisc
         var getFamily = new Action(() =>
         {
             //GetFamily is called twice because we need to refresh the family data after running aging.
-            Logger.LogAction(() => retVal.Fam = Patients.GetFamily(patNum)); //have to get family after dataset due to aging calc.
+            retVal.Fam = Patients.GetFamily(patNum); //have to get family after dataset due to aging calc.
         }); //Patients.GetFamily
         var refreshPatPlans = new Action(() =>
         {
-            Logger.LogAction(() =>
+            retVal.ListPatPlans = PatPlans.Refresh(pat.PatNum);
+            if (!PatPlans.IsPatPlanListValid(retVal.ListPatPlans))
             {
+                //PatPlans had invalid references and need to be refreshed.
                 retVal.ListPatPlans = PatPlans.Refresh(pat.PatNum);
-                if (!PatPlans.IsPatPlanListValid(retVal.ListPatPlans))
-                {
-                    //PatPlans had invalid references and need to be refreshed.
-                    retVal.ListPatPlans = PatPlans.Refresh(pat.PatNum);
-                }
-            });
+            }
         }); //PatPlans.Refresh
-        var getDiscountPlan = new Action(() => { Logger.LogAction(() => retVal.DiscountPlan = DiscountPlans.GetForPats(ListTools.FromSingle(patNum)).FirstOrDefault()); });
-        var getDiscountPlanSub = new Action(() => { Logger.LogAction(() => retVal.DiscountPlanSub = DiscountPlanSubs.GetSubForPat(patNum)); });
-        var actGetSuperFamMembers = new Action(() => Logger.LogAction(() => retVal.SuperFamilyMembers = Patients.GetBySuperFamily(pat.SuperFamily)));
-        var actGetSuperFamGuarantors = new Action(() => Logger.LogAction(() => retVal.SuperFamilyGuarantors = Patients.GetSuperFamilyGuarantors(pat.SuperFamily)));
-        var actGetListPatFieldsSuperFam = new Action(() => Logger.LogAction(() => retVal.ListPatFieldsSuperFam = PatFields.GetPatFieldsForSuperFam(retVal.SuperFamilyMembers.ConvertAll(x => x.PatNum).Distinct().ToList())));
+        var getDiscountPlan = new Action(() => { retVal.DiscountPlan = DiscountPlans.GetForPats(ListTools.FromSingle(patNum)).FirstOrDefault(); });
+        var getDiscountPlanSub = new Action(() => { retVal.DiscountPlanSub = DiscountPlanSubs.GetSubForPat(patNum); });
+        var actGetSuperFamMembers = new Action(() => retVal.SuperFamilyMembers = Patients.GetBySuperFamily(pat.SuperFamily));
+        var actGetSuperFamGuarantors = new Action(() => retVal.SuperFamilyGuarantors = Patients.GetSuperFamilyGuarantors(pat.SuperFamily));
+        var actGetListPatFieldsSuperFam = new Action(() => retVal.ListPatFieldsSuperFam = PatFields.GetPatFieldsForSuperFam(retVal.SuperFamilyMembers.ConvertAll(x => x.PatNum).Distinct().ToList()));
 
         #endregion Actions
 
@@ -513,14 +506,9 @@ public class AccountModules
         #region commlog
 
         var listCommLogTypeDefs = Defs.GetDefsForCategory(DefCat.CommLogTypes);
-        var podiumProgramNum = Programs.GetCur(ProgramName.Podium).ProgramNum;
-        var showPodiumCommlogs = SIn.Bool(ProgramProperties.GetPropVal(podiumProgramNum, Podium.PropertyDescs.ShowCommlogsInChartAndAccount));
-        var andNotPodiumCommlog = " AND (commlog.CommSource!=" + SOut.Int((int) CommItemSource.ProgramLink) + " "
-                                  + "OR commlog.ProgramNum!=" + SOut.Long(podiumProgramNum) + ")";
         var command = "SELECT CommDateTime,CommType,Mode_,SentOrReceived,Note,CommlogNum,commlog.PatNum,CommSource "
                       + "FROM commlog "
-                      + "WHERE PatNum IN (" + familyPatNums + ")"
-                      + (showPodiumCommlogs ? "" : andNotPodiumCommlog); //Rows are ordered at the end
+                      + "WHERE PatNum IN (" + familyPatNums + ")"; //Rows are ordered at the end
         var rawComm = dcon.GetTable(command);
         DateTime dateT;
         for (var i = 0; i < rawComm.Rows.Count; i++)
@@ -675,7 +663,6 @@ public class AccountModules
         command = "SELECT DateTimeSheet,SheetNum,SheetType,Description,PatNum "
                   + "FROM sheet "
                   + "WHERE IsDeleted=0 " //Don't show deleted sheets in the Account module Communications Log section.
-                  + "AND SheetType!=" + SOut.Long((int) SheetTypeEnum.Rx) + " " //rx are only accesssible from within Rx edit window.
                   + "AND PatNum IN (" + familyPatNums + ")"; //Rows are ordered at the end
         var rawSheet = dcon.GetTable(command);
         for (var i = 0; i < rawSheet.Rows.Count; i++)
@@ -1544,7 +1531,7 @@ public class AccountModules
             .FindAll(x => !string.IsNullOrEmpty(x.ItemValue))
             .Select(x => x.DefNum).ToList();
         var listWhereClauses = new List<string>();
-        var familyPayPlanNums = String.Join(",", PayPlans.GetForPats(family.ListPats.Select(x => x.PatNum).ToList(), pat.PatNum)
+        var familyPayPlanNums = string.Join(",", PayPlans.GetForPats(family.ListPats.Select(x => x.PatNum).ToList(), pat.PatNum)
             .Select(y => y.PayPlanNum).ToList());
         if (familyPatNums != "")
         {
@@ -2339,7 +2326,7 @@ public class AccountModules
                 var listSuperFamilyMembers = Patients.GetBySuperFamily(statement.SuperFamily);
                 if (statement.IsInvoice)
                 {
-                    patnums = String.Join(",", listSuperFamilyMembers.Select(x => SOut.Long(x.PatNum)));
+                    patnums = string.Join(",", listSuperFamilyMembers.Select(x => SOut.Long(x.PatNum)));
                 }
 
                 listFamilyMembers = listSuperFamilyMembers;
@@ -3967,7 +3954,7 @@ public class AccountModules
         if (listInProcessProcs.Count > 0)
         {
             claimError = StringTools.AppendLine(claimError, Lans.g("ContrAccount", "Not allowed to send procedures which are currently in process.\r\nProcs: ")
-                                                            + String.Join(",", ProcedureCodes.GetCodesForCodeNums(listInProcessProcs.Select(x => x.CodeNum).ToList()).Select(x => x.ProcCode)));
+                                                            + string.Join(",", ProcedureCodes.GetCodesForCodeNums(listInProcessProcs.Select(x => x.CodeNum).ToList()).Select(x => x.ProcCode)));
             //This claimError is not intended to persist outside this method except as part of subsequenct claimError.
             claim.ClaimStatus = "I";
         }
@@ -4135,14 +4122,14 @@ public class AccountModules
         for (var i = 0; i < listProcs.Count; i++)
         {
             proc = listProcs[i];
-            if (!Providers.GetIsSec(proc.ProvNum))
+            if (!Providers.IsSecondary(proc.ProvNum))
             {
                 //if not a hygienist
                 claim.ProvTreat = proc.ProvNum;
             }
         }
 
-        if (Providers.GetIsSec(claim.ProvTreat))
+        if (Providers.IsSecondary(claim.ProvTreat))
         {
             claim.ProvTreat = pat.PriProv;
             //OK if 0, because auto select first in list when open claim
@@ -4161,10 +4148,10 @@ public class AccountModules
         //	clinicInsBillingProv=Clinics.GetClinic(ClaimCur.ClinicNum).InsBillingProv;
         //}
         claim.ProvBill = Providers.GetBillingProvNum(claim.ProvTreat, claim.ClinicNum); //,useClinic,clinicInsBillingProv);//OK if zero, because it will get fixed in claim
-        var prov = Providers.GetProv(claim.ProvTreat);
-        if (prov.ProvNumBillingOverride != 0)
+        var prov = Providers.GetById(claim.ProvTreat);
+        if (prov.BillingProvider is not null)
         {
-            claim.ProvBill = prov.ProvNumBillingOverride;
+            claim.ProvBill = prov.BillingProvider.Id;
         }
 
         claim.EmployRelated = YN.No;
@@ -4279,7 +4266,7 @@ public class AccountModules
                         {
                             claim.OrthoTotalM = 255;
                         }
-                        else if (!Byte.TryParse(patNote.OrthoMonthsTreatOverride.ToString(), out claim.OrthoTotalM))
+                        else if (!byte.TryParse(patNote.OrthoMonthsTreatOverride.ToString(), out claim.OrthoTotalM))
                         {
                             claim.OrthoTotalM = PrefC.GetByte(PrefName.OrthoDefaultMonthsTreat);
                         }

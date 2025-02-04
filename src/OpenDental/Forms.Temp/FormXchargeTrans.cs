@@ -4,7 +4,6 @@ using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Entities;
 using OpenDentBusiness;
-using OpenDental.Bridges;
 
 namespace OpenDental;
 

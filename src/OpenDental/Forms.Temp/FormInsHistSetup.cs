@@ -165,7 +165,7 @@ public partial class FormInsHistSetup:FormODBase {
 		try {
 			textBox.Text=DateTime.Parse(textBox.Text).ToString("d");//will throw exception if invalid
 		}
-		catch(Exception ex) {
+		catch {
 			//We don't want a full exception, just a popup.  OK_Click will block them from putting invalid data in the db.
 			MsgBox.Show(this,"Invalid date.");
 			return;
@@ -217,7 +217,7 @@ public partial class FormInsHistSetup:FormODBase {
 			try {
 				Procedures.Delete(listProceduresToDelete[i].ProcNum);
 			}
-			catch(Exception ex) {
+			catch {
 				//Tried deleting the procedure. Do nothing. 
 			}
 		}

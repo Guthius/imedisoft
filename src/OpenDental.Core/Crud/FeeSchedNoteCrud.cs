@@ -11,18 +11,19 @@ public class FeeSchedNoteCrud
     public static List<FeeSchedNote> TableToList(DataTable table)
     {
         var retVal = new List<FeeSchedNote>();
-        FeeSchedNote feeSchedNote;
         foreach (DataRow row in table.Rows)
         {
-            feeSchedNote = new FeeSchedNote();
-            feeSchedNote.FeeSchedNoteNum = SIn.Long(row["FeeSchedNoteNum"].ToString());
-            feeSchedNote.FeeSchedNum = SIn.Long(row["FeeSchedNum"].ToString());
-            feeSchedNote.ClinicNums = SIn.String(row["ClinicNums"].ToString());
-            feeSchedNote.Note = SIn.String(row["Note"].ToString());
-            feeSchedNote.DateEntry = SIn.Date(row["DateEntry"].ToString());
-            feeSchedNote.SecUserNumEntry = SIn.Long(row["SecUserNumEntry"].ToString());
-            feeSchedNote.SecDateEntry = SIn.Date(row["SecDateEntry"].ToString());
-            feeSchedNote.SecDateTEdit = SIn.DateTime(row["SecDateTEdit"].ToString());
+            var feeSchedNote = new FeeSchedNote
+            {
+                FeeSchedNoteNum = SIn.Long(row["FeeSchedNoteNum"].ToString()),
+                FeeSchedNum = SIn.Long(row["FeeSchedNum"].ToString()),
+                ClinicNums = SIn.String(row["ClinicNums"].ToString()),
+                Note = SIn.String(row["Note"].ToString()),
+                DateEntry = SIn.Date(row["DateEntry"].ToString()),
+                SecUserNumEntry = SIn.Long(row["SecUserNumEntry"].ToString()),
+                SecDateEntry = SIn.Date(row["SecDateEntry"].ToString()),
+                SecDateTEdit = SIn.DateTime(row["SecDateTEdit"].ToString())
+            };
             retVal.Add(feeSchedNote);
         }
 

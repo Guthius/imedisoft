@@ -18,14 +18,15 @@ public class TreatPlanAttachCrud
     public static List<TreatPlanAttach> TableToList(DataTable table)
     {
         var retVal = new List<TreatPlanAttach>();
-        TreatPlanAttach treatPlanAttach;
         foreach (DataRow row in table.Rows)
         {
-            treatPlanAttach = new TreatPlanAttach();
-            treatPlanAttach.TreatPlanAttachNum = SIn.Long(row["TreatPlanAttachNum"].ToString());
-            treatPlanAttach.TreatPlanNum = SIn.Long(row["TreatPlanNum"].ToString());
-            treatPlanAttach.ProcNum = SIn.Long(row["ProcNum"].ToString());
-            treatPlanAttach.Priority = SIn.Long(row["Priority"].ToString());
+            var treatPlanAttach = new TreatPlanAttach
+            {
+                TreatPlanAttachNum = SIn.Long(row["TreatPlanAttachNum"].ToString()),
+                TreatPlanNum = SIn.Long(row["TreatPlanNum"].ToString()),
+                ProcNum = SIn.Long(row["ProcNum"].ToString()),
+                Priority = SIn.Long(row["Priority"].ToString())
+            };
             retVal.Add(treatPlanAttach);
         }
 
@@ -95,15 +96,13 @@ public class TreatPlanAttachCrud
         var idxNew = 0;
         var idxDB = 0;
         var rowsUpdatedCount = 0;
-        TreatPlanAttach fieldNew;
-        TreatPlanAttach fieldDB;
         //Because both lists have been sorted using the same criteria, we can now walk each list to determine which list contians the next element.  The next element is determined by Primary Key.
         //If the New list contains the next item it will be inserted.  If the DB contains the next item, it will be deleted.  If both lists contain the next item, the item will be updated.
         while (idxNew < listNew.Count || idxDB < listDB.Count)
         {
-            fieldNew = null;
+            TreatPlanAttach fieldNew = null;
             if (idxNew < listNew.Count) fieldNew = listNew[idxNew];
-            fieldDB = null;
+            TreatPlanAttach fieldDB = null;
             if (idxDB < listDB.Count) fieldDB = listDB[idxDB];
             //begin compare
             if (fieldNew != null && fieldDB == null)

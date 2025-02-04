@@ -17,21 +17,22 @@ public class ClaimFormCrud
     public static List<ClaimForm> TableToList(DataTable table)
     {
         var retVal = new List<ClaimForm>();
-        ClaimForm claimForm;
         foreach (DataRow row in table.Rows)
         {
-            claimForm = new ClaimForm();
-            claimForm.ClaimFormNum = SIn.Long(row["ClaimFormNum"].ToString());
-            claimForm.Description = SIn.String(row["Description"].ToString());
-            claimForm.IsHidden = SIn.Bool(row["IsHidden"].ToString());
-            claimForm.FontName = SIn.String(row["FontName"].ToString());
-            claimForm.FontSize = SIn.Float(row["FontSize"].ToString());
-            claimForm.UniqueID = SIn.String(row["UniqueID"].ToString());
-            claimForm.PrintImages = SIn.Bool(row["PrintImages"].ToString());
-            claimForm.OffsetX = SIn.Int(row["OffsetX"].ToString());
-            claimForm.OffsetY = SIn.Int(row["OffsetY"].ToString());
-            claimForm.Width = SIn.Int(row["Width"].ToString());
-            claimForm.Height = SIn.Int(row["Height"].ToString());
+            var claimForm = new ClaimForm
+            {
+                ClaimFormNum = SIn.Long(row["ClaimFormNum"].ToString()),
+                Description = SIn.String(row["Description"].ToString()),
+                IsHidden = SIn.Bool(row["IsHidden"].ToString()),
+                FontName = SIn.String(row["FontName"].ToString()),
+                FontSize = SIn.Float(row["FontSize"].ToString()),
+                UniqueID = SIn.String(row["UniqueID"].ToString()),
+                PrintImages = SIn.Bool(row["PrintImages"].ToString()),
+                OffsetX = SIn.Int(row["OffsetX"].ToString()),
+                OffsetY = SIn.Int(row["OffsetY"].ToString()),
+                Width = SIn.Int(row["Width"].ToString()),
+                Height = SIn.Int(row["Height"].ToString())
+            };
             retVal.Add(claimForm);
         }
 
@@ -58,7 +59,7 @@ public class ClaimFormCrud
         return table;
     }
 
-    public static long Insert(ClaimForm claimForm)
+    public static void Insert(ClaimForm claimForm)
     {
         var command = "INSERT INTO claimform (";
 
@@ -78,7 +79,6 @@ public class ClaimFormCrud
         {
             claimForm.ClaimFormNum = Db.NonQ(command, true, "ClaimFormNum", "claimForm");
         }
-        return claimForm.ClaimFormNum;
     }
 
     public static void Update(ClaimForm claimForm)

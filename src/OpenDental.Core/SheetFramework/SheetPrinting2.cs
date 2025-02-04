@@ -5,54 +5,52 @@ using System.Data;
 using System.Drawing;
 using System.Drawing.Printing;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
-using DataConnectionBase;
 using Imedisoft.Core.Entities;
 
-namespace OpenDentBusiness{
-	public class SheetPrinting{
-		private static Margins _printMargin=new Margins(0,0,40,60);//jordan static only because it's an unchanging val.
+namespace OpenDentBusiness;
 
-		#region Methods - Drawing
-		public static void DrawFieldSpecial(Sheet sheet,SheetField field,Graphics g,XGraphics gx,int yPosPrint) {
-			switch(field.FieldName) {
-				case "toothChart":
-					Image toothChart=(Image)SheetParameter.GetParamByName(sheet.Parameters,"toothChartImg").ParamValue;
-					DrawScaledImage(field.XPos,field.YPos-yPosPrint,field.Width,field.Height,g,gx,toothChart);
-					break;
-				case "toothChartLegend":
-					List<Def> listDefs=Defs.GetDefsForCategory(DefCat.ChartGraphicColors,true);
-					DrawToothChartLegend(field.XPos,field.YPos,sheet.Width,yPosPrint,listDefs,g,gx,isInDashboard:false,scaleMS:1);
-					break;
-				default:
-					//do nothing
-					break;
-			}
+public class SheetPrinting{
+	private static Margins _printMargin=new Margins(0,0,40,60);//jordan static only because it's an unchanging val.
+
+	#region Methods - Drawing
+	public static void DrawFieldSpecial(Sheet sheet,SheetField field,Graphics g,XGraphics gx,int yPosPrint) {
+		switch(field.FieldName) {
+			case "toothChart":
+				var toothChart=(Image)SheetParameter.GetParamByName(sheet.Parameters,"toothChartImg").ParamValue;
+				DrawScaledImage(field.XPos,field.YPos-yPosPrint,field.Width,field.Height,g,gx,toothChart);
+				break;
+			case "toothChartLegend":
+				var listDefs=Defs.GetDefsForCategory(DefCat.ChartGraphicColors,true);
+				DrawToothChartLegend(field.XPos,field.YPos,sheet.Width,yPosPrint,listDefs,g,gx,isInDashboard:false,scaleMS:1);
+				break;
+			default:
+				//do nothing
+				break;
 		}
+	}
 
-		///<summary>Uses dimension parameters to scale and draw an image within their bounds.</summary>
-		public static Rectangle DrawScaledImage(int x,int y,int width,int height,Graphics g,XGraphics gx,Image img) {
-			Rectangle rectBoundingBox=GetBoundingBox(x,y,width,height,img.Width,img.Height);
-			if(gx==null) {
-				g.DrawImage(img,rectBoundingBox);
-			}
-			else {
-				gx.DrawImage(XImage.FromGdiPlusImage(img)
-					,new Rectangle((int)p(rectBoundingBox.X),(int)p(rectBoundingBox.Y),(int)p(rectBoundingBox.Width),(int)p(rectBoundingBox.Height)));
-			}
-			return rectBoundingBox;
+	///<summary>Uses dimension parameters to scale and draw an image within their bounds.</summary>
+	public static Rectangle DrawScaledImage(int x,int y,int width,int height,Graphics g,XGraphics gx,Image img) {
+		var rectBoundingBox=GetBoundingBox(x,y,width,height,img.Width,img.Height);
+		if(gx==null) {
+			g.DrawImage(img,rectBoundingBox);
 		}
+		else {
+			gx.DrawImage(XImage.FromGdiPlusImage(img)
+				,new Rectangle((int)p(rectBoundingBox.X),(int)p(rectBoundingBox.Y),(int)p(rectBoundingBox.Width),(int)p(rectBoundingBox.Height)));
+		}
+		return rectBoundingBox;
+	}
 
-		///<summary>Draws the legend for the toothchart using the supplied dimesions, definitions, and graphics. Pass in scaleMS of 1 if not drawing to screen.</summary>
-		public static void DrawToothChartLegend(int x,int y,int width,int yPosPrint,List<Def> listDefs,Graphics g,XGraphics gx,bool isInDashboard,float scaleMS) {
-			using(Brush brushEx=new SolidBrush(listDefs[3].ItemColor))
-			using(Brush brushEc=new SolidBrush(listDefs[2].ItemColor))
-			using(Brush brushCo=new SolidBrush(listDefs[1].ItemColor))
-			using(Brush brushRo=new SolidBrush(listDefs[4].ItemColor))
-			using(Brush brushTp=new SolidBrush(listDefs[0].ItemColor))
-			using(Font bodyFont=new Font("Arial",9f/scaleMS,FontStyle.Regular,GraphicsUnit.Point))
+	///<summary>Draws the legend for the toothchart using the supplied dimesions, definitions, and graphics. Pass in scaleMS of 1 if not drawing to screen.</summary>
+	public static void DrawToothChartLegend(int x,int y,int width,int yPosPrint,List<Def> listDefs,Graphics g,XGraphics gx,bool isInDashboard,float scaleMS) {
+		using(Brush brushEx=new SolidBrush(listDefs[3].ItemColor))
+		using(Brush brushEc=new SolidBrush(listDefs[2].ItemColor))
+		using(Brush brushCo=new SolidBrush(listDefs[1].ItemColor))
+		using(Brush brushRo=new SolidBrush(listDefs[4].ItemColor))
+		using(Brush brushTp=new SolidBrush(listDefs[0].ItemColor))
+		using(var bodyFont=new Font("Arial",9f/scaleMS,FontStyle.Regular,GraphicsUnit.Point))
 			if(gx==null) {
 				float yPos=y-yPosPrint;
 				float xPos;
@@ -62,11 +60,11 @@ namespace OpenDentBusiness{
 				else {
 					//Always centered on page.
 					xPos=0.5f*(width-
-														(TextRenderer.MeasureText(Lans.g("ContrTreat","Existing"),bodyFont).Width
-														+TextRenderer.MeasureText(Lans.g("ContrTreat","Complete"),bodyFont).Width
-														+TextRenderer.MeasureText(Lans.g("ContrTreat","Referred Out"),bodyFont).Width
-														+TextRenderer.MeasureText(Lans.g("ContrTreat","Treatment Planned"),bodyFont).Width
-														+123)); //inter-field spacing
+					           (TextRenderer.MeasureText(Lans.g("ContrTreat","Existing"),bodyFont).Width
+					            +TextRenderer.MeasureText(Lans.g("ContrTreat","Complete"),bodyFont).Width
+					            +TextRenderer.MeasureText(Lans.g("ContrTreat","Referred Out"),bodyFont).Width
+					            +TextRenderer.MeasureText(Lans.g("ContrTreat","Treatment Planned"),bodyFont).Width
+					            +123)); //inter-field spacing
 				}
 				g.FillRectangle(Brushes.White,new Rectangle((int)xPos,y-yPosPrint,width-2*(int)xPos+10,14)); //buffer the image for smooth drawing.
 				//Existing
@@ -102,11 +100,11 @@ namespace OpenDentBusiness{
 				else {
 					//Always centered on page.
 					xPos=0.5f*(width-
-							          (TextRenderer.MeasureText(Lans.g("ContrTreat","Existing"),bodyFont).Width
-							          +TextRenderer.MeasureText(Lans.g("ContrTreat","Complete"),bodyFont).Width
-							          +TextRenderer.MeasureText(Lans.g("ContrTreat","Referred Out"),bodyFont).Width
-							          +TextRenderer.MeasureText(Lans.g("ContrTreat","Treatment Planned"),bodyFont).Width
-							          +123)); //inter-field spacing
+					           (TextRenderer.MeasureText(Lans.g("ContrTreat","Existing"),bodyFont).Width
+					            +TextRenderer.MeasureText(Lans.g("ContrTreat","Complete"),bodyFont).Width
+					            +TextRenderer.MeasureText(Lans.g("ContrTreat","Referred Out"),bodyFont).Width
+					            +TextRenderer.MeasureText(Lans.g("ContrTreat","Treatment Planned"),bodyFont).Width
+					            +123)); //inter-field spacing
 				}
 				gx.DrawRectangle(XBrushes.White,new RectangleF((float)p(xPos),(float)p(y-yPosPrint),(float)p(width-2*xPos+10),(float)p(14))); //buffer the image for smooth drawing.
 				//Existing
@@ -134,142 +132,141 @@ namespace OpenDentBusiness{
 					new RectangleF(xPos+16,yPos-1,TextRenderer.MeasureText(Lans.g("ContrTreat","Treatment Planned"),bodyFont).Width,14),HorizontalAlignment.Left);
 				//gx.DrawString(Lans.g("ContrTreat","Treatment Planned"),bodyFontX,Brushes.Black,p(xPos+16),p(yPos));
 			}
-		}
-
-		public static Rectangle GetBoundingBox(int xPos,int yPos,int fieldWidth,int fieldHeight,int contrWidth,int contrHeight) {
-			Rectangle boundingBox=new Rectangle(xPos,yPos,fieldWidth,fieldHeight);
-			float widthFactor=(float)boundingBox.Width/(float)contrWidth;
-			float heightFactor=(float)boundingBox.Height/(float)contrHeight;
-			int x,y,width,height;
-			if(widthFactor<heightFactor) {
-				//use width factor
-				//img width will equal box width
-				//offset height.
-				x=xPos;
-				y=yPos+(fieldHeight-(int)(contrHeight*widthFactor))/2;
-				height=(int)(contrHeight*widthFactor);
-				width=fieldWidth+1; //+1 to include the pixels
-			}
-			else {
-				//use height factor
-				//img height will equal box height
-				//offset width
-				x=xPos+(fieldWidth-(int)(contrWidth*heightFactor))/2;
-				y=yPos;
-				height=fieldHeight+1;
-				width=(int)(contrWidth*heightFactor);
-			}
-			return new Rectangle(x,y,width,height);
-		}
-		#endregion Methods - Drawing
-
-		#region Methods - Public
-		public static int CompareProcListFiltered(Procedure proc1,Procedure proc2) {
-			if(proc1.ProcDate!=proc2.ProcDate) {
-				return proc1.ProcDate.CompareTo(proc2.ProcDate);
-			}
-			return GetProcStatusIdx(proc1.ProcStatus).CompareTo(GetProcStatusIdx(proc2.ProcStatus));
-		}
-
-		///<summary>Returns a subset of listProceduresAll based on ProcStatus and treatPlan data.</summary>
-		public static List<Procedure> FilterProceduresForToothChart(List<Procedure> listProceduresAll,TreatPlan treatPlan,bool showCompleted) {
-			if(listProceduresAll==null) {
-				return null;
-			}
-			//always show referred and conditions
-			List<Procedure> listProceduresFiltered=listProceduresAll.FindAll(x => new[] { ProcStat.R,ProcStat.Cn }.Contains(x.ProcStatus));
-			if(showCompleted) {
-				listProceduresFiltered.AddRange(listProceduresAll.FindAll(x => new[] {ProcStat.C,ProcStat.EC,ProcStat.EO}.Contains(x.ProcStatus)));//show complete
-			}
-			if(treatPlan!=null) {
-				foreach(ProcTP procTP in treatPlan.ListProcTPs) {//Add procs for TP.
-					Procedure procDummy=listProceduresAll.FirstOrDefault(x => x.ProcNum==procTP.ProcNumOrig)??new Procedure();
-					if(Tooth.IsValidEntry(procTP.ToothNumTP)) {
-						procDummy.ToothNum=Tooth.Parse(procTP.ToothNumTP);
-					}
-					if(ProcedureCodes.GetProcCode(procTP.ProcCode).TreatArea==TreatmentArea.Surf) {
-						procDummy.Surf=Tooth.SurfTidyFromDisplayToDb(procTP.Surf,procDummy.ToothNum);
-					}
-					else {
-						procDummy.Surf=procTP.Surf;//for quad, arch, etc.
-					}
-					if(procDummy.ToothRange==null) {
-						procDummy.ToothRange="";
-					}
-					procDummy.ProcStatus=ProcStat.TP;
-					procDummy.CodeNum=ProcedureCodes.GetProcCode(procTP.ProcCode).CodeNum;
-					listProceduresFiltered.Add(procDummy);
-				}
-			}
-			return listProceduresFiltered;
-		}
-
-		///<summary>Creates a file where fullFileName is a local path. If fullFileName is in the A to Z folder, pass in fullFileName as a temp file and then upload that file to the cloud.</summary>
-		public static PdfDocument CreatePdf(Sheet sheet,string fullFileName,Statement stmt,DataSet dataSet,MedLab medLab,Patient pat=null,Patient patGuar=null,bool doSave=true)
-		{
-			SheetDrawingJob sheetDrawingJob=new SheetDrawingJob();
-			PdfDocument pdf=sheetDrawingJob.CreatePdf(sheet,stmt,medLab,dataSet,pat,patGuar);
-			if (doSave) {
-				SheetDrawingJob.SavePdfToFile(pdf,fullFileName);
-			}
-			return pdf;
-		}
-
-		///<summary>Returns index for sorting based on this order: Cn,TP,R,EO,EC,C,D</summary>
-		private static int GetProcStatusIdx(ProcStat procStat) {
-			switch(procStat) {
-				case ProcStat.Cn:
-					return 0;
-				case ProcStat.TP:
-					return 1;
-				case ProcStat.R:
-					return 2;
-				case ProcStat.EO:
-					return 3;
-				case ProcStat.EC:
-					return 4;
-				case ProcStat.C:
-					return 5;
-				case ProcStat.D:
-					return 6;
-			}
-			return 0;
-		}
-		#endregion Methods - Public
-
-		#region Methods - Private
-		///<summary>Deprecated: See GraphicsHelper.PixelsToPoints().  Converts pixels used by us to points used by PdfSharp.</summary>
-		private static double p(int pixels){
-			XUnit xunit=XUnit.FromInch((double)pixels/100d);//100 ppi
-			return xunit.Point;
-			//XUnit.FromInch((double)pixels/100);
-		}
-
-		///<summary>Deprecated: See GraphicsHelper.PixelsToPoints().  Converts pixels used by us to points used by PdfSharp.</summary>
-		private static double p(float pixels){
-			XUnit xunit=XUnit.FromInch((double)pixels/100d);//100 ppi
-			return xunit.Point;
-		}
-		#endregion Methods - Private
-
-		///<summary>Calculates the bottom of the current page assuming a 40px top margin (except for MedLabResults sheets which have a 120 top margin) and 60px bottom margin.</summary>
-		public static int BottomCurPage(int yPos,Sheet sheet,out int pageCount) {
-			Sheets.SetPageMargin(sheet,_printMargin);
-			pageCount=Sheets.CalculatePageCount(sheet,_printMargin);
-			if(pageCount==1 && sheet.SheetType!=SheetTypeEnum.MedLabResults) {
-				return sheet.HeightPage;
-			}
-			int retVal=sheet.HeightPage-_printMargin.Bottom;//First page bottom is not changed by top margin. Example: 1100px page height, 60px bottom, 1040px is first page bottom
-			pageCount=1;
-			while(retVal<yPos){
-				pageCount++;
-				//each page bottom after the first, 1040px is first page break+1100px page height-top margin-bottom margin=2040px if top is 40px, 1960 if top is 120px
-				retVal+=sheet.HeightPage-_printMargin.Bottom-_printMargin.Top;
-			}
-			return retVal;
-		}
-
-
-
 	}
+
+	public static Rectangle GetBoundingBox(int xPos,int yPos,int fieldWidth,int fieldHeight,int contrWidth,int contrHeight) {
+		var boundingBox=new Rectangle(xPos,yPos,fieldWidth,fieldHeight);
+		var widthFactor=(float)boundingBox.Width/(float)contrWidth;
+		var heightFactor=(float)boundingBox.Height/(float)contrHeight;
+		int x,y,width,height;
+		if(widthFactor<heightFactor) {
+			//use width factor
+			//img width will equal box width
+			//offset height.
+			x=xPos;
+			y=yPos+(fieldHeight-(int)(contrHeight*widthFactor))/2;
+			height=(int)(contrHeight*widthFactor);
+			width=fieldWidth+1; //+1 to include the pixels
+		}
+		else {
+			//use height factor
+			//img height will equal box height
+			//offset width
+			x=xPos+(fieldWidth-(int)(contrWidth*heightFactor))/2;
+			y=yPos;
+			height=fieldHeight+1;
+			width=(int)(contrWidth*heightFactor);
+		}
+		return new Rectangle(x,y,width,height);
+	}
+	#endregion Methods - Drawing
+
+	#region Methods - Public
+	public static int CompareProcListFiltered(Procedure proc1,Procedure proc2) {
+		if(proc1.ProcDate!=proc2.ProcDate) {
+			return proc1.ProcDate.CompareTo(proc2.ProcDate);
+		}
+		return GetProcStatusIdx(proc1.ProcStatus).CompareTo(GetProcStatusIdx(proc2.ProcStatus));
+	}
+
+	///<summary>Returns a subset of listProceduresAll based on ProcStatus and treatPlan data.</summary>
+	public static List<Procedure> FilterProceduresForToothChart(List<Procedure> listProceduresAll,TreatPlan treatPlan,bool showCompleted) {
+		if(listProceduresAll==null) {
+			return null;
+		}
+		//always show referred and conditions
+		var listProceduresFiltered=listProceduresAll.FindAll(x => new[] { ProcStat.R,ProcStat.Cn }.Contains(x.ProcStatus));
+		if(showCompleted) {
+			listProceduresFiltered.AddRange(listProceduresAll.FindAll(x => new[] {ProcStat.C,ProcStat.EC,ProcStat.EO}.Contains(x.ProcStatus)));//show complete
+		}
+		if(treatPlan!=null) {
+			foreach(var procTP in treatPlan.ListProcTPs) {//Add procs for TP.
+				var procDummy=listProceduresAll.FirstOrDefault(x => x.ProcNum==procTP.ProcNumOrig)??new Procedure();
+				if(Tooth.IsValidEntry(procTP.ToothNumTP)) {
+					procDummy.ToothNum=Tooth.Parse(procTP.ToothNumTP);
+				}
+				if(ProcedureCodes.GetProcCode(procTP.ProcCode).TreatArea==TreatmentArea.Surf) {
+					procDummy.Surf=Tooth.SurfTidyFromDisplayToDb(procTP.Surf,procDummy.ToothNum);
+				}
+				else {
+					procDummy.Surf=procTP.Surf;//for quad, arch, etc.
+				}
+				if(procDummy.ToothRange==null) {
+					procDummy.ToothRange="";
+				}
+				procDummy.ProcStatus=ProcStat.TP;
+				procDummy.CodeNum=ProcedureCodes.GetProcCode(procTP.ProcCode).CodeNum;
+				listProceduresFiltered.Add(procDummy);
+			}
+		}
+		return listProceduresFiltered;
+	}
+
+	///<summary>Creates a file where fullFileName is a local path. If fullFileName is in the A to Z folder, pass in fullFileName as a temp file and then upload that file to the cloud.</summary>
+	public static PdfDocument CreatePdf(Sheet sheet,string fullFileName,Statement stmt,DataSet dataSet,Patient pat=null,Patient patGuar=null,bool doSave=true)
+	{
+		var sheetDrawingJob=new SheetDrawingJob();
+		var pdf=sheetDrawingJob.CreatePdf(sheet,stmt,dataSet,pat,patGuar);
+		if (doSave) {
+			SheetDrawingJob.SavePdfToFile(pdf,fullFileName);
+		}
+		return pdf;
+	}
+
+	///<summary>Returns index for sorting based on this order: Cn,TP,R,EO,EC,C,D</summary>
+	private static int GetProcStatusIdx(ProcStat procStat) {
+		switch(procStat) {
+			case ProcStat.Cn:
+				return 0;
+			case ProcStat.TP:
+				return 1;
+			case ProcStat.R:
+				return 2;
+			case ProcStat.EO:
+				return 3;
+			case ProcStat.EC:
+				return 4;
+			case ProcStat.C:
+				return 5;
+			case ProcStat.D:
+				return 6;
+		}
+		return 0;
+	}
+	#endregion Methods - Public
+
+	#region Methods - Private
+	///<summary>Deprecated: See GraphicsHelper.PixelsToPoints().  Converts pixels used by us to points used by PdfSharp.</summary>
+	private static double p(int pixels){
+		var xunit=XUnit.FromInch((double)pixels/100d);//100 ppi
+		return xunit.Point;
+		//XUnit.FromInch((double)pixels/100);
+	}
+
+	///<summary>Deprecated: See GraphicsHelper.PixelsToPoints().  Converts pixels used by us to points used by PdfSharp.</summary>
+	private static double p(float pixels){
+		var xunit=XUnit.FromInch((double)pixels/100d);//100 ppi
+		return xunit.Point;
+	}
+	#endregion Methods - Private
+
+	///<summary>Calculates the bottom of the current page assuming a 40px top margin (except for MedLabResults sheets which have a 120 top margin) and 60px bottom margin.</summary>
+	public static int BottomCurPage(int yPos,Sheet sheet,out int pageCount) {
+		Sheets.SetPageMargin(sheet,_printMargin);
+		pageCount=Sheets.CalculatePageCount(sheet,_printMargin);
+		if(pageCount==1 && sheet.SheetType!=SheetTypeEnum.MedLabResults) {
+			return sheet.HeightPage;
+		}
+		var retVal=sheet.HeightPage-_printMargin.Bottom;//First page bottom is not changed by top margin. Example: 1100px page height, 60px bottom, 1040px is first page bottom
+		pageCount=1;
+		while(retVal<yPos){
+			pageCount++;
+			//each page bottom after the first, 1040px is first page break+1100px page height-top margin-bottom margin=2040px if top is 40px, 1960 if top is 120px
+			retVal+=sheet.HeightPage-_printMargin.Bottom-_printMargin.Top;
+		}
+		return retVal;
+	}
+
+
+
 }

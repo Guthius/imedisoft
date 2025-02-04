@@ -1,9 +1,7 @@
 using System;
 using System.Diagnostics;
 using System.Drawing;
-using System.Collections;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Linq;
 using System.IO;
 using System.Threading;
@@ -147,10 +145,6 @@ public partial class FormImageSelectClaimAttach:FormODBase {
 	///<summary>Sets ClaimAttachNew to the passed in document and closes the form. Will show a popup message and return if there are any errors 
 	///with trying to save the passed in document.</summary>
 	private void SaveAttachment(Document document){
-		if(false) {
-			MsgBox.Show(this,"Error. Not using AtoZ images folder.");
-			return;
-		}
 		var patientfolder=ImageStore.GetPatientFolder(_patient,ImageStore.GetDataFolder());
 		if(!ImageHelper.HasImageExtension(document.FileName)){
 			if(CanAttachTxt && Path.GetExtension(document.FileName).ToLower()==".txt") {
@@ -184,10 +178,6 @@ public partial class FormImageSelectClaimAttach:FormODBase {
 		            +Path.GetExtension(oldPath);
 		var attachPath=EmailAttaches.GetAttachPath();
 		var newPath=ODFileUtils.CombinePaths(attachPath,newName);
-		if(false) {
-			oldPath=oldPath.Replace("\\","/");
-			newPath=newPath.Replace("\\","/");
-		}
 		if(!ImageHelper.HasImageExtension(oldPath)) {
 			try {
 				File.Copy(oldPath,newPath); 
@@ -226,24 +216,11 @@ public partial class FormImageSelectClaimAttach:FormODBase {
 			return;
 		}
 		//this does result in a significantly larger images size if jpg.  A later optimization would recompress it.
-		Bitmap bitmapold=null;
-		if(false) {
-			bitmapold=(Bitmap)Image.FromFile(oldPath);  
-			var bitmapnew=ImageHelper.ApplyDocumentSettingsToImage(document,bitmapold,ImageSettingFlags.ALL);
-			bitmapnew.Save(newPath); 
-			ClaimAttachNew=new ClaimAttach();
-			ClaimAttachNew.DisplayedFileName=document.FileName;
-			ClaimAttachNew.ActualFileName=newName;
-			DialogResult=DialogResult.OK;
-			return;
-		}
-		if(!false) {
-			ClaimAttachNew=new ClaimAttach();
-			ClaimAttachNew.DisplayedFileName=document.FileName;
-			ClaimAttachNew.ActualFileName=newName;
-			DialogResult=DialogResult.OK;
-			return;
-		}
+		ClaimAttachNew=new ClaimAttach();
+		ClaimAttachNew.DisplayedFileName=document.FileName;
+		ClaimAttachNew.ActualFileName=newName;
+		DialogResult=DialogResult.OK;
+		return;
 		//IsCloudStorage from here down--------------------------------------------------------------------
 		//First, download the file. 
 	}
@@ -464,13 +441,9 @@ public partial class FormImageSelectClaimAttach:FormODBase {
 		}
 	}
 
-	private void butSnipTool_Click(object sender,EventArgs e) {
-		if(/* ODEnvironment.IsCloudServer */ false) {
-			ODProgress.ShowAction(()=>StartSnipping(),"Opening snipping tool...");
-		}
-		else {
-			StartSnipping();
-		}
+	private void butSnipTool_Click(object sender,EventArgs e)
+	{
+		StartSnipping();
 	}
 
 	private void gridMain_CellDoubleClick(object sender,ODGridClickEventArgs e) {

@@ -1,17 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Data;
-using System.Reflection;
+﻿using System.Data;
 using DataConnectionBase;
 
 namespace OpenDentBusiness {
 	public class RpPrescriptions {
 		
 		public static DataTable GetPrescriptionTable(bool isRadioPatient, string inputText) {
-			string query="SELECT CONCAT(CONCAT(CONCAT(CONCAT(patient.LName,', '),patient.FName),"+
-				"' '),patient.MiddleI),rxpat.rxdate,"
-				+"rxpat.drug,rxpat.sig,rxpat.disp,provider.abbr FROM patient,rxpat,provider "
-				+"WHERE patient.patnum=rxpat.patnum AND provider.provnum=rxpat.provnum ";
+			var query="SELECT CONCAT(CONCAT(CONCAT(CONCAT(patient.LName,', '),patient.FName),"+
+			          "' '),patient.MiddleI),rxpat.rxdate,"
+			          +"rxpat.drug,rxpat.sig,rxpat.disp,provider.abbr FROM patient,rxpat,provider "
+			          +"WHERE patient.patnum=rxpat.patnum AND provider.provnum=rxpat.provnum ";
 			if(isRadioPatient){
 				query+="AND patient.lname like '"+SOut.String(inputText)+"%'"
 	        +" ORDER BY patient.lname,patient.fname,rxpat.rxdate";		
@@ -20,7 +17,7 @@ namespace OpenDentBusiness {
 				query+="AND rxpat.drug like '"+SOut.String(inputText)+"%'"
 			    +" ORDER BY patient.lname,rxpat.drug,rxpat.rxdate";
 			}
-			return ReportsComplex.GetTable(query);
+			return DataCore.GetTable(query);
 		}	
 	}
 

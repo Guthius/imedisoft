@@ -1,10 +1,7 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Drawing;
-using System.Data;
-using System.Text;
 using System.Text.RegularExpressions;
 using System.Windows.Forms;
 using OpenDental.UI;
@@ -62,8 +59,6 @@ public partial class UserControlTasks:UserControl {
 	///<summary>TaskListNums for TaskLists the current user is subscribed to.
 	///Is static so can be referenced from multiple instances of this control.  Locked each time it is accessed so it is thread safe.</summary>
 	private static List<long> _listTaskListNumsSubscribed= [];
-	///<summary>The action which occurs when the Toggle Chat button is clicked.  Only set for OD HQ triage.</summary>
-	private Action _actionChatToggle=null;
 	///<summary>Defines which filter type is the default for the current tasklist for filtering the Task grid.</summary>
 	private EnumTaskFilterType _enumTaskFilterTypeForList;
 	///<summary>This is the patient used to filter tasks from.</summary>
@@ -84,7 +79,7 @@ public partial class UserControlTasks:UserControl {
 	///<summary>A list of all task attachments for tasks in the selected task list.</summary>
 	private List<TaskAttachment> _listTaskAttachments= [];
 		
-	public LayoutManagerForms LayoutManager=new LayoutManagerForms();
+	
 	///<summary>Makes an additional reference pointer to _listTaskLists when at the trunk of the Main or Reminder tab and manual refresh is enabled.</summary>
 	private List<TaskList> _listTaskListsCopy= [];
 	///<summary>Makes an additional reference pointer to _listTasks when at the trunk of the Main or Reminder tab and manual refresh is enabled.</summary>
@@ -141,7 +136,7 @@ public partial class UserControlTasks:UserControl {
 			if(userControlTasksTabRefresh!=UserControlTasksTab.Invalid && control.TaskTab!=userControlTasksTabRefresh) {
 				continue;
 			}
-			Logger.LogAction(() => control.FillGrid(listSignalods));
+			control.FillGrid(listSignalods);
 		}
 	}
 
@@ -176,10 +171,10 @@ public partial class UserControlTasks:UserControl {
 		LayoutToolBar();
 		if(PrefC.GetBool(PrefName.TasksUseRepeating)) {
 			if(!tabControl.TabPages.Contains(tabRepeating)) {
-				LayoutManagerForms.Add(tabRepeating,tabControl);
-				LayoutManagerForms.Add(tabDate,tabControl);
-				LayoutManagerForms.Add(tabWeek,tabControl);
-				LayoutManagerForms.Add(tabMonth,tabControl);
+				tabControl.Controls.Add(tabRepeating);
+				tabControl.Controls.Add(tabDate);
+				tabControl.Controls.Add(tabWeek);
+				tabControl.Controls.Add(tabMonth);
 			}
 			if(tabControl.TabPages.Contains(tabReminders)) {
 				tabControl.TabPages.Remove(tabReminders);
@@ -193,7 +188,7 @@ public partial class UserControlTasks:UserControl {
 				tabControl.TabPages.Remove(tabMonth);
 			}
 			if(!tabControl.TabPages.Contains(tabReminders)) {
-				LayoutManagerForms.Add(tabReminders,tabControl);
+				tabControl.TabPages.Add(tabReminders);
 			}
 		}
 		if(_listTaskListsHistory==null) {//first time opening
@@ -577,13 +572,12 @@ public partial class UserControlTasks:UserControl {
 	}
 
 	///<summary>Determines if globalFilterType should be downgraded based on Clinics being enabled/disabled and Region definitions.</summary>
-	private EnumTaskFilterType DowngradeFilterTypeIfNeeded(EnumTaskFilterType enumTaskFilterType) {
-		if(!true) {//Downgrade to None if Clinics are disabled.
-			enumTaskFilterType=EnumTaskFilterType.None;
-		}
-		else if(enumTaskFilterType==EnumTaskFilterType.Region && Defs.GetDefsForCategory(DefCat.Regions).Count==0) {
+	private EnumTaskFilterType DowngradeFilterTypeIfNeeded(EnumTaskFilterType enumTaskFilterType)
+	{
+		if(enumTaskFilterType==EnumTaskFilterType.Region && Defs.GetDefsForCategory(DefCat.Regions).Count==0) {
 			enumTaskFilterType=EnumTaskFilterType.None;//Downgrade to None if Region selected but no Regions defined.
 		}
+
 		return enumTaskFilterType;
 	}
 
@@ -793,7 +787,7 @@ public partial class UserControlTasks:UserControl {
 		try {
 			taskSelected=gridMain.SelectedTag<Task>();
 		}
-		catch(Exception ex) {
+		catch {
 			//Grid can come desynced with its selected indices after a refresh, which was causing crashes. 
 			//Now we won't crash, but there's a non-zero chance of the task we just marked read
 			//losing its selected status.
@@ -802,7 +796,7 @@ public partial class UserControlTasks:UserControl {
 		try{
 			taskListSelected=gridMain.SelectedTag<TaskList>();
 		}
-		catch(Exception ex) {
+		catch {
 			//Same problem as above. Our task list might lose its selected status,
 			//but it's better than just crashing.
 		}
@@ -984,20 +978,6 @@ public partial class UserControlTasks:UserControl {
 		gridColumn=new GridColumn(Lan.g(this,"+/-"),17,HorizontalAlignment.Center);
 		gridColumn.HeaderClick+=GridHeaderClickEvent;
 		gridMain.Columns.Add(gridColumn);
-		if(false){//HQ
-			gridColumn=new GridColumn(Lan.g("TableTasks","ST"),30,HorizontalAlignment.Center);//ST
-			gridMain.Columns.Add(gridColumn);
-			var listPatsNotInDict=_listTasks.Where(x => x.ObjectType==TaskObjectType.Patient && x.KeyNum!=0 && !_dictPatStates.ContainsKey(x.KeyNum))
-				.Select(x => x.KeyNum).ToList();
-			var dictPatNewStates=Patients.GetStatesForPats(listPatsNotInDict);
-			foreach(var patNum in dictPatNewStates.Keys) {
-				_dictPatStates.Add(patNum,dictPatNewStates[patNum]);
-			}
-			if(taskListNum!=_TriageListNum) {//Everything that's not triage
-				gridColumn=new GridColumn(Lan.g("TableTasks","Job"),30,HorizontalAlignment.Center);//Job
-				gridMain.Columns.Add(gridColumn);
-			}
-		}
 		if(!isHqAndTriageList) {//Everything that is not HQ's triage task list will have the attachments column
 			gridColumn=new GridColumn(Lan.g("TableTasks","Att"),30,HorizontalAlignment.Center);//Attachment(s)
 			gridMain.Columns.Add(gridColumn);
@@ -1015,7 +995,6 @@ public partial class UserControlTasks:UserControl {
 		var tasklistdescript="";
 		var notes="";
 		//These strings are always inserted into cells, so they are always set to "" even if there is no job or attachment.
-		var jobNumString="";
 		var attStr="";
 		var categoryStr="";
 		int imageindex;
@@ -1051,12 +1030,6 @@ public partial class UserControlTasks:UserControl {
 			gridRow=new GridRow();
 			gridRow.Cells.Add(imageindex.ToString());
 			gridRow.Cells.Add("");
-			if(false) {//HQ.  Add if job manager is available
-				gridRow.Cells.Add("");//ST
-				if(taskListNum!=_TriageListNum) {//Everything that's not triage
-					gridRow.Cells.Add("");//Job
-				}
-			}
 			if(!isHqAndTriageList) {//Everything that is not HQ's triage task list will have the attachments column
 				gridRow.Cells.Add("");//Att
 			}
@@ -1075,8 +1048,6 @@ public partial class UserControlTasks:UserControl {
 		var dictApptObjDescripts=Tasks.GetApptObjDescripts(listAptNums);
 		for(var i=0;i<_listTasks.Count;i++) {
 			dateStr="";
-			jobNumString="";
-			var stateString="";
 			attStr="";
 			categoryStr="";
 			var colorTaskCategory=Defs.GetColor(DefCat.TaskCategories,_listTasks[i].TriageCategory,listDefsTaskCategory);
@@ -1181,12 +1152,6 @@ public partial class UserControlTasks:UserControl {
 			}
 			if(_listTasks[i].DescriptOverride!=""){
 				gridRow.Cells.Add("");// +/- is irrelevant
-				if(false) {//HQ
-					gridRow.Cells.Add(stateString);//ST
-					if(taskListNum!=_TriageListNum) {//Everything that's not triage
-						gridRow.Cells.Add(jobNumString);//Job
-					}
-				}
 				if(!isHqAndTriageList) {//Everything that is not HQ's triage task list will have the attachments column
 					gridRow.Cells.Add(attStr);//Att
 				}
@@ -1206,12 +1171,6 @@ public partial class UserControlTasks:UserControl {
 				else {
 					gridRow.Cells.Add("");
 				}
-				if(false) {//HQ
-					gridRow.Cells.Add(stateString);//ST
-					if(taskListNum!=_TriageListNum) {//Everything that's not triage
-						gridRow.Cells.Add(jobNumString);//Job
-					}
-				}
 				if(!isHqAndTriageList) {//Everything that is not HQ's triage task list will have the attachments column
 					gridRow.Cells.Add(attStr);//Att
 				}
@@ -1228,12 +1187,6 @@ public partial class UserControlTasks:UserControl {
 				//Conditions for giving collapse option: Descript is long, there is more than one note, or there is one note and it's long.
 				if(_listTasks[i].Descript.Length>250 || listTaskNotes.Count>1 || (listTaskNotes.Count==1 && notes.Length>250)) {
 					gridRow.Cells.Add("+");
-					if(false) {//HQ
-						gridRow.Cells.Add(stateString);//ST
-						if(taskListNum!=_TriageListNum) {//Everything that's not triage
-							gridRow.Cells.Add(jobNumString);//Job
-						}
-					}
 					if(!isHqAndTriageList) {//Everything that is not HQ's triage task list will have the attachments column
 						gridRow.Cells.Add(attStr);//Att
 					}
@@ -1261,12 +1214,6 @@ public partial class UserControlTasks:UserControl {
 				}
 				else {//Descript length <= 250 and notes <=1 and note length is <= 250.  No collapse option.
 					gridRow.Cells.Add("");
-					if(false) {//HQ
-						gridRow.Cells.Add(stateString);//ST
-						if(taskListNum!=_TriageListNum) {//Everything that's not triage
-							gridRow.Cells.Add(jobNumString);//Job
-						}
-					}
 					if(!isHqAndTriageList) {//Everything that is not HQ's triage task list will have the attachments column
 						gridRow.Cells.Add(attStr);//Att
 					}
@@ -1532,7 +1479,7 @@ public partial class UserControlTasks:UserControl {
 				try {
 					_dictTaskLists.Add(taskList.TaskListNum,taskList);
 				}
-				catch(Exception ex) {
+				catch {
 				}
 			}
 		}

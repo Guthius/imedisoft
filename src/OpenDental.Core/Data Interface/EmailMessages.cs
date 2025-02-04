@@ -16,7 +16,6 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Web;
-using System.Xml;
 using CodeBase;
 using DataConnectionBase;
 using Google;
@@ -33,7 +32,6 @@ using Imedisoft.Core.Entities;
 using Imedisoft.Core.Features.Clinics;
 using MimeKit;
 using OpenDentBusiness.Email;
-using OpenDentBusiness.FileIO;
 using GmailApi = Google.Apis.Gmail.v1;
 using Header = Health.Direct.Common.Mime.Header;
 using MimeEntity = Health.Direct.Common.Mime.MimeEntity;
@@ -54,11 +52,11 @@ public class EmailMessages
 
     public static EmailMessage GetOne(long emailMessageNum)
     {
-        var command = "SELECT * FROM emailmessage WHERE EmailMessageNum = " + SOut.Long(emailMessageNum);
+        var command = "SELECT * FROM emailmessage WHERE EmailMessageNum = " + (emailMessageNum);
         var emailMessage = EmailMessageCrud.SelectOne(emailMessageNum);
         if (emailMessage != null)
         {
-            command = "SELECT * FROM emailattach WHERE EmailMessageNum = " + SOut.Long(emailMessageNum);
+            command = "SELECT * FROM emailattach WHERE EmailMessageNum = " + (emailMessageNum);
             emailMessage.Attachments = EmailAttachCrud.SelectMany(command);
         }
 
@@ -139,7 +137,7 @@ public class EmailMessages
             if (mailboxTypeArray.Contains(MailboxType.Sent)) listEmailSentOrReceiveds.AddRange(GetSentTypes(EmailPlatform.WebMail));
 
             if (listEmailSentOrReceiveds.Count > 0)
-                strSentReceived += "ProvNumWebMail=" + SOut.Long(emailAddress.WebmailProvNum)
+                strSentReceived += "ProvNumWebMail=" + (emailAddress.WebmailProvNum)
                                                      + " AND SentOrReceived IN (" + string.Join(",", listEmailSentOrReceiveds.Select(x => SOut.Int((int) x))) + ") ";
         }
 
@@ -150,7 +148,7 @@ public class EmailMessages
         var dictionaryEmailAttaches = new Dictionary<long, List<EmailAttach>>();
         for (var i = 0; i < listEmailAttaches.Count; i++)
         {
-            if (!dictionaryEmailAttaches.ContainsKey(listEmailAttaches[i].EmailMessageNum)) dictionaryEmailAttaches[listEmailAttaches[i].EmailMessageNum] = new List<EmailAttach>();
+            if (!dictionaryEmailAttaches.ContainsKey(listEmailAttaches[i].EmailMessageNum)) dictionaryEmailAttaches[listEmailAttaches[i].EmailMessageNum] = [];
 
             dictionaryEmailAttaches[listEmailAttaches[i].EmailMessageNum].Add(listEmailAttaches[i]);
         }
@@ -239,7 +237,7 @@ public class EmailMessages
     {
         var command = "SELECT * FROM emailmessage "
                       + "WHERE TRUE ";
-        if (searchPatNum != 0) command += "AND PatNum=" + SOut.Long(searchPatNum) + " ";
+        if (searchPatNum != 0) command += "AND PatNum=" + (searchPatNum) + " ";
 
         if (searchEmail != "")
             command += "AND (FromAddress LIKE '%" + SOut.String(searchEmail) + "%' "
@@ -259,27 +257,13 @@ public class EmailMessages
         var listEmailMessagesRet = EmailMessageCrud.SelectMany(command);
         for (var i = 0; i < listEmailMessagesRet.Count; i++)
         {
-            command = "SELECT * FROM emailattach WHERE EmailMessageNum=" + SOut.Long(listEmailMessagesRet[i].EmailMessageNum);
+            command = "SELECT * FROM emailattach WHERE EmailMessageNum=" + (listEmailMessagesRet[i].EmailMessageNum);
             listEmailMessagesRet[i].Attachments = EmailAttachCrud.SelectMany(command);
         }
 
         if (hasAttach) listEmailMessagesRet = listEmailMessagesRet.FindAll(x => x.Attachments.Count > 0);
 
         return listEmailMessagesRet;
-    }
-
-    public static List<EmailMessage> GetWebMailForPat(long patNum)
-    {
-        var listPatNums = Patients.GetPatNumsForPhi(patNum); //Guaranteed to have at least one value (the patNum passed in).
-        var listEmailSentOrReceivedsWebMailTypes = GetUnreadTypes(EmailPlatform.WebMail)
-            .Concat(GetReadTypes(EmailPlatform.WebMail))
-            .Concat(GetSentTypes(EmailPlatform.WebMail)).ToList();
-        var webMailTypesStr = string.Join(",", listEmailSentOrReceivedsWebMailTypes.Select(x => SOut.Int((int) x)));
-        var command = "SELECT * FROM emailmessage "
-                      + "WHERE PatNumSubj IN(" + string.Join(",", listPatNums) + ") "
-                      + "AND SentOrReceived IN (" + webMailTypesStr + ") "
-                      + "ORDER BY MsgDateTime DESC";
-        return EmailMessageCrud.SelectMany(command);
     }
 
     public static void Update(EmailMessage emailMessage, EmailMessage emailMessageOld = null, bool isAttachmentSyncNeeded = true)
@@ -311,7 +295,7 @@ public class EmailMessages
 
         if (emailSentOrReceived == emailMessage.SentOrReceived) return emailSentOrReceived; //Nothing to do.
 
-        var command = "UPDATE emailmessage SET SentOrReceived=" + SOut.Int((int) emailSentOrReceived) + " WHERE EmailMessageNum=" + SOut.Long(emailMessage.EmailMessageNum);
+        var command = "UPDATE emailmessage SET SentOrReceived=" + SOut.Int((int) emailSentOrReceived) + " WHERE EmailMessageNum=" + (emailMessage.EmailMessageNum);
         Db.NonQ(command);
         return emailSentOrReceived;
     }
@@ -329,14 +313,14 @@ public class EmailMessages
 
         if (emailSentOrReceived == emailMessage.SentOrReceived) return emailSentOrReceived; //Nothing to do.
 
-        var command = "UPDATE emailmessage SET SentOrReceived=" + SOut.Int((int) emailSentOrReceived) + " WHERE EmailMessageNum=" + SOut.Long(emailMessage.EmailMessageNum);
+        var command = "UPDATE emailmessage SET SentOrReceived=" + SOut.Int((int) emailSentOrReceived) + " WHERE EmailMessageNum=" + (emailMessage.EmailMessageNum);
         Db.NonQ(command);
         return emailSentOrReceived;
     }
 
     public static void UpdatePatNum(EmailMessage emailMessage)
     {
-        var command = "UPDATE emailmessage SET PatNum=" + SOut.Long(emailMessage.PatNum) + " WHERE EmailMessageNum=" + SOut.Long(emailMessage.EmailMessageNum);
+        var command = "UPDATE emailmessage SET PatNum=" + (emailMessage.PatNum) + " WHERE EmailMessageNum=" + (emailMessage.EmailMessageNum);
         Db.NonQ(command);
     }
     
@@ -355,7 +339,7 @@ public class EmailMessages
     {
         if (emailMessage.EmailMessageNum == 0) return; //this prevents deletion of all commlog entries if something goes wrong.
 
-        var command = "DELETE FROM emailmessage WHERE EmailMessageNum=" + SOut.Long(emailMessage.EmailMessageNum);
+        var command = "DELETE FROM emailmessage WHERE EmailMessageNum=" + (emailMessage.EmailMessageNum);
         Db.NonQ(command);
     }
 
@@ -591,7 +575,7 @@ public class EmailMessages
         //Get the time that the last Direct Ack was sent for the From address.
         command = DbHelper.LimitOrderBy(
             "SELECT MsgDateTime FROM emailmessage "
-            + "WHERE FromAddress='" + SOut.String(emailAddressFrom.EmailUsername.Trim()) + "' AND SentOrReceived=" + SOut.Long((int) emailSentOrReceivedAckSent) + " "
+            + "WHERE FromAddress='" + SOut.String(emailAddressFrom.EmailUsername.Trim()) + "' AND SentOrReceived=" + ((int) emailSentOrReceivedAckSent) + " "
             + "ORDER BY MsgDateTime DESC",
             1);
         var dateTimeLastAck = SIn.DateTime(DataCore.GetScalar(command)); //dateTimeLastAck will be 0001-01-01 if there is not yet any sent Acks.
@@ -802,13 +786,13 @@ public class EmailMessages
         if (emailUsername == null) emailUsername = "";
 
         emailUsername = emailUsername.Trim().ToLower();
-        if (listTEmailAddressesTo == null) listTEmailAddressesTo = new List<TEmailAddress>();
+        if (listTEmailAddressesTo == null) listTEmailAddressesTo = [];
 
-        if (listTEmailAddressesFrom == null) listTEmailAddressesFrom = new List<TEmailAddress>();
+        if (listTEmailAddressesFrom == null) listTEmailAddressesFrom = [];
 
-        if (listTEmailAddressesCc == null) listTEmailAddressesCc = new List<TEmailAddress>();
+        if (listTEmailAddressesCc == null) listTEmailAddressesCc = [];
 
-        if (listTEmailAddressesBcc == null) listTEmailAddressesBcc = new List<TEmailAddress>();
+        if (listTEmailAddressesBcc == null) listTEmailAddressesBcc = [];
 
         var isEmailFromInbox = true;
         if (!string.Join(",", listTEmailAddressesFrom).Contains(emailUsername)) return isEmailFromInbox;
@@ -1182,12 +1166,12 @@ public class EmailMessages
 
             listMimeEntityLeafNodes = GetMimeLeafNodes(incomingMessage.Message);
             //If we were unable to read the mime parts, we will treat it as none found.
-            listMimeEntityLeafNodes = listMimeEntityLeafNodes ?? new List<MimeEntity>();
+            listMimeEntityLeafNodes = listMimeEntityLeafNodes ?? [];
         }
         catch
         {
             //Since we could not read the message, we cannot read the mime parts.  Therefore, none found.
-            listMimeEntityLeafNodes = new List<MimeEntity>();
+            listMimeEntityLeafNodes = [];
         }
 
         var listListMimeEntitiesRet = new List<List<MimeEntity>>();
@@ -1359,7 +1343,6 @@ public class EmailMessages
         basicEmailAddress.SMTPserver = emailAddressOd.SMTPserver;
         basicEmailAddress.UseSSL = emailAddressOd.UseSSL;
         basicEmailAddress.AccessToken = emailAddressOd.AccessToken;
-        basicEmailAddress.RefreshToken = emailAddressOd.RefreshToken;
         basicEmailAddress.AuthenticationType = (BasicOAuthType) emailAddressOd.AuthenticationType;
         return basicEmailAddress;
     }
@@ -1461,7 +1444,7 @@ public class EmailMessages
 
     public static string FindAndReplaceImageTagsWithAttachedImage(string localHtml, bool areImagesDownloaded, out List<string> listLocalImagePaths)
     {
-        return FindAndReplaceImageTags(localHtml, areImagesDownloaded, ReplaceSrcWithCid, out listLocalImagePaths);
+        return FindAndReplaceImageTags(localHtml, ReplaceSrcWithCid, out listLocalImagePaths);
     }
 
     private static string ReplaceSrcWithCid(string value, string imgName, string localFilePath)
@@ -1469,26 +1452,9 @@ public class EmailMessages
         return Regex.Replace(value, @"src\s*=\s*""(.*?)""", "src=\"cid:" + imgName + "\"");
     }
 
-    private static string ReplaceSrcWithEmbedded(string value, string imgName, string localFilePath)
+    private static string FindAndReplaceImageTags(string localHtml, ReplaceImgSrc replaceImgSrc, out List<string> listLocalImagePaths)
     {
-        //We can go directly to the local file space, because the calling method already performed appropriate false() check.
-        if (!File.Exists(localFilePath)) return value; //Most likely an image hosted on the internet.
-
-        var extension = Path.GetExtension(localFilePath);
-        var byteArray = File.ReadAllBytes(localFilePath);
-        var bytesBase64 = Convert.ToBase64String(byteArray);
-        var replacement = "src=\"data:image/" + extension + ";base64," + bytesBase64 + "\"";
-        return Regex.Replace(value, @"src\s*=\s*""(.*?)""", replacement);
-    }
-
-    public static string EmbedImages(string localHtml, bool areImagesDownloaded)
-    {
-        return FindAndReplaceImageTags(localHtml, areImagesDownloaded, ReplaceSrcWithEmbedded, out _);
-    }
-
-    private static string FindAndReplaceImageTags(string localHtml, bool areImagesDownloaded, ReplaceImgSrc replaceImgSrc, out List<string> listLocalImagePaths)
-    {
-        listLocalImagePaths = new List<string>();
+        listLocalImagePaths = [];
         var matchCollection = Regex.Matches(localHtml, @"<img\s+.*?src\s*=\s*""(.*?)""");
         for (var i = 0; i < matchCollection.Count; i++)
         {
@@ -1658,9 +1624,9 @@ public class EmailMessages
     {
         if (strAddressTest.Trim() == "") return false;
 
-        if (listX509Certificate2sValidDirect == null) listX509Certificate2sValidDirect = new List<X509Certificate2>();
+        if (listX509Certificate2sValidDirect == null) listX509Certificate2sValidDirect = [];
 
-        if (listX509Certificate2sInvalidDirect == null) listX509Certificate2sInvalidDirect = new List<X509Certificate2>();
+        if (listX509Certificate2sInvalidDirect == null) listX509Certificate2sInvalidDirect = [];
 
         try
         {
@@ -2020,7 +1986,7 @@ public class EmailMessages
         }
 
         emailMessage.BodyText = stringBuilderBodyText.ToString();
-        emailMessage.Attachments = new List<EmailAttach>();
+        emailMessage.Attachments = [];
         if (!hasAttachments) return emailMessage;
 
         //If an encrypted attachment is present (smime.p7m), then ensure the message content type correctly indicates an encrypted message.
@@ -2128,8 +2094,8 @@ public class EmailMessages
         if (bodyText.Trim().Length > 4 && bodyText.Trim().StartsWith("--") && bodyText.Trim().EndsWith("--"))
         {
             //The body text is multi-part.
-            strBoundry = bodyText.Trim().Split(new[] {"\r\n", "\r", "\n"}, StringSplitOptions.None)[0];
-            var listBodyTextParts = bodyText.Trim().TrimEnd('-').Split(new[] {strBoundry}, StringSplitOptions.RemoveEmptyEntries).ToList();
+            strBoundry = bodyText.Trim().Split(["\r\n", "\r", "\n"], StringSplitOptions.None)[0];
+            var listBodyTextParts = bodyText.Trim().TrimEnd('-').Split([strBoundry], StringSplitOptions.RemoveEmptyEntries).ToList();
             for (var i = 0; i < listBodyTextParts.Count; i++)
             {
                 var mimeEntityBodyText = new MimeEntity(listBodyTextParts[i]);
@@ -2232,7 +2198,7 @@ public class EmailMessages
         //I hard line break is a CRLF which is not preceded by the SP character.
         //The SP character can be any character, and from what we have seen, is usually the '=' character.
         var sp = "="; //Soft line break indicator character.
-        var listMimeBodyLines = strBodyText.Split(new[] {"\r\n", "\r", "\n"}, StringSplitOptions.None).ToList();
+        var listMimeBodyLines = strBodyText.Split(["\r\n", "\r", "\n"], StringSplitOptions.None).ToList();
         var stringBuilderBodyText = new StringBuilder();
         for (var i = 0; i < listMimeBodyLines.Count; i++)
         {
@@ -2257,7 +2223,7 @@ public class EmailMessages
 
     public static string DecodeBodyText(string sp, string strBodyTextUnwrapped, Encoding encoding)
     {
-        var listBodyEncodeds = strBodyTextUnwrapped.Split(new[] {sp}, StringSplitOptions.None).ToList();
+        var listBodyEncodeds = strBodyTextUnwrapped.Split([sp], StringSplitOptions.None).ToList();
         var listBytes = new List<byte>();
         if (listBodyEncodeds.Count == 0) return encoding.GetString(listBytes.ToArray());
 
@@ -2708,40 +2674,6 @@ public class EmailMessages
         emailAttach.ActualFileName = fileName;
         emailMessage.Attachments.Add(emailAttach);
         return emailMessage;
-    }
-
-    public static void SendTestUnsecure(string subjectAndBody, string attachName, string attachContents)
-    {
-        SendTestUnsecure(subjectAndBody, attachName, attachContents, "", "");
-    }
-
-    public static void SendTestUnsecure(string subjectAndBody, string attachName1, string attachContents1, string attachName2, string attachContents2)
-    {
-        var strTo = PrefC.GetString(PrefName.EHREmailToAddress);
-        if (strTo == "") throw new ApplicationException("This feature cannot be used except in a test environment because email is not secure.");
-
-        var emailAddressFrom = EmailAddresses.GetByClinic(0);
-        var emailMessage = new EmailMessage();
-        emailMessage.FromAddress = emailAddressFrom.EmailUsername.Trim();
-        emailMessage.ToAddress = strTo.Trim();
-        emailMessage.Subject = subjectAndBody;
-        emailMessage.BodyText = subjectAndBody;
-        if (attachName1 != "")
-        {
-            var emailAttach = EmailAttaches.CreateAttach(attachName1, Encoding.UTF8.GetBytes(attachContents1));
-            emailMessage.Attachments.Add(emailAttach);
-        }
-
-        if (attachName2 != "")
-        {
-            var emailAttach = EmailAttaches.CreateAttach(attachName2, Encoding.UTF8.GetBytes(attachContents2));
-            emailMessage.Attachments.Add(emailAttach);
-        }
-
-        emailMessage.SentOrReceived = EmailSentOrReceived.Sent;
-        emailMessage.MsgDateTime = DateTime_.Now;
-        emailMessage.MsgType = EmailMessageSource.EHR;
-        SendEmail(emailMessage, emailAddressFrom);
     }
 }
 

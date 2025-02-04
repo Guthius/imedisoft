@@ -200,10 +200,10 @@ public static class Employees
              ORDER BY IF(YEAR(TimeDisplayed2) < 1880,TimeDisplayed1,TimeDisplayed2) DESC
              LIMIT 1
              """);
-        
+
         var employee = GetEmpNoCache(employeeNum);
         var employeeOld = employee.Copy();
-        
+
         if (clockEvent != null && clockEvent.TimeDisplayed2 > DateTime.Now)
         {
             employee.ClockStatus = "Manual Entry";
@@ -228,9 +228,9 @@ public static class Employees
         {
             employee.ClockStatus = "Working";
         }
-        
+
         UpdateChanged(employee, employeeOld, true);
-        
+
         RefreshCache();
     }
 
@@ -269,14 +269,14 @@ public static class Employees
 
     private static readonly EmployeeCache Cache = new();
 
-    public static Employee GetFirstOrDefault(Func<Employee, bool> match, bool isShort = false)
+    public static Employee GetFirstOrDefault(Func<Employee, bool> predicate, bool shortList = false)
     {
-        return Cache.GetFirstOrDefault(match, isShort);
+        return Cache.GetFirstOrDefault(predicate, shortList);
     }
 
-    public static List<Employee> GetDeepCopy(bool isShort = false)
+    public static List<Employee> GetDeepCopy(bool shortList = false)
     {
-        return Cache.GetDeepCopy(isShort);
+        return Cache.GetDeepCopy(shortList);
     }
 
     public static void RefreshCache()
@@ -284,9 +284,9 @@ public static class Employees
         GetTableFromCache(true);
     }
 
-    public static DataTable GetTableFromCache(bool doRefreshCache)
+    public static DataTable GetTableFromCache(bool refreshCache)
     {
-        return Cache.GetTableFromCache(doRefreshCache);
+        return Cache.GetTableFromCache(refreshCache);
     }
 
     public static void ClearCache()

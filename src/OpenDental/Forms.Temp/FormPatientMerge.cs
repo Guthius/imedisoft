@@ -178,7 +178,7 @@ public partial class FormPatientMerge:FormODBase {
 						try {
 							File.Copy(stringArrayFromFiles[i],destFilePath); //Will throw exception if file already exists.
 						}
-						catch(Exception ex) {
+						catch {
 							fileCopyFailures++;
 							continue;//copy failed, increment counter and move onto the next file
 						}
@@ -188,7 +188,7 @@ public partial class FormPatientMerge:FormODBase {
 						try {
 							File.Delete(stringArrayFromFiles[i]);
 						}
-						catch(Exception ex) {
+						catch {
 							//If we were unable to delete the file then it is probably because someone has the document open currently.
 							//Just skip deleting the file. This means that occasionally there will be an extra file in their backup
 							//which is just clutter but at least the merge is guaranteed this way.

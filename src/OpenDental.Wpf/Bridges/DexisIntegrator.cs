@@ -56,12 +56,8 @@ namespace OpenDental.Bridges {
 			string processPath=Programs.GetProgramPath(progCur); //Holds the path to the dexis integrator application, Integra.exe
 			List<ProgramProperty> listProgramProperties=ProgramProperties.GetForProgram(progCur.ProgramNum);
 			string communicationFile=ProgramProperties.GetPropValFromList(listProgramProperties,"Communication files folder path");//This path is the folder where all comm files will be stored. 
-			string fileName="Patient_"+ODEnvironment.MachineName+".txt";
+			string fileName="Patient_"+Environment.MachineName+".txt";
 			if(communicationFile.Trim()=="") {
-				if(/* ODEnvironment.IsCloudServer */ false) {
-					MsgBox.Show("DexisIntegrator","Communication files folder path must not be empty.");
-					return;
-				}
 				communicationFile=CodeBase.ODFileUtils.CombinePaths(PrefC.GetTempFolderPath(),fileName);
 			}
 			else {

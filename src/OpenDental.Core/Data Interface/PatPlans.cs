@@ -19,23 +19,20 @@ public class PatPlans
 
     public static List<PatPlan> Refresh(long patNum)
     {
-        var command = "SELECT * from patplan"
-                      + " WHERE PatNum = " + patNum
-                      + " ORDER BY Ordinal";
-        return PatPlanCrud.SelectMany(command);
+        return PatPlanCrud.SelectMany("SELECT * from patplan WHERE PatNum = " + patNum + " ORDER BY Ordinal");
     }
 
     public static void Update(PatPlan patPlan)
     {
-        //ordinal was already set using SetOrdinal, but it's harmless to set it again.
         PatPlanCrud.Update(patPlan);
     }
 
     public static void Update(PatPlan patPlanNew, PatPlan patPlanOld)
     {
-        if (patPlanOld == null)
+        if (patPlanOld is null)
         {
             Update(patPlanNew);
+            
             return;
         }
 
@@ -44,19 +41,23 @@ public class PatPlans
 
     public static long Insert(PatPlan patPlan)
     {
-        //Cameron_ Possibly create outbound ADT message to update insurance info
         var patPlanNum = PatPlanCrud.Insert(patPlan);
-        //Upsert an InsVerify for the patplan to ensure that the patplan can be verified.
+        
         InsVerifies.Upsert(patPlanNum, VerifyTypes.PatientEnrollment);
         InsEditPatLogs.MakeLogEntry(patPlan, null, InsEditPatLogType.PatPlan);
+        
         return patPlanNum;
     }
 
-    public static long GetInsSubNum(List<PatPlan> list, int ordinal)
+    public static long GetInsSubNum(List<PatPlan> patPlans, int ordinal)
     {
-        for (var i = 0; i < list.Count; i++)
-            if (list[i].Ordinal == ordinal)
-                return list[i].InsSubNum;
+        foreach (var patPlan in patPlans)
+        {
+            if (patPlan.Ordinal == ordinal)
+            {
+                return patPlan.InsSubNum;
+            }
+        }
 
         return 0;
     }
@@ -66,20 +67,28 @@ public class PatPlans
         return PatPlanCrud.SelectOne(patPlanNum);
     }
 
-    public static PatPlan GetByInsSubNum(List<PatPlan> listPatPlans, long insSubNum)
+    public static PatPlan GetByInsSubNum(List<PatPlan> patPlans, long insSubNum)
     {
-        for (var p = 0; p < listPatPlans.Count; p++)
-            if (listPatPlans[p].InsSubNum == insSubNum)
-                return listPatPlans[p];
+        foreach (var patPlan in patPlans)
+        {
+            if (patPlan.InsSubNum == insSubNum)
+            {
+                return patPlan;
+            }
+        }
 
         return null;
     }
 
-    public static Relat GetRelat(List<PatPlan> list, int ordinal)
+    public static Relat GetRelat(List<PatPlan> patPlans, int ordinal)
     {
-        for (var i = 0; i < list.Count; i++)
-            if (list[i].Ordinal == ordinal)
-                return list[i].Relationship;
+        foreach (var patPlan in patPlans)
+        {
+            if (patPlan.Ordinal == ordinal)
+            {
+                return patPlan.Relationship;
+            }
+        }
 
         return Relat.Self;
     }
@@ -179,7 +188,7 @@ public class PatPlans
 
     public static int SetOrdinal(long patPlanNum, int newOrdinal)
     {
-        var command = "SELECT PatNum FROM patplan WHERE PatPlanNum=" + SOut.Long(patPlanNum);
+        var command = "SELECT PatNum FROM patplan WHERE PatPlanNum=" + patPlanNum;
         var table = DataCore.GetTable(command);
         if (table.Rows.Count == 0) return 1;
         var patNum = SIn.Long(table.Rows[0][0].ToString());
@@ -197,14 +206,14 @@ public class PatPlans
             var patPlanCur = patPlans[i].Copy();
             patPlanCur.Ordinal = (byte) curOrdinal;
             InsEditPatLogs.MakeLogEntry(patPlanCur, patPlans[i], InsEditPatLogType.PatPlan);
-            command = "UPDATE patplan SET Ordinal=" + SOut.Long(curOrdinal)
-                                                    + " WHERE PatPlanNum=" + SOut.Long(patPlans[i].PatPlanNum);
+            command = "UPDATE patplan SET Ordinal=" + curOrdinal
+                                                    + " WHERE PatPlanNum=" + patPlans[i].PatPlanNum;
             Db.NonQ(command);
             curOrdinal++;
         }
 
-        command = "UPDATE patplan SET Ordinal=" + SOut.Long(newOrdinal)
-                                                + " WHERE PatPlanNum=" + SOut.Long(patPlanNum);
+        command = "UPDATE patplan SET Ordinal=" + newOrdinal
+                                                + " WHERE PatPlanNum=" + patPlanNum;
         Db.NonQ(command);
 //Cameron_ Possibly create outbound ADT message to update insurance info
         return newOrdinal;
@@ -234,26 +243,23 @@ public class PatPlans
         //The left join will get extra info about each plan, namely the PlanNum.  No need for a GROUP BY.  The PlanNum is used to filter.
         var command = @"SELECT * FROM patplan 
 				LEFT JOIN inssub ON patplan.InsSubNum=inssub.InsSubNum
-				WHERE inssub.PlanNum=" + SOut.Long(planNum);
+				WHERE inssub.PlanNum=" + planNum;
         return PatPlanCrud.SelectMany(command).ToArray();
     }
 
     public static int GetCountBySubNum(long insSubNum)
     {
-        var command = "SELECT COUNT(*) FROM patplan WHERE InsSubNum='" + SOut.Long(insSubNum) + "'";
-        return SIn.Int(Db.GetCount(command));
+        return SIn.Int(Db.GetCount("SELECT COUNT(*) FROM patplan WHERE InsSubNum = " + insSubNum));
     }
 
     public static int GetCountForPatAndInsSub(long insSubNum, long patNum)
     {
-        var command = "SELECT COUNT(*) FROM patplan WHERE InsSubNum='" + SOut.Long(insSubNum) + "' "
-                      + "AND PatNum='" + SOut.Long(patNum) + "'";
-        return SIn.Int(Db.GetCount(command));
+        return SIn.Int(Db.GetCount("SELECT COUNT(*) FROM patplan WHERE InsSubNum = " + insSubNum + " AND PatNum = " + patNum));
     }
 
     public static List<long> GetPatNumsByInsFilingCodes(List<long> listInsFilingCodeNums)
     {
-        if (listInsFilingCodeNums.IsNullOrEmpty()) return new List<long>();
+        if (listInsFilingCodeNums.IsNullOrEmpty()) return [];
 
         var command = $@"SELECT PatNum FROM patplan
 				INNER JOIN inssub ON inssub.InsSubNum=patplan.InsSubNum
@@ -264,8 +270,8 @@ public class PatPlans
 
     public static PatPlan GetPatPlan(long patNum, int ordinal)
     {
-        var command = "SELECT * FROM patplan WHERE PatNum=" + SOut.Long(patNum)
-                                                            + " AND Ordinal=" + SOut.Long(ordinal);
+        var command = "SELECT * FROM patplan WHERE PatNum=" + patNum
+                                                            + " AND Ordinal=" + ordinal;
         return PatPlanCrud.SelectOne(command);
     }
 
@@ -277,23 +283,23 @@ public class PatPlans
 
     public static List<PatPlan> GetPatPlansForPat(long patNum)
     {
-        if (patNum == 0) return new List<PatPlan>();
+        if (patNum == 0) return [];
 
-        var command = "SELECT * FROM patplan WHERE PatNum=" + SOut.Long(patNum);
+        var command = "SELECT * FROM patplan WHERE PatNum=" + patNum;
         return PatPlanCrud.SelectMany(command);
     }
 
     public static List<PatPlan> GetPatPlansForPats(List<long> listPatNums)
     {
-        if (listPatNums == null || listPatNums.Count < 1) return new List<PatPlan>();
-        var command = "SELECT * FROM patplan WHERE PatNum IN (" + string.Join(",", listPatNums.Select(x => SOut.Long(x))) + ")"
+        if (listPatNums == null || listPatNums.Count < 1) return [];
+        var command = "SELECT * FROM patplan WHERE PatNum IN (" + string.Join(",", listPatNums.Select(x => x)) + ")"
                       + " ORDER BY PatNum,Ordinal";
         return PatPlanCrud.SelectMany(command);
     }
 
     public static void Delete(long patPlanNum)
     {
-        var command = "SELECT PatNum FROM patplan WHERE PatPlanNum=" + SOut.Long(patPlanNum);
+        var command = "SELECT PatNum FROM patplan WHERE PatPlanNum=" + patPlanNum;
         var table = DataCore.GetTable(command);
         if (table.Rows.Count == 0) return;
         var patNum = SIn.Long(table.Rows[0][0].ToString());
@@ -308,8 +314,8 @@ public class PatPlans
                 var patPlanCur = patPlans[i].Copy();
                 patPlanCur.Ordinal = (byte) (patPlanCur.Ordinal - 1);
                 InsEditPatLogs.MakeLogEntry(patPlanCur, patPlans[i], InsEditPatLogType.PatPlan);
-                command = "UPDATE patplan SET Ordinal=" + SOut.Long(patPlans[i].Ordinal - 1)
-                                                        + " WHERE PatPlanNum=" + SOut.Long(patPlans[i].PatPlanNum);
+                command = "UPDATE patplan SET Ordinal=" + (patPlans[i].Ordinal - 1)
+                                                        + " WHERE PatPlanNum=" + patPlans[i].PatPlanNum;
                 Db.NonQ(command);
                 continue;
             }
@@ -317,9 +323,9 @@ public class PatPlans
             if (patPlans[i].PatPlanNum == patPlanNum)
             {
                 RemoveAssignedUser(patPlans[i]);
-                command = "DELETE FROM patplan WHERE PatPlanNum=" + SOut.Long(patPlanNum);
+                command = "DELETE FROM patplan WHERE PatPlanNum=" + patPlanNum;
                 Db.NonQ(command);
-                command = "DELETE FROM benefit WHERE PatPlanNum=" + SOut.Long(patPlanNum);
+                command = "DELETE FROM benefit WHERE PatPlanNum=" + patPlanNum;
                 Db.NonQ(command);
                 doDecrement = true;
                 InsVerifies.DeleteByFKey(patPlanNum, VerifyTypes.PatientEnrollment);
@@ -327,7 +333,7 @@ public class PatPlans
         }
 
         //Include completed procedures when computing estimates so that they are removed.
-        InsPlans.ComputeEstimatesForPatNums(new List<long> {patNum}, true);
+        InsPlans.ComputeEstimatesForPatNums([patNum], true);
 //Cameron_ Possibly create outbound ADT message to update insurance info
     }
 
@@ -360,19 +366,17 @@ public class PatPlans
 
     public static void DeleteNonContiguous(long patPlanNum)
     {
-        var command = "DELETE FROM patplan WHERE PatPlanNum=" + SOut.Long(patPlanNum);
-        Db.NonQ(command);
-        command = "DELETE FROM benefit WHERE PatPlanNum=" + SOut.Long(patPlanNum);
-        Db.NonQ(command);
+        Db.NonQ("DELETE FROM patplan WHERE PatPlanNum = " + patPlanNum);
+        Db.NonQ("DELETE FROM benefit WHERE PatPlanNum = " + patPlanNum);
+        
         InsVerifies.DeleteByFKey(patPlanNum, VerifyTypes.PatientEnrollment);
     }
 
-    public static List<PatPlan> GetListByInsSubNums(List<long> listInsSubNums)
+    public static List<PatPlan> GetListByInsSubNums(List<long> insSubNums)
     {
-        if (listInsSubNums.IsNullOrEmpty()) return new List<PatPlan>();
+        if (insSubNums.IsNullOrEmpty()) return [];
 
-        var command = "SELECT * FROM patplan WHERE InsSubNum IN(" + string.Join(",", listInsSubNums) + ")";
-        return PatPlanCrud.SelectMany(command);
+        return PatPlanCrud.SelectMany("SELECT * FROM patplan WHERE InsSubNum IN (" + string.Join(",", insSubNums) + ")");
     }
 
     public static DataTable GetOutstandingOrtho()
@@ -438,18 +442,20 @@ public class PatPlans
         return DataCore.GetTable(command);
     }
 
-    public static bool IsPatPlanListValid(List<PatPlan> listPatPlan, bool doFixIfInvalid = true, List<InsSub> listInsSubs = null, List<InsPlan> listInsPlans = null)
+    public static bool IsPatPlanListValid(List<PatPlan> patPlans, bool doFixIfInvalid = true, List<InsSub> listInsSubs = null, List<InsPlan> listInsPlans = null)
     {
-        var isValid = true;
-        for (var i = 0; i < listPatPlan.Count; i++)
-            if (!InsSubs.ValidatePlanNum(listPatPlan[i].InsSubNum, doFixIfInvalid, listInsSubs, listInsPlans))
-                isValid = false;
+        foreach (var patPlan in patPlans)
+        {
+            if (!InsSubs.ValidatePlanNum(patPlan.InsSubNum, doFixIfInvalid, listInsSubs, listInsPlans))
+            {
+                return false;
+            }
+        }
 
-        return isValid;
+        return true;
     }
 }
 
-/// <summary>This is only used in the GetOrdinal method above.</summary>
 public enum PriSecMed
 {
     ///<summary>Lowest dental ordinal.</summary>

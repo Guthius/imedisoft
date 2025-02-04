@@ -7,12 +7,13 @@ using CodeBase;
 using OpenDentBusiness;
 using OpenDental.UI;
 using System.Text.RegularExpressions;
-using System.ComponentModel;
 using DataConnectionBase;
 using Imedisoft.Core.Caching;
+using Imedisoft.Core.Data;
 using Imedisoft.Core.Entities;
 using Imedisoft.Core.Features.Clinics;
 using Imedisoft.Core.Features.Clinics.Dtos;
+using Imedisoft.Features.Providers.Dtos;
 
 namespace OpenDental;
 
@@ -152,7 +153,7 @@ public partial class FormClinicEdit : FormODBase {
 	}
 
 	private void butPickInsBillingProv_Click(object sender,EventArgs e) {
-		var frmProviderPick=new FrmProviderPick(comboInsBillingProv.Items.GetAll<Provider>());
+		var frmProviderPick=new FrmProviderPick(comboInsBillingProv.Items.GetAll<ProviderDto>());
 		frmProviderPick.ProvNumSelected=comboInsBillingProv.GetSelectedProvNum();
 		frmProviderPick.ShowDialog();
 		if(!frmProviderPick.IsDialogOK) {
@@ -162,7 +163,7 @@ public partial class FormClinicEdit : FormODBase {
 	}
 
 	private void butPickDefaultProv_Click(object sender,EventArgs e) {
-		var frmProviderPick=new FrmProviderPick(comboDefaultProvider.Items.GetAll<Provider>());
+		var frmProviderPick=new FrmProviderPick(comboDefaultProvider.Items.GetAll<ProviderDto>());
 		frmProviderPick.ProvNumSelected=comboDefaultProvider.GetSelectedProvNum();//this is 0 if selectedIndex -1
 		frmProviderPick.ShowDialog();
 		if(!frmProviderPick.IsDialogOK) {

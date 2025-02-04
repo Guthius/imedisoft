@@ -1,10 +1,4 @@
 using System;
-using System.Collections.Generic;
-using System.Data;
-using System.Drawing;
-using System.Security.Policy;
-using System.Text;
-using System.Text.Json.Nodes;
 using System.Windows.Forms;
 using CodeBase;
 using Microsoft.Web.WebView2.Core;
@@ -30,16 +24,6 @@ public partial class FormPayConnect2iFrame:FormODBase {
 	}
 
 	private async void FormPayConnect2iFrame_Load(object sender,EventArgs e) {
-		if(false) {
-			//Unable to support PayConnect 2 on OD Cloud for the following reasons: OD Cloud uses Thinfinity, which does not allow for using WebView2 controls, meaning cloud would need to use the
-			//old WebBrowser control. This issue with this is we currently do not know of a way to retrieve the iFrame response from a WebBrowser control. Maybe when Payment Portal is finished
-			//we could try using a modified version of that to send the transaction data to the office's eConnector. We could also try making a "dummy" html page that contains the iFrame that is
-			//capable of storing the iFrame response and then parse the DOM afterthe user is finished.
-			MsgBox.Show(this,"Open Dental Cloud does not currently support PayConnect version 2.");
-			DialogResult=DialogResult.Cancel;
-			Close(); 
-			return;
-		}
 		var url="";
 		try {
 			url=GetiFrameUrl();
@@ -51,30 +35,20 @@ public partial class FormPayConnect2iFrame:FormODBase {
 			return;
 		}
 		//Cloud requires using the old web browser control due to constraints from thinfinity.
-		if(false) {
-			webViewMain.Visible=false;
-			webBrowserMain.Visible=true;
-			//webBrowserMain.Navigate();
-			webBrowserMain.DocumentCompleted+= webBrowserMain_DocumentCompleted;
-			webBrowserMain.Navigate(url);
+		webViewMain.Visible=true;
+		webBrowserMain.Visible=false;
+		try {
+			await webViewMain.Init();
+			webViewMain.CoreWebView2.WebMessageReceived+=GetTransactionResult;
+			await webViewMain.CoreWebView2.AddScriptToExecuteOnDocumentCreatedAsync("window.addEventListener(\'message\', e => { window.chrome.webview.postMessage(e.data); })");
 		}
-		else {
-			webViewMain.Visible=true;
-			webBrowserMain.Visible=false;
-			try {
-				await webViewMain.Init();
-				webViewMain.CoreWebView2.WebMessageReceived+=GetTransactionResult;
-				await webViewMain.CoreWebView2.AddScriptToExecuteOnDocumentCreatedAsync("window.addEventListener(\'message\', e => { window.chrome.webview.postMessage(e.data); })");
-			}
-			catch(Exception ex){
-				FriendlyException.Show("Error initializing window.",ex);
-				DialogResult=DialogResult.Cancel;
-				Close();
-				return;
-			}
-			webViewMain.CoreWebView2.Navigate(url);
+		catch(Exception ex){
+			FriendlyException.Show("Error initializing window.",ex);
+			DialogResult=DialogResult.Cancel;
+			Close();
+			return;
 		}
-			
+		webViewMain.CoreWebView2.Navigate(url);
 	}
 
 	///<summary>Throws exceptions.</summary>
@@ -104,7 +78,7 @@ public partial class FormPayConnect2iFrame:FormODBase {
 		try {
 			response=JsonConvert.DeserializeObject<iFrameResponse>(args.WebMessageAsJson);
 		}
-		catch(JsonException jEx) {
+		catch(JsonException) {
 			//failed to deserialize, we probably did not recieve a success response from the iFrame.
 		}
 		catch (Exception ex) {
@@ -133,7 +107,6 @@ public partial class FormPayConnect2iFrame:FormODBase {
 	}
 
 	private void GetTransactionResultCloud(object sender, EventArgs e) {
-		var result="";
 	}
 
 	private void webBrowserMain_DocumentCompleted(object sender,WebBrowserDocumentCompletedEventArgs e) {

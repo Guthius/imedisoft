@@ -1,10 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Data;
 using System.Linq;
-using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
 using CodeBase;
 using DataConnectionBase;
 using Imedisoft.Core.Entities;
@@ -13,12 +9,12 @@ namespace OpenDentBusiness {
 	public class RpInsAging {
 		public static DataTable GetInsAgingTable(RpAgingParamObject rpo) {			
 			#region Insurance Aging
-			string asOfDateStr=SOut.Date(rpo.AsOfDate);
-			string thirtyDaysAgo=SOut.Date(rpo.AsOfDate.AddDays(-30));
-			string sixtyDaysAgo=SOut.Date(rpo.AsOfDate.AddDays(-60));
-			string ninetyDaysAgo=SOut.Date(rpo.AsOfDate.AddDays(-90));
-			string patOrGuar=(rpo.IsGroupByFam?"guar":"patient");
-			string command="SELECT guarAging.PatNum,";
+			var asOfDateStr=SOut.Date(rpo.AsOfDate);
+			var thirtyDaysAgo=SOut.Date(rpo.AsOfDate.AddDays(-30));
+			var sixtyDaysAgo=SOut.Date(rpo.AsOfDate.AddDays(-60));
+			var ninetyDaysAgo=SOut.Date(rpo.AsOfDate.AddDays(-90));
+			var patOrGuar=(rpo.IsGroupByFam?"guar":"patient");
+			var command="SELECT guarAging.PatNum,";
 			if(Prefs.GetBoolNoCache(PrefName.ReportsShowPatNum)) {
 				command+=DbHelper.Concat("guarAging.PatNum","' - '","guarAging.LName","', '","guarAging.FName","' '","guarAging.MiddleI");
 			}
@@ -75,17 +71,17 @@ namespace OpenDentBusiness {
 					OR ABS(guarAging.InsPayEst_Total) > 0.005)
 				ORDER BY guarAging.LName,guarAging.FName";
 			ODEvent.Fire(ODEventType.ReportComplex,Lans.g("ReportComplex","Running Insurance Estimate Query..."));
-			DataTable insTable = DataCore.GetTable(command);
+			var insTable = DataCore.GetTable(command);
 			#endregion Insurance Aging
 			#region Regular Aging
-			DataTable regAging=new DataTable();
+			var regAging=new DataTable();
 			//Don't run regular aging if detailed breakdown as it can take a long time to run for large customers.
 			if(!rpo.IsDetailedBreakdown) {
 				regAging=RpAging.GetAgingTable(rpo);
 			}
 			#endregion Regular Aging
 			#region Merge Insurance and Regular Aging
-			DataTable insAgingTable = new DataTable();
+			var insAgingTable = new DataTable();
 			insAgingTable.Columns.Add("PatName");
 			if(rpo.IsDetailedBreakdown) {
 				insAgingTable.Columns.Add("CarrierName");
@@ -103,11 +99,11 @@ namespace OpenDentBusiness {
 			insAgingTable.Columns.Add("PatBal_Total");
 			insAgingTable.Columns.Add("InsWoChange");
 			insAgingTable.Columns.Add("PatBalEst");
-			Dictionary<long,DataRow> dictPatInsAgingRows=new Dictionary<long,DataRow>();
-			Dictionary<AgingTableRowId,DataRow> dictDetailedInsAgingRows=new Dictionary<AgingTableRowId,DataRow>();
+			var dictPatInsAgingRows=new Dictionary<long,DataRow>();
+			var dictDetailedInsAgingRows=new Dictionary<AgingTableRowId,DataRow>();
 			#region Add All Insurance Aging Rows to Dictionary
 			foreach(DataRow insRow in insTable.Rows) {
-				DataRow newRow=insAgingTable.NewRow();//create a new row with the structure of the new table
+				var newRow=insAgingTable.NewRow();//create a new row with the structure of the new table
 				//copy the ins aging table's values over to the new row and fill the pat bal columns with -insPayEst for the appropriate bucket
 				newRow["PatName"]=insRow["PatName"];
 				if(rpo.IsDetailedBreakdown) {
@@ -125,7 +121,7 @@ namespace OpenDentBusiness {
 			#endregion Add All Insurance Aging Rows to Dictionary
 			#region Add Regular Aging Rows and Apply Insurance Estimates to Dictionary
 			foreach(DataRow row in regAging.Rows) {
-				long patNumCur=SIn.Long(row["PatNum"].ToString());
+				var patNumCur=SIn.Long(row["PatNum"].ToString());
 				DataRow insAgingRow;
 				if(dictPatInsAgingRows.TryGetValue(patNumCur,out insAgingRow)) {
 					//check to see if that patient exists in the insurance aging report
@@ -177,18 +173,18 @@ namespace OpenDentBusiness {
 		}
 
 		private static void AddRowsFromDict<T>(RpAgingParamObject rpo,Dictionary<T,DataRow> dict,DataTable insAgingTable) {
-			foreach(DataRow rowCur in dict.Values) {
-				double insPayEstTotal = SIn.Double(rowCur["InsPayEst_Total"].ToString());
-				double patBalTotal = SIn.Double(rowCur["PatBal_Total"].ToString())+insPayEstTotal;
+			foreach(var rowCur in dict.Values) {
+				var insPayEstTotal = SIn.Double(rowCur["InsPayEst_Total"].ToString());
+				var patBalTotal = SIn.Double(rowCur["PatBal_Total"].ToString())+insPayEstTotal;
 				if(patBalTotal <= -0.005) {
 					insAgingTable.Rows.Add(rowCur);
 					continue;
 				}
-				double insWoChange = SIn.Double(rowCur["InsWoChange"].ToString());
-				double patBal0_30 = SIn.Double(rowCur["PatBal_0_30"].ToString())+SIn.Double(rowCur["InsPayEst_0_30"].ToString());
-				double patBal31_60 = SIn.Double(rowCur["PatBal_31_60"].ToString())+SIn.Double(rowCur["InsPayEst_31_60"].ToString());
-				double patBal61_90 = SIn.Double(rowCur["PatBal_61_90"].ToString())+SIn.Double(rowCur["InsPayEst_61_90"].ToString());
-				double patBal90 = SIn.Double(rowCur["PatBal_90"].ToString())+SIn.Double(rowCur["InsPayEst_90"].ToString());
+				var insWoChange = SIn.Double(rowCur["InsWoChange"].ToString());
+				var patBal0_30 = SIn.Double(rowCur["PatBal_0_30"].ToString())+SIn.Double(rowCur["InsPayEst_0_30"].ToString());
+				var patBal31_60 = SIn.Double(rowCur["PatBal_31_60"].ToString())+SIn.Double(rowCur["InsPayEst_31_60"].ToString());
+				var patBal61_90 = SIn.Double(rowCur["PatBal_61_90"].ToString())+SIn.Double(rowCur["InsPayEst_61_90"].ToString());
+				var patBal90 = SIn.Double(rowCur["PatBal_90"].ToString())+SIn.Double(rowCur["InsPayEst_90"].ToString());
 				if((!CompareDouble.IsZero(insPayEstTotal) || !CompareDouble.IsZero(insWoChange)) 
 					&& new[] { patBal0_30,patBal31_60,patBal61_90,patBal90 }.All(x => x < 0.005)) 
 				{
@@ -211,7 +207,7 @@ namespace OpenDentBusiness {
 			public long CarrierNum;
 
 			public static AgingTableRowId FromDataRow(DataRow row) {
-				AgingTableRowId retVal=new AgingTableRowId();
+				var retVal=new AgingTableRowId();
 				if(row.Table.Columns.Contains("PatNum")) {
 					retVal.PatNum=SIn.Long(row["PatNum"].ToString());
 				}

@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace OpenDentBusiness.Eclaims {
+﻿namespace OpenDentBusiness.Eclaims {
 	public interface ITerminalConnector {
 		void ShowForm();
 		void OpenConnection(int modemPort);

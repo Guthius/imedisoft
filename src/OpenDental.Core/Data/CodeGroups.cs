@@ -50,24 +50,24 @@ public static class CodeGroups
         Cache.ClearCache();
     }
 
-    public static List<CodeGroup> GetDeepCopy(bool isShort = false)
+    public static List<CodeGroup> GetDeepCopy(bool shortList = false)
     {
-        return Cache.GetDeepCopy(isShort);
+        return Cache.GetDeepCopy(shortList);
     }
 
-    public static CodeGroup GetFirst(Func<CodeGroup, bool> match, bool isShort = false)
+    public static CodeGroup GetFirst(Func<CodeGroup, bool> predicate, bool shortList = false)
     {
-        return Cache.GetFirst(match, isShort);
+        return Cache.GetFirst(predicate, shortList);
     }
 
-    public static CodeGroup GetFirstOrDefault(Func<CodeGroup, bool> match, bool isShort = false)
+    public static CodeGroup GetFirstOrDefault(Func<CodeGroup, bool> predicate, bool shortList = false)
     {
-        return Cache.GetFirstOrDefault(match, isShort);
+        return Cache.GetFirstOrDefault(predicate, shortList);
     }
 
-    public static DataTable GetTableFromCache(bool doRefreshCache)
+    public static DataTable GetTableFromCache(bool refreshCache)
     {
-        return Cache.GetTableFromCache(doRefreshCache);
+        return Cache.GetTableFromCache(refreshCache);
     }
 
     public static bool IsProcInCodeGroup(string procCodeString, long codeGroupNum)
@@ -124,9 +124,9 @@ public static class CodeGroups
         return GetFirstOrDefault(x => x.CodeGroupNum == codeGroupNum);
     }
 
-    public static CodeGroup GetOneForCodeGroupFixed(EnumCodeGroupFixed codeGroupFixed, bool isShort = true)
+    public static CodeGroup GetOneForCodeGroupFixed(EnumCodeGroupFixed codeGroupFixed, bool shortList = true)
     {
-        return GetFirstOrDefault(x => x.CodeGroupFixed == codeGroupFixed, isShort);
+        return GetFirstOrDefault(x => x.CodeGroupFixed == codeGroupFixed, shortList);
     }
 
     public static int GetOrder(long codeGroupNum)
@@ -134,8 +134,8 @@ public static class CodeGroups
         return GetFirst(x => x.CodeGroupNum == codeGroupNum).ItemOrder;
     }
 
-    public static bool Sync(List<CodeGroup> listCodeGroups, List<CodeGroup> listCodeGroupsOld)
+    public static bool Sync(List<CodeGroup> codeGroups, List<CodeGroup> codeGroupsOld)
     {
-        return CodeGroupCrud.Sync(listCodeGroups, listCodeGroupsOld);
+        return CodeGroupCrud.Sync(codeGroups, codeGroupsOld);
     }
 }

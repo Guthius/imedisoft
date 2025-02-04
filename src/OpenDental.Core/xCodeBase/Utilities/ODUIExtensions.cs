@@ -10,18 +10,23 @@ public class UIHelper
     public static void ForceBringToFront(Form form)
     {
         form.TopMost = true;
+        
         Application.DoEvents();
+        
         form.TopMost = false;
     }
 
     public static IEnumerable<T> TakeLast<T>(IEnumerable<T> source, int count)
     {
-        return source.Skip(Math.Max(0, source.Count() - count));
+        var list = source.ToList();
+        
+        return list.Skip(Math.Max(0, list.Count - count));
     }
 
     public static IEnumerable<Control> GetAllControls(Control control)
     {
-        IEnumerable<Control> controls = control.Controls.OfType<Control>();
+        var controls = control.Controls.OfType<Control>().ToList();
+        
         return controls.SelectMany(GetAllControls).Concat(controls);
     }
 }

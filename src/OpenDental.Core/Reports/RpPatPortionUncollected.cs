@@ -1,11 +1,7 @@
-﻿using CodeBase;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Data;
 using System.Linq;
-using System.Reflection;
-using System.Text;
 using System.Diagnostics;
 using DataConnectionBase;
 using Imedisoft.Core.Entities;
@@ -14,10 +10,10 @@ namespace OpenDentBusiness {
 	public class RpPatPortionUncollected {
 		
 		public static DataTable GetPatUncollected(DateTime dateFrom,DateTime dateTo,List<long> listClinicNums) {
-			Stopwatch s=new Stopwatch();;
+			var s=new Stopwatch();;
 			const bool hasClinicsEnabled = true;
-			List<long> listHiddenUnearnedDefNums=Defs.GetDefsNoCache(DefCat.PaySplitUnearnedType).FindAll(x => !string.IsNullOrEmpty(x.ItemValue)).Select(x => x.DefNum).ToList();
-			string query=$@"SELECT proc.PatNum, proc.ProcDate,CONCAT(patient.LName,', ',patient.FName) Patient,procedurecode.AbbrDesc,proc.Fee,
+			var listHiddenUnearnedDefNums=Defs.GetDefsNoCache(DefCat.PaySplitUnearnedType).FindAll(x => !string.IsNullOrEmpty(x.ItemValue)).Select(x => x.DefNum).ToList();
+			var query=$@"SELECT proc.PatNum, proc.ProcDate,CONCAT(patient.LName,', ',patient.FName) Patient,procedurecode.AbbrDesc,proc.Fee,
 				proc.Fee-proc.InsEst PatPortion,
 				COALESCE(adj.adjAmt,0) Adjustment,
 				COALESCE(pay.splitAmt,0) Payment,
@@ -72,7 +68,7 @@ namespace OpenDentBusiness {
 				) pay ON pay.ProcNum=proc.ProcNum
 				WHERE proc.Fee-proc.InsEst+COALESCE(adj.adjAmt,0)-COALESCE(pay.splitAmt,0)>0.005
 				ORDER BY proc.ProcDate,patient.LName,patient.FName,procedurecode.ProcCode";
-			DataTable table=DataCore.GetTable(query);
+			var table=DataCore.GetTable(query);
 			return table;
 		}
 	}

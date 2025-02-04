@@ -14,17 +14,6 @@ public static class UpdateHistories
         return UpdateHistoryCrud.SelectMany("SELECT * FROM updatehistory ORDER BY DateTimeUpdated");
     }
 
-    public static UpdateHistory GetLastUpdateHistory()
-    {
-        return UpdateHistoryCrud.SelectOne(
-            """
-            SELECT * 
-            FROM updatehistory
-            ORDER BY DateTimeUpdated DESC
-            LIMIT 1
-            """);
-    }
-
     public static List<UpdateHistory> GetPreviousUpdateHistories(int count)
     {
         return UpdateHistoryCrud.SelectMany(

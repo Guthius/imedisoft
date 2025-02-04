@@ -1,16 +1,9 @@
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
 using System.Linq;
-using System.Text;
-using System.Windows;
 using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
 using Imedisoft.Core.Data;
 using Imedisoft.Core.Entities;
-using OpenDentBusiness;
 using WpfControls.UI;
 
 namespace OpenDental {
@@ -38,7 +31,7 @@ namespace OpenDental {
 					patientRace.PatNum=PatientCur.PatNum;
 					patientRace.Description=_listCdcrecsRacePatUnion[i].Description;
 					patientRace.IsEthnicity=(_listCdcrecsRacePatUnion[i].HeirarchicalCode!=null && _listCdcrecsRacePatUnion[i].HeirarchicalCode.StartsWith("E")) 
-						|| _listCdcrecsRacePatUnion[i].CdcrecCode==PatientRace.DECLINE_SPECIFY_ETHNICITY_CODE;
+						|| _listCdcrecsRacePatUnion[i].CdcrecCode==PatientRace.DeclineSpecifyEthnicityCode;
 					listPatRaces.Add(patientRace);
 				}
 				return listPatRaces;
@@ -71,13 +64,13 @@ namespace OpenDental {
 				.OrderBy(x => x.HeirarchicalCode).ToList();
 			Cdcrec cdcrecDeclinedSpecify=new Cdcrec {
 				Description=Lang.g(this,"DECLINED TO SPECIFY"),
-				CdcrecCode=PatientRace.DECLINE_SPECIFY_RACE_CODE,
+				CdcrecCode=PatientRace.DeclineSpecifyRaceCode,
 				HeirarchicalCode=""
 			};
 			_listCdcrecsRaceAll.Add(cdcrecDeclinedSpecify);
 			cdcrecDeclinedSpecify=new Cdcrec {
 				Description=Lang.g(this,"DECLINED TO SPECIFY"),
-				CdcrecCode=PatientRace.DECLINE_SPECIFY_ETHNICITY_CODE,
+				CdcrecCode=PatientRace.DeclineSpecifyEthnicityCode,
 				HeirarchicalCode=""
 			};
 			_listCdcrecsEthnicityAll.Add(cdcrecDeclinedSpecify);
@@ -92,10 +85,10 @@ namespace OpenDental {
 				if(cdcrec!=null) {
 					_listCdcrecsEthnicityPat.Add(cdcrec);
 				}
-				if(ListPatientRacesAll[i].CdcrecCode==PatientRace.MULTI_RACE_CODE) {
+				if(ListPatientRacesAll[i].CdcrecCode==PatientRace.MultiRaceCode) {
 					cdcrec=new Cdcrec {
 						Description=Lang.g(this,"MULTIRACIAL"),
-						CdcrecCode=PatientRace.MULTI_RACE_CODE,
+						CdcrecCode=PatientRace.MultiRaceCode,
 						HeirarchicalCode=""
 					};
 					_listCdcrecsRacePat.Add(cdcrec);
@@ -120,7 +113,7 @@ namespace OpenDental {
 			for(int i=0;i<listCdcrecs.Count;i++) {
 				row=new GridRow();
 				if(listCdcrecs[i].CdcrecCode.StartsWith("ASKU")
-					|| listCdcrecs[i].CdcrecCode==PatientRace.MULTI_RACE_CODE) 
+					|| listCdcrecs[i].CdcrecCode==PatientRace.MultiRaceCode) 
 				{
 					row.Cells.Add("");
 				}
@@ -275,11 +268,11 @@ namespace OpenDental {
 		}
 
 		private void butSave_Click(object sender,EventArgs e) {
-			if(_listCdcrecsRacePat.Count>1 && _listCdcrecsRacePat.Any(x => x.CdcrecCode==PatientRace.DECLINE_SPECIFY_RACE_CODE)) {
+			if(_listCdcrecsRacePat.Count>1 && _listCdcrecsRacePat.Any(x => x.CdcrecCode==PatientRace.DeclineSpecifyRaceCode)) {
 				MsgBox.Show(this,"Cannot select 'DECLINED TO SPECIFY' and any other race.");
 				return;
 			}
-			if(_listCdcrecsEthnicityPat.Count>1 && _listCdcrecsEthnicityPat.Any(x => x.CdcrecCode==PatientRace.DECLINE_SPECIFY_ETHNICITY_CODE)) {
+			if(_listCdcrecsEthnicityPat.Count>1 && _listCdcrecsEthnicityPat.Any(x => x.CdcrecCode==PatientRace.DeclineSpecifyEthnicityCode)) {
 				MsgBox.Show(this,"Cannot select 'DECLINED TO SPECIFY' and any other ethnicity.");
 				return;
 			}

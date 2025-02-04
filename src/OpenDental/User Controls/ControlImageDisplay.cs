@@ -1,26 +1,21 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Drawing.Text;
 using System.IO;
 using System.Linq;
 using System.Net;
-using System.Threading;
 using System.Windows.Forms;
 using CodeBase;
 using OpenDentBusiness;
-using OpenDental.Thinfinity;
 using OpenDental.UI;
-using System.Drawing.Imaging;
 using CodeBase.Controls;
 using PdfSharp.Drawing;
 using PdfSharp.Pdf;
 using PdfSharp.Pdf.IO;
 using Microsoft.Web.WebView2.Core;
 using System.Threading.Tasks;
-using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Data;
 using Imedisoft.Core.Entities;
@@ -61,7 +56,7 @@ Here is the desired behavior:
 	public bool DidLaunchFromChartModule;
 	///<summary>For a few things, an actual reference to the imageSelector of the parent is handy.</summary>
 	public WpfControls.UI.ImageSelector ImageSelector_;
-	public LayoutManagerForms LayoutManager=new LayoutManagerForms();
+	
 	///<summary>The currently selected node type, key, and category.  This is specific to each window.  Can be null if nothing selected, which will cause pasted items to go to DefaultImageCategoryImportFolder pref if a DefNum exists, first category otherwise.</summary>
 	private NodeTypeKeyCat _nodeTypeKeyCatSelected;
 		
@@ -166,7 +161,7 @@ Here is the desired behavior:
 			_odWebView2.Visible=false;
 			_odWebView2.Dock=DockStyle.Fill;
 			_odWebView2.DoBlockNavigation=true;
-			LayoutManagerForms.Add(_odWebView2,this);
+			Controls.Add(_odWebView2);
 		}
 		_cursorCrosshair=new Cursor(GetType(),"CursorCrosshair.cur");
 		_cursorLineAdd=new Cursor(GetType(),"CursorLineAdd.cur");
@@ -178,12 +173,12 @@ Here is the desired behavior:
 		panelHover=new PanelOD();
 		panelHover.Size=new Size(200,200);
 		panelHover.Visible=false;
-		LayoutManagerForms.Add(panelHover,panelMain);
+		panelMain.Controls.Add(panelHover);
 		labelHover=new Label();
 		labelHover.Size=new Size(190,190);//10 pixels of margin all around
 		labelHover.Location=new Point(3,3);
 		labelHover.Anchor=AnchorStyles.Left | AnchorStyles.Top | AnchorStyles.Right | AnchorStyles.Bottom;
-		LayoutManagerForms.Add(labelHover,panelHover);
+		panelHover.Controls.Add(labelHover);
 	}
 	#endregion Constructor
 
@@ -636,17 +631,6 @@ Here is the desired behavior:
 	}
 
 	public void PdfPrintPreview(){
-		if(false) {
-			if(_odWebView2FilePath.IsNullOrEmpty()) {
-				SetPdfFilePath(PatFolder,GetDocumentShowing(0).FileName,"","Downloading Document...");
-			}
-			if(!File.Exists(_odWebView2FilePath)) {
-				ODMessageBox.Show(Lan.g(this,"File not found")+": "+GetDocumentShowing(0).FileName);
-				_odWebView2FilePath="";
-				return;
-			}
-			ThinfinityUtils.HandleFile(_odWebView2FilePath);//This will do a PDF preview. WebView2 does not work with cloud.
-		}
 		//WebView2 has its own built-in pdf preview that is shown when clicking 'Print'.
 		SecurityLogs.MakeLogEntry(EnumPermType.Printing,PatientCur.PatNum,"Patient PDF "+GetDocumentShowing(0).FileName+" "+GetDocumentShowing(0).Description+" printed");
 	}
@@ -975,7 +959,7 @@ Here is the desired behavior:
 		try {
 			File.Delete(odWebView2.Source.AbsolutePath);//delete the temp file so printing doesn't cause their AtoZ folder to bloat.
 		}
-		catch(Exception ex) {
+		catch {
 		}
 		return true;
 	}
@@ -1009,7 +993,7 @@ Here is the desired behavior:
 		_mountShowing=null;//Tells the drawing logic explicitly that we're working with a document.
 		for(var i=0;i<listDocuments.Count;i++) {
 			xg=XGraphics.FromPdfPage(pdfDocument.AddPage());
-			var fileName=FileAtoZ.CombinePaths(filePath,listDocuments[i].FileName);
+			var fileName=Path.Combine(filePath,listDocuments[i].FileName);
 			_bitmapArrayShowing=new Bitmap[1];
 			MemoryStream memoryStream=null;
 			try {
@@ -1072,19 +1056,8 @@ Here is the desired behavior:
 			}
 			_listImageDraws=ImageDraws.RefreshForDoc(document.DocNum);
 			_nodeTypeKeyCatSelected.DefNumCategory=document.DocCategory;
-			_bitmapArrayShowing=new Bitmap[1]; 
-			if(false) {
-				var progressOD=new ProgressWin();
-				progressOD.ActionMain=() =>	LoadBitmap(0,EnumLoadBitmapType.IdxAndRaw);
-				progressOD.StartingMessage=Lan.g("ContrImages","Downloading...");
-				progressOD.ShowDialog();
-				if(progressOD.IsCancelled){
-					return;
-				}
-			}
-			else{
-				LoadBitmap(0,EnumLoadBitmapType.IdxAndRaw);
-			}
+			_bitmapArrayShowing=new Bitmap[1];
+			LoadBitmap(0,EnumLoadBitmapType.IdxAndRaw);
 			//_bitmapRaw will always be null for PDFs
 			//Diverges slightly from the normal use of this event, in that it is fired from SelectTreeNode() rather than ModuleSelected.  Appropriate
 			//here because this is the only data in ContrImages that might affect the PatientDashboard, and there is no "LoadData" in this Module.
@@ -1135,20 +1108,8 @@ Here is the desired behavior:
 					_bitmapArrayShowing[i]=null;
 					continue;
 				}
-				if(false) {
-					//this will flicker since it will be a series of progress bars.  Improve later if needed.
-					var progressWin=new ProgressWin();
-					progressWin.ActionMain=() =>	LoadBitmap(i,EnumLoadBitmapType.OnlyIdx);
-					progressWin.StartingMessage=Lan.g("ContrImages","Downloading...");
-					progressWin.ShowDialog();
-					if(progressWin.IsCancelled){
-						Cursor=Cursors.Default;
-						return;//not sure if we need to do any cleanup
-					}
-				}
-				else{
-					LoadBitmap(i,EnumLoadBitmapType.OnlyIdx);
-				}
+
+				LoadBitmap(i,EnumLoadBitmapType.OnlyIdx);
 				if(_bitmapArrayShowing[i]==null) {
 					listMissingMountNums.Add(i);
 				}
@@ -1391,7 +1352,7 @@ Here is the desired behavior:
 			}
 			else{
 				//other files such as pdf will lack a bitmapCopy
-				fileName=FileAtoZ.CombinePaths(ImageStore.GetPatientFolder(PatientCur,ImageStore.GetDataFolder()),GetDocumentShowing(_idxSelectedInMount).FileName);
+				fileName=Path.Combine(ImageStore.GetPatientFolder(PatientCur,ImageStore.GetDataFolder()),GetDocumentShowing(_idxSelectedInMount).FileName);
 			}
 		}
 		else if(IsMountShowing()){
@@ -1416,9 +1377,6 @@ Here is the desired behavior:
 						fileName=Path.GetDirectoryName(fileName)+"\\"+Path.GetFileNameWithoutExtension(fileName)+random.Next(9)+Path.GetExtension(fileName);
 					}
 					File.Copy(filePathSource,fileName);
-					if(/* ODEnvironment.IsCloudServer */ false){//File path/name will not exist. Still copy the Bitmap so that it can be pasted on local computer.
-						bitmapCopy=ImageHelper.CopyWithCropRotate(GetDocumentShowing(0),GetBitmapShowing(0));
-					}
 				}
 				else{
 					bitmapCopy=ImageHelper.CopyWithCropRotate(GetDocumentShowing(0),GetBitmapShowing(0));
@@ -1433,7 +1391,7 @@ Here is the desired behavior:
 			}
 			else{
 				//other files such as pdf will lack a bitmapCopy
-				fileName=FileAtoZ.CombinePaths(ImageStore.GetPatientFolder(PatientCur,ImageStore.GetDataFolder()),GetDocumentShowing(0).FileName);
+				fileName=Path.Combine(ImageStore.GetPatientFolder(PatientCur,ImageStore.GetDataFolder()),GetDocumentShowing(0).FileName);
 			}
 		}
 		else{
@@ -1462,13 +1420,12 @@ Here is the desired behavior:
 		try {
 			System.Windows.Clipboard.SetDataObject(dataObject);//System.Windows.Forms.Clipboard fails for Thinfinity
 		}
-		catch(Exception ex) {
+		catch {
 			MsgBox.Show(this,"Could not copy contents to the clipboard.  Please try again.");
 			return;
 		}
 		if(bitmapCopy!=null) {
 			bitmapCopy.Dispose();
-			bitmapCopy=null;
 		}
 		long patNum=0;
 		if(PatientCur!=null) {
@@ -1857,7 +1814,7 @@ Here is the desired behavior:
 			try {
 				stringArrayfileNames=ODClipboard.GetFileDropList();
 			}
-			catch(Exception ex) {
+			catch {
 			}
 		}
 		if(bitmapPaste==null && stringArrayfileNames.IsNullOrEmpty()){
@@ -1906,18 +1863,7 @@ Here is the desired behavior:
 					Document doc=null;
 					try {
 						//fileName is full path
-						if(false) {
-							var progressOD=new ProgressWin();
-							progressOD.ActionMain=() => doc=ImageStore.Import(stringArrayfileNames[i],GetCurrentCategory(),PatientCur);;
-							progressOD.ShowDialog();
-							if(progressOD.IsCancelled){
-								Cursor=Cursors.Default;
-								return;//cleanup?
-							}
-						}
-						else{
-							doc=ImageStore.Import(stringArrayfileNames[i],GetCurrentCategory(),PatientCur);//Makes log
-						}
+						doc=ImageStore.Import(stringArrayfileNames[i],GetCurrentCategory(),PatientCur);//Makes log
 						var docOld=doc.Copy();
 						doc.MountItemNum=listAvail[i].MountItemNum;
 						doc.ToothNumbers=listAvail[i].ToothNumbers;
@@ -1980,20 +1926,10 @@ Here is the desired behavior:
 		}
 		else{//files
 			for(var i=0;i<stringArrayfileNames.Length;i++) {
-				try {
+				try
+				{
 					//fileNames contains full paths
-					if(false) {
-						//this will flicker because multiple progress bars.  Improve later.
-						var progressOD=new ProgressWin();
-						progressOD.ActionMain=() => document=ImageStore.Import(stringArrayfileNames[i],GetCurrentCategory(),PatientCur);
-						progressOD.ShowDialog();
-						if(progressOD.IsCancelled){
-							return;
-						}
-					}
-					else{
-						document=ImageStore.Import(stringArrayfileNames[i],GetCurrentCategory(),PatientCur);//Makes log
-					}
+					document=ImageStore.Import(stringArrayfileNames[i],GetCurrentCategory(),PatientCur);//Makes log
 				}
 				catch(Exception ex) {
 					ODMessageBox.Show(Lan.g(this,"Unable to copy file, May be in use: ")+ex.Message+": "+stringArrayfileNames[i]);
@@ -2054,22 +1990,16 @@ Here is the desired behavior:
 				return;
 			}
 			var patientFolder=ImageStore.GetPatientFolder(patientOriginal,ImageStore.GetDataFolder());
-			if(false) {
-				var byteArray=ImageStore.GetBytes(documentOriginal,patientFolder);
-				document=ImageStore.Import(byteArray,GetCurrentCategory(),documentOriginal.ImgType,PatientCur,fileExtension:Path.GetExtension(documentOriginal.FileName));
+			var sourceFile="";
+			try {
+				sourceFile=Path.Combine(patientFolder,documentOriginal.FileName);
 			}
-			else {
-				var sourceFile="";
-				try {
-					sourceFile=FileAtoZ.CombinePaths(patientFolder,documentOriginal.FileName);
-				}
-				catch(Exception ex) {
-					FriendlyException.Show(Lan.g(this,"Cannot paste content."),ex);
-					return;
-				}
-				//we could be pasting into the same patient or a different patient.
-				document=ImageStore.Import(sourceFile,GetCurrentCategory(),PatientCur);
+			catch(Exception ex) {
+				FriendlyException.Show(Lan.g(this,"Cannot paste content."),ex);
+				return;
 			}
+			//we could be pasting into the same patient or a different patient.
+			document=ImageStore.Import(sourceFile,GetCurrentCategory(),PatientCur);
 			document.CropH=documentOriginal.CropH;
 			document.CropW=documentOriginal.CropW;
 			document.CropX=documentOriginal.CropX;
@@ -2133,7 +2063,7 @@ Here is the desired behavior:
 				if(documentOriginal is null){
 					continue;//some mount items may be empty
 				}
-				var sourceFile=FileAtoZ.CombinePaths(ImageStore.GetPatientFolder(patientOriginal,ImageStore.GetDataFolder()),documentOriginal.FileName);
+				var sourceFile=Path.Combine(ImageStore.GetPatientFolder(patientOriginal,ImageStore.GetDataFolder()),documentOriginal.FileName);
 				//we could be pasting into the same patient or a different patient.
 				document=ImageStore.Import(sourceFile,GetCurrentCategory(),PatientCur);
 				document.CropH=documentOriginal.CropH;
@@ -2496,20 +2426,10 @@ Here is the desired behavior:
 		}
 		Document document=null;
 		for(var i=0;i<stringArrayFiles.Length;i++) {
-			try {
+			try
+			{
 				//stringArrayFiles contains full paths
-				if(false) {
-					//this will flicker because multiple progress bars.  Improve later.
-					var progressOD=new ProgressWin();
-					progressOD.ActionMain=() => document=ImageStore.Import(stringArrayFiles[i],GetCurrentCategory(),PatientCur);
-					progressOD.ShowDialog();
-					if(progressOD.IsCancelled){
-						return;
-					}
-				}
-				else{
-					document=ImageStore.Import(stringArrayFiles[i],GetCurrentCategory(),PatientCur);//Makes log
-				}
+				document=ImageStore.Import(stringArrayFiles[i],GetCurrentCategory(),PatientCur);//Makes log
 			}
 			catch(Exception ex) {
 				ODMessageBox.Show(Lan.g(this,"Unable to copy file, May be in use: ")+ex.Message+": "+stringArrayFiles[i]);
@@ -3798,7 +3718,7 @@ Here is the desired behavior:
 		g.ScaleTransform(scale,scale);
 		DrawDocument(g);
 		var pathThumbnails=Path.Combine(PatFolder,"Thumbnails");
-		if(true && !Directory.Exists(pathThumbnails)) {
+		if(!Directory.Exists(pathThumbnails)) {
 			try {
 				Directory.CreateDirectory(pathThumbnails);
 			}
@@ -3812,13 +3732,13 @@ Here is the desired behavior:
 				try {
 					File.Delete(fileNameFull);
 				}
-				catch (Exception ex) {
+				catch {
 				}
 			}
 			try {
 				bitmap.Save(fileNameFull);
 			}
-			catch(Exception ex) {
+			catch {
 			}
 		}
 	}
@@ -3852,13 +3772,13 @@ Here is the desired behavior:
 				try {
 					File.Delete(fileNameFull);
 				}
-				catch (Exception ex) {
+				catch  {
 				}
 			}
 			try {
 				bitmap.Save(fileNameFull);
 			}
-			catch(Exception ex) {
+			catch {
 			}
 		}
 	}
@@ -3903,7 +3823,7 @@ Here is the desired behavior:
 		try {
 			progressOD.ShowDialog();
 		}
-		catch(Exception e) {
+		catch {
 			MsgBox.Show(this,"Unable to download file.");
 			return;
 		}
@@ -4629,7 +4549,7 @@ Here is the desired behavior:
 				_odWebView2.OdWebView2Navigate(_odWebView2FilePath);
 			}
 		}
-		catch(Exception ex) {
+		catch {
 			//An exception can happen if they do not have Microsoft WebView2 Runtime installed.
 		}
 	}
@@ -4793,20 +4713,10 @@ Here is the desired behavior:
 		}
 		Document document=null;
 		for(var i=0;i<stringArrayFileNames.Length;i++) {
-			try {
+			try
+			{
 				//.FileName is full path
-				if(false) {
-					//this will flicker because multiple progress bars.  Improve later.
-					var progressOD=new ProgressWin();
-					progressOD.ActionMain=() => document=ImageStore.Import(stringArrayFileNames[i],GetCurrentCategory(),PatientCur);
-					progressOD.ShowDialog();
-					if(progressOD.IsCancelled){
-						return;
-					}
-				}
-				else{
-					document=ImageStore.Import(stringArrayFileNames[i],GetCurrentCategory(),PatientCur);//Makes log
-				}
+				document=ImageStore.Import(stringArrayFileNames[i],GetCurrentCategory(),PatientCur);//Makes log
 			}
 			catch(Exception ex) {
 				ODMessageBox.Show(Lan.g(this,"Unable to copy file, May be in use: ")+ex.Message+": "+stringArrayFileNames[i]);
@@ -4862,18 +4772,9 @@ Here is the desired behavior:
 			isBlockingNavigation=_odWebView2.DoBlockNavigation;
 		}
 		for(var i=0;i<stringArrayFileNames.Length;i++) {
-			try {
-				if(false) {
-					var progressOD=new ProgressWin();
-					progressOD.ActionMain=() => document=ImageStore.Import(stringArrayFileNames[i],GetCurrentCategory(),PatientCur);
-					progressOD.ShowDialog();
-					if(progressOD.IsCancelled){
-						return;
-					}
-				}
-				else{
-					document=ImageStore.Import(stringArrayFileNames[i],GetCurrentCategory(),PatientCur);//Makes log
-				}
+			try
+			{
+				document=ImageStore.Import(stringArrayFileNames[i],GetCurrentCategory(),PatientCur);//Makes log
 			}
 			catch(Exception ex) {
 				ODMessageBox.Show(Lan.g(this,"Unable to copy file, May be in use: ")+ex.Message+": "+stringArrayFileNames[i]);

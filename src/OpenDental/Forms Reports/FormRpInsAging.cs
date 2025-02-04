@@ -1,22 +1,21 @@
 using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Drawing;
 using System.Linq;
 using System.Windows.Forms;
 using OpenDental.ReportingComplex;
 using OpenDentBusiness;
-using CodeBase;
 using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Entities;
 using Imedisoft.Core.Features.Clinics;
 using Imedisoft.Core.Features.Clinics.Dtos;
+using Imedisoft.Features.Providers.Dtos;
 
 namespace OpenDental;
 
 public partial class FormRpInsAging : FormODBase {
-	private List<Provider> _listProviders;
+	private List<ProviderDto> _listProviders;
 	private List<Def> _listBillingTypeDefs;
 
 		
@@ -37,23 +36,16 @@ public partial class FormRpInsAging : FormODBase {
 		listBillType.Items.AddList(_listBillingTypeDefs,x => x.ItemName);
 		listBillType.SelectedIndex=(listBillType.Items.Count>0?0:-1);
 		checkBillTypesAll.Checked=true; //all billing types by default, event handler will set visibility
-		listProv.Items.AddList(_listProviders,x => x.GetLongDesc());
+		listProv.Items.AddList(_listProviders,x => x.Description);
 		listProv.SelectedIndex=(listProv.Items.Count>0?0:-1);
 		checkProvAll.Checked=true; //all provs by default, event handler will set visibility
-		if(!true) {
-			checkAllClin.Visible=false;//event handler may set listClin to visible, so hide explicitly after setting unchecked just in case
-			listClin.Visible=false;
-			labelClin.Visible=false;
+		var listClinics=Clinics.GetForUserod(Security.CurUser,true,"Unassigned").ToList();
+		if(!listClinics.Exists(x => x.Id==Clinics.ClinicNum)) {//Could have a hidden clinic selected
+			listClinics.Add(Clinics.GetClinic(Clinics.ClinicNum));
 		}
-		else {
-			var listClinics=Clinics.GetForUserod(Security.CurUser,true,"Unassigned").ToList();
-			if(!listClinics.Exists(x => x.Id==Clinics.ClinicNum)) {//Could have a hidden clinic selected
-				listClinics.Add(Clinics.GetClinic(Clinics.ClinicNum));
-			}
-			listClin.Items.AddList(listClinics,x => x.Abbr+(x.IsHidden?(" "+Lan.g(this,"(hidden)")):""));
-			listClin.SelectedIndex=listClinics.FindIndex(x => x.Id==Clinics.ClinicNum);//FindIndex could return -1, which is fine
-			checkAllClin.Checked=(Clinics.ClinicNum==0);//event handler will set visibility
-		}
+		listClin.Items.AddList(listClinics,x => x.Abbr+(x.IsHidden?(" "+Lan.g(this,"(hidden)")):""));
+		listClin.SelectedIndex=listClinics.FindIndex(x => x.Id==Clinics.ClinicNum);//FindIndex could return -1, which is fine
+		checkAllClin.Checked=(Clinics.ClinicNum==0);//event handler will set visibility
 		if(PrefC.GetBool(PrefName.FutureTransDatesAllowed) || PrefC.GetBool(PrefName.AccountAllowFutureDebits) 
 		                                                   || PrefC.GetBool(PrefName.AllowFutureInsPayments)) 
 		{
@@ -91,10 +83,10 @@ public partial class FormRpInsAging : FormODBase {
 		rpo.IsGroupByFam=radioGroupByFam.Checked;
 		rpo.IsInsPayWoCombined=false;
 		if(!checkBillTypesAll.Checked) {
-			rpo.ListBillTypes=listBillType.SelectedIndices.OfType<int>().Select(x => _listBillingTypeDefs[x].DefNum).ToList();
+			rpo.ListBillTypes=listBillType.SelectedIndices.Select(x => _listBillingTypeDefs[x].DefNum).ToList();
 		}
 		if(!checkProvAll.Checked) {
-			rpo.ListProvNums=listProv.SelectedIndices.OfType<int>().Select(x => _listProviders[x].ProvNum).ToList();
+			rpo.ListProvNums=listProv.SelectedIndices.Select(x => _listProviders[x].Id).ToList();
 		}
 		if(true) {
 			//if "All" is selected and the user is not restricted, show ALL clinics, including the 0 clinic.

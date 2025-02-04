@@ -18,22 +18,23 @@ public class AlertSubCrud
     public static List<AlertSub> TableToList(DataTable table)
     {
         var retVal = new List<AlertSub>();
-        AlertSub alertSub;
         foreach (DataRow row in table.Rows)
         {
-            alertSub = new AlertSub();
-            alertSub.AlertSubNum = SIn.Long(row["AlertSubNum"].ToString());
-            alertSub.UserNum = SIn.Long(row["UserNum"].ToString());
-            alertSub.ClinicNum = SIn.Long(row["ClinicNum"].ToString());
-            alertSub.Type = (AlertType) SIn.Int(row["Type"].ToString());
-            alertSub.AlertCategoryNum = SIn.Long(row["AlertCategoryNum"].ToString());
+            var alertSub = new AlertSub
+            {
+                AlertSubNum = SIn.Long(row["AlertSubNum"].ToString()),
+                UserNum = SIn.Long(row["UserNum"].ToString()),
+                ClinicNum = SIn.Long(row["ClinicNum"].ToString()),
+                Type = (AlertType) SIn.Int(row["Type"].ToString()),
+                AlertCategoryNum = SIn.Long(row["AlertCategoryNum"].ToString())
+            };
             retVal.Add(alertSub);
         }
 
         return retVal;
     }
 
-    public static long Insert(AlertSub alertSub)
+    public static void Insert(AlertSub alertSub)
     {
         var command = "INSERT INTO alertsub (";
 
@@ -47,8 +48,6 @@ public class AlertSubCrud
 
 
         alertSub.AlertSubNum = Db.NonQ(command, true, "AlertSubNum", "alertSub");
-
-        return alertSub.AlertSubNum;
     }
 
     public static bool Update(AlertSub alertSub, AlertSub oldAlertSub)
@@ -93,7 +92,7 @@ public class AlertSubCrud
         Db.NonQ(command);
     }
 
-    public static bool Sync(List<AlertSub> listNew, List<AlertSub> listDB)
+    public static void Sync(List<AlertSub> listNew, List<AlertSub> listDB)
     {
         //Adding items to lists changes the order of operation. All inserts are completed first, then updates, then deletes.
         var listIns = new List<AlertSub>();
@@ -105,15 +104,13 @@ public class AlertSubCrud
         var idxNew = 0;
         var idxDB = 0;
         var rowsUpdatedCount = 0;
-        AlertSub fieldNew;
-        AlertSub fieldDB;
         //Because both lists have been sorted using the same criteria, we can now walk each list to determine which list contians the next element.  The next element is determined by Primary Key.
         //If the New list contains the next item it will be inserted.  If the DB contains the next item, it will be deleted.  If both lists contain the next item, the item will be updated.
         while (idxNew < listNew.Count || idxDB < listDB.Count)
         {
-            fieldNew = null;
+            AlertSub fieldNew = null;
             if (idxNew < listNew.Count) fieldNew = listNew[idxNew];
-            fieldDB = null;
+            AlertSub fieldDB = null;
             if (idxDB < listDB.Count) fieldDB = listDB[idxDB];
             //begin compare
             if (fieldNew != null && fieldDB == null)
@@ -162,7 +159,6 @@ public class AlertSubCrud
                 rowsUpdatedCount++;
 
         DeleteMany(listDel.Select(x => x.AlertSubNum).ToList());
-        if (rowsUpdatedCount > 0 || listIns.Count > 0 || listDel.Count > 0) return true;
-        return false;
+        if (rowsUpdatedCount > 0 || listIns.Count > 0 || listDel.Count > 0) return;
     }
 }

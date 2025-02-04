@@ -1,11 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 using CodeBase;
 using Imedisoft.Core.Entities;
@@ -44,10 +39,6 @@ public partial class FormOperatoryPick:FormODBase {
 		gridMain.Columns.Clear();
 		var opNameWidth=180;
 		var clinicWidth=85;
-		if(!true) {
-			//Clinics are hidden so add the width of the clinic column to the Op Name column because the clinic column will not show.
-			opNameWidth+=clinicWidth;
-		}
 		var col=new GridColumn(Lan.g("TableOperatories","Op Name"),opNameWidth);
 		gridMain.Columns.Add(col);
 		col=new GridColumn(Lan.g("TableOperatories","Abbrev"),70);

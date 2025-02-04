@@ -18,16 +18,17 @@ public class StatementProdCrud
     public static List<StatementProd> TableToList(DataTable table)
     {
         var retVal = new List<StatementProd>();
-        StatementProd statementProd;
         foreach (DataRow row in table.Rows)
         {
-            statementProd = new StatementProd();
-            statementProd.StatementProdNum = SIn.Long(row["StatementProdNum"].ToString());
-            statementProd.StatementNum = SIn.Long(row["StatementNum"].ToString());
-            statementProd.DocNum = SIn.Long(row["DocNum"].ToString());
-            statementProd.FKey = SIn.Long(row["FKey"].ToString());
-            statementProd.ProdType = (ProductionType) SIn.Int(row["ProdType"].ToString());
-            statementProd.LateChargeAdjNum = SIn.Long(row["LateChargeAdjNum"].ToString());
+            var statementProd = new StatementProd
+            {
+                StatementProdNum = SIn.Long(row["StatementProdNum"].ToString()),
+                StatementNum = SIn.Long(row["StatementNum"].ToString()),
+                DocNum = SIn.Long(row["DocNum"].ToString()),
+                FKey = SIn.Long(row["FKey"].ToString()),
+                ProdType = (ProductionType) SIn.Int(row["ProdType"].ToString()),
+                LateChargeAdjNum = SIn.Long(row["LateChargeAdjNum"].ToString())
+            };
             retVal.Add(statementProd);
         }
 
@@ -115,16 +116,14 @@ public class StatementProdCrud
         var idxNew = 0;
         var idxDB = 0;
         var rowsUpdatedCount = 0;
-        StatementProd fieldNew;
-        StatementProd fieldDB;
         //Because both lists have been sorted using the same criteria, we can now walk each list to determine which list contians the next element.  The next element is determined by Primary Key.
         //If the New list contains the next item it will be inserted.  If the DB contains the next item, it will be deleted.  If both lists contain the next item, the item will be updated.
         while (idxNew < listNew.Count || idxDB < listDB.Count)
         {
-            fieldNew = null;
+            StatementProd fieldNew = null;
             if (idxNew < listNew.Count) fieldNew = listNew[idxNew];
 
-            fieldDB = null;
+            StatementProd fieldDB = null;
             if (idxDB < listDB.Count) fieldDB = listDB[idxDB];
 
             //begin compare

@@ -55,7 +55,6 @@
 			this.listQuickAdd = new OpenDental.UI.ListBox();
 			this.labelQuickAdd = new System.Windows.Forms.Label();
 			this.panel1 = new System.Windows.Forms.Panel();
-			this.warningIntegrity1 = new OpenDental.UI.WarningIntegrity();
 			this.checkASAP = new OpenDental.UI.CheckBox();
 			this.comboApptType = new OpenDental.UI.ComboBox();
 			this.label10 = new System.Windows.Forms.Label();
@@ -337,7 +336,6 @@
 			// 
 			// panel1
 			// 
-			this.panel1.Controls.Add(this.warningIntegrity1);
 			this.panel1.Controls.Add(this.checkASAP);
 			this.panel1.Controls.Add(this.comboApptType);
 			this.panel1.Controls.Add(this.label10);
@@ -383,13 +381,6 @@
 			this.panel1.Name = "panel1";
 			this.panel1.Size = new System.Drawing.Size(234, 511);
 			this.panel1.TabIndex = 164;
-			// 
-			// warningIntegrity1
-			// 
-			this.warningIntegrity1.Location = new System.Drawing.Point(0, 0);
-			this.warningIntegrity1.Name = "warningIntegrity1";
-			this.warningIntegrity1.Size = new System.Drawing.Size(18, 18);
-			this.warningIntegrity1.TabIndex = 190;
 			// 
 			// checkASAP
 			// 
@@ -948,6 +939,5 @@
 		private System.Windows.Forms.Label label6;
 		private System.Windows.Forms.Label label11;
 		private OpenDental.UI.CheckBox checkShowCommAuto;
-		private UI.WarningIntegrity warningIntegrity1;
 	}
 }

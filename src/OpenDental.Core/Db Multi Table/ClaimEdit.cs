@@ -10,7 +10,7 @@ public class ClaimEdit
 {
     public static LoadData GetLoadData(Patient pat, Family fam, Claim claim)
     {
-        LoadData data = new LoadData();
+        var data = new LoadData();
         data.ListPatPlans = PatPlans.Refresh(pat.PatNum);
         data.ListInsSubs = InsSubs.RefreshForFam(fam);
         data.ListInsPlans = InsPlans.RefreshForSubList(data.ListInsSubs);
@@ -28,7 +28,7 @@ public class ClaimEdit
 
     public static UpdateData UpdateClaim(Claim claimCur, List<ClaimValCodeLog> listClaimValCodes, ClaimCondCodeLog claimCondCodeLog, List<Procedure> listProcsToUpdatePlaceOfService, Patient pat, bool doMakeSecLog, EnumPermType permissionToLog)
     {
-        UpdateData data = new UpdateData();
+        var data = new UpdateData();
         Claims.Update(claimCur);
         if (listClaimValCodes != null)
         {
@@ -47,9 +47,9 @@ public class ClaimEdit
             }
         }
 
-        foreach (Procedure proc in listProcsToUpdatePlaceOfService)
+        foreach (var proc in listProcsToUpdatePlaceOfService)
         {
-            Procedure oldProc = proc.Copy();
+            var oldProc = proc.Copy();
             proc.PlaceService = claimCur.PlaceService;
             Procedures.Update(proc, oldProc);
         }

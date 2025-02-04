@@ -1,19 +1,16 @@
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Data;
 using System.Diagnostics;
 using System.Globalization;
 using System.Linq;
-using System.Text;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Threading;
 using CodeBase;
 using DataConnectionBase;
 using Imedisoft.Core.Caching;
+using Imedisoft.Core.Data;
 using Imedisoft.Core.Entities;
 using Imedisoft.Core.Features.Clinics;
 using OpenDental.Bridges;
@@ -908,16 +905,16 @@ namespace OpenDental {
 				//Explicitly use the combo clinic instead of FormOpenDental.ClinicNum because the combo box should default to that clinic unless manually changed by the user.
 				if(true && !comboClinic.IsAllSelected) {//clinics enabled and all isn't selected
 					//Set the patients primary provider to the clinic default provider.
-					Provider provider=Providers.GetDefaultProvider(comboClinic.ClinicNumSelected);
+					var provider=Providers.GetDefaultProvider(comboClinic.ClinicNumSelected);
 					if(provider!=null) {
-						priProv=provider.ProvNum;
+						priProv=provider.Id;
 					}
 				}
 				else {
 					//Set the patients primary provider to the practice default provider.
-					Provider provider=Providers.GetDefaultProvider();
+					var provider=Providers.GetDefaultProvider();
 					if(provider!=null) {
-						priProv=provider.ProvNum;
+						priProv=provider.Id;
 					}
 				}
 			}

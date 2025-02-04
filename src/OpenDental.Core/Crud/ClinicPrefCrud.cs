@@ -19,12 +19,13 @@ public class ClinicPrefCrud
     public static List<ClinicPref> TableToList(DataTable table)
     {
         var retVal = new List<ClinicPref>();
-        ClinicPref clinicPref;
         foreach (DataRow row in table.Rows)
         {
-            clinicPref = new ClinicPref();
-            clinicPref.ClinicPrefNum = SIn.Long(row["ClinicPrefNum"].ToString());
-            clinicPref.ClinicNum = SIn.Long(row["ClinicNum"].ToString());
+            var clinicPref = new ClinicPref
+            {
+                ClinicPrefNum = SIn.Long(row["ClinicPrefNum"].ToString()),
+                ClinicNum = SIn.Long(row["ClinicNum"].ToString())
+            };
             var prefName = row["PrefName"].ToString();
             if (prefName == "")
                 clinicPref.PrefName = 0;
@@ -58,7 +59,7 @@ public class ClinicPrefCrud
         return table;
     }
 
-    public static long Insert(ClinicPref clinicPref)
+    public static void Insert(ClinicPref clinicPref)
     {
         var command = "INSERT INTO clinicpref (";
 
@@ -73,7 +74,6 @@ public class ClinicPrefCrud
         {
             clinicPref.ClinicPrefNum = Db.NonQ(command, true, "ClinicPrefNum", "clinicPref", paramValueString);
         }
-        return clinicPref.ClinicPrefNum;
     }
 
     public static void Update(ClinicPref clinicPref)
@@ -145,15 +145,13 @@ public class ClinicPrefCrud
         var idxNew = 0;
         var idxDB = 0;
         var rowsUpdatedCount = 0;
-        ClinicPref fieldNew;
-        ClinicPref fieldDB;
         //Because both lists have been sorted using the same criteria, we can now walk each list to determine which list contians the next element.  The next element is determined by Primary Key.
         //If the New list contains the next item it will be inserted.  If the DB contains the next item, it will be deleted.  If both lists contain the next item, the item will be updated.
         while (idxNew < listNew.Count || idxDB < listDB.Count)
         {
-            fieldNew = null;
+            ClinicPref fieldNew = null;
             if (idxNew < listNew.Count) fieldNew = listNew[idxNew];
-            fieldDB = null;
+            ClinicPref fieldDB = null;
             if (idxDB < listDB.Count) fieldDB = listDB[idxDB];
             //begin compare
             if (fieldNew != null && fieldDB == null)

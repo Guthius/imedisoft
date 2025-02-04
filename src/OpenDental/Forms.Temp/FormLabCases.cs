@@ -1,17 +1,13 @@
 using System;
 using System.Data;
 using System.Drawing;
-using System.Collections;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Windows.Forms;
 using OpenDentBusiness;
 using OpenDental.UI;
-using System.Drawing.Printing;
 using System.Linq;
 using CodeBase;
 using DataConnectionBase;
-using Imedisoft.Core.Entities;
 using Imedisoft.Core.Features.Clinics;
 using OpenDental.Logic;
 

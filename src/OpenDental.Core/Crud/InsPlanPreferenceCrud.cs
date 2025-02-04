@@ -24,15 +24,16 @@ public class InsPlanPreferenceCrud
     public static List<InsPlanPreference> TableToList(DataTable table)
     {
         var retVal = new List<InsPlanPreference>();
-        InsPlanPreference insPlanPreference;
         foreach (DataRow row in table.Rows)
         {
-            insPlanPreference = new InsPlanPreference();
-            insPlanPreference.InsPlanPrefNum = SIn.Long(row["InsPlanPrefNum"].ToString());
-            insPlanPreference.PlanNum = SIn.Long(row["PlanNum"].ToString());
-            insPlanPreference.FKey = SIn.Long(row["FKey"].ToString());
-            insPlanPreference.FKeyType = (InsPlanPrefFKeyType) SIn.Int(row["FKeyType"].ToString());
-            insPlanPreference.ValueString = SIn.String(row["ValueString"].ToString());
+            var insPlanPreference = new InsPlanPreference
+            {
+                InsPlanPrefNum = SIn.Long(row["InsPlanPrefNum"].ToString()),
+                PlanNum = SIn.Long(row["PlanNum"].ToString()),
+                FKey = SIn.Long(row["FKey"].ToString()),
+                FKeyType = (InsPlanPrefFKeyType) SIn.Int(row["FKeyType"].ToString()),
+                ValueString = SIn.String(row["ValueString"].ToString())
+            };
             retVal.Add(insPlanPreference);
         }
 
@@ -50,7 +51,7 @@ public class InsPlanPreferenceCrud
                                                  + SOut.Long(insPlanPreference.FKey) + ","
                                                  + SOut.Int((int) insPlanPreference.FKeyType) + ","
                                                  + DbHelper.ParamChar + "paramValueString)";
-        if (insPlanPreference.ValueString == null) insPlanPreference.ValueString = "";
+        insPlanPreference.ValueString ??= "";
         var paramValueString = new OdSqlParameter("paramValueString", SOut.StringParam(insPlanPreference.ValueString));
         {
             insPlanPreference.InsPlanPrefNum = Db.NonQ(command, true, "InsPlanPrefNum", "insPlanPreference", paramValueString);

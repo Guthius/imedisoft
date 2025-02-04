@@ -1616,7 +1616,7 @@ public class Benefits
 
     public static List<Benefit> GetForPatPlansAndProcs(List<long> listPatPlanNums, List<long> listCodeNums)
     {
-        if (listPatPlanNums.Count == 0 || listCodeNums.Count == 0) return new List<Benefit>();
+        if (listPatPlanNums.Count == 0 || listCodeNums.Count == 0) return [];
         var command = "SELECT * FROM benefit WHERE PatPlanNum IN(" + string.Join(",", listPatPlanNums) + ") AND CodeNum IN(" + string.Join(",", listCodeNums) + ")";
         return BenefitCrud.SelectMany(command);
     }
@@ -1728,7 +1728,7 @@ public class Benefits
             {
                 benefitArrayRow = new Benefit[listPatPlans.Count];
                 benefitArrayRow[j] = listBenefitsForPat[i].Copy();
-                dictionaryBenefits.Add(listBenefitsForPat[i].Copy(), new List<Benefit[]> {benefitArrayRow});
+                dictionaryBenefits.Add(listBenefitsForPat[i].Copy(), [benefitArrayRow]);
                 continue;
             }
 
@@ -2107,7 +2107,7 @@ public class Benefits
     {
         listPatPlanNums.RemoveAll(x => x == 0);
         listPlanNums.RemoveAll(x => x == 0);
-        if (listPlanNums.IsNullOrEmpty() && listPatPlanNums.IsNullOrEmpty()) return new List<Benefit>();
+        if (listPlanNums.IsNullOrEmpty() && listPatPlanNums.IsNullOrEmpty()) return [];
         var command = $"SELECT * FROM benefit "
                       + $"WHERE BenefitType IN ({SOut.Enum(InsBenefitType.Exclusions)},{SOut.Enum(InsBenefitType.CoInsurance)}) "
                       + $"AND (PlanNum IN ({string.Join(",", listPatPlanNums.Distinct().ToList())}) OR PatPlanNum IN ({string.Join(",", listPlanNums.Distinct().ToList())})) ";

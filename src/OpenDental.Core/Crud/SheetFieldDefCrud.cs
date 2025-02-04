@@ -1,5 +1,3 @@
-#region
-
 using System.Collections.Generic;
 using System.Data;
 using System.Drawing;
@@ -9,28 +7,10 @@ using DataConnectionBase;
 using Imedisoft.Core.Entities;
 using OpenDentBusiness;
 
-#endregion
-
 namespace Imedisoft.Core.Crud;
 
 public class SheetFieldDefCrud
 {
-    public static SheetFieldDef SelectOne(long sheetFieldDefNum)
-    {
-        var command = "SELECT * FROM sheetfielddef "
-                      + "WHERE SheetFieldDefNum = " + SOut.Long(sheetFieldDefNum);
-        var list = TableToList(DataCore.GetTable(command));
-        if (list.Count == 0) return null;
-        return list[0];
-    }
-
-    public static SheetFieldDef SelectOne(string command)
-    {
-        var list = TableToList(DataCore.GetTable(command));
-        if (list.Count == 0) return null;
-        return list[0];
-    }
-
     public static List<SheetFieldDef> SelectMany(string command)
     {
         var list = TableToList(DataCore.GetTable(command));
@@ -40,39 +20,40 @@ public class SheetFieldDefCrud
     public static List<SheetFieldDef> TableToList(DataTable table)
     {
         var retVal = new List<SheetFieldDef>();
-        SheetFieldDef sheetFieldDef;
         foreach (DataRow row in table.Rows)
         {
-            sheetFieldDef = new SheetFieldDef();
-            sheetFieldDef.SheetFieldDefNum = SIn.Long(row["SheetFieldDefNum"].ToString());
-            sheetFieldDef.SheetDefNum = SIn.Long(row["SheetDefNum"].ToString());
-            sheetFieldDef.FieldType = (SheetFieldType) SIn.Int(row["FieldType"].ToString());
-            sheetFieldDef.FieldName = SIn.String(row["FieldName"].ToString());
-            sheetFieldDef.FieldValue = SIn.String(row["FieldValue"].ToString());
-            sheetFieldDef.FontSize = SIn.Float(row["FontSize"].ToString());
-            sheetFieldDef.FontName = SIn.String(row["FontName"].ToString());
-            sheetFieldDef.FontIsBold = SIn.Bool(row["FontIsBold"].ToString());
-            sheetFieldDef.XPos = SIn.Int(row["XPos"].ToString());
-            sheetFieldDef.YPos = SIn.Int(row["YPos"].ToString());
-            sheetFieldDef.Width = SIn.Int(row["Width"].ToString());
-            sheetFieldDef.Height = SIn.Int(row["Height"].ToString());
-            sheetFieldDef.GrowthBehavior = (GrowthBehaviorEnum) SIn.Int(row["GrowthBehavior"].ToString());
-            sheetFieldDef.RadioButtonValue = SIn.String(row["RadioButtonValue"].ToString());
-            sheetFieldDef.RadioButtonGroup = SIn.String(row["RadioButtonGroup"].ToString());
-            sheetFieldDef.IsRequired = SIn.Bool(row["IsRequired"].ToString());
-            sheetFieldDef.TabOrder = SIn.Int(row["TabOrder"].ToString());
-            sheetFieldDef.ReportableName = SIn.String(row["ReportableName"].ToString());
-            sheetFieldDef.TextAlign = (HorizontalAlignment) SIn.Int(row["TextAlign"].ToString());
-            sheetFieldDef.IsPaymentOption = SIn.Bool(row["IsPaymentOption"].ToString());
-            sheetFieldDef.IsLocked = SIn.Bool(row["IsLocked"].ToString());
-            sheetFieldDef.ItemColor = Color.FromArgb(SIn.Int(row["ItemColor"].ToString()));
-            sheetFieldDef.TabOrderMobile = SIn.Int(row["TabOrderMobile"].ToString());
-            sheetFieldDef.UiLabelMobile = SIn.String(row["UiLabelMobile"].ToString());
-            sheetFieldDef.UiLabelMobileRadioButton = SIn.String(row["UiLabelMobileRadioButton"].ToString());
-            sheetFieldDef.LayoutMode = (SheetFieldLayoutMode) SIn.Int(row["LayoutMode"].ToString());
-            sheetFieldDef.Language = SIn.String(row["Language"].ToString());
-            sheetFieldDef.CanElectronicallySign = SIn.Bool(row["CanElectronicallySign"].ToString());
-            sheetFieldDef.IsSigProvRestricted = SIn.Bool(row["IsSigProvRestricted"].ToString());
+            var sheetFieldDef = new SheetFieldDef
+            {
+                SheetFieldDefNum = SIn.Long(row["SheetFieldDefNum"].ToString()),
+                SheetDefNum = SIn.Long(row["SheetDefNum"].ToString()),
+                FieldType = (SheetFieldType) SIn.Int(row["FieldType"].ToString()),
+                FieldName = SIn.String(row["FieldName"].ToString()),
+                FieldValue = SIn.String(row["FieldValue"].ToString()),
+                FontSize = SIn.Float(row["FontSize"].ToString()),
+                FontName = SIn.String(row["FontName"].ToString()),
+                FontIsBold = SIn.Bool(row["FontIsBold"].ToString()),
+                XPos = SIn.Int(row["XPos"].ToString()),
+                YPos = SIn.Int(row["YPos"].ToString()),
+                Width = SIn.Int(row["Width"].ToString()),
+                Height = SIn.Int(row["Height"].ToString()),
+                GrowthBehavior = (GrowthBehaviorEnum) SIn.Int(row["GrowthBehavior"].ToString()),
+                RadioButtonValue = SIn.String(row["RadioButtonValue"].ToString()),
+                RadioButtonGroup = SIn.String(row["RadioButtonGroup"].ToString()),
+                IsRequired = SIn.Bool(row["IsRequired"].ToString()),
+                TabOrder = SIn.Int(row["TabOrder"].ToString()),
+                ReportableName = SIn.String(row["ReportableName"].ToString()),
+                TextAlign = (HorizontalAlignment) SIn.Int(row["TextAlign"].ToString()),
+                IsPaymentOption = SIn.Bool(row["IsPaymentOption"].ToString()),
+                IsLocked = SIn.Bool(row["IsLocked"].ToString()),
+                ItemColor = Color.FromArgb(SIn.Int(row["ItemColor"].ToString())),
+                TabOrderMobile = SIn.Int(row["TabOrderMobile"].ToString()),
+                UiLabelMobile = SIn.String(row["UiLabelMobile"].ToString()),
+                UiLabelMobileRadioButton = SIn.String(row["UiLabelMobileRadioButton"].ToString()),
+                LayoutMode = (SheetFieldLayoutMode) SIn.Int(row["LayoutMode"].ToString()),
+                Language = SIn.String(row["Language"].ToString()),
+                CanElectronicallySign = SIn.Bool(row["CanElectronicallySign"].ToString()),
+                IsSigProvRestricted = SIn.Bool(row["IsSigProvRestricted"].ToString())
+            };
             retVal.Add(sheetFieldDef);
         }
 
@@ -117,12 +98,7 @@ public class SheetFieldDefCrud
         return table;
     }
 
-    public static long Insert(SheetFieldDef sheetFieldDef)
-    {
-        return Insert(sheetFieldDef, false);
-    }
-
-    public static long Insert(SheetFieldDef sheetFieldDef, bool useExistingPK)
+    public static void Insert(SheetFieldDef sheetFieldDef)
     {
         var command = "INSERT INTO sheetfielddef (";
 
@@ -166,102 +142,6 @@ public class SheetFieldDefCrud
         {
             sheetFieldDef.SheetFieldDefNum = Db.NonQ(command, true, "SheetFieldDefNum", "sheetFieldDef", paramFieldValue, paramUiLabelMobile, paramUiLabelMobileRadioButton);
         }
-        return sheetFieldDef.SheetFieldDefNum;
-    }
-
-    public static long InsertNoCache(SheetFieldDef sheetFieldDef)
-    {
-        return InsertNoCache(sheetFieldDef, false);
-    }
-
-    public static long InsertNoCache(SheetFieldDef sheetFieldDef, bool useExistingPK)
-    {
-        const bool isRandomKeys = false;
-        var command = "INSERT INTO sheetfielddef (";
-        if (isRandomKeys || useExistingPK) command += "SheetFieldDefNum,";
-        command += "SheetDefNum,FieldType,FieldName,FieldValue,FontSize,FontName,FontIsBold,XPos,YPos,Width,Height,GrowthBehavior,RadioButtonValue,RadioButtonGroup,IsRequired,TabOrder,ReportableName,TextAlign,IsPaymentOption,IsLocked,ItemColor,TabOrderMobile,UiLabelMobile,UiLabelMobileRadioButton,LayoutMode,Language,CanElectronicallySign,IsSigProvRestricted) VALUES(";
-        if (isRandomKeys || useExistingPK) command += SOut.Long(sheetFieldDef.SheetFieldDefNum) + ",";
-        command +=
-            SOut.Long(sheetFieldDef.SheetDefNum) + ","
-                                                 + SOut.Int((int) sheetFieldDef.FieldType) + ","
-                                                 + "'" + SOut.String(sheetFieldDef.FieldName) + "',"
-                                                 + DbHelper.ParamChar + "paramFieldValue,"
-                                                 + SOut.Float(sheetFieldDef.FontSize) + ","
-                                                 + "'" + SOut.String(sheetFieldDef.FontName) + "',"
-                                                 + SOut.Bool(sheetFieldDef.FontIsBold) + ","
-                                                 + SOut.Int(sheetFieldDef.XPos) + ","
-                                                 + SOut.Int(sheetFieldDef.YPos) + ","
-                                                 + SOut.Int(sheetFieldDef.Width) + ","
-                                                 + SOut.Int(sheetFieldDef.Height) + ","
-                                                 + SOut.Int((int) sheetFieldDef.GrowthBehavior) + ","
-                                                 + "'" + SOut.String(sheetFieldDef.RadioButtonValue) + "',"
-                                                 + "'" + SOut.String(sheetFieldDef.RadioButtonGroup) + "',"
-                                                 + SOut.Bool(sheetFieldDef.IsRequired) + ","
-                                                 + SOut.Int(sheetFieldDef.TabOrder) + ","
-                                                 + "'" + SOut.String(sheetFieldDef.ReportableName) + "',"
-                                                 + SOut.Int((int) sheetFieldDef.TextAlign) + ","
-                                                 + SOut.Bool(sheetFieldDef.IsPaymentOption) + ","
-                                                 + SOut.Bool(sheetFieldDef.IsLocked) + ","
-                                                 + SOut.Int(sheetFieldDef.ItemColor.ToArgb()) + ","
-                                                 + SOut.Int(sheetFieldDef.TabOrderMobile) + ","
-                                                 + DbHelper.ParamChar + "paramUiLabelMobile,"
-                                                 + DbHelper.ParamChar + "paramUiLabelMobileRadioButton,"
-                                                 + SOut.Int((int) sheetFieldDef.LayoutMode) + ","
-                                                 + "'" + SOut.String(sheetFieldDef.Language) + "',"
-                                                 + SOut.Bool(sheetFieldDef.CanElectronicallySign) + ","
-                                                 + SOut.Bool(sheetFieldDef.IsSigProvRestricted) + ")";
-        if (sheetFieldDef.FieldValue == null) sheetFieldDef.FieldValue = "";
-        var paramFieldValue = new OdSqlParameter("paramFieldValue", SOut.StringParam(sheetFieldDef.FieldValue));
-        if (sheetFieldDef.UiLabelMobile == null) sheetFieldDef.UiLabelMobile = "";
-        var paramUiLabelMobile = new OdSqlParameter("paramUiLabelMobile", SOut.StringParam(sheetFieldDef.UiLabelMobile));
-        if (sheetFieldDef.UiLabelMobileRadioButton == null) sheetFieldDef.UiLabelMobileRadioButton = "";
-        var paramUiLabelMobileRadioButton = new OdSqlParameter("paramUiLabelMobileRadioButton", SOut.StringParam(sheetFieldDef.UiLabelMobileRadioButton));
-        if (useExistingPK || isRandomKeys)
-            Db.NonQ(command, paramFieldValue, paramUiLabelMobile, paramUiLabelMobileRadioButton);
-        else
-            sheetFieldDef.SheetFieldDefNum = Db.NonQ(command, true, "SheetFieldDefNum", "sheetFieldDef", paramFieldValue, paramUiLabelMobile, paramUiLabelMobileRadioButton);
-        return sheetFieldDef.SheetFieldDefNum;
-    }
-
-    public static void Update(SheetFieldDef sheetFieldDef)
-    {
-        var command = "UPDATE sheetfielddef SET "
-                      + "SheetDefNum             =  " + SOut.Long(sheetFieldDef.SheetDefNum) + ", "
-                      + "FieldType               =  " + SOut.Int((int) sheetFieldDef.FieldType) + ", "
-                      + "FieldName               = '" + SOut.String(sheetFieldDef.FieldName) + "', "
-                      + "FieldValue              =  " + DbHelper.ParamChar + "paramFieldValue, "
-                      + "FontSize                =  " + SOut.Float(sheetFieldDef.FontSize) + ", "
-                      + "FontName                = '" + SOut.String(sheetFieldDef.FontName) + "', "
-                      + "FontIsBold              =  " + SOut.Bool(sheetFieldDef.FontIsBold) + ", "
-                      + "XPos                    =  " + SOut.Int(sheetFieldDef.XPos) + ", "
-                      + "YPos                    =  " + SOut.Int(sheetFieldDef.YPos) + ", "
-                      + "Width                   =  " + SOut.Int(sheetFieldDef.Width) + ", "
-                      + "Height                  =  " + SOut.Int(sheetFieldDef.Height) + ", "
-                      + "GrowthBehavior          =  " + SOut.Int((int) sheetFieldDef.GrowthBehavior) + ", "
-                      + "RadioButtonValue        = '" + SOut.String(sheetFieldDef.RadioButtonValue) + "', "
-                      + "RadioButtonGroup        = '" + SOut.String(sheetFieldDef.RadioButtonGroup) + "', "
-                      + "IsRequired              =  " + SOut.Bool(sheetFieldDef.IsRequired) + ", "
-                      + "TabOrder                =  " + SOut.Int(sheetFieldDef.TabOrder) + ", "
-                      + "ReportableName          = '" + SOut.String(sheetFieldDef.ReportableName) + "', "
-                      + "TextAlign               =  " + SOut.Int((int) sheetFieldDef.TextAlign) + ", "
-                      + "IsPaymentOption         =  " + SOut.Bool(sheetFieldDef.IsPaymentOption) + ", "
-                      + "IsLocked                =  " + SOut.Bool(sheetFieldDef.IsLocked) + ", "
-                      + "ItemColor               =  " + SOut.Int(sheetFieldDef.ItemColor.ToArgb()) + ", "
-                      + "TabOrderMobile          =  " + SOut.Int(sheetFieldDef.TabOrderMobile) + ", "
-                      + "UiLabelMobile           =  " + DbHelper.ParamChar + "paramUiLabelMobile, "
-                      + "UiLabelMobileRadioButton=  " + DbHelper.ParamChar + "paramUiLabelMobileRadioButton, "
-                      + "LayoutMode              =  " + SOut.Int((int) sheetFieldDef.LayoutMode) + ", "
-                      + "Language                = '" + SOut.String(sheetFieldDef.Language) + "', "
-                      + "CanElectronicallySign   =  " + SOut.Bool(sheetFieldDef.CanElectronicallySign) + ", "
-                      + "IsSigProvRestricted     =  " + SOut.Bool(sheetFieldDef.IsSigProvRestricted) + " "
-                      + "WHERE SheetFieldDefNum = " + SOut.Long(sheetFieldDef.SheetFieldDefNum);
-        if (sheetFieldDef.FieldValue == null) sheetFieldDef.FieldValue = "";
-        var paramFieldValue = new OdSqlParameter("paramFieldValue", SOut.StringParam(sheetFieldDef.FieldValue));
-        if (sheetFieldDef.UiLabelMobile == null) sheetFieldDef.UiLabelMobile = "";
-        var paramUiLabelMobile = new OdSqlParameter("paramUiLabelMobile", SOut.StringParam(sheetFieldDef.UiLabelMobile));
-        if (sheetFieldDef.UiLabelMobileRadioButton == null) sheetFieldDef.UiLabelMobileRadioButton = "";
-        var paramUiLabelMobileRadioButton = new OdSqlParameter("paramUiLabelMobileRadioButton", SOut.StringParam(sheetFieldDef.UiLabelMobileRadioButton));
-        Db.NonQ(command, paramFieldValue, paramUiLabelMobile, paramUiLabelMobileRadioButton);
     }
 
     public static bool Update(SheetFieldDef sheetFieldDef, SheetFieldDef oldSheetFieldDef)
@@ -448,39 +328,6 @@ public class SheetFieldDefCrud
         return true;
     }
 
-    public static bool UpdateComparison(SheetFieldDef sheetFieldDef, SheetFieldDef oldSheetFieldDef)
-    {
-        if (sheetFieldDef.SheetDefNum != oldSheetFieldDef.SheetDefNum) return true;
-        if (sheetFieldDef.FieldType != oldSheetFieldDef.FieldType) return true;
-        if (sheetFieldDef.FieldName != oldSheetFieldDef.FieldName) return true;
-        if (sheetFieldDef.FieldValue != oldSheetFieldDef.FieldValue) return true;
-        if (sheetFieldDef.FontSize != oldSheetFieldDef.FontSize) return true;
-        if (sheetFieldDef.FontName != oldSheetFieldDef.FontName) return true;
-        if (sheetFieldDef.FontIsBold != oldSheetFieldDef.FontIsBold) return true;
-        if (sheetFieldDef.XPos != oldSheetFieldDef.XPos) return true;
-        if (sheetFieldDef.YPos != oldSheetFieldDef.YPos) return true;
-        if (sheetFieldDef.Width != oldSheetFieldDef.Width) return true;
-        if (sheetFieldDef.Height != oldSheetFieldDef.Height) return true;
-        if (sheetFieldDef.GrowthBehavior != oldSheetFieldDef.GrowthBehavior) return true;
-        if (sheetFieldDef.RadioButtonValue != oldSheetFieldDef.RadioButtonValue) return true;
-        if (sheetFieldDef.RadioButtonGroup != oldSheetFieldDef.RadioButtonGroup) return true;
-        if (sheetFieldDef.IsRequired != oldSheetFieldDef.IsRequired) return true;
-        if (sheetFieldDef.TabOrder != oldSheetFieldDef.TabOrder) return true;
-        if (sheetFieldDef.ReportableName != oldSheetFieldDef.ReportableName) return true;
-        if (sheetFieldDef.TextAlign != oldSheetFieldDef.TextAlign) return true;
-        if (sheetFieldDef.IsPaymentOption != oldSheetFieldDef.IsPaymentOption) return true;
-        if (sheetFieldDef.IsLocked != oldSheetFieldDef.IsLocked) return true;
-        if (sheetFieldDef.ItemColor != oldSheetFieldDef.ItemColor) return true;
-        if (sheetFieldDef.TabOrderMobile != oldSheetFieldDef.TabOrderMobile) return true;
-        if (sheetFieldDef.UiLabelMobile != oldSheetFieldDef.UiLabelMobile) return true;
-        if (sheetFieldDef.UiLabelMobileRadioButton != oldSheetFieldDef.UiLabelMobileRadioButton) return true;
-        if (sheetFieldDef.LayoutMode != oldSheetFieldDef.LayoutMode) return true;
-        if (sheetFieldDef.Language != oldSheetFieldDef.Language) return true;
-        if (sheetFieldDef.CanElectronicallySign != oldSheetFieldDef.CanElectronicallySign) return true;
-        if (sheetFieldDef.IsSigProvRestricted != oldSheetFieldDef.IsSigProvRestricted) return true;
-        return false;
-    }
-
     public static void Delete(long sheetFieldDefNum)
     {
         var command = "DELETE FROM sheetfielddef "
@@ -496,7 +343,7 @@ public class SheetFieldDefCrud
         Db.NonQ(command);
     }
 
-    public static bool Sync(List<SheetFieldDef> listNew, List<SheetFieldDef> listDB)
+    public static void Sync(List<SheetFieldDef> listNew, List<SheetFieldDef> listDB)
     {
         //Adding items to lists changes the order of operation. All inserts are completed first, then updates, then deletes.
         var listIns = new List<SheetFieldDef>();
@@ -508,15 +355,13 @@ public class SheetFieldDefCrud
         var idxNew = 0;
         var idxDB = 0;
         var rowsUpdatedCount = 0;
-        SheetFieldDef fieldNew;
-        SheetFieldDef fieldDB;
         //Because both lists have been sorted using the same criteria, we can now walk each list to determine which list contians the next element.  The next element is determined by Primary Key.
         //If the New list contains the next item it will be inserted.  If the DB contains the next item, it will be deleted.  If both lists contain the next item, the item will be updated.
         while (idxNew < listNew.Count || idxDB < listDB.Count)
         {
-            fieldNew = null;
+            SheetFieldDef fieldNew = null;
             if (idxNew < listNew.Count) fieldNew = listNew[idxNew];
-            fieldDB = null;
+            SheetFieldDef fieldDB = null;
             if (idxDB < listDB.Count) fieldDB = listDB[idxDB];
             //begin compare
             if (fieldNew != null && fieldDB == null)
@@ -565,7 +410,6 @@ public class SheetFieldDefCrud
                 rowsUpdatedCount++;
 
         DeleteMany(listDel.Select(x => x.SheetFieldDefNum).ToList());
-        if (rowsUpdatedCount > 0 || listIns.Count > 0 || listDel.Count > 0) return true;
-        return false;
+        if (rowsUpdatedCount > 0 || listIns.Count > 0 || listDel.Count > 0) return;
     }
 }

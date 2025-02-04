@@ -17,7 +17,7 @@ public class Popups
 				WHERE (DateTimeDisabled>" + SOut.DateTime(DateTime.Now) + " OR DateTimeDisabled=" + SOut.DateTime(DateTime.MinValue) + @")
 				AND IsArchived=0
 				AND (
-					PatNum=" + SOut.Long(pat.PatNum);
+					PatNum=" + (pat.PatNum);
         if (listFamPatNums.Count > 0)
             command += @"
 					OR (PatNum IN (" + string.Join(",", listFamPatNums) + @")
@@ -35,10 +35,10 @@ public class Popups
     {
         var command = "SELECT * FROM popup "
                       + "WHERE (PatNum IN (SELECT PatNum FROM patient "
-                      + "WHERE Guarantor = " + SOut.Long(pat.Guarantor) + ") ";
+                      + "WHERE Guarantor = " + (pat.Guarantor) + ") ";
         if (pat.SuperFamily != 0) //They are part of a super family.
             command += "OR PatNum IN (SELECT PatNum FROM patient "
-                       + "WHERE SuperFamily = " + SOut.Long(pat.SuperFamily) + ") ";
+                       + "WHERE SuperFamily = " + (pat.SuperFamily) + ") ";
         command += ") "
                    + "AND IsArchived = 0 "
                    + "ORDER BY PopupLevel DESC, PatNum";
@@ -49,10 +49,10 @@ public class Popups
     {
         var command = "SELECT * FROM popup "
                       + "WHERE PatNum IN (SELECT PatNum FROM patient "
-                      + "WHERE Guarantor = " + SOut.Long(pat.Guarantor) + ") ";
+                      + "WHERE Guarantor = " + (pat.Guarantor) + ") ";
         if (pat.SuperFamily != 0) //They are part of a super family.
             command += "OR PatNum IN (SELECT PatNum FROM patient "
-                       + "WHERE SuperFamily = " + SOut.Long(pat.SuperFamily) + ") ";
+                       + "WHERE SuperFamily = " + (pat.SuperFamily) + ") ";
         command += "AND PopupNumArchive = 0 " //The most recent pop up in the archives.
                    + "ORDER BY PopupLevel DESC, PatNum";
         return PopupCrud.SelectMany(command);
@@ -61,7 +61,7 @@ public class Popups
     public static List<Popup> GetArchivesForPopup(long popupNum)
     {
         var command = "SELECT * FROM popup"
-                      + " WHERE PopupNumArchive = " + SOut.Long(popupNum)
+                      + " WHERE PopupNumArchive = " + (popupNum)
                       + " ORDER BY DateTimeEntry";
         return PopupCrud.SelectMany(command);
     }
@@ -69,7 +69,7 @@ public class Popups
     public static DateTime GetLastEditDateTimeForPopup(long popupNum)
     {
         var command = "SELECT DateTimeEntry FROM popup"
-                      + " WHERE PopupNumArchive = " + SOut.Long(popupNum)
+                      + " WHERE PopupNumArchive = " + (popupNum)
                       + " ORDER BY DateTimeEntry DESC"
                       + " LIMIT 1";
         var rawTable = DataCore.GetTable(command);
@@ -82,7 +82,7 @@ public class Popups
         //Get a list of all popups for the family
         var command = "SELECT * FROM popup "
                       + "WHERE PopupLevel = " + SOut.Int((int) EnumPopupLevel.Family) + " "
-                      + "AND PatNum IN (SELECT PatNum FROM patient WHERE Guarantor = " + SOut.Long(pat.Guarantor) + ")"
+                      + "AND PatNum IN (SELECT PatNum FROM patient WHERE Guarantor = " + (pat.Guarantor) + ")"
                       + "AND PopupNumArchive = 0 ";
         var FamilyPopups = PopupCrud.SelectMany(command);
         Popup popupCur;
@@ -118,7 +118,7 @@ public class Popups
         //Get a list of all popups for the super family
         var command = "SELECT * FROM popup "
                       + "WHERE PopupLevel = " + SOut.Int((int) EnumPopupLevel.SuperFamily) + " "
-                      + "AND PatNum IN (SELECT PatNum FROM patient WHERE SuperFamily = " + SOut.Long(pat.SuperFamily) + ")"
+                      + "AND PatNum IN (SELECT PatNum FROM patient WHERE SuperFamily = " + (pat.SuperFamily) + ")"
                       + "AND PopupNumArchive = 0 ";
         //This includes all the archived ones as well
         var SuperFamilyPopups = PopupCrud.SelectMany(command);
@@ -135,7 +135,7 @@ public class Popups
                     //If they are not going to a superfamily, set popup to family level
                     var commandUpdateFam = "UPDATE popup "
                                            + "SET PopupLevel = " + SOut.Int((int) EnumPopupLevel.Family) + " "
-                                           + "WHERE PopupNum = " + SOut.Long(popupCur.PopupNum);
+                                           + "WHERE PopupNum = " + (popupCur.PopupNum);
                     Db.NonQ(commandUpdateFam);
                 }
             }
@@ -169,14 +169,14 @@ public class Popups
     {
         var command = "UPDATE popup ";
         if (pat.PatNum == pat.Guarantor) //When deleting the guarantor, move all superfamily popups to the superfamily head
-            command += "SET PatNum = " + SOut.Long(pat.SuperFamily) + " "
+            command += "SET PatNum = " + (pat.SuperFamily) + " "
                        + "WHERE PopupLevel = " + SOut.Int((int) EnumPopupLevel.SuperFamily) + " "
-                       + "AND PatNum = " + SOut.Long(pat.PatNum);
+                       + "AND PatNum = " + (pat.PatNum);
         else //Move all family/superfamily popups to the guarantor
-            command += "SET PatNum = " + SOut.Long(pat.Guarantor) + " "
+            command += "SET PatNum = " + (pat.Guarantor) + " "
                        + "WHERE (PopupLevel = " + SOut.Int((int) EnumPopupLevel.Family) + " "
                        + "OR PopupLevel = " + SOut.Int((int) EnumPopupLevel.SuperFamily) + ") "
-                       + "AND PatNum = " + SOut.Long(pat.PatNum);
+                       + "AND PatNum = " + (pat.PatNum);
         Db.NonQ(command);
     }
 
@@ -184,7 +184,7 @@ public class Popups
     {
         var commandUpdate = "UPDATE popup "
                             + "SET DateTimeEntry = " + SOut.DateTime(oldDate) + " "
-                            + "WHERE PopupNum = " + SOut.Long(newPk);
+                            + "WHERE PopupNum = " + (newPk);
         Db.NonQ(commandUpdate);
     }
 
@@ -193,7 +193,7 @@ public class Popups
         var command = "UPDATE popup "
                       + "SET PopupLevel = " + SOut.Int((int) EnumPopupLevel.Family) + " "
                       + "WHERE PopupLevel = " + SOut.Int((int) EnumPopupLevel.SuperFamily) + " "
-                      + "AND PatNum IN (SELECT PatNum FROM patient WHERE SuperFamily=" + SOut.Long(pat.SuperFamily) + ") "
+                      + "AND PatNum IN (SELECT PatNum FROM patient WHERE SuperFamily=" + (pat.SuperFamily) + ") "
                       + "AND PopupNumArchive = 0";
         Db.NonQ(command);
     }

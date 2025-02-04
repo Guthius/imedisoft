@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Printing;
 using System.IO;
-using System.Linq;
 using System.Text.RegularExpressions;
 using System.Windows.Forms;
 using CodeBase;
@@ -33,7 +32,7 @@ public partial class FormReportComplex : FormODBase
     private bool _isWrappingText;
     private const int GROUP_FOOTER_BUFFER = 20;
 
-    private int _currentPage => _pagesProcessed + 1;
+    private int CurrentPage => _pagesProcessed + 1;
 
     public FormReportComplex(ReportComplex myReport)
     {
@@ -186,9 +185,9 @@ public partial class FormReportComplex : FormODBase
         do
         {
             pagePrinter(ev);
-        } while (ev.PageSettings.PrinterSettings.PrintRange != PrintRange.AllPages && ev.PageSettings.PrinterSettings.FromPage >= _currentPage);
+        } while (ev.PageSettings.PrinterSettings.PrintRange != PrintRange.AllPages && ev.PageSettings.PrinterSettings.FromPage >= CurrentPage);
 
-        if (_lastSectionPrinted == AreaSectionType.ReportFooter || (ev.PageSettings.PrinterSettings.PrintRange != PrintRange.AllPages && ev.PageSettings.PrinterSettings.ToPage < _currentPage))
+        if (_lastSectionPrinted == AreaSectionType.ReportFooter || (ev.PageSettings.PrinterSettings.PrintRange != PrintRange.AllPages && ev.PageSettings.PrinterSettings.ToPage < CurrentPage))
         {
             ev.HasMorePages = false;
         }
@@ -196,7 +195,7 @@ public partial class FormReportComplex : FormODBase
         {
             ev.HasMorePages = true;
             ODEvent.Fire(ODEventType.ReportComplex,
-                "Printing Page " + _currentPage + " - " +
+                "Printing Page " + CurrentPage + " - " +
                 "Page Printed. Preparing Next Page...");
         }
 
@@ -207,8 +206,8 @@ public partial class FormReportComplex : FormODBase
     {
         //Is a printable page if we're printing (or viewing) all pages, or only printing the pages between the FromPage and ToPage designated by the user.
         var isPrintablePage = ev.PageSettings.PrinterSettings.PrintRange == PrintRange.AllPages
-                              || (ev.PageSettings.PrinterSettings.FromPage <= _currentPage && ev.PageSettings.PrinterSettings.ToPage >= _currentPage);
-        ODEvent.Fire(ODEventType.ReportComplex, new ProgressBarHelper("Printing Page " + _currentPage + "..."
+                              || (ev.PageSettings.PrinterSettings.FromPage <= CurrentPage && ev.PageSettings.PrinterSettings.ToPage >= CurrentPage);
+        ODEvent.Fire(ODEventType.ReportComplex, new ProgressBarHelper("Printing Page " + CurrentPage + "..."
             , "", _totalRowsPrinted, _myReport.TotalRows, ProgBarStyle.Blocks));
         //Note that the locations of the reportObjects are not absolute.  They depend entirely upon the margins.  When the report is initially created, it is pushed up against the upper and the left.
         var grfx = ev.Graphics;
@@ -277,7 +276,7 @@ public partial class FormReportComplex : FormODBase
             {
                 if (_myReport.Sections.Contains(AreaSectionType.ReportHeader))
                 {
-                    ODEvent.Fire(ODEventType.ReportComplex, "Printing Page " + _currentPage + " - "
+                    ODEvent.Fire(ODEventType.ReportComplex, "Printing Page " + CurrentPage + " - "
                                                             + "Printing Report Header...");
                     section = _myReport.Sections[AreaSectionType.ReportHeader];
                     PrintSection(grfx, section, xPos, yPos, isPrintablePage);
@@ -300,7 +299,7 @@ public partial class FormReportComplex : FormODBase
             //always print a page header if it exists
             if (_myReport.Sections.Contains(AreaSectionType.PageHeader))
             {
-                ODEvent.Fire(ODEventType.ReportComplex, Lan.g("ReportComplex", "Printing Page") + " " + _currentPage + " - "
+                ODEvent.Fire(ODEventType.ReportComplex, Lan.g("ReportComplex", "Printing Page") + " " + CurrentPage + " - "
                                                         + Lan.g("ReportComplex", "Printing Page Header") + "...");
                 section = _myReport.Sections[AreaSectionType.PageHeader];
                 PrintSection(grfx, section, xPos, yPos, isPrintablePage);
@@ -318,7 +317,7 @@ public partial class FormReportComplex : FormODBase
             {
                 if (_myReport.Sections.Contains(AreaSectionType.ReportFooter))
                 {
-                    ODEvent.Fire(ODEventType.ReportComplex, Lan.g("ReportComplex", "Printing Page") + " " + _currentPage + " - "
+                    ODEvent.Fire(ODEventType.ReportComplex, Lan.g("ReportComplex", "Printing Page") + " " + CurrentPage + " - "
                                                             + Lan.g("ReportComplex", "Printing Report Footer") + "...");
                     section = _myReport.Sections[AreaSectionType.ReportFooter];
                     PrintSection(grfx, section, xPos, yPos, isPrintablePage);
@@ -332,7 +331,7 @@ public partial class FormReportComplex : FormODBase
             //print the pagefooter
             if (_myReport.Sections.Contains(AreaSectionType.PageFooter))
             {
-                ODEvent.Fire(ODEventType.ReportComplex, Lan.g("ReportComplex", "Printing Page") + " " + _currentPage + " - "
+                ODEvent.Fire(ODEventType.ReportComplex, Lan.g("ReportComplex", "Printing Page") + " " + CurrentPage + " - "
                                                         + Lan.g("ReportComplex", "Printing Page Footer") + "...");
                 section = _myReport.Sections[AreaSectionType.PageFooter];
                 yPos = yLimit - section.Height;
@@ -421,7 +420,7 @@ public partial class FormReportComplex : FormODBase
                     var layoutRect = new RectangleF(xPos + fieldObject.Location.X
                         , yPos + fieldObject.Location.Y
                         , fieldObject.Size.Width, fieldObject.Size.Height);
-                    g.DrawString(Lan.g(this, "Page") + " " + _currentPage, fieldObject.Font, Brushes.Black, layoutRect, strFormat);
+                    g.DrawString(Lan.g(this, "Page") + " " + CurrentPage, fieldObject.Font, Brushes.Black, layoutRect, strFormat);
                 }
 
                 #endregion FieldObject
@@ -536,7 +535,7 @@ public partial class FormReportComplex : FormODBase
 
     private void PrintQuerySection(Graphics g, Section section, int xPos, int yPos, bool isPrintablePage)
     {
-        ODEvent.Fire(ODEventType.ReportComplex, Lan.g("ReportComplex", "Printing Page") + " " + _currentPage + " - "
+        ODEvent.Fire(ODEventType.ReportComplex, Lan.g("ReportComplex", "Printing Page") + " " + CurrentPage + " - "
                                                 + Lan.g("ReportComplex", "Printing Query Section") + "...");
         section.Height = 0;
         ReportObject textObject;
@@ -1313,28 +1312,7 @@ public partial class FormReportComplex : FormODBase
         saveFileDialog.Filter = "Text files(*.txt)|*.txt|Excel Files(*.xls)|*.xls|All files(*.*)|*.*";
         saveFileDialog.DefaultExt = "txt";
         saveFileDialog.FileName = _myReport.ReportName;
-        if (false)
-        {
-            if (saveFileDialog.ShowDialog() != DialogResult.OK)
-            {
-                return;
-            }
-
-            if (saveFileDialog.FileName.IsNullOrEmpty())
-            {
-                MsgBox.Show("Failed to save the file.");
-                return;
-            }
-
-            filePath = ODFileUtils.CombinePaths(Path.GetTempPath(), saveFileDialog.FileName.Split('\\').Last());
-        }
-        else if (false)
-        {
-            //Don't show save file dialog in AppStream environment.
-            var fileName = _myReport.ReportName;
-            filePath = ODFileUtils.CombinePaths(Path.GetTempPath(), fileName);
-        }
-        else if (IsRetailStorePAndI)
+        if (IsRetailStorePAndI)
         {
             filePath = @"\\opendental.od\serverfiles\My\KaitlynW\SnackShack_Reports\P&I_Report_" + DateTime.Now.ToString("yyyyMMdd") + ".txt";
         }

@@ -3,8 +3,6 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
 using System.Linq;
-using System.Reflection;
-using System.Text;
 using CodeBase;
 using DataConnectionBase;
 using Imedisoft.Core.Caching;
@@ -17,7 +15,7 @@ namespace OpenDentBusiness {
 		public static List<OutstandingInsClaim> GetOutInsClaims(List<long> listProvNums,DateTime dateFrom,DateTime dateTo,
 			PreauthOptions preauthOption,List<long> listClinicNums,string carrierName,List<long> listUserNums, DateFilterBy dateFilterBy)
 		{ 
-			string command = @"
+			var command = @"
 				SELECT carrier.CarrierName, 
 				carrier.Phone carrierPhone, 
 				claim.ClaimType, 
@@ -30,7 +28,7 @@ namespace OpenDentBusiness {
 				insplan.GroupNum, 
 				insplan.GroupName,
 				inssub.SubscriberID SubID,"
-				+DbHelper.Concat("sub.LName","', '","sub.FName")+@" SubName, 
+			              +DbHelper.Concat("sub.LName","', '","sub.FName")+@" SubName, 
 				sub.Birthdate SubDOB,				
 				patient.FName PatFName, 
 				patient.LName PatLName, 
@@ -38,7 +36,7 @@ namespace OpenDentBusiness {
 				patient.PatNum, 
 				patient.Birthdate PatDOB,
 				definition.ItemValue DaysSuppressed,"
-				+"DATE(statusHistory.DateTimeEntry)"+$@" DateLog,
+			              +"DATE(statusHistory.DateTimeEntry)"+$@" DateLog,
 				definition.DefNum CustomTrackingDefNum, 
 				statusHistory.TrackingErrorDefNum ErrorCodeDefNum,
 				COALESCE(
@@ -81,10 +79,10 @@ namespace OpenDentBusiness {
 				}
 			}
 			if(listProvNums.Count>0) {
-				command+="AND claim.ProvTreat IN ("+String.Join(",",listProvNums)+") ";
+				command+="AND claim.ProvTreat IN ("+string.Join(",",listProvNums)+") ";
 			}
 			if(listClinicNums.Count>0) {
-				command+="AND claim.ClinicNum IN ("+String.Join(",",listClinicNums)+") ";
+				command+="AND claim.ClinicNum IN ("+string.Join(",",listClinicNums)+") ";
 			}
 			//Excluding Preauths Option
 			if(preauthOption == PreauthOptions.ExcludingPreauths) {
@@ -104,7 +102,7 @@ namespace OpenDentBusiness {
 				+"LEFT JOIN patient sub ON inssub.Subscriber = sub.PatNum "
 				+"WHERE carrier.CarrierName LIKE '%"+SOut.String(carrierName.Trim())+"%' ";
 			if(listUserNums.Count>0) {
-				command+="HAVING (UserNum IN ("+String.Join(",",listUserNums)+") ";
+				command+="HAVING (UserNum IN ("+string.Join(",",listUserNums)+") ";
 				if(listUserNums.Contains(0)) {
 					//Selected users includes 'Unassigned' so we want to allow claims without associated claimTracking rows to show.
 					command+=" OR UserNum IS NULL";
@@ -112,15 +110,15 @@ namespace OpenDentBusiness {
 				command+=") ";
 			}
 			command+="ORDER BY carrier.CarrierName,claim.DateService,patient.LName,patient.FName,claim.ClaimType";
-			DataTable table=DataCore.GetTable(command);
-			List<OutstandingInsClaim> listOutstandingInsClaims = table.Rows.OfType<DataRow>().Select(x => new OutstandingInsClaim(x)).ToList();
+			var table=DataCore.GetTable(command);
+			var listOutstandingInsClaims = table.Rows.OfType<DataRow>().Select(x => new OutstandingInsClaim(x)).ToList();
 			return listOutstandingInsClaims;
 		}
 
 		///<summary>Called from FormRpOutstandingIns. Calls RpOutstandingIns.ZeroClaim() on list of claims. 
 		///Also recalculates all related secondary claims' estimates if ClaimPrimaryReceivedRecalcSecondary pref is on.</summary>
 		public static void ZeroClaims(List<Claim> listClaims) {
-			for(int i=0;i<listClaims.Count;i++) {
+			for(var i=0;i<listClaims.Count;i++) {
 				ZeroClaim(listClaims[i]);
 			}
 			if(!PrefC.GetBool(PrefName.ClaimPrimaryReceivedRecalcSecondary)) {
@@ -136,8 +134,8 @@ namespace OpenDentBusiness {
 				return;
 			}
 			//Invoke RefreshForClaims() instead of RefreshForClaim() so that Canadian labs are included.
-			List<ClaimProc> listClaimProcs=ClaimProcs.RefreshForClaims(new List<long>() { claim.ClaimNum });
-			for(int i=0;i<listClaimProcs.Count;i++) {
+			var listClaimProcs=ClaimProcs.RefreshForClaims(new List<long>() { claim.ClaimNum });
+			for(var i=0;i<listClaimProcs.Count;i++) {
 				if(!listClaimProcs[i].Status.In(ClaimProcStatus.NotReceived,ClaimProcStatus.Preauth) || listClaimProcs[i].ClaimPaymentNum>0 || listClaimProcs[i].IsOverpay) {
 					continue;
 				}
@@ -154,7 +152,7 @@ namespace OpenDentBusiness {
 			claim.WriteOff=listClaimProcs.Sum(x => x.WriteOff);
 			Claims.Update(claim);
 			ClaimProcs.UpdateMany(listClaimProcs);
-			string logText=$"Claim on Date Entry: {claim.SecDateEntry.ToShortDateString()} and Date of Service: {claim.DateService.ToShortDateString()} has been zeroed out.";
+			var logText=$"Claim on Date Entry: {claim.SecDateEntry.ToShortDateString()} and Date of Service: {claim.DateService.ToShortDateString()} has been zeroed out.";
 			SecurityLogs.MakeLogEntry(EnumPermType.ClaimSentEdit,claim.PatNum,logText,claim.ClaimNum,claim.SecDateTEdit);
 		}
 

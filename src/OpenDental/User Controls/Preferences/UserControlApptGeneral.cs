@@ -1,11 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Drawing;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 using CodeBase;
 using DataConnectionBase;
@@ -100,9 +94,6 @@ public partial class UserControlApptGeneral:UserControl {
 		comboSearchBehavior.SelectedIndex=PrefC.GetInt(PrefName.AppointmentSearchBehavior);
 		checkAppointmentTimeIsLocked.Checked=PrefC.GetBool(PrefName.AppointmentTimeIsLocked);
 		checkApptTimeReset.Checked=PrefC.GetBool(PrefName.AppointmentClinicTimeReset);
-		if(!true) {
-			checkApptTimeReset.Visible=false;
-		}
 		checkApptModuleAdjInProd.Checked=PrefC.GetBool(PrefName.ApptModuleAdjustmentsInProd);
 		checkApptModuleProductionUsesOps.Checked=PrefC.GetBool(PrefName.ApptModuleProductionUsesOps);
 		//checkApptsRequireProc.Checked=PrefC.GetBool(PrefName.ApptsRequireProc);

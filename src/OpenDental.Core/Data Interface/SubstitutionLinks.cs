@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using System.Linq;
-using DataConnectionBase;
 using Imedisoft.Core.Crud;
 using Imedisoft.Core.Entities;
 
@@ -15,9 +14,9 @@ public class SubstitutionLinks
 
     public static List<SubstitutionLink> GetAllForPlans(params long[] planNumArray)
     {
-        if (planNumArray.Length == 0) return new List<SubstitutionLink>();
+        if (planNumArray.Length == 0) return [];
         var listPlanNums = new List<long>(planNumArray);
-        var command = "SELECT * FROM substitutionlink WHERE PlanNum IN(" + string.Join(",", listPlanNums.Select(x => SOut.Long(x))) + ")";
+        var command = "SELECT * FROM substitutionlink WHERE PlanNum IN(" + string.Join(",", listPlanNums.Select(x => (x))) + ")";
         return SubstitutionLinkCrud.SelectMany(command);
     }
 
@@ -28,7 +27,7 @@ public class SubstitutionLinks
 
     public static List<SubstitutionLink> FilterSubLinksByCodeNum(long codeNum, List<SubstitutionLink> listSubstitutionLinks)
     {
-        if (listSubstitutionLinks is null) return new List<SubstitutionLink>();
+        if (listSubstitutionLinks is null) return [];
         return listSubstitutionLinks.Where(x => x.CodeNum == codeNum).ToList();
     }
 

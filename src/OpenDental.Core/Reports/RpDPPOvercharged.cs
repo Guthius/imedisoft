@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Reflection;
 using System.Linq;
 using DataConnectionBase;
 using CodeBase;
@@ -11,10 +10,10 @@ namespace OpenDentBusiness {
 	public class RpDPPOvercharged {
 
 		public static DataTable GetDPPOvercharged(DateTime dateStart,DateTime dateEnd,List<long> listClinicNums,List<long> listProvNums,long patNum) {
-			List<int> listClaimProcStatForInsEst=ClaimProcs.GetEstimatedStatuses().Select(x => (int)x).ToList();
-			List<int> listClaimProcStatForInsPaid=ClaimProcs.GetInsPaidStatuses().Select(x => (int)x).ToList();
-			string query="SELECT payplan.DatePayPlanStart,"
-				+"CONCAT(pat.LName,', ',pat.FName) AS 'patientName',CONCAT(guar.LName,', ',guar.FName) AS 'guarName',provider.Abbr AS 'provAbbr',";
+			var listClaimProcStatForInsEst=ClaimProcs.GetEstimatedStatuses().Select(x => (int)x).ToList();
+			var listClaimProcStatForInsPaid=ClaimProcs.GetInsPaidStatuses().Select(x => (int)x).ToList();
+			var query="SELECT payplan.DatePayPlanStart,"
+			          +"CONCAT(pat.LName,', ',pat.FName) AS 'patientName',CONCAT(guar.LName,', ',guar.FName) AS 'guarName',provider.Abbr AS 'provAbbr',";
 				if(true) {
 					//If the clinic is not hidden: get clinic.Abbr if it's not null, else use "unassigned".
 					//If hidden: get clinic.Abbr and add "(hidden)" to it. Concatenating a null w/ a non-null still produces null, so if clinic.Abbr is null, use "unassigned".
@@ -94,18 +93,18 @@ namespace OpenDentBusiness {
 				if(patNum!=0) {//If no Patient is selected, show all patients
 					query+=" AND payplan.PatNum="+SOut.Long(patNum);
 				}
-			DataTable result=DataCore.GetTable(query);
+			var result=DataCore.GetTable(query);
 			//Get all distinct PayPlanNums from resulting table.
-			List<long> listPayPlanNumsInTable=result.AsEnumerable().Select(x => x.Field<long>("PayPlanNum")).Distinct().ToList();
+			var listPayPlanNumsInTable=result.AsEnumerable().Select(x => x.Field<long>("PayPlanNum")).Distinct().ToList();
 			//Remove any PayPlanNums from list that are for plans that aren't overcharged.
 			listPayPlanNumsInTable.RemoveAll(x =>
 				result.AsEnumerable().Where(y => y.Field<long>("PayPlanNum").Equals(x)).Sum(y => y.Field<double>("planDebits")) <=
 				result.AsEnumerable().Where(z => z.Field<long>("PayPlanNum").Equals(x)).Sum(z => z.Field<double>("patPortionOnPlan")));
 			//Keep only the rows that are for overcharged pay plans and for production entries that pass the clinic and provider filters.
-			List<DataRow> listRows=result.AsEnumerable().Where(x => listPayPlanNumsInTable.Contains(x.Field<long>("PayPlanNum"))
-				&& CompareDecimal.IsGreaterThanZero(x.Field<double>("amtOvercharged"))
-				&& (listClinicNums.IsNullOrEmpty() || listClinicNums.Contains(x.Field<long>("ClinicNum"))) 
-				&& (listProvNums.IsNullOrEmpty() || listProvNums.Contains(x.Field<long>("ProvNum"))))
+			var listRows=result.AsEnumerable().Where(x => listPayPlanNumsInTable.Contains(x.Field<long>("PayPlanNum"))
+			                                              && CompareDecimal.IsGreaterThanZero(x.Field<double>("amtOvercharged"))
+			                                              && (listClinicNums.IsNullOrEmpty() || listClinicNums.Contains(x.Field<long>("ClinicNum"))) 
+			                                              && (listProvNums.IsNullOrEmpty() || listProvNums.Contains(x.Field<long>("ProvNum"))))
 				.OrderBy(x => x.Field<DateTime>("DatePayPlanStart")).ThenBy(x => x.Field<long>("PayPlanNum")).ToList();
 			if(listRows.Any()) {//Need to make sure we have rows before copying to data table, otherwise error occurs.
 				result=listRows.CopyToDataTable();

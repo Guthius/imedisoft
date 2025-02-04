@@ -1,14 +1,13 @@
 using System;
 using System.Collections.Generic;
 using System.Data;
-using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Crud;
 using Imedisoft.Core.Entities;
 
 namespace OpenDentBusiness;
 
-public class LetterMerges
+public static class LetterMerges
 {
     public static void Insert(LetterMerge letterMerge)
     {
@@ -22,14 +21,13 @@ public class LetterMerges
 
     public static void Delete(LetterMerge letterMerge)
     {
-        var command = "DELETE FROM lettermerge "
-                      + "WHERE LetterMergeNum = " + SOut.Long(letterMerge.LetterMergeNum);
-        Db.NonQ(command);
+        Db.NonQ("DELETE FROM lettermerge WHERE LetterMergeNum = " + letterMerge.LetterMergeNum);
     }
 
     public static List<LetterMerge> GetListForCat(int catIndex)
     {
         var defNum = Defs.GetDefsForCategory(DefCat.LetterMergeCats, true)[catIndex].DefNum;
+
         return GetWhere(x => x.Category == defNum);
     }
 
@@ -37,9 +35,7 @@ public class LetterMerges
     {
         protected override List<LetterMerge> GetCacheFromDb()
         {
-            var command = "SELECT * FROM lettermerge ORDER BY Description";
-            var listLetterMerges = LetterMergeCrud.SelectMany(command);
-            return listLetterMerges;
+            return LetterMergeCrud.SelectMany("SELECT * FROM lettermerge ORDER BY Description");
         }
 
         protected override List<LetterMerge> TableToList(DataTable dataTable)
@@ -65,9 +61,9 @@ public class LetterMerges
 
     private static readonly LetterMergeCache Cache = new();
 
-    public static List<LetterMerge> GetWhere(Predicate<LetterMerge> match, bool isShort = false)
+    public static List<LetterMerge> GetWhere(Predicate<LetterMerge> predicate, bool shortList = false)
     {
-        return Cache.GetWhere(match, isShort);
+        return Cache.GetWhere(predicate, shortList);
     }
 
     public static void RefreshCache()
@@ -75,9 +71,9 @@ public class LetterMerges
         GetTableFromCache(true);
     }
 
-    public static DataTable GetTableFromCache(bool doRefreshCache)
+    public static DataTable GetTableFromCache(bool refreshCache)
     {
-        return Cache.GetTableFromCache(doRefreshCache);
+        return Cache.GetTableFromCache(refreshCache);
     }
 
     public static void ClearCache()

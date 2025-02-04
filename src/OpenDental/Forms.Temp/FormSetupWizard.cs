@@ -1,14 +1,10 @@
 using System;
 using System.Collections.Generic;
-using System.Data;
 using System.Drawing;
-using System.Text;
 using System.Windows.Forms;
 using OpenDentBusiness;
 using OpenDental.UI;
-using System.Reflection;
 using System.Linq;
-using System.ComponentModel;
 using CodeBase;
 using Imedisoft.Core.Entities;
 
@@ -76,9 +72,9 @@ public partial class FormSetupWizard:FormODBase {
 		for(var i=0;i<_listSetupWizClassesItems.Count;i++) {
 			var row = new GridRow();
 			row.Cells.Add("     "+_listSetupWizClassesItems[i].Name);
-			row.Cells.Add(_listSetupWizClassesItems[i].GetStatus.GetDescription());
+			row.Cells.Add(_listSetupWizClassesItems[i].Status.GetDescription());
 			statusCellNum=row.Cells.Count-1;
-			row.Cells[statusCellNum].ColorBackG = SetupWizard.GetColor(_listSetupWizClassesItems[i].GetStatus);
+			row.Cells[statusCellNum].ColorBackG = SetupWizard.GetColor(_listSetupWizClassesItems[i].Status);
 			row.Cells.Add("0");
 			//row.ColorBackG=SetupWizard.GetColor(setupItem.GetStatus);
 			row.Tag=_listSetupWizClassesItems[i];
@@ -86,7 +82,7 @@ public partial class FormSetupWizard:FormODBase {
 		}
 		//now add parent rows to the list
 		for(var i=0;i<listRowsSetup.Count;i++) {
-			var odSetupCategory = ((SetupWizard.SetupWizClass)listRowsSetup[i].Tag).GetCategory;
+			var odSetupCategory = ((SetupWizard.SetupWizClass)listRowsSetup[i].Tag).Category;
 			//bool exists = false;
 			////if the parent row doesn't exist..
 			//foreach(ODGridRow parentRow in listCategoryRows) {
@@ -120,8 +116,8 @@ public partial class FormSetupWizard:FormODBase {
 		}
 		//Assign colors to parent rows.
 		for (var i=0;i<listRowsCategory.Count();i++) {
-			if(listRowsSetup.FindAll(x => ((SetupWizard.SetupWizClass)x.Tag).GetCategory == ((ODSetupCategory)listRowsCategory[i].Tag))
-			   .All(x => ((SetupWizard.SetupWizClass)x.Tag).GetStatus == ODSetupStatus.Complete || ((SetupWizard.SetupWizClass)x.Tag).GetStatus == ODSetupStatus.Optional))
+			if(listRowsSetup.FindAll(x => ((SetupWizard.SetupWizClass)x.Tag).Category == ((ODSetupCategory)listRowsCategory[i].Tag))
+			   .All(x => ((SetupWizard.SetupWizClass)x.Tag).Status == ODSetupStatus.Complete || ((SetupWizard.SetupWizClass)x.Tag).Status == ODSetupStatus.Optional))
 			{
 				listRowsCategory[i].Cells[statusCellNum].Text="\r\n"+ODSetupStatus.Complete.GetDescription();
 				listRowsCategory[i].Cells[statusCellNum].ColorBackG=SetupWizard.GetColor(ODSetupStatus.Complete);
@@ -134,8 +130,8 @@ public partial class FormSetupWizard:FormODBase {
 		}
 		for (var i=0;i<listRowsCategory.Count();i++) {
 			listRowsAll.Add(listRowsCategory[i]);
-			listRowsSetup.FindAll(x => ((SetupWizard.SetupWizClass)x.Tag).GetCategory == ((ODSetupCategory)listRowsCategory[i].Tag)).DefaultIfEmpty(new GridRow()).LastOrDefault().ColorLborder=Color.Black;
-			listRowsAll.AddRange(listRowsSetup.FindAll(x => ((SetupWizard.SetupWizClass)x.Tag).GetCategory == ((ODSetupCategory)listRowsCategory[i].Tag)));
+			listRowsSetup.FindAll(x => ((SetupWizard.SetupWizClass)x.Tag).Category == ((ODSetupCategory)listRowsCategory[i].Tag)).DefaultIfEmpty(new GridRow()).LastOrDefault().ColorLborder=Color.Black;
+			listRowsAll.AddRange(listRowsSetup.FindAll(x => ((SetupWizard.SetupWizClass)x.Tag).Category == ((ODSetupCategory)listRowsCategory[i].Tag)));
 		}
 		return listRowsAll;
 	}
@@ -147,7 +143,7 @@ public partial class FormSetupWizard:FormODBase {
 			for(var i = 0;i < gridMain.ListGridRows.Count;i++) {
 				var row = gridMain.ListGridRows[i];
 				if(row.Tag is SetupWizard.SetupWizClass
-				   && ((SetupWizard.SetupWizClass)row.Tag).GetCategory == (ODSetupCategory)rowClicked.Tag) {
+				   && ((SetupWizard.SetupWizClass)row.Tag).Category == (ODSetupCategory)rowClicked.Tag) {
 					gridMain.SetSelected(i,true);
 				}
 			}
@@ -157,7 +153,7 @@ public partial class FormSetupWizard:FormODBase {
 		   || colClicked.ImageList == null) {
 			return;
 		}
-		MsgBox.Show(this,((SetupWizard.SetupWizClass)rowClicked.Tag).GetDescript);
+		MsgBox.Show(this,((SetupWizard.SetupWizClass)rowClicked.Tag).Description);
 	}
 
 	private void gridMain_CellDoubleClick(object sender,ODGridClickEventArgs e) {
@@ -166,10 +162,10 @@ public partial class FormSetupWizard:FormODBase {
 		var listSetupWizClasses = new List<SetupWizard.SetupWizClass>();
 		if(rowClicked.Tag.GetType().BaseType != typeof(SetupWizard.SetupWizClass)) { //category clicked
 			for (var i=0;i<_listSetupWizClassesItems.Count();i++) {
-				if(_listSetupWizClassesItems[i].GetCategory != (ODSetupCategory)rowClicked.Tag) {
+				if(_listSetupWizClassesItems[i].Category != (ODSetupCategory)rowClicked.Tag) {
 					continue;
 				}
-				var setupIntroCat = new SetupWizard.SetupIntro(_listSetupWizClassesItems[i].Name, _listSetupWizClassesItems[i].GetDescript);
+				var setupIntroCat = new SetupWizard.SetupIntro(_listSetupWizClassesItems[i].Name, _listSetupWizClassesItems[i].Description);
 				var setupCompleteCat = new SetupWizard.SetupComplete(_listSetupWizClassesItems[i].Name);
 				listSetupWizClasses.Add(setupIntroCat);
 				listSetupWizClasses.Add(_listSetupWizClassesItems[i]);
@@ -186,7 +182,7 @@ public partial class FormSetupWizard:FormODBase {
 		}
 		//single row clicked
 		var setupWizClass = (SetupWizard.SetupWizClass)rowClicked.Tag;
-		var setupIntro = new SetupWizard.SetupIntro(setupWizClass.Name,setupWizClass.GetDescript);
+		var setupIntro = new SetupWizard.SetupIntro(setupWizClass.Name,setupWizClass.Description);
 		var setupComplete = new SetupWizard.SetupComplete(setupWizClass.Name);
 		listSetupWizClasses.Add(setupIntro);
 		listSetupWizClasses.Add(setupWizClass);
@@ -203,7 +199,7 @@ public partial class FormSetupWizard:FormODBase {
 	private void butAll_Click(object sender,EventArgs e) {
 		var listSetupWizClasses = new List<OpenDental.SetupWizard.SetupWizClass>();
 		for(var i=0;i<_listSetupWizClassesItems.Count();i++) {
-			var setupIntro = new SetupWizard.SetupIntro(_listSetupWizClassesItems[i].Name,_listSetupWizClassesItems[i].GetDescript);
+			var setupIntro = new SetupWizard.SetupIntro(_listSetupWizClassesItems[i].Name,_listSetupWizClassesItems[i].Description);
 			var setupComplete = new SetupWizard.SetupComplete(_listSetupWizClassesItems[i].Name);
 			listSetupWizClasses.Add(setupIntro);
 			listSetupWizClasses.Add(_listSetupWizClassesItems[i]);
@@ -223,7 +219,7 @@ public partial class FormSetupWizard:FormODBase {
 				continue;
 			}
 			var setupWizClass = (SetupWizard.SetupWizClass)gridRowSelected.Tag;
-			var setupIntro = new SetupWizard.SetupIntro(setupWizClass.Name,setupWizClass.GetDescript);
+			var setupIntro = new SetupWizard.SetupIntro(setupWizClass.Name,setupWizClass.Description);
 			var setupComplete = new SetupWizard.SetupComplete(setupWizClass.Name);
 			listSetupWizClasses.Add(setupIntro);
 			listSetupWizClasses.Add(setupWizClass);

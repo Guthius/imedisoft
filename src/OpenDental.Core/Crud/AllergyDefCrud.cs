@@ -33,14 +33,15 @@ public class AllergyDefCrud
     public static List<AllergyDef> TableToList(DataTable table)
     {
         var retVal = new List<AllergyDef>();
-        AllergyDef allergyDef;
         foreach (DataRow row in table.Rows)
         {
-            allergyDef = new AllergyDef();
-            allergyDef.AllergyDefNum = SIn.Long(row["AllergyDefNum"].ToString());
-            allergyDef.Description = SIn.String(row["Description"].ToString());
-            allergyDef.IsHidden = SIn.Bool(row["IsHidden"].ToString());
-            allergyDef.DateTStamp = SIn.DateTime(row["DateTStamp"].ToString());
+            var allergyDef = new AllergyDef
+            {
+                AllergyDefNum = SIn.Long(row["AllergyDefNum"].ToString()),
+                Description = SIn.String(row["Description"].ToString()),
+                IsHidden = SIn.Bool(row["IsHidden"].ToString())
+            };
+            SIn.DateTime(row["DateTStamp"].ToString());
             allergyDef.SnomedType = (SnomedAllergy) SIn.Int(row["SnomedType"].ToString());
             allergyDef.MedicationNum = SIn.Long(row["MedicationNum"].ToString());
             allergyDef.UniiCode = SIn.String(row["UniiCode"].ToString());
@@ -50,7 +51,7 @@ public class AllergyDefCrud
         return retVal;
     }
 
-    public static long Insert(AllergyDef allergyDef)
+    public static void Insert(AllergyDef allergyDef)
     {
         var command = "INSERT INTO allergydef (";
 
@@ -66,7 +67,6 @@ public class AllergyDefCrud
         {
             allergyDef.AllergyDefNum = Db.NonQ(command, true, "AllergyDefNum", "allergyDef");
         }
-        return allergyDef.AllergyDefNum;
     }
 
     public static void Update(AllergyDef allergyDef)

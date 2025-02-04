@@ -17,16 +17,17 @@ public class ClaimValCodeLogCrud
     public static List<ClaimValCodeLog> TableToList(DataTable table)
     {
         var retVal = new List<ClaimValCodeLog>();
-        ClaimValCodeLog claimValCodeLog;
         foreach (DataRow row in table.Rows)
         {
-            claimValCodeLog = new ClaimValCodeLog();
-            claimValCodeLog.ClaimValCodeLogNum = SIn.Long(row["ClaimValCodeLogNum"].ToString());
-            claimValCodeLog.ClaimNum = SIn.Long(row["ClaimNum"].ToString());
-            claimValCodeLog.ClaimField = SIn.String(row["ClaimField"].ToString());
-            claimValCodeLog.ValCode = SIn.String(row["ValCode"].ToString());
-            claimValCodeLog.ValAmount = SIn.Double(row["ValAmount"].ToString());
-            claimValCodeLog.Ordinal = SIn.Int(row["Ordinal"].ToString());
+            var claimValCodeLog = new ClaimValCodeLog
+            {
+                ClaimValCodeLogNum = SIn.Long(row["ClaimValCodeLogNum"].ToString()),
+                ClaimNum = SIn.Long(row["ClaimNum"].ToString()),
+                ClaimField = SIn.String(row["ClaimField"].ToString()),
+                ValCode = SIn.String(row["ValCode"].ToString()),
+                ValAmount = SIn.Double(row["ValAmount"].ToString()),
+                Ordinal = SIn.Int(row["Ordinal"].ToString())
+            };
             retVal.Add(claimValCodeLog);
         }
 

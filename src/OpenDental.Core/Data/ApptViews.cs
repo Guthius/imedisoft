@@ -32,9 +32,9 @@ public static class ApptViews
         return apptView == null || apptView.ApptViewNum == ApptViewNumNone;
     }
 
-    public static List<ApptView> GetForClinic(long clinicNum = 0, bool isShort = true)
+    public static List<ApptView> GetForClinic(long clinicNum = 0, bool shortList = true)
     {
-        return clinicNum > 0 ? GetWhere(x => x.ClinicNum == clinicNum, isShort) : GetDeepCopy(isShort);
+        return clinicNum > 0 ? GetWhere(x => x.ClinicNum == clinicNum, shortList) : GetDeepCopy(shortList);
     }
 
     public static ApptView GetApptView(long apptViewNum)

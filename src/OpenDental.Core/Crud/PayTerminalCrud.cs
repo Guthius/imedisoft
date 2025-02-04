@@ -17,14 +17,15 @@ public class PayTerminalCrud
     public static List<PayTerminal> TableToList(DataTable table)
     {
         var retVal = new List<PayTerminal>();
-        PayTerminal payTerminal;
         foreach (DataRow row in table.Rows)
         {
-            payTerminal = new PayTerminal();
-            payTerminal.PayTerminalNum = SIn.Long(row["PayTerminalNum"].ToString());
-            payTerminal.Name = SIn.String(row["Name"].ToString());
-            payTerminal.ClinicNum = SIn.Long(row["ClinicNum"].ToString());
-            payTerminal.TerminalID = SIn.String(row["TerminalID"].ToString());
+            var payTerminal = new PayTerminal
+            {
+                PayTerminalNum = SIn.Long(row["PayTerminalNum"].ToString()),
+                Name = SIn.String(row["Name"].ToString()),
+                ClinicNum = SIn.Long(row["ClinicNum"].ToString()),
+                TerminalID = SIn.String(row["TerminalID"].ToString())
+            };
             retVal.Add(payTerminal);
         }
 

@@ -2,16 +2,10 @@
 using System.Diagnostics;
 using System.IO;
 using System.Net;
-using System.Net.Http.Headers;
 using System.Text;
 using System.Web;
-using System.Web.Services;
 using System.Web.Services.Protocols;
 using System.Windows.Forms;
-using System.Xml;
-using System.Xml.Serialization;
-using System.Xml.XPath;
-using OpenDentBusiness;
 using System.Collections.Generic;
 using CodeBase;
 using System.Linq;
@@ -26,6 +20,7 @@ using Imedisoft.Core.Data;
 using Imedisoft.Core.Entities;
 using Imedisoft.Core.Features.Clinics;
 using Imedisoft.Core.Features.Clinics.Dtos;
+using Imedisoft.Features.Providers.Dtos;
 
 namespace OpenDentBusiness.Eclaims {
 	/// <summary>
@@ -50,43 +45,37 @@ namespace OpenDentBusiness.Eclaims {
 		public static bool Launch(Clearinghouse clearinghouseClin,int batchNum) {//called from Eclaims.cs. Clinic-level clearinghouse passed in.
 			try {
 				//Step 1: Post authentication request:
-				Version myVersion=new Version(Application.ProductVersion);
+				var myVersion=new Version(Application.ProductVersion);
 				HttpWebRequest webReq;
 				WebResponse response;
 				StreamReader readStream;
 				string str;
 				string[] responseParams;
-				string status="";
-				string group="";
-				string userid="";
-				string authid="";
-				string errormsg="";
-				string alertmsg="";
-				string curParam="";
+				var status="";
+				var group="";
+				var userid="";
+				var authid="";
+				var errormsg="";
+				var alertmsg="";
+				var curParam="";
 				string serverName;
-				if(/* ODBuild.IsDebug() */ false) {
-					//For testing
-					serverName="https://prelive.dentalxchange.com/dci/upload.svl";
-				}
-				else {
-					//Production
-				serverName=Introspection.GetOverride(Introspection.IntrospectionEntity.DentalXChangeDciURL,"https://claimconnect.dentalxchange.com/dci/upload.svl");
-				}
+				//Production
+				serverName="https://claimconnect.dentalxchange.com/dci/upload.svl";
 				webReq=(HttpWebRequest)WebRequest.Create(serverName);
-				string postData=
+				var postData=
 					"Function=Auth"//CONSTANT; signifies that this is an authentication request
 					+"&Source=EDI"//CONSTANT; file format
 					+"&Username="+HttpUtility.UrlEncode(clearinghouseClin.LoginID)
 					+"&Password="+HttpUtility.UrlEncode(clearinghouseClin.Password)
 					+"&UploaderName=OpenDental"//CONSTANT
-					+"&UploaderVersion="+myVersion.Major.ToString()+"."+myVersion.Minor.ToString()+"."+myVersion.Build.ToString();//eg 12.3.24
+					+"&UploaderVersion="+myVersion.Major+"."+myVersion.Minor+"."+myVersion.Build;//eg 12.3.24
 				webReq.KeepAlive=false;
 				webReq.Method="POST";
 				webReq.ContentType="application/x-www-form-urlencoded";
 				webReq.ContentLength=postData.Length;
-				ASCIIEncoding encoding=new ASCIIEncoding();
-				byte[] bytes=encoding.GetBytes(postData);
-				Stream streamOut=webReq.GetRequestStream();
+				var encoding=new ASCIIEncoding();
+				var bytes=encoding.GetBytes(postData);
+				var streamOut=webReq.GetRequestStream();
 				streamOut.Write(bytes,0,bytes.Length);
 				streamOut.Close();
 				response=webReq.GetResponse();
@@ -96,7 +85,7 @@ namespace OpenDentBusiness.Eclaims {
 				readStream.Close();
 				//MessageBox.Show(str);
 				responseParams=str.Split('&');
-				for(int i = 0;i<responseParams.Length;i++) {
+				for(var i = 0;i<responseParams.Length;i++) {
 					curParam=GetParam(responseParams[i]);
 					switch(curParam) {
 						case "Status":
@@ -144,17 +133,17 @@ namespace OpenDentBusiness.Eclaims {
 						throw new Exception("No customer contract. "+errormsg);
 				}
 				//Step 2: Post upload request:
-				string filePath = ODFileUtils.CombinePaths(clearinghouseClin.ExportPath, ODEnvironment.MachineName);
-				string[] fileNames=Directory.GetFiles(filePath);
+				var filePath = ODFileUtils.CombinePaths(clearinghouseClin.ExportPath, Environment.MachineName);
+				var fileNames=Directory.GetFiles(filePath);
 				if(fileNames.Length>1) {
-					for(int f = 0;f<fileNames.Length;f++) {
+					for(var f = 0;f<fileNames.Length;f++) {
 						File.Delete(fileNames[f]);
 					}
 					Directory.Delete(filePath);
 					throw new ApplicationException("A previous batch submission was found in an incomplete state.  You will need to resubmit your most recent batch as well as this batch.  Also check reports to be certain that all expected claims went through.");
 				}
-				string fileName=fileNames[0];
-				string boundary="------------7d13e425b00d0";
+				var fileName=fileNames[0];
+				var boundary="------------7d13e425b00d0";
 				postData=
 					"--"+boundary+"\r\n"
 					+"Content-Disposition: form-data; name=\"Function\"\r\n"
@@ -173,7 +162,7 @@ namespace OpenDentBusiness.Eclaims {
 						+fileName+"\"\r\n"
 					+"Content-Type: text/plain\r\n"
 					+"\r\n";
-				using(StreamReader sr = new StreamReader(fileName)) {
+				using(var sr = new StreamReader(fileName)) {
 					postData+=sr.ReadToEnd()+"\r\n"
 						+"--"+boundary+"--";
 				}
@@ -201,7 +190,7 @@ namespace OpenDentBusiness.Eclaims {
 					throw new Exception("Unknown lengthy error message received.");
 				}
 				responseParams=str.Split('&');
-				for(int i = 0;i<responseParams.Length;i++) {
+				for(var i = 0;i<responseParams.Length;i++) {
 					curParam=GetParam(responseParams[i]);
 					switch(curParam) {
 						case "Status":
@@ -245,7 +234,7 @@ namespace OpenDentBusiness.Eclaims {
 			if(paramAndValue=="") {
 				return "";
 			}
-			string[] pair=paramAndValue.Split('=');
+			var pair=paramAndValue.Split('=');
 			//if(pair.Length!=2){
 			//	throw new Exception("Unexpected parameter from server: "+paramAndValue);
 			return pair[0];
@@ -255,7 +244,7 @@ namespace OpenDentBusiness.Eclaims {
 			if(paramAndValue=="") {
 				return "";
 			}
-			string[] pair=paramAndValue.Split('=');
+			var pair=paramAndValue.Split('=');
 			//if(pair.Length!=2){
 			//	throw new Exception("Unexpected parameter from server: "+paramAndValue);
 			//}
@@ -270,22 +259,16 @@ namespace OpenDentBusiness.Eclaims {
 			etransHtml=null;
 			Dentalxchange2016.Credentials cred=DxcCredentials.GetDentalxchangeCredentials(null,clearinghouseClin);//Null claim because we have a clearinghouse	
 			cred.version=Application.ProductVersion;
-			Dentalxchange2016.textRequest request=new Dentalxchange2016.textRequest();
+			var request=new Dentalxchange2016.textRequest();
 			request.outputFormatSpecified=true;
 			request.outputFormat=outputFormat;
 			request.Content=HttpUtility.HtmlEncode(x12message);//get rid of ampersands, etc.
-			Dentalxchange2016.DwsService service=new Dentalxchange2016.DwsService();
-			if(/* ODBuild.IsDebug() */ false) {
-				//service.Url="https://prelive2.dentalxchange.com/dws/DwsService"; // testing
-				service.Url="https://webservices.dentalxchange.com/dws/DwsService"; // production
-			}
-			else {
-				// Production URL
-				service.Url=Introspection.GetOverride(Introspection.IntrospectionEntity.DentalXChangeDwsURL,"https://webservices.dentalxchange.com/dws/DwsService");
-			}
-			string strResponse="";
+			var service=new Dentalxchange2016.DwsService();
+			// Production URL
+			service.Url="https://webservices.dentalxchange.com/dws/DwsService";
+			var strResponse="";
 			try {
-				Dentalxchange2016.textResponse response = service.lookupEligibility(cred,request);
+				var response = service.lookupEligibility(cred,request);
 				if(response.Content==null) {
 					strResponse="This customer is being denied service by Claim Connect with the following error:\r\n"
 						+response.Status.code + " - " +response.Status.description+"\r\n"
@@ -368,40 +351,37 @@ namespace OpenDentBusiness.Eclaims {
 		///Throws an ODException if the user has not enabled attachment sending or if the API call failed for some reason.
 		///Callers of this method should catch that scenario. This method does optional file I/O for trouble shooting, do not call from Middle Tier.</summary>
 		public static ValidateClaimResponse ValidateClaim(Claim claim,bool doValidateForAttachment) {
-			Clearinghouse clearingHouse=GetClearingHouseForClaim(claim);
+			var clearingHouse=GetClearingHouseForClaim(claim);
 			if(!clearingHouse.IsAttachmentSendAllowed) {
 				throw new ODException(Lans.g("ClaimConnect","Attachment sending is not enabled. Please see our manual for instructions."));
 			}
-			Dentalxchange2016.DwsService service=new Dentalxchange2016.DwsService();
-			Dentalxchange2016.textRequest textRequest=new Dentalxchange2016.textRequest();
+			var service=new Dentalxchange2016.DwsService();
+			var textRequest=new Dentalxchange2016.textRequest();
 			textRequest.outputFormat=Dentalxchange2016.Format.XML;
 			textRequest.validateForAttachment=doValidateForAttachment;
 			//Generate X12 message text.
-			int batchNum=Clearinghouses.GetNextBatchNumber(clearingHouse);
-			List<ClaimSendQueueItem> listQueueItems=Claims.GetQueueList(claim.ClaimNum,claim.ClinicNum,0).ToList();
+			var batchNum=Clearinghouses.GetNextBatchNumber(clearingHouse);
+			var listQueueItems=Claims.GetQueueList(claim.ClaimNum,claim.ClinicNum,0).ToList();
 			textRequest.Content=x837Controller.GenerateBatch(clearingHouse,listQueueItems,batchNum,claim.MedType);
-			service.Url=Introspection.GetOverride(Introspection.IntrospectionEntity.DentalXChangeDwsURL,"https://webservices.dentalxchange.com/dws/DwsService");
-			if(/* ODBuild.IsDebug() */ false) {
-				service.Url="https://prelive2.dentalxchange.com/dws/DwsService";
-			}
+			service.Url="https://webservices.dentalxchange.com/dws/DwsService";
 			if(PrefC.GetBool(PrefName.SaveDXCSOAPAsXML)) {
 				//This code will output the XML into a text file.  This may be needed for ClaimConnect when troubleshooting issues.
 				//This XML will be the SOAP body and exclude the header and envelope.
-				System.Xml.Serialization.XmlSerializer xml=new System.Xml.Serialization.XmlSerializer(textRequest.GetType());
+				var xml=new System.Xml.Serialization.XmlSerializer(textRequest.GetType());
 				try {
-					using StreamWriter writer=new StreamWriter(clearingHouse.ExportPath+"Claim"+SOut.Long(claim.ClaimNum)+"XML.txt");
+					using var writer=new StreamWriter(clearingHouse.ExportPath+"Claim"+SOut.Long(claim.ClaimNum)+"XML.txt");
 					xml.Serialize(writer,textRequest);
 				}
 				catch(Exception ex) {
 					throw new ODException(Lans.g("ClaimConnect","Error writing XML to export path. Please verify that the export path has been set."));
 				}
 			}
-			Dentalxchange2016.textResponse response=service.validateClaim(DxcCredentials.GetDentalxchangeCredentials(claim,clearingHouse),textRequest);
+			var response=service.validateClaim(DxcCredentials.GetDentalxchangeCredentials(claim,clearingHouse),textRequest);
 			if(response==null) {
 				throw new ODException(Lans.g("ClaimConnect","No response from ClaimConnect was received."));
 			}
 			if(response.Status==null || response.Status.code!=0) {//The API call failed for some reason
-				string errorMsg=Lans.g("ClaimConnect","ClaimConnect error:");
+				var errorMsg=Lans.g("ClaimConnect","ClaimConnect error:");
 				if(response.Status==null) {
 					errorMsg+=" Invalid response status";
 				}
@@ -410,88 +390,38 @@ namespace OpenDentBusiness.Eclaims {
 				}
 				throw new ODException(errorMsg);
 			}
-			X277 x277=new X277(response.Content);
+			var x277=new X277(response.Content);
 			InsertEtransEntry(response.Content,claim,clearingHouse);
-			string claimValidationNote="";
+			var claimValidationNote="";
 			//DentalXChange places the validation note in one of the STC segments.  All of the examples in their documentation showed it would always
 			//be in the last STC segment, but recently customer 17202 had a claim where the validation note was put in the 2nd and 3rd STC
 			//segments (out of 5), but there was no note in the last STC segment.  Because of this we will now loop through all STC segments and set
 			//the validation note to the last STC segment with a non empty note.
-			List<X12Segment> listStcSegments=x277.Segments.FindAll(x => x.SegmentID=="STC").ToList();//Each item will be in the same order as the 277.
-			for(int i=listStcSegments.Count-1;i>=0;i--) {//Bottom up.
+			var listStcSegments=x277.Segments.FindAll(x => x.SegmentID=="STC").ToList();//Each item will be in the same order as the 277.
+			for(var i=listStcSegments.Count-1;i>=0;i--) {//Bottom up.
 				claimValidationNote=listStcSegments[i].Get(12);//Will return empty string if element 12 is not present.
 				if(claimValidationNote!="") {
 					break;
 				}
 			}
 			//Create our response object
-			ValidateClaimResponse retVal=new ValidateClaimResponse(response.Status.code,response.Status.description,claimValidationNote.Split(','));
+			var retVal=new ValidateClaimResponse(response.Status.code,response.Status.description,claimValidationNote.Split(','));
 			return retVal;
-		}
-
-		///<summary>Uses the Dentalxchange API to create an attachment for the given claim. Returns the attachmentID from 
-		///Dentalxchange's server. Will throw an ODException if the operation is not successful or the claim has invalid fkeys.
-		///Callers of this method should handle this scenario.</summary>
-		public static string CreateAttachment(List<ImageAttachment> listImages,string narrative,Claim claim) {
-			DentalxchangePartnerService.DeaPartnerService service=new DentalxchangePartnerService.DeaPartnerService();
-			service.Url=Introspection.GetOverride(Introspection.IntrospectionEntity.DentalXChangeDeaURL,"https://webservices.dentalxchange.com/dea/DeaPartnerService");
-			if(/* ODBuild.IsDebug() */ false) {
-				service.Url="https://prelive2.dentalxchange.com/dea/DeaPartnerService";
-			}
-			//Convert listImages to AttachmentImage[]
-			DentalxchangePartnerService.AttachmentImage[] arrayAttachments=new DentalxchangePartnerService.AttachmentImage[listImages.Count];
-			for(int i=0;i<listImages.Count;i++) {
-				arrayAttachments[i]=listImages[i].ConvertToAttachmentImage();
-			}
-			#region Xml Serialization
-			if(PrefC.GetBool(PrefName.SaveDXCSOAPAsXML)) {
-				Clearinghouse clearingHouse=GetClearingHouseForClaim(claim);
-				using StreamWriter writer1=new StreamWriter(clearingHouse.ExportPath+"Claim"+SOut.Long(claim.ClaimNum)+"CredentialsXML.txt");
-				//Before running the serialization you will need to change the class DxcCredentials to public.
-				System.Xml.Serialization.XmlSerializer xml1=new System.Xml.Serialization.XmlSerializer(DxcCredentials.GetDentalxchangeCredentials(claim).GetType());
-				xml1.Serialize(writer1,DxcCredentials.GetDentalxchangeCredentials(claim));
-				using StreamWriter writer2=new StreamWriter(clearingHouse.ExportPath+"Claim"+SOut.Long(claim.ClaimNum)+"AttachmentRequestXML.txt");
-				System.Xml.Serialization.XmlSerializer xml2=new System.Xml.Serialization.XmlSerializer(BuildAttachmentRequest(claim,narrative).GetType());
-				xml2.Serialize(writer2,BuildAttachmentRequest(claim,narrative));
-				using StreamWriter writer3=new StreamWriter(clearingHouse.ExportPath+"Claim"+SOut.Long(claim.ClaimNum)+"AttachmentArrayXML.txt");
-				System.Xml.Serialization.XmlSerializer xml3=new System.Xml.Serialization.XmlSerializer(arrayAttachments.GetType());
-				xml3.Serialize(writer3,arrayAttachments);
-			}
-			#endregion
-			//We don't try-catch the helper because the implementation of this method should already be in a try-catch.
-			DentalxchangePartnerService.AttachmentReferenceResponse response=service.sendCompleteAttachment(
-				DxcCredentials.GetDentalxchangeCredentials(claim)
-				,BuildAttachmentRequest(claim,narrative)
-				,arrayAttachments
-				,releaseAttachment:false
-				,releaseAttachmentSpecified:false
-			);
-			//Not sure which one to trust
-			if(response==null) {
-				throw new ODException(Lans.g("ClaimConnect","No response from ClaimConnect was received."));
-			}
-			if(!response.MsgSuccess || response.Status==null || response.Status.code!=0) {
-				throw new ODException(response.Status==null ? Lans.g("ClaimConnect","Invalid ClaimConnect response status") : response.Status.description);
-			}
-			if(response.AttachmentReference==null) {
-				throw new ODException(Lans.g("ClaimConnect","Invalid attachment reference received."));
-			}
-			return response.AttachmentReference.AttachmentID;
 		}
 
 		///<summary>The first step in DXC's manual attachment workflow. Creates a DXC attachment for the claim and returns the AttachmentID. Is capable of taking a narrative. Can throw exceptions.</summary>
 		public static string OpenAttachment(Claim claim,string narrative) {
-			Clearinghouse clearinghouse=GetClearingHouseForClaim(claim);
+			var clearinghouse=GetClearingHouseForClaim(claim);
 			if(XConnect.IsEnabled(clearinghouse)) {
 				return XConnect.AttachmentCreate(claim,narrative);
 			}
-			DentalxchangePartnerService.DeaPartnerService deaPartnerService=new DentalxchangePartnerService.DeaPartnerService();
-			deaPartnerService.Url=Introspection.GetOverride(Introspection.IntrospectionEntity.DentalXChangeDeaURL,"https://webservices.dentalxchange.com/dea/DeaPartnerService");
+			var deaPartnerService=new DentalxchangePartnerService.DeaPartnerService();
+			deaPartnerService.Url="https://webservices.dentalxchange.com/dea/DeaPartnerService";
 			if(/* ODBuild.IsDebug() */ false) {
 				deaPartnerService.Url="https://prelive2.dentalxchange.com/dea/DeaPartnerService";
 			}
-			DentalxchangePartnerService.Attachment attachment=BuildAttachmentRequest(claim,narrative);
-			DentalxchangePartnerService.AttachmentReferenceResponse attachmentReferenceResponse=deaPartnerService.openAttachment(DxcCredentials.GetDentalxchangeCredentials(claim),attachment);
+			var attachment=BuildAttachmentRequest(claim,narrative);
+			var attachmentReferenceResponse=deaPartnerService.openAttachment(DxcCredentials.GetDentalxchangeCredentials(claim),attachment);
 			if(attachmentReferenceResponse==null) {
 				throw new ODException(Lans.g("ClaimConnect","No response from ClaimConnect was received."));
 			}
@@ -507,19 +437,16 @@ namespace OpenDentBusiness.Eclaims {
 
 		///<summary>The last step in DXC's manual attachment workflow, although we are still allowed to add more images later. Can throw exceptions.</summary>
 		public static void SubmitAttachment(Claim claim) {
-			Clearinghouse clearinghouse=GetClearingHouseForClaim(claim);
+			var clearinghouse=GetClearingHouseForClaim(claim);
 			if(XConnect.IsEnabled(clearinghouse)) {
 				XConnect.AttachmentSubmit(claim);
 				return;
 			}
-			DentalxchangePartnerService.DeaPartnerService deaPartnerService=new DentalxchangePartnerService.DeaPartnerService();
-			deaPartnerService.Url=Introspection.GetOverride(Introspection.IntrospectionEntity.DentalXChangeDeaURL,"https://webservices.dentalxchange.com/dea/DeaPartnerService");
-			if(/* ODBuild.IsDebug() */ false) {
-				deaPartnerService.Url="https://prelive2.dentalxchange.com/dea/DeaPartnerService";
-			}
-			DentalxchangePartnerService.AttachmentReference attachmentReference=new DentalxchangePartnerService.AttachmentReference();
+			var deaPartnerService=new DentalxchangePartnerService.DeaPartnerService();
+			deaPartnerService.Url="https://webservices.dentalxchange.com/dea/DeaPartnerService";
+			var attachmentReference=new DentalxchangePartnerService.AttachmentReference();
 			attachmentReference.AttachmentID=claim.AttachmentID;
-			DentalxchangePartnerService.DeaResponse deaResponse=deaPartnerService.submitAttachment(DxcCredentials.GetDentalxchangeCredentials(claim),attachmentReference);
+			var deaResponse=deaPartnerService.submitAttachment(DxcCredentials.GetDentalxchangeCredentials(claim),attachmentReference);
 			if(deaResponse==null) {
 				throw new ODException(Lans.g("ClaimConnect","No response from ClaimConnect was received."));
 			}
@@ -530,21 +457,18 @@ namespace OpenDentBusiness.Eclaims {
 
 		///<summary>This method is used to add attachments to claims that already have an existing attachmentID. Can throw an exception. If this method is not used then validation will fail. Returns ImageReferenceIds assigned by DXC.</summary>
 		public static List<int> AddAttachmentImage(Claim claim,List<ImageAttachment> listImages) {
-			Clearinghouse clearinghouse=GetClearingHouseForClaim(claim);
+			var clearinghouse=GetClearingHouseForClaim(claim);
 			if(XConnect.IsEnabled(clearinghouse)) {
 				return XConnect.AttachmentAddImage(claim,listImages);
 			}
-			DentalxchangePartnerService.DeaPartnerService deaPartnerService=new DentalxchangePartnerService.DeaPartnerService();
-			deaPartnerService.Url=Introspection.GetOverride(Introspection.IntrospectionEntity.DentalXChangeDeaURL,"https://webservices.dentalxchange.com/dea/DeaPartnerService");
-			if(/* ODBuild.IsDebug() */ false) {
-				deaPartnerService.Url="https://prelive2.dentalxchange.com/dea/DeaPartnerService";
-			}
-			DentalxchangePartnerService.AttachmentReference attachmentRef=new DentalxchangePartnerService.AttachmentReference();
+			var deaPartnerService=new DentalxchangePartnerService.DeaPartnerService();
+			deaPartnerService.Url="https://webservices.dentalxchange.com/dea/DeaPartnerService";
+			var attachmentRef=new DentalxchangePartnerService.AttachmentReference();
 			attachmentRef.AttachmentID=claim.AttachmentID;
-			List<int> listImageReferenceIds=new List<int>();
+			var listImageReferenceIds=new List<int>();
 			//Can only send one image at a time. Loop through all the images the user is adding.
-			foreach(ImageAttachment image in listImages) {
-				DentalxchangePartnerService.ImageReferenceResponses imageResponse=deaPartnerService.addImage
+			foreach(var image in listImages) {
+				var imageResponse=deaPartnerService.addImage
 					(DxcCredentials.GetDentalxchangeCredentials(claim), attachmentRef, image.ConvertToAttachmentImage());
 				if(!imageResponse.MsgSuccess || imageResponse.Status.code!=0) {
 					throw new ODException(imageResponse.Status.description);
@@ -556,19 +480,16 @@ namespace OpenDentBusiness.Eclaims {
 
 		///<summary>Add a narrative to a claim that has an existing attachmentID. Will overwrite any narrative sent to DXC. Narrative has a 2000 char limit. Can throw an exception.</summary>
 		public static void AddNarrative(Claim claim,string narrative) {
-			Clearinghouse clearinghouse=GetClearingHouseForClaim(claim);
+			var clearinghouse=GetClearingHouseForClaim(claim);
 			if(XConnect.IsEnabled(clearinghouse)) {
 				XConnect.AttachmentAddNarrative(claim,narrative);
 				return;
 			}
-			DentalxchangePartnerService.DeaPartnerService deaPartnerService=new DentalxchangePartnerService.DeaPartnerService();
-			deaPartnerService.Url=Introspection.GetOverride(Introspection.IntrospectionEntity.DentalXChangeDeaURL,"https://webservices.dentalxchange.com/dea/DeaPartnerService");
-			if(/* ODBuild.IsDebug() */ false) {
-				deaPartnerService.Url="https://prelive2.dentalxchange.com/dea/DeaPartnerService";
-			}
-			DentalxchangePartnerService.AttachmentReference attachmentReference=new DentalxchangePartnerService.AttachmentReference();
+			var deaPartnerService=new DentalxchangePartnerService.DeaPartnerService();
+			deaPartnerService.Url="https://webservices.dentalxchange.com/dea/DeaPartnerService";
+			var attachmentReference=new DentalxchangePartnerService.AttachmentReference();
 			attachmentReference.AttachmentID=claim.AttachmentID;
-			DentalxchangePartnerService.AttachmentReferenceResponse attachmentReferenceResponse=deaPartnerService.addNarrative(DxcCredentials.GetDentalxchangeCredentials(claim),attachmentReference,narrative);
+			var attachmentReferenceResponse=deaPartnerService.addNarrative(DxcCredentials.GetDentalxchangeCredentials(claim),attachmentReference,narrative);
 			if(!attachmentReferenceResponse.MsgSuccess || attachmentReferenceResponse.Status.code!=0) {
 				throw new ODException(attachmentReferenceResponse.Status.description);
 			}
@@ -576,21 +497,18 @@ namespace OpenDentBusiness.Eclaims {
 
 		///<summary>Deletes the selected attachment images from DXC. Caller should handle images that do not have a valid ImageReferenceId. Can throw exceptions.</summary>
 		public static void DeleteImages(Claim claim,List<ClaimAttach> listClaimAttaches) {
-			Clearinghouse clearinghouse=GetClearingHouseForClaim(claim);
+			var clearinghouse=GetClearingHouseForClaim(claim);
 			if(XConnect.IsEnabled(clearinghouse)) {
 				XConnect.AttachmentRemoveImage(claim,listClaimAttaches);
 				return;
 			}
-			DentalxchangePartnerService.DeaPartnerService deaPartnerService=new DentalxchangePartnerService.DeaPartnerService();
-			deaPartnerService.Url=Introspection.GetOverride(Introspection.IntrospectionEntity.DentalXChangeDeaURL,"https://webservices.dentalxchange.com/dea/DeaPartnerService");
-			if(/* ODBuild.IsDebug() */ false) {
-				deaPartnerService.Url="https://prelive2.dentalxchange.com/dea/DeaPartnerService";
-			}
-			for(int i=0;i<listClaimAttaches.Count;i++) {
-				DentalxchangePartnerService.ImageReference imageReference=new DentalxchangePartnerService.ImageReference();
+			var deaPartnerService=new DentalxchangePartnerService.DeaPartnerService();
+			deaPartnerService.Url="https://webservices.dentalxchange.com/dea/DeaPartnerService";
+			for(var i=0;i<listClaimAttaches.Count;i++) {
+				var imageReference=new DentalxchangePartnerService.ImageReference();
 				imageReference.ImageReferenceId=listClaimAttaches[i].ImageReferenceId;
 				imageReference.ImageReferenceIdSpecified=true;
-				DentalxchangePartnerService.DeaResponse deaResponse=deaPartnerService.deleteImage(DxcCredentials.GetDentalxchangeCredentials(claim),imageReference);
+				var deaResponse=deaPartnerService.deleteImage(DxcCredentials.GetDentalxchangeCredentials(claim),imageReference);
 				if(!deaResponse.MsgSuccess || deaResponse.Status.code!=0) {
 					throw new ODException(deaResponse.Status.description);
 				}
@@ -601,34 +519,34 @@ namespace OpenDentBusiness.Eclaims {
 		///This method throws when claim fkeys are invalid.
 		///Callers of this method should consider this scenario.</summary>
 		private static DentalxchangePartnerService.Attachment BuildAttachmentRequest(Claim claim,string narrative) {
-			DentalxchangePartnerService.Attachment attachment=new DentalxchangePartnerService.Attachment();
+			var attachment=new DentalxchangePartnerService.Attachment();
 			//Clinic on claim
 			var clinic=Clinics.GetClinic(claim.ClinicNum);
 			if(!true) {
 				clinic=null;//If the practice isn't using clinics, but the claim is associated to a real clinic, pretend it isn't.
 			}
 			//Billing provider
-			Provider prov=Providers.GetProv(claim.ProvBill);
+			var prov=Providers.GetById(claim.ProvBill);
 			if(prov==null) {
 				throw new ODException(Lans.g("ClaimConnect","Invalid provider associated to claim."));
 			}
 			//Patient on the claim
-			Patient pat=Patients.GetPat(claim.PatNum);
+			var pat=Patients.GetPat(claim.PatNum);
 			if(pat==null) {
 				throw new ODException(Lans.g("ClaimConnect","Invalid patient associated to claim."));
 			}
 			//Inssub
-			InsSub insSub=InsSubs.GetOne(claim.InsSubNum);
+			var insSub=InsSubs.GetOne(claim.InsSubNum);
 			if(insSub==null) {
 				throw new ODException(Lans.g("ClaimConnect","Invalid insurance subscriber associated to claim."));
 			}
 			//Insplan
-			InsPlan insPlan=InsPlans.GetPlan(claim.PlanNum,null);
+			var insPlan=InsPlans.GetPlan(claim.PlanNum,null);
 			if(insPlan==null) {
 				throw new ODException(Lans.g("ClaimConnect","Invalid insurance plan associated to claim."));
 			}
 			//Carrier
-			Carrier carrier=Carriers.GetCarrier(insPlan.CarrierNum);
+			var carrier=Carriers.GetCarrier(insPlan.CarrierNum);
 			if(carrier==null) {
 				throw new ODException(Lans.g("ClaimConnect","Invalid carrier associated to claim."));
 			}
@@ -636,26 +554,26 @@ namespace OpenDentBusiness.Eclaims {
 				throw new ODException(Lans.g("ClaimConnect","Invalid ElectID."));
 			}
 			//Subscriber
-			Patient subscriber=Patients.GetPat(insSub.Subscriber);
+			var subscriber=Patients.GetPat(insSub.Subscriber);
 			if(carrier==null) {
 				throw new ODException(Lans.g("ClaimConnect","Invalid patient subscriber associated to claim."));
 			}
-			attachment.BillProviderFirstName=prov.FName;
-			attachment.BillProviderLastName=prov.LName;
-			attachment.BillProviderNpi=prov.NationalProvID;
+			attachment.BillProviderFirstName=prov.FirstName;
+			attachment.BillProviderLastName=prov.LastName;
+			attachment.BillProviderNpi=prov.NationalProviderId;
 			attachment.BillProviderTaxonomy=X12Generator.GetTaxonomy(prov);
-			if(prov.UsingTIN) {
-				attachment.BillProviderTaxID=prov.SSN;
+			if(prov.IsTin) {
+				attachment.BillProviderTaxID=prov.Ssn;
 			}
 			else {
 				attachment.BillProviderTaxID="";
 			}
 			//Billing info
-			string billingAddress1="";
-			string billingAddress2="";
-			string billingCity="";
-			string billingState="";
-			string billingZip="";
+			var billingAddress1="";
+			var billingAddress2="";
+			var billingCity="";
+			var billingState="";
+			var billingZip="";
 			if(clinic.UseBillingAddressOnClaims) {
 				billingAddress1=clinic.BillingAddressLine1;
 				billingAddress2=clinic.BillingAddressLine2;
@@ -706,11 +624,11 @@ namespace OpenDentBusiness.Eclaims {
 		}
 		
 		public static Clearinghouse GetClearingHouseForClaim(Claim claim) {
-			InsPlan insPlan=InsPlans.GetPlan(claim.PlanNum,null);
+			var insPlan=InsPlans.GetPlan(claim.PlanNum,null);
 			if(insPlan==null) {
 				throw new ODException(Lans.g("ClaimConnect","Invalid insurance plan associated to claim."));
 			}
-			Carrier carrier=Carriers.GetCarrier(insPlan.CarrierNum);
+			var carrier=Carriers.GetCarrier(insPlan.CarrierNum);
 			if(carrier==null) {
 				throw new ODException(Lans.g("ClaimConnect","Invalid carrier associated to claim."));
 			}
@@ -718,54 +636,20 @@ namespace OpenDentBusiness.Eclaims {
 				throw new ODException(Lans.g("ClaimConnect","Invalid ElectID."));
 			}
 			//Fill clearing house with HQ fields
-			long clearingHouseNum=Clearinghouses.AutomateClearinghouseHqSelection(carrier.ElectID,claim.MedType);
-			Clearinghouse clearingHouse=Clearinghouses.GetClearinghouse(clearingHouseNum);
+			var clearingHouseNum=Clearinghouses.AutomateClearinghouseHqSelection(carrier.ElectID,claim.MedType);
+			var clearingHouse=Clearinghouses.GetClearinghouse(clearingHouseNum);
 			//Refill clearingHouse with clinic specific fields
 			return Clearinghouses.OverrideFields(clearingHouse,claim.ClinicNum);
-		}
-
-		///<summary>Calls DxC ClaimConnect's getPayerListService API method. Will upsert any new/existing ElectIDs into the electid table.
-		///Runs once a week as part of OpenDentalService.PayerListThread, and only if a ClaimConnect clearinghouse is a default clearinghouse.
-		///May throw exceptions, surround with try/catch. Returns a string of error responses, will be empty on success.</summary>
-		public static string GetPayerList(Clearinghouse clearinghouse) {
-			Dentalxchange2016.Credentials credentials=DxcCredentials.GetDentalxchangeCredentials(null,clearinghouse);//Null claim because we have a clearinghouse	
-			credentials.version=Application.ProductVersion;
-			Dentalxchange2016.payerListInfoRequest payerListInfoRequest=new Dentalxchange2016.payerListInfoRequest();
-			payerListInfoRequest.outputFormatSpecified=true;
-			payerListInfoRequest.outputFormat=Dentalxchange2016.Format.XML;
-			Dentalxchange2016.DwsService service=new Dentalxchange2016.DwsService();
-			if(/* ODBuild.IsDebug() */ false) {
-				service.Url="https://prelive2.dentalxchange.com/dws/DwsService"; //testing
-			}
-			else {
-				service.Url=Introspection.GetOverride(Introspection.IntrospectionEntity.DentalXChangeDwsURL,"https://webservices.dentalxchange.com/dws/DwsService"); //production
-			}
-			string strResponse="";
-			Dentalxchange2016.PayerListInfoResponse payerListInfoResponse=new Dentalxchange2016.PayerListInfoResponse();
-			try {
-				payerListInfoResponse=service.getPayerListService(credentials,payerListInfoRequest);
-			}
-			catch(SoapException ex) {
-				strResponse="If this is a new customer, this error might be due to an invalid Username or Password.  Servers may need a few hours before ready to accept new user information.\r\n"
-					+"Error message received directly from Claim Connect:  "+ex.Message+"\r\n\r\n"+ex.Detail.InnerText;
-				return strResponse;
-			}
-			if(payerListInfoResponse.Status.code==0) {
-				ElectIDs.UpsertFromDentalXChange(payerListInfoResponse.Payers.ToList());
-				return strResponse;
-			}
-			strResponse=payerListInfoResponse.Status.description;
-			return strResponse;
 		}
 
 		///<summary>Creates an Etrans entry into the database for the response we get back from the ValidateClaim() method.</summary>
 		private static void InsertEtransEntry(string messageText,Claim claim,Clearinghouse clearingHouse) {
 			//Make entry for EtransMessageText
-			EtransMessageText etransMessageText=new EtransMessageText();
+			var etransMessageText=new EtransMessageText();
 			etransMessageText.MessageText=messageText;
 			EtransMessageTexts.Insert(etransMessageText);
 			//Make Etrans entry and attach the EtransMessageText
-			Etrans etrans=new Etrans();
+			var etrans=new Etrans();
 			etrans.ClaimNum=claim.ClaimNum;
 			etrans.PatNum=claim.PatNum;
 			etrans.UserNum=Security.CurUser.UserNum;
@@ -790,7 +674,7 @@ namespace OpenDentBusiness.Eclaims {
 					progress.UpdateProgress(Lans.g(progress.LanThis,"Canceled by user."));
 					return false;
 			}
-			Dentalxchange2016.Credentials cred=new Dentalxchange2016.Credentials();
+			var cred=new Dentalxchange2016.Credentials();
 			if(PrefC.GetBool(PrefName.CustomizedForPracticeWeb)) {//even though they currently use code from a different part of the program.
 				cred.Client="Practice-Web";
 				cred.ServiceID="DCI Web Service ID: 001513";
@@ -801,13 +685,10 @@ namespace OpenDentBusiness.Eclaims {
 			}
 			cred.Username=clearinghouse.LoginID;
 			cred.Password=clearinghouse.Password;
-			Dentalxchange2016.unProcessedEraRequest request=new Dentalxchange2016.unProcessedEraRequest();
-			Dentalxchange2016.DwsService service=new Dentalxchange2016.DwsService();
-			service.Url=Introspection.GetOverride(Introspection.IntrospectionEntity.DentalXChangeDwsURL,"https://webservices.dentalxchange.com/dws/DwsService");
-			if(/* ODBuild.IsDebug() */ false) {
-				service.Url="https://prelive2.dentalxchange.com/dws/DwsService";
-			}
-			List<string> listEraStrings=new List<string>();
+			var request=new Dentalxchange2016.unProcessedEraRequest();
+			var service=new Dentalxchange2016.DwsService();
+			service.Url="https://webservices.dentalxchange.com/dws/DwsService";
+			var listEraStrings=new List<string>();
 			try {
 				Dentalxchange2016.UnProcessedEraResponse response;
 				do {
@@ -848,11 +729,11 @@ namespace OpenDentBusiness.Eclaims {
 			catch(Exception ex) {
 				ErrorMessage=Lans.g(progress.LanThis,"If this is a new customer, this error might be due to an invalid Username or Password.  "
 					+"Servers may need a few hours before ready to accept new user information.")+"\r\n"
-					+Lans.g(progress.LanThis,"Error message received directly from Claim Connect:")+"  "+ex.ToString();
+					+Lans.g(progress.LanThis,"Error message received directly from Claim Connect:")+"  "+ex;
 				return false;
 			}
 			progress.UpdateProgress(Lans.g(progress.LanThis,"Web server contact successful."));
-			string path=clearinghouse.ResponsePath;
+			var path=clearinghouse.ResponsePath;
 			progress.UpdateProgress(Lans.g(progress.LanThis,"Writing files"),"reports","40%",40);
 			if(progress.IsPauseOrCancel()) {
 				progress.UpdateProgress(Lans.g(progress.LanThis,"Canceled by user."));
@@ -872,7 +753,7 @@ namespace OpenDentBusiness.Eclaims {
 		///<summary>Takes a payer returned from DxC's getPayerListService API method.
 		///Determines the values of each Attribute attached to the payer, returning a list of EnumClaimConnectPayerAttributes which are flagged as supported for the payer.</summary>
 		public static List<EnumClaimConnectPayerAttributes> GetAttributes(Dentalxchange2016.supportedTransPayer payer) {
-			List<EnumClaimConnectPayerAttributes> listClaimConnectPayerAttributes=new List<EnumClaimConnectPayerAttributes>();
+			var listClaimConnectPayerAttributes=new List<EnumClaimConnectPayerAttributes>();
 			if(payer is null) {
 				return listClaimConnectPayerAttributes;
 			}
@@ -884,7 +765,7 @@ namespace OpenDentBusiness.Eclaims {
 					listClaimConnectPayerAttributes.Add(EnumClaimConnectPayerAttributes.EligibilityIsSupported);
 				}
 				if(payer.Eligibility.Requirements!=null) { //Requirements is a list of "requireBeans" which contain two string fields; a name and a value.
-					Dentalxchange2016.requireBean dxcRequireBean=payer.Eligibility.Requirements.FirstOrDefault(x=>x.name=="PatientAndSubscriberReqdForElig");
+					var dxcRequireBean=payer.Eligibility.Requirements.FirstOrDefault(x=>x.name=="PatientAndSubscriberReqdForElig");
 					if(dxcRequireBean!=null && dxcRequireBean.value=="true") {
 						listClaimConnectPayerAttributes.Add(EnumClaimConnectPayerAttributes.PatientAndSubscriberReqdForElig);
 					}
@@ -957,7 +838,7 @@ namespace OpenDentBusiness.Eclaims {
 			///attachment will always be a string response like "ATTACHMENT IS REQUIRED".</summary>
 			public bool IsAttachmentRequired {
 				get {
-					for(int i=0;i<ValidationErrors.Length;i++) {
+					for(var i=0;i<ValidationErrors.Length;i++) {
 						if(ValidationErrors[i].ToLower().Contains("attachment") || ValidationErrors[i].ToLower().Contains("please upload")) {
 							if(ValidationErrors[i].ToLower().Contains("does not support")) {
 								return false;
@@ -1009,7 +890,7 @@ namespace OpenDentBusiness.Eclaims {
 
 			///<summary>Converts this helper class into the corresponding ClaimConnect AttachmentImage class with all of the same values.</summary>
 			public DentalxchangePartnerService.AttachmentImage ConvertToAttachmentImage() {
-				DentalxchangePartnerService.AttachmentImage attachImage=new DentalxchangePartnerService.AttachmentImage();
+				var attachImage=new DentalxchangePartnerService.AttachmentImage();
 				switch(ImageType) {
 					case ImageTypeCode.ReferralForm:
 						attachImage.ImageTypeCode=DentalxchangePartnerService.imageTypeCode.B4;
@@ -1064,7 +945,7 @@ namespace OpenDentBusiness.Eclaims {
 
 			/// <summary>Caller should dispose of image.</summary>
 			public static ImageAttachment Create(string fileName,DateTime createdDate,ImageTypeCode typeCodeImage,Image imageClaim,bool rightOrientation=true) {
-				ImageAttachment imageAttachment=new ImageAttachment();
+				var imageAttachment=new ImageAttachment();
 				imageAttachment.ImageFileNameDisplay=fileName;
 				imageAttachment.ImageDate=createdDate;
 				imageAttachment.ImageType=typeCodeImage;
@@ -1081,8 +962,8 @@ namespace OpenDentBusiness.Eclaims {
 			///<summary>Takes the user's image they want to send with their claim and converts it to a base64 byte representation.
 			///ClaimConnect requires the image to be in this format. The caller should dispose of the image.</summary>
 			private static byte[] ConvertImageToBytes(Image image) {
-				using MemoryStream memoryStream=new MemoryStream();
-				using Bitmap bitmap=new Bitmap(image);
+				using var memoryStream=new MemoryStream();
+				using var bitmap=new Bitmap(image);
 				//Save creates a system ref to the resources, preventing proper disposal of image,
 				//so we use a second image
 				bitmap.Save(memoryStream,System.Drawing.Imaging.ImageFormat.Jpeg);
@@ -1119,11 +1000,11 @@ namespace OpenDentBusiness.Eclaims {
 			///This is needed because there are 2 separate web services that use these credentials.
 			///DxcCredentials has implict operators to fix this nuance</summary>
 			public static DxcCredentials GetDentalxchangeCredentials(Claim claim,Clearinghouse clearHouse=null) {
-				Clearinghouse clearingHouse=clearHouse;
+				var clearingHouse=clearHouse;
 				if(clearingHouse==null) {//No clearing house provided.
 					clearingHouse=GetClearingHouseForClaim(claim);
 				}
-				DxcCredentials cred=new DxcCredentials();
+				var cred=new DxcCredentials();
 				if(PrefC.GetBool(PrefName.CustomizedForPracticeWeb)) {//even though they currently use code from a different part of the program.
 					cred.Client="Practice-Web";
 					cred.ServiceID="DCI Web Service ID: 001513";
@@ -1182,7 +1063,7 @@ namespace OpenDentBusiness.Eclaims {
 		internal static InsPlan _insPlanForClaim;
 		internal static InsSub _insSubForPat;
 		internal static Carrier _carrierForClaim;
-		internal static List<Provider> _listProvidersForClaim;
+		internal static List<ProviderDto> _listProvidersForClaim;
 		internal static Claim _claim;
 		private static HttpMethod _httpMethod;
 		private static HttpClient _httpClient=new HttpClient() { BaseAddress=new Uri("https://api.dentalxchange.com") };
@@ -1214,9 +1095,9 @@ namespace OpenDentBusiness.Eclaims {
 			_clearinghouseForClaim=ClaimConnect.GetClearingHouseForClaim(claim);
 			_insPlanForClaim=InsPlans.GetPlan(claim.PlanNum,new List<InsPlan>());
 			_carrierForClaim=Carriers.GetCarrier(_insPlanForClaim.CarrierNum);
-			List<byte> listDiagnosesVersions=new List<byte>();
+			var listDiagnosesVersions=new List<byte>();
 			_listDiagnoses=Procedures.GetUniqueDiagnosticCodes(Procedures.GetProcsFromClaimProcs(XConnect._listClaimProcsForClaim),false,listDiagnosesVersions);
-			_listProvidersForClaim=Providers.GetProvsByProvNums(_listClaimProcsForClaim.Select(x => x.ProvNum).ToList());
+			_listProvidersForClaim=Providers.GetManyById(_listClaimProcsForClaim.Select(x => x.ProvNum).ToList());
 			_claim=claim;
 		}
 
@@ -1229,16 +1110,16 @@ namespace OpenDentBusiness.Eclaims {
 			_httpClient.DefaultRequestHeaders.Add("username",clearinghouseClinic.LoginID);
 			_httpClient.DefaultRequestHeaders.Add("password",clearinghouseClinic.Password);
 			_httpClient.DefaultRequestHeaders.Add("API-Key",clearinghouseClinic.LocationID);
-			JsonSerializerSettings jsonSerializerSettings=new JsonSerializerSettings{NullValueHandling=NullValueHandling.Ignore};
+			var jsonSerializerSettings=new JsonSerializerSettings{NullValueHandling=NullValueHandling.Ignore};
 			jsonSerializerSettings.Converters.Add(new StringEnumConverter());
-			string bodyJSON=JsonConvert.SerializeObject(payload,Newtonsoft.Json.Formatting.None,jsonSerializerSettings);
-			JsonSerializerSettings deserializationSettings=new JsonSerializerSettings { MissingMemberHandling=MissingMemberHandling.Error };
+			var bodyJSON=JsonConvert.SerializeObject(payload,Newtonsoft.Json.Formatting.None,jsonSerializerSettings);
+			var deserializationSettings=new JsonSerializerSettings { MissingMemberHandling=MissingMemberHandling.Error };
 			return APIRequest.Inst.SendRequest<T>(endpointURL,httpMethod,null,bodyJSON,HttpContentType.Json,_httpClient,queryParameters,deserializationSettings);
 		}
 
 		///<summary>Throws Exceptions. Returns an error message if validation failed. Otherwise returns an empty string.</summary>
 		public static XConnectWebResponse ValidateClaim(Claim claim) {
-			XConnectValidateClaim xConnectValidateClaim=new XConnectValidateClaim();
+			var xConnectValidateClaim=new XConnectValidateClaim();
 			XConnect.SetData(claim);
 			xConnectValidateClaim.claim=XConnectClaim.FromClaim(claim);
 			xConnectValidateClaim.validateForAttachment=true;//Always do validation for attachments
@@ -1250,38 +1131,19 @@ namespace OpenDentBusiness.Eclaims {
 		}
 
 		///<summary>Copied from X837_5010</summary>
-		public static string GetTaxonomy(Provider provider) {
-			if(provider.TaxonomyCodeOverride!="") {
-				return provider.TaxonomyCodeOverride;
-			}
-			string spec="1223G0001X";//general
-			Def provSpec=Defs.GetDef(DefCat.ProviderSpecialties,provider.Specialty);
-			if(provSpec==null) {
-				return spec;
-			}
-			switch(provSpec.ItemName) {
-				case "General": spec="1223G0001X"; break;
-				case "Hygienist": spec="124Q00000X"; break;
-				case "PublicHealth": spec="1223D0001X"; break;
-				case "Endodontics": spec="1223E0200X"; break;
-				case "Pathology": spec="1223P0106X"; break;
-				case "Radiology": spec="1223X0008X"; break;
-				case "Surgery": spec="1223S0112X"; break;
-				case "Ortho": spec="1223X0400X"; break;
-				case "Pediatric": spec="1223P0221X"; break;
-				case "Perio": spec="1223P0300X"; break;
-				case "Prosth": spec="1223P0700X"; break;
-				case "Denturist": spec="122400000X"; break;
-				case "Assistant": spec="126800000X"; break;
-				case "LabTech": spec="126900000X"; break;
-			}
-			return spec;
+		public static string GetTaxonomy(ProviderDto provider)
+		{
+			const string generalTaxonomyCode = "1223G0001X";
+			
+			var taxonomyCode = provider.TaxonomyCode ?? provider.Specialty.TaxonomyCode;
+			
+			return string.IsNullOrEmpty(taxonomyCode) ? generalTaxonomyCode : taxonomyCode;
 		}
 
 		///<summary>Gets and converts provider specialty from taxonomy code to XConnect API provider specialty string.</summary>
-		public static EnumXConnectProviderSpecialty GetProviderSpecialty(Provider provider) {
-			string taxonomy=GetTaxonomy(provider);
-			EnumXConnectProviderSpecialty specialty=EnumXConnectProviderSpecialty.GP;
+		public static EnumXConnectProviderSpecialty GetProviderSpecialty(ProviderDto provider) {
+			var taxonomy=GetTaxonomy(provider);
+			var specialty=EnumXConnectProviderSpecialty.GP;
 			switch(taxonomy) {
 				case "1223G0001X": specialty=EnumXConnectProviderSpecialty.GP; break;
 				//case "1223G0001X": specialty=EnumXConnectProviderSpecialty.IMP; break;//Implantology
@@ -1311,7 +1173,7 @@ namespace OpenDentBusiness.Eclaims {
 
 		///<summary>Turns Claim.PatRelat into an acceptable XConnect patient relationship</summary>
 		public static string GetXConnectPatientRelation(Relat relat) {
-			string relationship="";
+			var relationship="";
 			switch (relat) {
 				case Relat.Spouse:
 					relationship="01";
@@ -1356,27 +1218,27 @@ namespace OpenDentBusiness.Eclaims {
 				clinic=null;//If the practice isn't using clinics, but the claim is associated to a real clinic, pretend it isn't.
 			}
 			//Billing provider
-			Provider provider=Providers.GetProv(claim.ProvBill);
+			var provider=Providers.GetById(claim.ProvBill);
 			if(provider==null) {
 				throw new ODException(Lans.g("ClaimConnect","Invalid provider associated to claim."));
 			}
 			//Patient on the claim
-			Patient patient=Patients.GetPat(claim.PatNum);
+			var patient=Patients.GetPat(claim.PatNum);
 			if(patient==null) {
 				throw new ODException(Lans.g("ClaimConnect","Invalid patient associated to claim."));
 			}
 			//Inssub
-			InsSub insSub=InsSubs.GetOne(claim.InsSubNum);
+			var insSub=InsSubs.GetOne(claim.InsSubNum);
 			if(insSub==null) {
 				throw new ODException(Lans.g("ClaimConnect","Invalid insurance subscriber associated to claim."));
 			}
 			//Insplan
-			InsPlan insPlan=InsPlans.GetPlan(claim.PlanNum,null);
+			var insPlan=InsPlans.GetPlan(claim.PlanNum,null);
 			if(insPlan==null) {
 				throw new ODException(Lans.g("ClaimConnect","Invalid insurance plan associated to claim."));
 			}
 			//Carrier
-			Carrier carrier=Carriers.GetCarrier(insPlan.CarrierNum);
+			var carrier=Carriers.GetCarrier(insPlan.CarrierNum);
 			if(carrier==null) {
 				throw new ODException(Lans.g("ClaimConnect","Invalid carrier associated to claim."));
 			}
@@ -1384,30 +1246,30 @@ namespace OpenDentBusiness.Eclaims {
 				throw new ODException(Lans.g("ClaimConnect","Invalid ElectID."));
 			}
 			//Subscriber
-			Patient patientSubscriber=Patients.GetPat(insSub.Subscriber);
+			var patientSubscriber=Patients.GetPat(insSub.Subscriber);
 			if(carrier==null) {
 				throw new ODException(Lans.g("ClaimConnect","Invalid patient subscriber associated to claim."));
 			}
 			//Create attachment object
-			XConnectAttachmentCreate xConnectAttachmentCreate=new XConnectAttachmentCreate();
+			var xConnectAttachmentCreate=new XConnectAttachmentCreate();
 			//Create provider object for attachment
-			XConnectAttachmentBillingProvider xConnectAttachmentBillingProvider=new XConnectAttachmentBillingProvider();
-			xConnectAttachmentBillingProvider.firstName=provider.FName;
-			xConnectAttachmentBillingProvider.lastName=provider.LName;
-			xConnectAttachmentBillingProvider.npi=provider.NationalProvID;
+			var xConnectAttachmentBillingProvider=new XConnectAttachmentBillingProvider();
+			xConnectAttachmentBillingProvider.firstName=provider.FirstName;
+			xConnectAttachmentBillingProvider.lastName=provider.LastName;
+			xConnectAttachmentBillingProvider.npi=provider.NationalProviderId;
 			xConnectAttachmentBillingProvider.taxonomy=XConnect.GetTaxonomy(provider);
-			if(provider.UsingTIN) {
-				xConnectAttachmentBillingProvider.taxId=provider.SSN;
+			if(provider.IsTin) {
+				xConnectAttachmentBillingProvider.taxId=provider.Ssn;
 			}
 			else {
 				xConnectAttachmentBillingProvider.taxId="";
 			}
 			//Provider billing info
-			string address1="";
-			string address2="";
-			string city="";
-			string state="";
-			string zip="";
+			var address1="";
+			var address2="";
+			var city="";
+			var state="";
+			var zip="";
 			if(clinic.UseBillingAddressOnClaims) {
 				address1=clinic.BillingAddressLine1;
 				address2=clinic.BillingAddressLine2;
@@ -1429,13 +1291,13 @@ namespace OpenDentBusiness.Eclaims {
 			xConnectAttachmentBillingProvider.zipCode=zip;
 			xConnectAttachmentCreate.billingProvider=xConnectAttachmentBillingProvider;
 			//Create patient object for attachment
-			XConnectAttachmentPatient xConnectAttachmentPatient=new XConnectAttachmentPatient();
+			var xConnectAttachmentPatient=new XConnectAttachmentPatient();
 			xConnectAttachmentPatient.firstName=patient.FName;
 			xConnectAttachmentPatient.lastName=patient.LName;
 			xConnectAttachmentPatient.dateOfBirth=patient.Birthdate.ToString("yyyy-MM-dd");
 			xConnectAttachmentCreate.patient=xConnectAttachmentPatient;
 			//Create subscriber object for attachment
-			XConnectAttachmentSubscriber xConnectAttachmentSubscriber=new XConnectAttachmentSubscriber();
+			var xConnectAttachmentSubscriber=new XConnectAttachmentSubscriber();
 			xConnectAttachmentSubscriber.id=insSub.SubscriberID;
 			xConnectAttachmentSubscriber.firstName=patientSubscriber.FName;
 			xConnectAttachmentSubscriber.lastName=patientSubscriber.LName;
@@ -1448,7 +1310,7 @@ namespace OpenDentBusiness.Eclaims {
 			}
 			xConnectAttachmentCreate.narrative=narrative;
 			//Create rendering provider object
-			XConnectAttachmentRenderingProvider xConnectAttachmentRenderingProvider=new XConnectAttachmentRenderingProvider();
+			var xConnectAttachmentRenderingProvider=new XConnectAttachmentRenderingProvider();
 			xConnectAttachmentRenderingProvider.address1=clinic.AddressLine1;
 			xConnectAttachmentRenderingProvider.address2=clinic.AddressLine2;
 			xConnectAttachmentRenderingProvider.city=clinic.City;
@@ -1456,9 +1318,9 @@ namespace OpenDentBusiness.Eclaims {
 			xConnectAttachmentRenderingProvider.zipCode=clinic.Zip;
 			xConnectAttachmentCreate.renderingProvider=xConnectAttachmentRenderingProvider;
 			//Call API and handle response
-			Clearinghouse clearinghouse=ClaimConnect.GetClearingHouseForClaim(claim);
+			var clearinghouse=ClaimConnect.GetClearingHouseForClaim(claim);
 			_httpMethod=HttpMethod.Post;
-			XConnectAttachmentCreateResponse xConnectAttachmentCreateResponse=CallAPI<XConnectAttachmentCreateResponse>(clearinghouse,"/attachments/create",xConnectAttachmentCreate,_httpMethod);
+			var xConnectAttachmentCreateResponse=CallAPI<XConnectAttachmentCreateResponse>(clearinghouse,"/attachments/create",xConnectAttachmentCreate,_httpMethod);
 			if(xConnectAttachmentCreateResponse==null) {
 				throw new ODException(Lans.g("ClaimConnect","No response from XConnect was received."));
 			}
@@ -1490,11 +1352,11 @@ namespace OpenDentBusiness.Eclaims {
 		///<summary>Add image(s) to a claim attachment. Returns a list of dxcAttachmentImageIds. Can throw exceptions.</summary>
 		public static List<int> AttachmentAddImage(Claim claim,List<ClaimConnect.ImageAttachment> listImages) {
 			//Convert ClaimConnect ImageAttachments to XConnect ImageAttachment
-			List<XConnectAttachmentAddImage> listXConnectAttachmentAddImages=new List<XConnectAttachmentAddImage>();
-			for(int i=0;i<listImages.Count;i++) {
-				XConnectAttachmentAddImage xConnectAttachmentAddImage=new XConnectAttachmentAddImage();
+			var listXConnectAttachmentAddImages=new List<XConnectAttachmentAddImage>();
+			for(var i=0;i<listImages.Count;i++) {
+				var xConnectAttachmentAddImage=new XConnectAttachmentAddImage();
 				//Determine the image type based on the description as the ClaimConnect and XConnect enums have the same items, but they are in different order
-				string imageType=listImages[i].ImageType.GetDescription();
+				var imageType=listImages[i].ImageType.GetDescription();
 				switch(imageType) {
 					case "Referral Form":
 						xConnectAttachmentAddImage.imageTypeCode=EnumXConnectImageTypeCode.B4;
@@ -1542,15 +1404,15 @@ namespace OpenDentBusiness.Eclaims {
 				xConnectAttachmentAddImage.imageDate=listImages[i].ImageDate.ToString("yyyy-MM-dd");
 				listXConnectAttachmentAddImages.Add(xConnectAttachmentAddImage);
 			}
-			Clearinghouse clearinghouse=ClaimConnect.GetClearingHouseForClaim(claim);
-			List<int> listImageReferenceIds=new List<int>();
+			var clearinghouse=ClaimConnect.GetClearingHouseForClaim(claim);
+			var listImageReferenceIds=new List<int>();
 			//Create query parameters
-			List<string> listQueryParameters=new List<string>();
+			var listQueryParameters=new List<string>();
 			listQueryParameters.Add("dxcAttachmentId="+claim.AttachmentID);
 			_httpMethod=HttpMethod.Put;
 			//Call API and check response
-			for(int i=0;i<listXConnectAttachmentAddImages.Count;i++) {
-				XConnectAttachmentAddImageResponse xConnectAttachmentAddImageResponse=CallAPI<XConnectAttachmentAddImageResponse>(clearinghouse,"/attachments/images/add",listXConnectAttachmentAddImages[i],_httpMethod,listQueryParameters);
+			for(var i=0;i<listXConnectAttachmentAddImages.Count;i++) {
+				var xConnectAttachmentAddImageResponse=CallAPI<XConnectAttachmentAddImageResponse>(clearinghouse,"/attachments/images/add",listXConnectAttachmentAddImages[i],_httpMethod,listQueryParameters);
 				if(xConnectAttachmentAddImageResponse==null) {
 					throw new ODException(Lans.g("ClaimConnect","No response from XConnect was received."));
 				}
@@ -1575,15 +1437,15 @@ namespace OpenDentBusiness.Eclaims {
 
 		///<summary>Add a narrative to a claim attachment. This will overwrite any narrative that was already in place. Can throw exceptions.</summary>
 		public static void AttachmentAddNarrative(Claim claim,string narrative) {
-			XConnectAttachmentAddNarrative xConnectAttachmentAddNarrative=new XConnectAttachmentAddNarrative();
+			var xConnectAttachmentAddNarrative=new XConnectAttachmentAddNarrative();
 			xConnectAttachmentAddNarrative.narrative=narrative;
-			Clearinghouse clearinghouse=ClaimConnect.GetClearingHouseForClaim(claim);
+			var clearinghouse=ClaimConnect.GetClearingHouseForClaim(claim);
 			//Create query parameters
-			List<string> listQueryParameters=new List<string>();
+			var listQueryParameters=new List<string>();
 			listQueryParameters.Add("dxcAttachmentId="+claim.AttachmentID);
 			_httpMethod=HttpMethod.Put;
 			//Call API and check response
-			XConnectAttachmentAddNarrativeResponse xConnectAttachmentAddNarrativeResponse=CallAPI<XConnectAttachmentAddNarrativeResponse>(clearinghouse,"/attachments/narratives/add",xConnectAttachmentAddNarrative,_httpMethod,listQueryParameters);
+			var xConnectAttachmentAddNarrativeResponse=CallAPI<XConnectAttachmentAddNarrativeResponse>(clearinghouse,"/attachments/narratives/add",xConnectAttachmentAddNarrative,_httpMethod,listQueryParameters);
 			if(xConnectAttachmentAddNarrativeResponse==null) {
 				throw new ODException(Lans.g("ClaimConnect","No response from XConnect was received."));
 			}
@@ -1602,15 +1464,15 @@ namespace OpenDentBusiness.Eclaims {
 
 		///<summary>Remove image(s) from a claim attachment. The API call for this has no body and instead relies on query parameters to determine which images to remove. Can throw exceptions.</summary>
 		public static void AttachmentRemoveImage(Claim claim,List<ClaimAttach> listClaimAttaches) {
-			Clearinghouse clearinghouse=ClaimConnect.GetClearingHouseForClaim(claim);
+			var clearinghouse=ClaimConnect.GetClearingHouseForClaim(claim);
 			_httpMethod=HttpMethod.Delete;
 			//No payload with this call
 			//Iterate through list since endpoint does not support multi delete
-			for(int i=0;i<listClaimAttaches.Count;i++) {
+			for(var i=0;i<listClaimAttaches.Count;i++) {
 				//Create query parameters
-				List<string> listQueryParameters=new List<string>();
+				var listQueryParameters=new List<string>();
 				listQueryParameters.Add("dxcAttachmentImageId="+listClaimAttaches[i].ImageReferenceId);
-				XConnectAttachmentRemoveImageResponse xConnectAttachmentRemoveImageResponse=CallAPI<XConnectAttachmentRemoveImageResponse>(clearinghouse,"/attachments/images",payload:null,_httpMethod,listQueryParameters);
+				var xConnectAttachmentRemoveImageResponse=CallAPI<XConnectAttachmentRemoveImageResponse>(clearinghouse,"/attachments/images",payload:null,_httpMethod,listQueryParameters);
 				if(xConnectAttachmentRemoveImageResponse==null) {
 					throw new ODException(Lans.g("ClaimConnect","No response from XConnect was received."));
 				}
@@ -1630,14 +1492,14 @@ namespace OpenDentBusiness.Eclaims {
 
 		///<summary>Adds a preexisting existing attachment to a preexisting claim. This is the last step in the DXC attachment workflow, but additional images can still be added after calling this. Can throw exceptions.</summary>
 		public static void AttachmentSubmit(Claim claim) {
-			Clearinghouse clearinghouse=ClaimConnect.GetClearingHouseForClaim(claim);
+			var clearinghouse=ClaimConnect.GetClearingHouseForClaim(claim);
 			_httpMethod=HttpMethod.Put;
 			//No payload with this call
 			//Create query parameters
-			List<string> listQueryParameters=new List<string>();
+			var listQueryParameters=new List<string>();
 			listQueryParameters.Add("dxcAttachmentId="+claim.AttachmentID);
 			listQueryParameters.Add("releaseAttachment=false");
-			XConnectAttachmentSubmitResponse xConnectAttachmentSubmitResponse=CallAPI<XConnectAttachmentSubmitResponse>(clearinghouse,"/attachments/submit",payload:null,_httpMethod,listQueryParameters);
+			var xConnectAttachmentSubmitResponse=CallAPI<XConnectAttachmentSubmitResponse>(clearinghouse,"/attachments/submit",payload:null,_httpMethod,listQueryParameters);
 			if(xConnectAttachmentSubmitResponse==null) {
 				throw new ODException(Lans.g("ClaimConnect","No response from XConnect was received."));
 			}
@@ -1689,8 +1551,8 @@ namespace OpenDentBusiness.Eclaims {
 		public string type;
 
 		///<summary>Mimics billing address logic inside X837_5010.</summary>
-		public static XConnectAddress BillingAddressFromClinic(ClinicDto clinic,Provider providerBill) {
-			XConnectAddress xconnectAddress=new XConnectAddress();
+		public static XConnectAddress BillingAddressFromClinic(ClinicDto clinic,ProviderDto providerBill) {
+			var xconnectAddress=new XConnectAddress();
 			if(clinic.UseBillingAddressOnClaims) {
 				xconnectAddress.address1=clinic.BillingAddressLine1;
 				xconnectAddress.address2=clinic.BillingAddressLine2;
@@ -1710,19 +1572,19 @@ namespace OpenDentBusiness.Eclaims {
 			}
 			if(providerBill.IsNotPerson) {
 				xconnectAddress.entityType=SOut.Int((int)EnumXConnectAddressEntityType.Organization);
-				xconnectAddress.organizationName=SOut.String(providerBill.LName);
+				xconnectAddress.organizationName=SOut.String(providerBill.LastName);
 			}
 			else {
 				xconnectAddress.entityType=SOut.Int((int)EnumXConnectAddressEntityType.Individual);
-				xconnectAddress.firstName=providerBill.FName;
-				xconnectAddress.lastName=providerBill.LName;
+				xconnectAddress.firstName=providerBill.FirstName;
+				xconnectAddress.lastName=providerBill.LastName;
 			}
 			xconnectAddress.type=SOut.Int((int)EnumXConnectAddressType.Default);//Default. Never a paytoAddress always a physical address.
 			return xconnectAddress;
 		}
 
-		public static XConnectAddress PayToAddressFromClinic(ClinicDto clinic,Provider providerBill) {
-			XConnectAddress xconnectAddress=new XConnectAddress();
+		public static XConnectAddress PayToAddressFromClinic(ClinicDto clinic,ProviderDto providerBill) {
+			var xconnectAddress=new XConnectAddress();
 			if(clinic.PayToAddressLine1!="") {
 				xconnectAddress.address1=clinic.PayToAddressLine1;
 				xconnectAddress.address2=clinic.PayToAddressLine2;
@@ -1736,7 +1598,7 @@ namespace OpenDentBusiness.Eclaims {
 			xconnectAddress.entityType=SOut.Int((int)EnumXConnectAddressEntityType.Individual);
 			if(providerBill.IsNotPerson) {
 				xconnectAddress.entityType=SOut.Int((int)EnumXConnectAddressEntityType.Organization);
-				xconnectAddress.organizationName=SOut.String(providerBill.LName);
+				xconnectAddress.organizationName=SOut.String(providerBill.LastName);
 			}
 			xconnectAddress.type=SOut.Int((int)EnumXConnectAddressType.PayToAddress);
 			return xconnectAddress;
@@ -1744,7 +1606,7 @@ namespace OpenDentBusiness.Eclaims {
 
 		
 		public static XConnectAddress FromPatient(Patient patient) {
-			XConnectAddress xconnectAddress=new XConnectAddress();
+			var xconnectAddress=new XConnectAddress();
 			xconnectAddress.address1=patient.Address;
 			xconnectAddress.address2=patient.Address2;
 			xconnectAddress.city=patient.City;
@@ -1764,7 +1626,7 @@ namespace OpenDentBusiness.Eclaims {
 		}
 
 		public static XConnectAddress FromCarrier(Carrier carrier) {
-			XConnectAddress xconnectAddress=new XConnectAddress();
+			var xconnectAddress=new XConnectAddress();
 			xconnectAddress.address1=carrier.Address;
 			xconnectAddress.address2=carrier.Address2;
 			xconnectAddress.city=carrier.City;
@@ -2056,26 +1918,26 @@ namespace OpenDentBusiness.Eclaims {
 
 		
 		public static XConnectClaim FromClaim(Claim claim) {
-			XConnectClaim xconnectClaim=new XConnectClaim();
-			Patient patient=Patients.GetPat(claim.PatNum);
+			var xconnectClaim=new XConnectClaim();
+			var patient=Patients.GetPat(claim.PatNum);
 			var clinic=Clinics.GetClinic(claim.ClinicNum);
-			Carrier carrier=Carriers.GetCarrier(XConnect._insPlanForClaim.CarrierNum);
-			InsSub insSub=XConnect._listInsSubs.FirstOrDefault(x=>x.InsSubNum==claim.InsSubNum);
-			Provider providerBill=Providers.GetFirstOrDefault(x => x.ProvNum==claim.ProvBill);
-			Provider providerRendering=Providers.GetFirstOrDefault(x => x.ProvNum==claim.ProvTreat);
-			XConnectProvider xConnectProviderBill=XConnectProvider.FromProvider(providerBill,clinic,carrier.ElectID,EnumXConnectProviderType.BILLING);
-			XConnectProvider xConnectProviderRendering=XConnectProvider.FromProvider(providerRendering,clinic,carrier.ElectID,EnumXConnectProviderType.RENDERING);
+			var carrier=Carriers.GetCarrier(XConnect._insPlanForClaim.CarrierNum);
+			var insSub=XConnect._listInsSubs.FirstOrDefault(x=>x.InsSubNum==claim.InsSubNum);
+			var providerBill=Providers.GetFirstOrDefault(x => x.Id==claim.ProvBill);
+			var providerRendering=Providers.GetFirstOrDefault(x => x.Id==claim.ProvTreat);
+			var xConnectProviderBill=XConnectProvider.FromProvider(providerBill,clinic,carrier.ElectID,EnumXConnectProviderType.BILLING);
+			var xConnectProviderRendering=XConnectProvider.FromProvider(providerRendering,clinic,carrier.ElectID,EnumXConnectProviderType.RENDERING);
 			xconnectClaim.providers=new XConnectProvider[] { xConnectProviderBill,xConnectProviderRendering };
 			xconnectClaim.patient=XConnectPatient.FromPatient(patient,XConnect._claim.InsSubNum,EnumXConnectPatientMemberType.PATIENT,claim.PatRelat);
-			List<Patient> listSubscribers=Patients.GetMultPats(XConnect._listInsSubs.Select(x => x.Subscriber).ToList()).ToList();
-			Patient subscriber=listSubscribers.FirstOrDefault(x => x.PatNum==insSub.Subscriber);
+			var listSubscribers=Patients.GetMultPats(XConnect._listInsSubs.Select(x => x.Subscriber).ToList()).ToList();
+			var subscriber=listSubscribers.FirstOrDefault(x => x.PatNum==insSub.Subscriber);
 			xconnectClaim.subscriber=XConnectPatient.FromPatient(subscriber,XConnect._claim.InsSubNum,EnumXConnectPatientMemberType.SUBSCRIBER,claim.PatRelat);
-			List<XConnectPatient> listXConnectPatientsAdditionalSubs=new List<XConnectPatient>();
-			List<long> listPatNums=new List<long>() { patient.PatNum };
-			List<PatPlan> listOtherPatPlans=XConnect._listPatPlans.FindAll(x => x.PatPlanNum!=XConnect._claim.InsSubNum);
+			var listXConnectPatientsAdditionalSubs=new List<XConnectPatient>();
+			var listPatNums=new List<long>() { patient.PatNum };
+			var listOtherPatPlans=XConnect._listPatPlans.FindAll(x => x.PatPlanNum!=XConnect._claim.InsSubNum);
 			if(listOtherPatPlans.Count>0) {
-				for(int i=0;i<listOtherPatPlans.Count;i++) {
-					XConnectPatient xConnectPatient=XConnectPatient.FromPatient(patient,listOtherPatPlans[i].InsSubNum,EnumXConnectPatientMemberType.ADDITIONAL_SUBSCRIBER,claim.PatRelat);
+				for(var i=0;i<listOtherPatPlans.Count;i++) {
+					var xConnectPatient=XConnectPatient.FromPatient(patient,listOtherPatPlans[i].InsSubNum,EnumXConnectPatientMemberType.ADDITIONAL_SUBSCRIBER,claim.PatRelat);
 					if(xConnectPatient.sequenceCode=="") {
 						//XConnect cannot handle beyond Tertiary claims.
 						continue;
@@ -2099,10 +1961,10 @@ namespace OpenDentBusiness.Eclaims {
 				xconnectClaim.neaNumber=claim.AttachmentID;
 			}
 			xconnectClaim.facilityCode=X12object.GetPlaceService(claim.PlaceService);
-			xconnectClaim.facilityName=providerBill.LName;
-			xconnectClaim.facilityId=providerBill.NationalProvID;
+			xconnectClaim.facilityName=providerBill.LastName;
+			xconnectClaim.facilityId=providerBill.NationalProviderId;
 			//xconnectClaim.facilityIdType="XX";//NPI
-			List<XConnectClaimItem> listXConnectClaimItems=XConnectClaimItem.FromClaim(claim,xconnectClaim.facilityId);
+			var listXConnectClaimItems=XConnectClaimItem.FromClaim(claim,xconnectClaim.facilityId);
 			xconnectClaim.items=listXConnectClaimItems.ToArray();
 			xconnectClaim.payer=XConnectPayer.FromInsSubNum(XConnect._claim.InsSubNum);
 			if(claim.AccidentRelated=="A") {
@@ -2118,12 +1980,12 @@ namespace OpenDentBusiness.Eclaims {
 				xconnectClaim.accidentDate=claim.AccidentDate.ToString("yyyy-MM-dd");
 			}
 			xconnectClaim.acciendentState=claim.AccidentST;
-			List<long> listPatNumsForGuarantors=new List<long>();
-			List<long> listGuarantors=Patients.GetGuarantorsForPatNums(listPatNumsForGuarantors);
+			var listPatNumsForGuarantors=new List<long>();
+			var listGuarantors=Patients.GetGuarantorsForPatNums(listPatNumsForGuarantors);
 			if(listGuarantors.Count==0) {//They are their own guarantor
 				listGuarantors.Add(claim.PatNum);
 			}
-			PatientNote patientNote=PatientNotes.Refresh(claim.PatNum,listGuarantors[0]);
+			var patientNote=PatientNotes.Refresh(claim.PatNum,listGuarantors[0]);
 			xconnectClaim.orthoRelated=claim.IsOrtho;
 			if(claim.IsOrtho) {
 				if(claim.OrthoDate.Year>1880) {
@@ -2144,12 +2006,12 @@ namespace OpenDentBusiness.Eclaims {
 				xconnectClaim.note=claim.ClaimNote;
 			}
 			//xconnectClaim.delayReasonCode=//Optional. We do not have this available.
-			List<ToothInitial> listToothInitials=ToothInitials.GetPatientData(claim.PatNum);
+			var listToothInitials=ToothInitials.GetPatientData(claim.PatNum);
 			listToothInitials.RemoveAll(x => x.InitialType!=ToothInitialType.Missing);
 			xconnectClaim.missingTeeth=listToothInitials.Select(x => x.ToothNum.ToString()).ToArray();
 			//diagnosis codes
 			xconnectClaim.diagnosisCodes=XConnect._listDiagnoses.ToArray();
-			EnumXConnectSubmissionReasonCode enumXConnectSubmissionReasonCode=EnumXConnectSubmissionReasonCode.Original;
+			var enumXConnectSubmissionReasonCode=EnumXConnectSubmissionReasonCode.Original;
 			if(claim.CorrectionType==ClaimCorrectionType.Void) {
 				enumXConnectSubmissionReasonCode=EnumXConnectSubmissionReasonCode.Void;
 			}
@@ -2212,36 +2074,36 @@ namespace OpenDentBusiness.Eclaims {
 
 		
 		public static List<XConnectClaimItem> FromClaim(Claim claim, string claimFacillityID) {
-			List<XConnectClaimItem> listXConnectClaimItems=new List<XConnectClaimItem>();
-			List<ProcedureCode> listProcedureCodes=ProcedureCodes.GetAllCodes();
-			Patient patient=Patients.GetPat(claim.PatNum);
-			InsPlan insPlan=XConnect._listInsPlans.FirstOrDefault(x => x.PlanNum==claim.PlanNum);
-			Carrier carrier=Carriers.GetCarrier(insPlan.CarrierNum);
-			for(int i=0;i<XConnect._listClaimProcsForClaim.Count;i++) {
-				Procedure proc=XConnect._listProceduresForPat.FirstOrDefault(x => x.ProcNum==XConnect._listClaimProcsForClaim[i].ProcNum);
-				XConnectClaimItem xconnectClaimItem=new XConnectClaimItem();
-				int ordinal=1;
+			var listXConnectClaimItems=new List<XConnectClaimItem>();
+			var listProcedureCodes=ProcedureCodes.GetAllCodes();
+			var patient=Patients.GetPat(claim.PatNum);
+			var insPlan=XConnect._listInsPlans.FirstOrDefault(x => x.PlanNum==claim.PlanNum);
+			var carrier=Carriers.GetCarrier(insPlan.CarrierNum);
+			for(var i=0;i<XConnect._listClaimProcsForClaim.Count;i++) {
+				var proc=XConnect._listProceduresForPat.FirstOrDefault(x => x.ProcNum==XConnect._listClaimProcsForClaim[i].ProcNum);
+				var xconnectClaimItem=new XConnectClaimItem();
+				var ordinal=1;
 				if(XConnect._claim.ClaimType=="S") {
 					ordinal=2;
 				}
 				else if(XConnect._claim.ClaimType=="Other") {
 					ordinal=3;
 				}
-				xconnectClaimItem.controlNumber=("x"+proc.ProcNum.ToString()+"/"+ordinal+"/"+insPlan.PlanNum);//Mimics X12 field REF02 version 3
+				xconnectClaimItem.controlNumber=("x"+proc.ProcNum+"/"+ordinal+"/"+insPlan.PlanNum);//Mimics X12 field REF02 version 3
 				if(xconnectClaimItem.controlNumber.Length>30) {//copied from X837_5010.cs
 					//Even though the field allows 1-50 characters the 837 5010 documentation states:
 					//"... the HIPAA maximum requirements to be supported by any reciving system is '30'.
 					//Characters beyond 30 are not required to be stored nor returned by any 837-receiving system." page 438 in 837 standard.
-					int overflowCount=(xconnectClaimItem.controlNumber.Length-30);
-					string insPlanRightMost=insPlan.PlanNum.ToString().Substring(overflowCount);//Remove the leading digits, returns right most digits.
-					xconnectClaimItem.controlNumber=("y"+proc.ProcNum.ToString()+"/"+ordinal+"/"+insPlanRightMost);
+					var overflowCount=(xconnectClaimItem.controlNumber.Length-30);
+					var insPlanRightMost=insPlan.PlanNum.ToString().Substring(overflowCount);//Remove the leading digits, returns right most digits.
+					xconnectClaimItem.controlNumber=("y"+proc.ProcNum+"/"+ordinal+"/"+insPlanRightMost);
 					//Version 4: Implemented in 19.1,18.4,18.3
 				}
 				if(proc.ProcDate.Year>1880) {
 					xconnectClaimItem.startDate=proc.ProcDate.ToString("yyyy-MM-dd");
 					xconnectClaimItem.endDate=proc.ProcDate.ToString("yyyy-MM-dd");
 				}
-				xconnectClaimItem.quantity=Int32.Parse(proc.Quantity.ToString());
+				xconnectClaimItem.quantity=int.Parse(proc.Quantity.ToString());
 				xconnectClaimItem.fee=XConnect._listClaimProcsForClaim[i].FeeBilled;
 				//xconnectClaimItem.tax=proc.TaxAmt//user cannot enter tax. Avatax is internal only.
 				if(proc.Prosthesis!="") {
@@ -2250,7 +2112,7 @@ namespace OpenDentBusiness.Eclaims {
 				if(proc.DateOriginalProsth.Year > 1880) {
 					xconnectClaimItem.prothesisPlacementDate=proc.DateOriginalProsth.ToString("yyyy-MM-dd");
 				}
-				string quadrant=ConvertProcedureToXConnectQuadrant(proc);
+				var quadrant=ConvertProcedureToXConnectQuadrant(proc);
 				xconnectClaimItem.quadrant=quadrant==""?null:quadrant;
 				xconnectClaimItem.procedureCode=XConnect._listClaimProcsForClaim[i].CodeSent;
 				xconnectClaimItem.procedureModifier1=string.IsNullOrEmpty(proc.CodeMod1)?null:proc.CodeMod1;
@@ -2259,18 +2121,18 @@ namespace OpenDentBusiness.Eclaims {
 				xconnectClaimItem.procedureModifier4=string.IsNullOrEmpty(proc.CodeMod4)?null:proc.CodeMod4;
 				//xconnectClaimItem.facilityIdentifier=claimFacillityID;
 				if(proc.SiteNum>0) {
-					Site site=Sites.GetFirstOrDefault(x => x.SiteNum==proc.SiteNum);
-					Provider provider=XConnect._listProvidersForClaim.FirstOrDefault(x => x.ProvNum==site.ProvNum);
+					var site=Sites.GetFirstOrDefault(x => x.SiteNum==proc.SiteNum);
+					var provider=XConnect._listProvidersForClaim.FirstOrDefault(x => x.Id==site.ProvNum);
 					if(provider!=null) {
-						xconnectClaimItem.facilityIdentifier=provider.NationalProvID;
+						xconnectClaimItem.facilityIdentifier=provider.NationalProviderId;
 					}
 				}
 				if(!proc.Note.IsNullOrEmpty()) {
 					xconnectClaimItem.comment=proc.Note;
 				}
 				xconnectClaimItem.tooth=XConnectTooth.FromProc(proc).ToArray();
-				List<int> listDiagnosisPointers=new List<int>();
-				for(int j=0;j<XConnect._listDiagnoses.Count;j++) {
+				var listDiagnosisPointers=new List<int>();
+				for(var j=0;j<XConnect._listDiagnoses.Count;j++) {
 					if(XConnect._listDiagnoses[j]==xconnectClaimItem.procedureModifier1 
 						|| XConnect._listDiagnoses[j]==xconnectClaimItem.procedureModifier2 
 						|| XConnect._listDiagnoses[j]==xconnectClaimItem.procedureModifier3 
@@ -2280,16 +2142,16 @@ namespace OpenDentBusiness.Eclaims {
 					}
 				}
 				xconnectClaimItem.diagnosisPointers=listDiagnosisPointers.ToArray();
-				EclaimCobInsPaidBehavior cobBehavior=PrefC.GetEnum<EclaimCobInsPaidBehavior>(PrefName.ClaimCobInsPaidBehavior);
+				var cobBehavior=PrefC.GetEnum<EclaimCobInsPaidBehavior>(PrefName.ClaimCobInsPaidBehavior);
 				if(carrier.CobInsPaidBehaviorOverride!=EclaimCobInsPaidBehavior.Default) {
 					cobBehavior=carrier.CobInsPaidBehaviorOverride;
 				}
-				bool hasProcedureLevelCob=cobBehavior.In(EclaimCobInsPaidBehavior.ProcedureLevel,EclaimCobInsPaidBehavior.Both);
+				var hasProcedureLevelCob=cobBehavior.In(EclaimCobInsPaidBehavior.ProcedureLevel,EclaimCobInsPaidBehavior.Both);
 				double procWriteoffAmt=0;
 				double procDeductibleAmt=0;
 				double procPaidOtherInsAmt=0;
-				DateTime maxDate=proc.ProcDate;
-				for(int k=0;k<XConnect._listClaimProcsForPat.Count;k++) {//All claim procs for patient
+				var maxDate=proc.ProcDate;
+				for(var k=0;k<XConnect._listClaimProcsForPat.Count;k++) {//All claim procs for patient
 					if(ClaimProcs.IsValidClaimAdj(XConnect._listClaimProcsForPat[k],XConnect._listClaimProcsForClaim[i].ProcNum,XConnect._listClaimProcsForClaim[i].InsSubNum)) {//Adjustment due to other insurance plans.
 						procWriteoffAmt+=XConnect._listClaimProcsForPat[k].WriteOff;
 						procDeductibleAmt+=XConnect._listClaimProcsForPat[k].DedApplied;
@@ -2299,30 +2161,30 @@ namespace OpenDentBusiness.Eclaims {
 						}
 					}
 				}
-				List<XConnectClaimItemAdjustment> listXConnectClaimItemAdjustments=new List<XConnectClaimItemAdjustment>();
+				var listXConnectClaimItemAdjustments=new List<XConnectClaimItemAdjustment>();
 				if(procWriteoffAmt>0) {
-					XConnectClaimItemAdjustment xConnectClaimItemAdjustment=new XConnectClaimItemAdjustment();
+					var xConnectClaimItemAdjustment=new XConnectClaimItemAdjustment();
 					xConnectClaimItemAdjustment.adjustmentGroupCode=EnumXConnectAdjustmentGroupCode.CO;//CAS01 1/2 Claim Adjustment Group Code: CO=Contractual Obligations.
-					XConnectClaimItemAdjustmentDetail xConnectClaimItemAdjustmentDetail=new XConnectClaimItemAdjustmentDetail();
+					var xConnectClaimItemAdjustmentDetail=new XConnectClaimItemAdjustmentDetail();
 					xConnectClaimItemAdjustmentDetail.reasonCode="45";//CAS02 1/5 Claim Adjustment Reason Code: 45=Charge exceeds fee schedule/maximum allowable or contracted/legislated fee arrangement.
 					xConnectClaimItemAdjustmentDetail.adjustmentAmount=procWriteoffAmt;
 					xConnectClaimItemAdjustment.adjustmentDetails=new XConnectClaimItemAdjustmentDetail[] { xConnectClaimItemAdjustmentDetail };
 					listXConnectClaimItemAdjustments.Add(xConnectClaimItemAdjustment);
 				}
 				if(procDeductibleAmt>0) {
-					XConnectClaimItemAdjustment xConnectClaimItemAdjustment=new XConnectClaimItemAdjustment();
+					var xConnectClaimItemAdjustment=new XConnectClaimItemAdjustment();
 					xConnectClaimItemAdjustment.adjustmentGroupCode=EnumXConnectAdjustmentGroupCode.PR;//CAS01 1/2 Claim Adjustment Group Code: PR=Patient Responsibility.
-					XConnectClaimItemAdjustmentDetail xConnectClaimItemAdjustmentDetail=new XConnectClaimItemAdjustmentDetail();
+					var xConnectClaimItemAdjustmentDetail=new XConnectClaimItemAdjustmentDetail();
 					xConnectClaimItemAdjustmentDetail.reasonCode="1";//CAS02 1/5 Claim Adjustment Reason Code: 1=Deductible.
 					xConnectClaimItemAdjustmentDetail.adjustmentAmount=procDeductibleAmt;
 					xConnectClaimItemAdjustment.adjustmentDetails=new XConnectClaimItemAdjustmentDetail[] { xConnectClaimItemAdjustmentDetail };
 					listXConnectClaimItemAdjustments.Add(xConnectClaimItemAdjustment);
 				}
-				double procPatientPortionAmt=Math.Max(0,XConnect._listClaimProcsForClaim[i].FeeBilled-procWriteoffAmt-procDeductibleAmt-procPaidOtherInsAmt);
+				var procPatientPortionAmt=Math.Max(0,XConnect._listClaimProcsForClaim[i].FeeBilled-procWriteoffAmt-procDeductibleAmt-procPaidOtherInsAmt);
 				if(procPatientPortionAmt>0) {
-					XConnectClaimItemAdjustment xConnectClaimItemAdjustment=new XConnectClaimItemAdjustment();
+					var xConnectClaimItemAdjustment=new XConnectClaimItemAdjustment();
 					xConnectClaimItemAdjustment.adjustmentGroupCode=EnumXConnectAdjustmentGroupCode.PR;//CAS01 1/2 Claim Adjustment Group Code: PR=Patient Responsibility.
-					XConnectClaimItemAdjustmentDetail xConnectClaimItemAdjustmentDetail=new XConnectClaimItemAdjustmentDetail();
+					var xConnectClaimItemAdjustmentDetail=new XConnectClaimItemAdjustmentDetail();
 					xConnectClaimItemAdjustmentDetail.reasonCode="3";//CAS02 or CAS05 1/5 Claim Adjustment Reason Code: 3=Co-payment Amount.
 					xConnectClaimItemAdjustmentDetail.adjustmentAmount=procPatientPortionAmt;
 					xConnectClaimItemAdjustment.adjustmentDetails=new XConnectClaimItemAdjustmentDetail[] { xConnectClaimItemAdjustmentDetail };
@@ -2403,8 +2265,8 @@ namespace OpenDentBusiness.Eclaims {
 
 		/// <summary>Taken and modified from FormClaimPrint.</summary>
 		public static string ConvertProcedureToXConnectQuadrant(Procedure proc) {
-			ProcedureCode procCode=ProcedureCodes.GetFirstOrDefault(x => x.CodeNum==proc.CodeNum);
-			string area=GetArea(proc,procCode);
+			var procCode=ProcedureCodes.GetFirstOrDefault(x => x.CodeNum==proc.CodeNum);
+			var area=GetArea(proc,procCode);
 			return area;
 		}
 	}
@@ -2415,7 +2277,7 @@ namespace OpenDentBusiness.Eclaims {
 		///<summary>Optional.</summary>
 		public XConnectClaimItemAdjustmentDetail[] adjustmentDetails;
 		public XConnectClaimItemAdjustment FromAdjustment(Adjustment adjustment) {
-			XConnectClaimItemAdjustment xconnectClaimItemAdjustment = new XConnectClaimItemAdjustment();
+			var xconnectClaimItemAdjustment = new XConnectClaimItemAdjustment();
 			return xconnectClaimItemAdjustment;
 		}
 	}
@@ -2508,10 +2370,10 @@ namespace OpenDentBusiness.Eclaims {
 		public XConnectPayerCob coordinationOfBenefits;
 
 		public static XConnectPayer FromInsSubNum(long insSubNum) {
-			InsSub insSub=XConnect._listInsSubs.FirstOrDefault(x => x.InsSubNum==insSubNum);
-			InsPlan insPlan=XConnect._listInsPlans.FirstOrDefault(x => x.PlanNum==insSub.PlanNum);
-			Carrier carrier=Carriers.GetFirstOrDefault(x => x.CarrierNum==insPlan.CarrierNum);
-			XConnectPayer xconnectPayer=new XConnectPayer();
+			var insSub=XConnect._listInsSubs.FirstOrDefault(x => x.InsSubNum==insSubNum);
+			var insPlan=XConnect._listInsPlans.FirstOrDefault(x => x.PlanNum==insSub.PlanNum);
+			var carrier=Carriers.GetFirstOrDefault(x => x.CarrierNum==insPlan.CarrierNum);
+			var xconnectPayer=new XConnectPayer();
 			xconnectPayer.payerIdCode=carrier.ElectID;
 			xconnectPayer.address=XConnectAddress.FromCarrier(carrier);
 			xconnectPayer.employerName=Employers.GetName(XConnect._patient.EmployerNum);
@@ -2536,31 +2398,31 @@ namespace OpenDentBusiness.Eclaims {
 		public double? totalNonCoveredAmount=null;
 
 		public static XConnectPayerCob FromInsSubNum(long insSubNum) {
-			Carrier carrier=Carriers.GetCarrier(XConnect._insPlanForClaim.CarrierNum);
-			EclaimCobInsPaidBehavior cobBehavior=PrefC.GetEnum<EclaimCobInsPaidBehavior>(PrefName.ClaimCobInsPaidBehavior);
+			var carrier=Carriers.GetCarrier(XConnect._insPlanForClaim.CarrierNum);
+			var cobBehavior=PrefC.GetEnum<EclaimCobInsPaidBehavior>(PrefName.ClaimCobInsPaidBehavior);
 			if(carrier.CobInsPaidBehaviorOverride!=EclaimCobInsPaidBehavior.Default) {
 				cobBehavior=carrier.CobInsPaidBehaviorOverride;
 			}
-			bool hasClaimLevelCob=cobBehavior.In(EclaimCobInsPaidBehavior.ClaimLevel,EclaimCobInsPaidBehavior.Both);
+			var hasClaimLevelCob=cobBehavior.In(EclaimCobInsPaidBehavior.ClaimLevel,EclaimCobInsPaidBehavior.Both);
 			if(!hasClaimLevelCob) {
 				return null;
 			}
 			//In addition to the claimprocs attached to the procedures going out on this claim, we must also include amounts for Total Payments from other insurance.
 			//Total payments will go out at claim level and not procedure level.
-			List<long> listProcNums=XConnect._listClaimProcsForClaim.Select(x => x.ProcNum).Distinct().ToList();
-			List<long> listOtherClaimNums=XConnect._listClaimProcsForPat.FindAll(x => x.ClaimNum!=XConnect._claim.ClaimNum 
-				&& x.Status.In(ClaimProcStatus.CapClaim,ClaimProcStatus.Received,ClaimProcStatus.Supplemental)
-				&& listProcNums.Contains(x.ProcNum)).Select(x => x.ClaimNum).Distinct().ToList();
-			List<ClaimProc> listTotalPayments=XConnect._listClaimProcsForPat.FindAll(x => listOtherClaimNums.Contains(x.ClaimNum) && x.ProcNum==0);
-			List<ClaimProc> listByProcPayments=XConnect._listClaimProcsForPat.FindAll(x => x.InsSubNum==insSubNum
-				&& x.ProcNum.In(listProcNums.ToArray())
-				&& x.Status.In(ClaimProcStatus.CapClaim,ClaimProcStatus.Received,ClaimProcStatus.Supplemental));
-			List<ClaimProc> listPayments=new List<ClaimProc>(listTotalPayments);
+			var listProcNums=XConnect._listClaimProcsForClaim.Select(x => x.ProcNum).Distinct().ToList();
+			var listOtherClaimNums=XConnect._listClaimProcsForPat.FindAll(x => x.ClaimNum!=XConnect._claim.ClaimNum 
+			                                                                   && x.Status.In(ClaimProcStatus.CapClaim,ClaimProcStatus.Received,ClaimProcStatus.Supplemental)
+			                                                                   && listProcNums.Contains(x.ProcNum)).Select(x => x.ClaimNum).Distinct().ToList();
+			var listTotalPayments=XConnect._listClaimProcsForPat.FindAll(x => listOtherClaimNums.Contains(x.ClaimNum) && x.ProcNum==0);
+			var listByProcPayments=XConnect._listClaimProcsForPat.FindAll(x => x.InsSubNum==insSubNum
+			                                                                   && x.ProcNum.In(listProcNums.ToArray())
+			                                                                   && x.Status.In(ClaimProcStatus.CapClaim,ClaimProcStatus.Received,ClaimProcStatus.Supplemental));
+			var listPayments=new List<ClaimProc>(listTotalPayments);
 			listPayments.AddRange(listByProcPayments);
 			if(listPayments.Count==0) {
 				return null;
 			}
-			XConnectPayerCob xconnectPayerCob=new XConnectPayerCob();
+			var xconnectPayerCob=new XConnectPayerCob();
 			xconnectPayerCob.amountPaid=listPayments.Sum(x => x.InsPayAmt);
 			xconnectPayerCob.datePaid=listPayments.Max(x => x.DateCP).ToString("yyyy-MM-dd");
 			//xconnectPayerCob.totalNonCoveredAmount
@@ -2605,13 +2467,13 @@ namespace OpenDentBusiness.Eclaims {
 
 		
 		public static XConnectPatient FromPatient(Patient patient,long insSubNum,EnumXConnectPatientMemberType memberType,Relat relation) {
-			InsSub insSub=XConnect._listInsSubs.FirstOrDefault(x => x.InsSubNum==insSubNum);
-			XConnectPatient xconnectPatient=new XConnectPatient();
+			var insSub=XConnect._listInsSubs.FirstOrDefault(x => x.InsSubNum==insSubNum);
+			var xconnectPatient=new XConnectPatient();
 			xconnectPatient.address=XConnectAddress.FromPatient(patient);
 			xconnectPatient.payer=XConnectPayer.FromInsSubNum(insSubNum);
 			xconnectPatient.memberType=memberType;
-			string genderAbbrev=patient.Gender.ToString().Substring(0,1);
-			EnumXConnectPatientGender gender=EnumXConnectPatientGender.U;
+			var genderAbbrev=patient.Gender.ToString().Substring(0,1);
+			var gender=EnumXConnectPatientGender.U;
 			switch(genderAbbrev) {
 				case "M":
 					gender=EnumXConnectPatientGender.M;
@@ -2639,13 +2501,13 @@ namespace OpenDentBusiness.Eclaims {
 			else if(XConnect._claim.ClaimType=="Other") {
 				xconnectPatient.sequenceCode="T";
 			}
-			InsPlan insPlan=XConnect._listInsPlans.FirstOrDefault(x => x.PlanNum==insSub.PlanNum);
+			var insPlan=XConnect._listInsPlans.FirstOrDefault(x => x.PlanNum==insSub.PlanNum);
 			if(insPlan!=null) {
 				xconnectPatient.planName=Carriers.GetName(insPlan.CarrierNum);//not sure about this one might be another field I'm missing
 			}
 			xconnectPatient.relationship=XConnect.GetXConnectPatientRelation(relation);//TODO: When reporting the patient is this the plan of the carrier we are validating the claim for?
 			xconnectPatient.studentCode=string.IsNullOrEmpty(patient.StudentStatus)?"N":patient.StudentStatus;
-			string maritalStatus=patient.Position.ToString().Substring(0,1);
+			var maritalStatus=patient.Position.ToString().Substring(0,1);
 			maritalStatus=(maritalStatus!="M"||maritalStatus!="S")?"U":maritalStatus;//mark as unknown if not single or married
 			xconnectPatient.maritalStatus=maritalStatus;
 			xconnectPatient.schoolName=string.IsNullOrEmpty(patient.SchoolName)?null:patient.SchoolName;
@@ -2680,27 +2542,32 @@ namespace OpenDentBusiness.Eclaims {
 		public XConnectProviderCredentials[] credentials;
 
 		
-		public static XConnectProvider FromProvider(Provider provider,ClinicDto clinic,string electId,EnumXConnectProviderType type) {
-			XConnectProvider xconnectProvider=new XConnectProvider();
+		public static XConnectProvider FromProvider(ProviderDto provider,ClinicDto clinic,string electId,EnumXConnectProviderType type)
+		{
+			var providerClinicDto = 
+				provider.Clinics.FirstOrDefault(x => x.ClinicId == clinic.Id) ?? 
+				provider.Clinics.FirstOrDefault(x => x.ClinicId is null);
+
+			var xconnectProvider=new XConnectProvider();
 			xconnectProvider.type=type;
 			xconnectProvider.specialty=XConnect.GetProviderSpecialty(provider);// need to convert this to he matching enums on documentation
-			xconnectProvider.licenseNumber=provider.StateLicense;
-			xconnectProvider.licenseState=provider.StateWhereLicensed;
+			xconnectProvider.licenseNumber=providerClinicDto?.StateLicense ?? string.Empty;
+			xconnectProvider.licenseState=providerClinicDto?.StateWhereLicensed ?? string.Empty;
 			if(type==EnumXConnectProviderType.BILLING) {
-				xconnectProvider.billingNpi=provider.NationalProvID;
+				xconnectProvider.billingNpi=provider.NationalProviderId;
 			}
 			else if(type==EnumXConnectProviderType.RENDERING) {
-				xconnectProvider.renderingNpi=provider.NationalProvID;
+				xconnectProvider.renderingNpi=provider.NationalProviderId;
 			}
 			//NPI needs to be reported in Billing or Rendering providers as in 5010 there is no NPI in PayTo loop. I will review and get back to you on referring provider.
-			if(provider.UsingTIN) {
-				xconnectProvider.taxId=provider.SSN;
+			if(provider.IsTin) {
+				xconnectProvider.taxId=provider.Ssn;
 			}
 			else {
-				xconnectProvider.socialSecurityNumber=provider.SSN;
+				xconnectProvider.socialSecurityNumber=provider.Ssn;
 			}
-			List<XConnectAddress> listXConnectAddresses=new List<XConnectAddress>();
-			XConnectAddress xconnectAddressBilling=XConnectAddress.BillingAddressFromClinic(clinic,provider);
+			var listXConnectAddresses=new List<XConnectAddress>();
+			var xconnectAddressBilling=XConnectAddress.BillingAddressFromClinic(clinic,provider);
 			listXConnectAddresses.Add(xconnectAddressBilling);
 			XConnectAddress xconnectAdddressPayTo;
 			if(type==EnumXConnectProviderType.BILLING 
@@ -2710,27 +2577,28 @@ namespace OpenDentBusiness.Eclaims {
 				listXConnectAddresses.Add(xconnectAdddressPayTo);
 			}
 			xconnectProvider.addresses=listXConnectAddresses.ToArray();
-			List<XConnectProviderCredentials> listXConnectProviderCredentials=new List<XConnectProviderCredentials>();
-			listXConnectProviderCredentials.Add(new XConnectProviderCredentials() { type="XX",value=provider.NationalProvID });
-			ElectID electID=ElectIDs.GetId(electId);
-			if(!provider.MedicaidID.IsNullOrEmpty()) {//TODO: Is MedProv Num for medicaid?
+			var listXConnectProviderCredentials=new List<XConnectProviderCredentials>();
+			listXConnectProviderCredentials.Add(new XConnectProviderCredentials() { type="XX",value=provider.NationalProviderId });
+			var electID=ElectIDs.GetId(electId);
+			if(!provider.MedicaidId.IsNullOrEmpty()) {//TODO: Is MedProv Num for medicaid?
 				if(electID!=null && electID.IsMedicaid) {
-					listXConnectProviderCredentials.Add(new XConnectProviderCredentials { type="1D",value=provider.MedicaidID });
+					listXConnectProviderCredentials.Add(new XConnectProviderCredentials { type="1D",value=provider.MedicaidId });
 				}
 			}
-			if(provider.UsingTIN && !provider.SSN.IsNullOrEmpty()) {
-				listXConnectProviderCredentials.Add(new XConnectProviderCredentials() { type="FI",value=provider.SSN });
+			if(provider.IsTin && !provider.Ssn.IsNullOrEmpty()) {
+				listXConnectProviderCredentials.Add(new XConnectProviderCredentials() { type="FI",value=provider.Ssn });
 			}
-			if(!provider.StateLicense.IsNullOrEmpty()) {
-				listXConnectProviderCredentials.Add(new XConnectProviderCredentials() { type="0B",value=provider.StateLicense });
+			var stateLicense = providerClinicDto?.StateLicense;
+			if(!stateLicense.IsNullOrEmpty()) {
+				listXConnectProviderCredentials.Add(new XConnectProviderCredentials() { type="0B",value=stateLicense });
 			}
 			else {
-				ProviderIdent[] provIdents=ProviderIdents.GetForPayor(provider.ProvNum,electId);
-				ProviderIdent provIdentBlueCross=provIdents.FirstOrDefault(x => x.SuppIDType==ProviderSupplementalID.BlueCross);
+				var provIdents=ProviderIdents.GetForPayor(provider.Id,electId);
+				var provIdentBlueCross=provIdents.FirstOrDefault(x => x.SuppIDType==ProviderSupplementalID.BlueCross);
 				if(provIdentBlueCross!=null) {
 					listXConnectProviderCredentials.Add(new XConnectProviderCredentials{ type ="1A",value=provIdentBlueCross.IDNumber });
 				}
-				ProviderIdent proviIdentBlueShield=provIdents.FirstOrDefault(x => x.SuppIDType==ProviderSupplementalID.BlueShield);
+				var proviIdentBlueShield=provIdents.FirstOrDefault(x => x.SuppIDType==ProviderSupplementalID.BlueShield);
 				if(proviIdentBlueShield!=null) {
 					listXConnectProviderCredentials.Add(new XConnectProviderCredentials{ type ="1B",value=proviIdentBlueShield.IDNumber });
 				}
@@ -2786,18 +2654,18 @@ namespace OpenDentBusiness.Eclaims {
 		public string toothNumber;
 
 		public static List<XConnectTooth> FromProc(Procedure procedure) {
-			List<XConnectTooth> listXConnectTeeth=new List<XConnectTooth>();
-			ProcedureCode procedureCode=ProcedureCodes.GetFirstOrDefault(x => x.CodeNum==procedure.CodeNum);
-			TreatmentArea treatmentArea=procedureCode.TreatArea;
+			var listXConnectTeeth=new List<XConnectTooth>();
+			var procedureCode=ProcedureCodes.GetFirstOrDefault(x => x.CodeNum==procedure.CodeNum);
+			var treatmentArea=procedureCode.TreatArea;
 			if(treatmentArea==TreatmentArea.Tooth) {
-				XConnectTooth xconnectToothSingle=new XConnectTooth();
+				var xconnectToothSingle=new XConnectTooth();
 				if(!procedure.ToothNum.IsNullOrEmpty()) {
 					xconnectToothSingle.toothNumber=procedure.ToothNum;
 				}
 				listXConnectTeeth.Add(xconnectToothSingle);
 			}
 			else if(treatmentArea==TreatmentArea.Surf) {
-				XConnectTooth xconnectTooth=new XConnectTooth();
+				var xconnectTooth=new XConnectTooth();
 				if(!procedure.Surf.IsNullOrEmpty()) {
 					if(procedure.Surf.Contains("B")) {
 						xconnectTooth.surface="B";
@@ -2824,9 +2692,9 @@ namespace OpenDentBusiness.Eclaims {
 
 			}
 			else if(treatmentArea==TreatmentArea.ToothRange) {
-				List<string> listToothNums=procedure.ToothRange.Split(',').ToList();
-				for(int i=0;i<listToothNums.Count;i++) {
-					XConnectTooth xconnectTooth=new XConnectTooth();
+				var listToothNums=procedure.ToothRange.Split(',').ToList();
+				for(var i=0;i<listToothNums.Count;i++) {
+					var xconnectTooth=new XConnectTooth();
 					if(!procedure.ToothNum.IsNullOrEmpty()) {
 						xconnectTooth.toothNumber=procedure.ToothNum;
 					}

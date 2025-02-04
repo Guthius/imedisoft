@@ -6,7 +6,6 @@ using Imedisoft.Core.Caching;
 using Imedisoft.Core.Data;
 using Imedisoft.Core.Entities;
 using OpenDental.UI;
-using OpenDentBusiness;
 
 namespace OpenDental;
 

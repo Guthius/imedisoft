@@ -1,25 +1,21 @@
 using System;
-using System.Data;
 using System.Drawing;
-using System.Collections;
-using System.ComponentModel;
 using System.Windows.Forms;
 using OpenDentBusiness;
 using System.Collections.Generic;
 using OpenDental.ReportingComplex;
-using CodeBase;
 using System.Linq;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Entities;
 using Imedisoft.Core.Features.Clinics;
 using Imedisoft.Core.Features.Clinics.Dtos;
+using Imedisoft.Features.Providers.Dtos;
 
 namespace OpenDental;
 
 public partial class FormRpWriteoffSheet : FormODBase {
 	private List<ClinicDto> _listClinics;
-	private List<Provider> _listProviders;
-	private bool _hasClinicsEnabled;
+	private List<ProviderDto> _listProviders;
 
 		
 	public FormRpWriteoffSheet(){
@@ -32,37 +28,28 @@ public partial class FormRpWriteoffSheet : FormODBase {
 		date2.SelectionStart=DateTime.Today;
 		if(!Security.IsAuthorized(EnumPermType.ReportDailyAllProviders,true)) {
 			//They either have permission or have a provider at this point.  If they don't have permission they must have a provider.
-			_listProviders=_listProviders.FindAll(x => x.ProvNum==Security.CurUser.ProvNum);
+			_listProviders=_listProviders.FindAll(x => x.Id==Security.CurUser.ProvNum);
 			checkAllProv.Checked=false;
 			checkAllProv.Enabled=false;
 		}
-		listProv.Items.AddList(_listProviders,x => x.GetLongDesc());
+		listProv.Items.AddList(_listProviders,x => x.Description);
 		if(checkAllProv.Enabled==false && _listProviders.Count>0) {
 			listProv.SetSelected(0);
 		}
-		if(!true) {
-			listClin.Visible=false;
-			labelClin.Visible=false;
-			checkAllClin.Visible=false;
-			_hasClinicsEnabled=false;
+		_listClinics=Clinics.GetForUserod(Security.CurUser);
+		if(!Security.CurUser.ClinicIsRestricted) {
+			listClin.Items.Add(Lan.g(this,"Unassigned"));
+			listClin.SetSelected(0);
 		}
-		else {
-			_listClinics=Clinics.GetForUserod(Security.CurUser);
-			_hasClinicsEnabled=true;
-			if(!Security.CurUser.ClinicIsRestricted) {
-				listClin.Items.Add(Lan.g(this,"Unassigned"));
-				listClin.SetSelected(0);
+		for(var i=0;i<_listClinics.Count;i++) {
+			listClin.Items.Add(_listClinics[i].Abbr);
+			if(Clinics.ClinicNum==0) {
+				listClin.SetSelected(listClin.Items.Count-1);
+				checkAllClin.Checked=true;
 			}
-			for(var i=0;i<_listClinics.Count;i++) {
-				listClin.Items.Add(_listClinics[i].Abbr);
-				if(Clinics.ClinicNum==0) {
-					listClin.SetSelected(listClin.Items.Count-1);
-					checkAllClin.Checked=true;
-				}
-				if(_listClinics[i].Id==Clinics.ClinicNum) {
-					listClin.SelectedIndices.Clear();
-					listClin.SetSelected(listClin.Items.Count-1);
-				}
+			if(_listClinics[i].Id==Clinics.ClinicNum) {
+				listClin.SelectedIndices.Clear();
+				listClin.SetSelected(listClin.Items.Count-1);
 			}
 		}
 		switch(PrefC.GetInt(PrefName.ReportsPPOwriteoffDefaultToProcDate)){
@@ -122,7 +109,7 @@ public partial class FormRpWriteoffSheet : FormODBase {
 			MsgBox.Show(this,"At least one provider must be selected.");
 			return;
 		}
-		if(_hasClinicsEnabled) {
+		if(true) {
 			if(!checkAllClin.Checked && listClin.SelectedIndices.Count==0) {
 				MsgBox.Show(this,"At least one clinic must be selected.");
 				return;
@@ -149,20 +136,20 @@ public partial class FormRpWriteoffSheet : FormODBase {
 		var listProvNums=new List<long>();
 		if(checkAllProv.Checked) {
 			for(var i = 0;i<_listProviders.Count;i++) {
-				listProvNums.Add(_listProviders[i].ProvNum);
+				listProvNums.Add(_listProviders[i].Id);
 				listProvNames.Add(_listProviders[i].Abbr);
 			}	
 		}
 		else {
 			for(var i=0;i<listProv.SelectedIndices.Count;i++) {
-				listProvNums.Add(_listProviders[listProv.SelectedIndices[i]].ProvNum);
+				listProvNums.Add(_listProviders[listProv.SelectedIndices[i]].Id);
 				listProvNames.Add(_listProviders[listProv.SelectedIndices[i]].Abbr);
 			}
 		}
 		var report=new ReportComplex(true,false);
 		var writeoffType=GetWriteoffType();
 		var table=RpWriteoffSheet.GetWriteoffTable(date1.SelectionStart,date2.SelectionStart,listProvNums,listClinicNums
-			,checkAllClin.Checked,_hasClinicsEnabled,writeoffType);
+			,checkAllClin.Checked,true,writeoffType);
 		var font=new Font("Tahoma",9);
 		var fontTitle=new Font("Tahoma",17,FontStyle.Bold);
 		var fontSubTitle=new Font("Tahoma",10,FontStyle.Bold);
@@ -176,7 +163,7 @@ public partial class FormRpWriteoffSheet : FormODBase {
 		else {
 			report.AddSubTitle("Providers",string.Join(", ",listProvNames));
 		}
-		if(_hasClinicsEnabled) {
+		if(true) {
 			if(checkAllClin.Checked) {
 				report.AddSubTitle("Clinics",Lan.g(this,"All Clinics (Includes hidden)"));
 			}
@@ -206,7 +193,7 @@ public partial class FormRpWriteoffSheet : FormODBase {
 		query.AddColumn("Patient Name",150);
 		query.AddColumn("Carrier",150);
 		query.AddColumn("Provider",60);
-		if(_hasClinicsEnabled) {
+		if(true) {
 			query.AddColumn("Clinic",80);
 				
 		}

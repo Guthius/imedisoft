@@ -1,11 +1,10 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Windows.Forms;
-using CodeBase;
 using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Entities;
+using Imedisoft.Features.Providers.Dtos;
 using OpenDentBusiness;
 
 namespace OpenDental;
@@ -49,7 +48,7 @@ public partial class FormProcBroken:FormODBase {
 	}
 
 	private void butPickProv_Click(object sender,EventArgs e) {
-		var frmProviderPick = new FrmProviderPick(comboProv.Items.GetAll<Provider>());
+		var frmProviderPick = new FrmProviderPick(comboProv.Items.GetAll<ProviderDto>());
 		frmProviderPick.ProvNumSelected=comboProv.GetSelectedProvNum();
 		frmProviderPick.ShowDialog();
 		if(!frmProviderPick.IsDialogOK) {

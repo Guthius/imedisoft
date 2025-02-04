@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Data;
 using System.Windows.Forms;
 using OpenDentBusiness;
 using System.Linq;
@@ -109,9 +108,6 @@ public partial class FormSheetFieldCheckBox:FormODBase {
 				radioNo.Checked=true;
 				radioYes.Checked=false;
 			}
-		}
-		if(SheetDefCur.SheetType==SheetTypeEnum.Screening) {
-			butAddProc.Visible=true;
 		}
 		if(radioYes.Checked) {
 			//If checkbox's text is not the default of "Yes", display the customized text in override box

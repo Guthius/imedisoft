@@ -8,7 +8,6 @@ using System.Windows;
 using System.Windows.Documents;
 using System.Windows.Markup;
 using System.Xml;
-using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Crud;
 using Imedisoft.Core.Data;
@@ -61,36 +60,6 @@ public class EFormFields
             WidthLabel = eFormFieldDef.WidthLabel,
             SpaceToRight = eFormFieldDef.SpaceToRight,
             EFormFieldDefNum = eFormFieldDef.EFormFieldDefNum
-        };
-    }
-
-    public static EFormFieldDef ToDef(EFormField eFormField)
-    {
-        return new EFormFieldDef
-        {
-            FieldType = eFormField.FieldType,
-            DbLink = eFormField.DbLink,
-            ValueLabel = eFormField.ValueLabel,
-            ItemOrder = eFormField.ItemOrder,
-            PickListVis = eFormField.PickListVis,
-            PickListDb = eFormField.PickListDb,
-            IsHorizStacking = eFormField.IsHorizStacking,
-            IsTextWrap = eFormField.IsTextWrap,
-            Width = eFormField.Width,
-            FontScale = eFormField.FontScale,
-            IsRequired = eFormField.IsRequired,
-            ConditionalParent = eFormField.ConditionalParent,
-            ConditionalValue = eFormField.ConditionalValue,
-            LabelAlign = eFormField.LabelAlign,
-            SpaceBelow = eFormField.SpaceBelow,
-            ReportableName = eFormField.ReportableName,
-            IsLocked = eFormField.IsLocked,
-            Border = eFormField.Border,
-            IsWidthPercentage = eFormField.IsWidthPercentage,
-            MinWidth = eFormField.MinWidth,
-            WidthLabel = eFormField.WidthLabel,
-            SpaceToRight = eFormField.SpaceToRight,
-            EFormFieldDefNum = eFormField.EFormFieldDefNum
         };
     }
 
@@ -190,41 +159,6 @@ public class EFormFields
         if (idxVis != -1) return listPickListVis[idxVis];
         //value not found in PickListVis
         return "";
-    }
-
-    public static bool IsLastInHorizStack(EFormField eFormField, List<EFormField> listEFormFields)
-    {
-        var idx = listEFormFields.IndexOf(eFormField);
-        if (idx == listEFormFields.Count - 1) //it's the last field
-            return true;
-
-        if (listEFormFields[idx + 1].FieldType == EnumEFormFieldType.PageBreak) return true;
-
-        if (!listEFormFields[idx + 1].IsHorizStacking) //the next field is not horiz stacking
-            return true;
-        return false;
-    }
-
-    public static bool IsPreviousStackable(EFormField eFormField, List<EFormField> listEFormFields)
-    {
-        var idx = listEFormFields.IndexOf(eFormField);
-        if (idx > 0 && EFormFieldDefs.IsHorizStackableType(listEFormFields[idx - 1].FieldType)) return true;
-        return false;
-    }
-
-    public static int GetLastIdxThisPage(List<EFormField> listEFormFields, int page)
-    {
-        var pageCur = 1;
-        for (var i = 0; i < listEFormFields.Count; i++)
-        {
-            if (i == listEFormFields.Count - 1) return listEFormFields.Count; //whether or not we have a page number match
-            if (listEFormFields[i].FieldType != EnumEFormFieldType.PageBreak) continue;
-            //so we have a page break
-            if (pageCur == page) return i; //the idx of the page break itself
-            pageCur++;
-        }
-
-        return listEFormFields.Count; //even though it's impossible to get to this point.
     }
 
     public static List<EFormField> GetSiblingsInStack(EFormField eFormField, List<EFormField> listEFormFields, bool isThisFieldHStacking, bool includeSelf = false)

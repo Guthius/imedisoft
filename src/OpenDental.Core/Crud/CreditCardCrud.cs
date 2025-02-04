@@ -33,42 +33,43 @@ public class CreditCardCrud
     public static List<CreditCard> TableToList(DataTable table)
     {
         var retVal = new List<CreditCard>();
-        CreditCard creditCard;
         foreach (DataRow row in table.Rows)
         {
-            creditCard = new CreditCard();
-            creditCard.CreditCardNum = SIn.Long(row["CreditCardNum"].ToString());
-            creditCard.PatNum = SIn.Long(row["PatNum"].ToString());
-            creditCard.Address = SIn.String(row["Address"].ToString());
-            creditCard.Zip = SIn.String(row["Zip"].ToString());
-            creditCard.XChargeToken = SIn.String(row["XChargeToken"].ToString());
-            creditCard.CCNumberMasked = SIn.String(row["CCNumberMasked"].ToString());
-            creditCard.CCExpiration = SIn.Date(row["CCExpiration"].ToString());
-            creditCard.ItemOrder = SIn.Int(row["ItemOrder"].ToString());
-            creditCard.ChargeAmt = SIn.Double(row["ChargeAmt"].ToString());
-            creditCard.DateStart = SIn.Date(row["DateStart"].ToString());
-            creditCard.DateStop = SIn.Date(row["DateStop"].ToString());
-            creditCard.Note = SIn.String(row["Note"].ToString());
-            creditCard.PayPlanNum = SIn.Long(row["PayPlanNum"].ToString());
-            creditCard.PayConnectToken = SIn.String(row["PayConnectToken"].ToString());
-            creditCard.PayConnectTokenExp = SIn.Date(row["PayConnectTokenExp"].ToString());
-            creditCard.Procedures = SIn.String(row["Procedures"].ToString());
-            creditCard.CCSource = (CreditCardSource) SIn.Int(row["CCSource"].ToString());
-            creditCard.ClinicNum = SIn.Long(row["ClinicNum"].ToString());
-            creditCard.ExcludeProcSync = SIn.Bool(row["ExcludeProcSync"].ToString());
-            creditCard.PaySimpleToken = SIn.String(row["PaySimpleToken"].ToString());
-            creditCard.ChargeFrequency = SIn.String(row["ChargeFrequency"].ToString());
-            creditCard.CanChargeWhenNoBal = SIn.Bool(row["CanChargeWhenNoBal"].ToString());
-            creditCard.PaymentType = SIn.Long(row["PaymentType"].ToString());
-            creditCard.IsRecurringActive = SIn.Bool(row["IsRecurringActive"].ToString());
-            creditCard.Nickname = SIn.String(row["Nickname"].ToString());
+            var creditCard = new CreditCard
+            {
+                CreditCardNum = SIn.Long(row["CreditCardNum"].ToString()),
+                PatNum = SIn.Long(row["PatNum"].ToString()),
+                Address = SIn.String(row["Address"].ToString()),
+                Zip = SIn.String(row["Zip"].ToString()),
+                XChargeToken = SIn.String(row["XChargeToken"].ToString()),
+                CCNumberMasked = SIn.String(row["CCNumberMasked"].ToString()),
+                CCExpiration = SIn.Date(row["CCExpiration"].ToString()),
+                ItemOrder = SIn.Int(row["ItemOrder"].ToString()),
+                ChargeAmt = SIn.Double(row["ChargeAmt"].ToString()),
+                DateStart = SIn.Date(row["DateStart"].ToString()),
+                DateStop = SIn.Date(row["DateStop"].ToString()),
+                Note = SIn.String(row["Note"].ToString()),
+                PayPlanNum = SIn.Long(row["PayPlanNum"].ToString()),
+                PayConnectToken = SIn.String(row["PayConnectToken"].ToString()),
+                PayConnectTokenExp = SIn.Date(row["PayConnectTokenExp"].ToString()),
+                Procedures = SIn.String(row["Procedures"].ToString()),
+                CCSource = (CreditCardSource) SIn.Int(row["CCSource"].ToString()),
+                ClinicNum = SIn.Long(row["ClinicNum"].ToString()),
+                ExcludeProcSync = SIn.Bool(row["ExcludeProcSync"].ToString()),
+                PaySimpleToken = SIn.String(row["PaySimpleToken"].ToString()),
+                ChargeFrequency = SIn.String(row["ChargeFrequency"].ToString()),
+                CanChargeWhenNoBal = SIn.Bool(row["CanChargeWhenNoBal"].ToString()),
+                PaymentType = SIn.Long(row["PaymentType"].ToString()),
+                IsRecurringActive = SIn.Bool(row["IsRecurringActive"].ToString()),
+                Nickname = SIn.String(row["Nickname"].ToString())
+            };
             retVal.Add(creditCard);
         }
 
         return retVal;
     }
 
-    public static long Insert(CreditCard creditCard)
+    public static void Insert(CreditCard creditCard)
     {
         var command = "INSERT INTO creditcard (";
 
@@ -104,7 +105,6 @@ public class CreditCardCrud
         {
             creditCard.CreditCardNum = Db.NonQ(command, true, "CreditCardNum", "creditCard", paramProcedures);
         }
-        return creditCard.CreditCardNum;
     }
 
     public static void Update(CreditCard creditCard)

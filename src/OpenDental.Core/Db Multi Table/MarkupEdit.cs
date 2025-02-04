@@ -62,7 +62,7 @@ public class MarkupEdit
                     break;
                 case "a":
                     //a is an allowed node but can only have one attribute; href
-                    for (int i = 0; i < node.Attributes.Count; i++)
+                    for (var i = 0; i < node.Attributes.Count; i++)
                     {
                         if (node.Attributes[i].Name != "href")
                         {
@@ -108,7 +108,7 @@ public class MarkupEdit
 
     public static bool ContainsOdHtmlTags(string text)
     {
-        Regex tagRegex = new Regex(@"<\s*([^ >]+)[^>]*>.*?<\s*/\s*\1\s*>");
+        var tagRegex = new Regex(@"<\s*([^ >]+)[^>]*>.*?<\s*/\s*\1\s*>");
         return tagRegex.IsMatch(text ?? "");
     }
 
@@ -116,15 +116,15 @@ public class MarkupEdit
     {
         #region Basic Xml Validation
 
-        string s = markupText;
+        var s = markupText;
         MatchCollection matches;
         //"<",">", and "&"-----------------------------------------------------------------------------------------------------------
         s = s.Replace("&", "&amp;");
         s = s.Replace("&amp;<", "&lt;"); //because "&" was changed to "&amp;" in the line above.
         s = s.Replace("&amp;>", "&gt;"); //because "&" was changed to "&amp;" in the line above.
         s = "<body>" + s + "</body>";
-        XmlDocument doc = new XmlDocument();
-        using (StringReader reader = new StringReader(s))
+        var doc = new XmlDocument();
+        using (var reader = new StringReader(s))
         {
             doc.Load(reader);
         }
@@ -135,12 +135,12 @@ public class MarkupEdit
 
         //Looks for replacement strings within markupText in order to find missing closing brackets. Ex: "[[color:... [[img:...]]", "[[file:...", "...[[".
         //This handles allowing nested bracketing implementation in the possible future. Ex: [[font-family:...[[color:...]] ...]]".
-        int index = 0;
+        var index = 0;
         //Keep track of the start index for all replacement strings that are not 'closed' correctly. Ex: "abc[[def" will have '3' as the only value in the stack.
-        Stack<int> stackUnclosedIndices = new Stack<int>();
+        var stackUnclosedIndices = new Stack<int>();
         while (index + 1 < markupText.Length)
         {
-            string str = markupText[index].ToString() + markupText[index + 1].ToString();
+            var str = markupText[index].ToString() + markupText[index + 1].ToString();
             if (str == "[[")
             {
                 //If we find double-open brackets, we store the start location in case it is missing closing brackets.
@@ -163,13 +163,13 @@ public class MarkupEdit
             index += 1;
         }
 
-        int end = markupText.Length;
-        List<string> listInvalidMarkupStrings = new List<string>();
+        var end = markupText.Length;
+        var listInvalidMarkupStrings = new List<string>();
         while (stackUnclosedIndices.Count > 0)
         {
-            int start = stackUnclosedIndices.Pop();
-            int length = end - start;
-            string invalidMarkupString = markupText.Substring(start, length);
+            var start = stackUnclosedIndices.Pop();
+            var length = end - start;
+            var invalidMarkupString = markupText.Substring(start, length);
             if (invalidMarkupString.Length > 50)
             {
                 invalidMarkupString = invalidMarkupString.Substring(0, 50) + "...";
@@ -180,15 +180,15 @@ public class MarkupEdit
         }
 
         index = 0;
-        string errorMessage = "";
-        for (int i = listInvalidMarkupStrings.Count - 1; i >= 0; i--)
+        var errorMessage = "";
+        for (var i = listInvalidMarkupStrings.Count - 1; i >= 0; i--)
         {
             //Display invalid replacement strings found chronologically.
             index += 1;
             errorMessage += "\r\n" + index + ": \"" + listInvalidMarkupStrings[i] + "\"";
         }
 
-        if (!String.IsNullOrWhiteSpace(errorMessage))
+        if (!string.IsNullOrWhiteSpace(errorMessage))
         {
             throw new ApplicationException(Lans.g("WikiPages", "Invalid markup syntax detected. The following have unclosed brackets:") + errorMessage);
         }
@@ -208,14 +208,14 @@ public class MarkupEdit
 
         #region paragraph grouping
 
-        StringBuilder strbSnew = new StringBuilder();
+        var strbSnew = new StringBuilder();
         //a paragraph is defined as all text between sibling tags, even if just a \n.
-        int iScanInParagraph = 0; //scan starting at the beginning of s.  S gets chopped from the start each time we grab a paragraph or a sibiling element.
+        var iScanInParagraph = 0; //scan starting at the beginning of s.  S gets chopped from the start each time we grab a paragraph or a sibiling element.
         //The scanning position represents the verified paragraph content, and does not advance beyond that.
         //move <body> tag over.
         strbSnew.Append("<body>");
         s = s.Substring(6);
-        bool startsWithCR = false; //todo: handle one leading CR if there is no text preceding it.
+        var startsWithCR = false; //todo: handle one leading CR if there is no text preceding it.
         if (s.StartsWith("\n"))
         {
             startsWithCR = true;
@@ -307,7 +307,7 @@ public class MarkupEdit
                     }
 
                     //scan to the end of this element
-                    int iScanSibling = s.IndexOf("</" + tagName + ">") + 3 + tagName.Length;
+                    var iScanSibling = s.IndexOf("</" + tagName + ">") + 3 + tagName.Length;
                     //tags without a closing tag were caught above.
                     //move the non-paragraph content over to s new.
                     if (tagName == "img")
@@ -341,18 +341,18 @@ public class MarkupEdit
         #region aggregation
 
         doc = new XmlDocument();
-        using (StringReader reader = new StringReader(strbSnew.ToString()))
+        using (var reader = new StringReader(strbSnew.ToString()))
         {
             doc.Load(reader);
         }
 
-        StringBuilder strbOut = new StringBuilder();
-        XmlWriterSettings settings = new XmlWriterSettings();
+        var strbOut = new StringBuilder();
+        var settings = new XmlWriterSettings();
         settings.Indent = true;
         settings.IndentChars = "\t";
         settings.OmitXmlDeclaration = true;
         settings.NewLineChars = "\n";
-        using (XmlWriter writer = XmlWriter.Create(strbOut, settings))
+        using (var writer = XmlWriter.Create(strbOut, settings))
         {
             doc.WriteTo(writer);
         }
@@ -386,29 +386,29 @@ public class MarkupEdit
         else
         {
             //Adjust the font size and table column widths of the wiki to account for any "Zoom" changes.
-            string fontTextRegexPattern = @"font-size:\s*\d+\.?\d?pt"; //To find each font size text
-            string fontNumRegexPattern = @"\d+\.?\d?"; //To find only the font size itself
-            MatchCollection matchCollection = Regex.Matches(s, fontTextRegexPattern);
-            for (int i = matchCollection.Count - 1; i >= 0; i--)
+            var fontTextRegexPattern = @"font-size:\s*\d+\.?\d?pt"; //To find each font size text
+            var fontNumRegexPattern = @"\d+\.?\d?"; //To find only the font size itself
+            var matchCollection = Regex.Matches(s, fontTextRegexPattern);
+            for (var i = matchCollection.Count - 1; i >= 0; i--)
             {
                 //Walk through pageContent backwards to correctly rebuild the string 
-                Match matchFontNumOnly = Regex.Match(matchCollection[i].Value, fontNumRegexPattern); //Find the font value itself
-                string[] arrayFontText = Regex.Split(matchCollection[i].Value, fontNumRegexPattern); //Separate the other text around the font value
-                string fontNumUpdate = Convert.ToString(Math.Round(scale * SIn.Float(matchFontNumOnly.Value), 1)); //Adjust the font value to the nearest tenth
-                string fontTextUpdate = arrayFontText[0] + fontNumUpdate + arrayFontText[1]; //Rebuild the font text with the updated font value
+                var matchFontNumOnly = Regex.Match(matchCollection[i].Value, fontNumRegexPattern); //Find the font value itself
+                var arrayFontText = Regex.Split(matchCollection[i].Value, fontNumRegexPattern); //Separate the other text around the font value
+                var fontNumUpdate = Convert.ToString(Math.Round(scale * SIn.Float(matchFontNumOnly.Value), 1)); //Adjust the font value to the nearest tenth
+                var fontTextUpdate = arrayFontText[0] + fontNumUpdate + arrayFontText[1]; //Rebuild the font text with the updated font value
                 s = s.Substring(0, matchCollection[i].Index) + fontTextUpdate + s.Substring(matchCollection[i].Index + matchCollection[i].Length); //Rebuild pageContent css
             }
 
-            string colTextRegexPattern = @"t(h|d)\sWidth=""\d+"""; //To find each col size text
-            string colNumRegexPattern = @"\d+"; //To find only the col width itself
+            var colTextRegexPattern = @"t(h|d)\sWidth=""\d+"""; //To find each col size text
+            var colNumRegexPattern = @"\d+"; //To find only the col width itself
             matchCollection = Regex.Matches(s, colTextRegexPattern);
-            for (int i = matchCollection.Count - 1; i >= 0; i--)
+            for (var i = matchCollection.Count - 1; i >= 0; i--)
             {
                 //Walk through pageContent backwards to correctly rebuild the string 
-                Match matchColNumOnly = Regex.Match(matchCollection[i].Value, colNumRegexPattern); //Find the col value itself
-                string[] arrayColText = Regex.Split(matchCollection[i].Value, colNumRegexPattern); //Separate the other text around the col value
-                string colNumUpdate = Convert.ToString(Math.Round(scale * SIn.Float(matchColNumOnly.Value), 1)); //Adjust the col value to the nearest tenth
-                string colTextUpdate = arrayColText[0] + colNumUpdate + arrayColText[1]; //Rebuild the col text with the updated col value
+                var matchColNumOnly = Regex.Match(matchCollection[i].Value, colNumRegexPattern); //Find the col value itself
+                var arrayColText = Regex.Split(matchCollection[i].Value, colNumRegexPattern); //Separate the other text around the col value
+                var colNumUpdate = Convert.ToString(Math.Round(scale * SIn.Float(matchColNumOnly.Value), 1)); //Adjust the col value to the nearest tenth
+                var colTextUpdate = arrayColText[0] + colNumUpdate + arrayColText[1]; //Rebuild the col text with the updated col value
                 s = s.Substring(0, matchCollection[i].Index) + colTextUpdate + s.Substring(matchCollection[i].Index + matchCollection[i].Length); //Rebuild pageContent body
             }
         }
@@ -420,7 +420,7 @@ public class MarkupEdit
 
     public static string ConvertMarkupToPlainText(string rawText)
     {
-        StringBuilder strb = new StringBuilder(rawText);
+        var strb = new StringBuilder(rawText);
         //strip image
         StringTools.RegReplace(strb, @"\[\[img:(?=[^\[\]]*?\]\])|(?<=\[\[img:[^\[\]]*?)\]\]", "");
         //strip font
@@ -445,7 +445,7 @@ public class MarkupEdit
 
     public static string ConvertToPlainText(string rawWikipageText)
     {
-        StringBuilder strb = new StringBuilder(rawWikipageText);
+        var strb = new StringBuilder(rawWikipageText);
         //The regex pattern below will match anything enclosed within "<" and ">". However for our wiki pages, we use "&" as an escape character
         //for "<" and ">", so we do not want to match "&<" or "&>". We know that this will not perfectly parse all HTML tags, but it is good enough
         //to use for searching.
@@ -461,8 +461,8 @@ public class MarkupEdit
 
     public static string ProcessList(string s, string prefixChars)
     {
-        string listTag = "";
-        string otherPrefixChar = "";
+        var listTag = "";
+        var otherPrefixChar = "";
         if (prefixChars == "#")
         {
             listTag = "ol";
@@ -474,9 +474,9 @@ public class MarkupEdit
             otherPrefixChar = "#";
         }
 
-        string[] lines = s.Split("\n", StringSplitOptions.None); //includes empty elements
-        bool isWithinListTag = false; //Keep track of when we enter a list tag and have yet to close it.
-        for (int i = 0; i < lines.Length; i++)
+        var lines = s.Split("\n", StringSplitOptions.None); //includes empty elements
+        var isWithinListTag = false; //Keep track of when we enter a list tag and have yet to close it.
+        for (var i = 0; i < lines.Length; i++)
         {
             if (!lines[i].Contains(prefixChars))
             {
@@ -485,16 +485,16 @@ public class MarkupEdit
 
             lines[i] = lines[i].Replace("\r", "");
             //Exactly matches the format of a table row that has been processed most of the way at this point. Each set of parenthesis is a different match group that will be used below for processing prefixchars into ul/ol and li tags. Example: <td Width="100"><p>*1<br/>*2</p></td>
-            string patternListsInTable = @"<td Width=""\d+"">(<p>(.+)</p>)</td>";
-            StringBuilder stringBuilder = new StringBuilder();
-            Match match = Regex.Match(lines[i], patternListsInTable);
+            var patternListsInTable = @"<td Width=""\d+"">(<p>(.+)</p>)</td>";
+            var stringBuilder = new StringBuilder();
+            var match = Regex.Match(lines[i], patternListsInTable);
             if (match.Success)
             {
                 //There are list(s) present in table(s)
                 //Groups[2] represents the outermost set of parenthesis in the regex above.
                 //Example: In a table row like: <td Width="100"><p>*1<br/>*2</p></td>
                 //Groups[2] refers to the contents ofthe opening and closing <td> tags, namely <p>*1<br/>*2</p>
-                string strCellContent = match.Groups[2].Value.Replace("<br/>", "\n"); //Newlines are needed for the recursive calls below.
+                var strCellContent = match.Groups[2].Value.Replace("<br/>", "\n"); //Newlines are needed for the recursive calls below.
                 //Recursively process the content of this table cell.
                 strCellContent = ProcessList(strCellContent, prefixChars);
                 if (strCellContent.Contains(otherPrefixChar))
@@ -511,11 +511,11 @@ public class MarkupEdit
             else
             {
                 //List(s) are present outside of tables
-                string line = lines[i];
+                var line = lines[i];
                 //At this point in the markup processing there will be some other tags present in the text we're parsing.
                 //The only tags that will cause errors are <body> tags. Trim them off and add them back after we have wrapped the content in li tags.
-                bool addEndBodyTag = false;
-                bool addStartBodyTag = false;
+                var addEndBodyTag = false;
+                var addStartBodyTag = false;
                 if (line.StartsWith("<body>"))
                 {
                     line = line.Substring("<body>".Length);
@@ -580,26 +580,26 @@ public class MarkupEdit
         //It is possible for the passed in content to contain text that is not bounded by list tags in some way.
         //This text needs to be excluded from any tag replacing so that whatever format the text has is preserved.
         //Reducing tag groupings directly applies to tags within HTML lists (between ol, ul, or li elements).
-        int startIndex = content.IndexOf("<ol>");
+        var startIndex = content.IndexOf("<ol>");
         if (content.IndexOf("<ul>") > -1 &&
             (startIndex == -1 || content.IndexOf("<ul>") < startIndex))
         {
             startIndex = content.IndexOf("<ul>");
         }
 
-        int endIndex = content.LastIndexOf("</ol>");
+        var endIndex = content.LastIndexOf("</ol>");
         if (content.LastIndexOf("</ul>") > -1 &&
             content.LastIndexOf("</ul>") > endIndex)
         {
             endIndex = content.LastIndexOf("</ul>");
         }
 
-        string contentInList = content.Substring(startIndex, endIndex + 5 - startIndex); //+5 to account for the length of a closing </ol> or </ul> tag
+        var contentInList = content.Substring(startIndex, endIndex + 5 - startIndex); //+5 to account for the length of a closing </ol> or </ul> tag
         //Split the list content by tag. We will be looking for empty entries between tags, and replacing the count of tag with the count of empty entries.
         //This effectively reduces tag count by 1 for all tag groupings.
         //Example: <br><br> split by <br> => "" which is 1 less than the number of <br> tags present.
-        string[] strArrayContents = contentInList.Split(tag, StringSplitOptions.None);
-        for (int i = 0; i < strArrayContents.Length; i++)
+        var strArrayContents = contentInList.Split(tag, StringSplitOptions.None);
+        for (var i = 0; i < strArrayContents.Length; i++)
         {
             if (strArrayContents[i].IsNullOrEmpty())
             {
@@ -630,14 +630,14 @@ public class MarkupEdit
             paragraph = paragraph.Substring(0, paragraph.Length - 1);
         }
 
-        string strP = "";
+        var strP = "";
         //images rotated 90 and 270 degrees need their paragraph to be sized correctly
         if (paragraph.StartsWith("<img") && (paragraph.Contains("transform:rotate(90") || paragraph.Contains("transform:rotate(270")))
         {
             strP += "<p";
             strP += " style=\"";
-            List<string> listHeightAndWidth = paragraph.Split(' ').Where(x => x.StartsWith("height") || x.StartsWith("width")).ToList();
-            for (int i = 0; i < listHeightAndWidth.Count; i++)
+            var listHeightAndWidth = paragraph.Split(' ').Where(x => x.StartsWith("height") || x.StartsWith("width")).ToList();
+            for (var i = 0; i < listHeightAndWidth.Count; i++)
             {
                 listHeightAndWidth[i] = listHeightAndWidth[i].Replace('=', ':').Replace("\"", "");
                 //width and height will swap so paragraph is the right dimensions to hold the rotated image

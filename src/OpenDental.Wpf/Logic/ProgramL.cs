@@ -1,8 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using WpfControls.UI;
 using OpenDentBusiness;
 using OpenDental;
@@ -10,9 +7,11 @@ using OpenDental.Bridges;
 using CodeBase;
 using DataConnectionBase;
 using Imedisoft.Core.Caching;
+using Imedisoft.Core.Data;
 using Imedisoft.Core.Entities;
 using Imedisoft.Core.Features.Clinics;
-using xBridges=Bridges;//Bridges is ambiguous with OpenDental.Bridges
+
+//Bridges is ambiguous with OpenDental.Bridges
 
 namespace WpfControls {
 	public class ProgramL {
@@ -264,65 +263,6 @@ namespace WpfControls {
 				PandaPerioAdvanced.SendData(program,patient);
 				return;
 			}
-			else if(program.ProgName==ProgramName.Patterson.ToString()) {
-				Patterson.SendData(program,patient);
-				return;
-			}
-			else if(program.ProgName==ProgramName.PDMP.ToString() || program.ProgName==ProgramName.Bamboo.ToString()) {
-				PDMP pDMP=null;
-				OpenDental.UI.ProgressWin progressWin=new OpenDental.UI.ProgressWin();
-				Provider provider = Providers.GetProv(Security.CurUser.ProvNum);
-				progressWin.ActionMain=() => pDMP=PDMP.SendData(program,patient,provider);
-				progressWin.StartingMessage=Lans.g("PDMP","Fetching data...");
-				try {
-					progressWin.ShowDialog();
-					bool hasUrl=!string.IsNullOrWhiteSpace(pDMP.Url);				
-					if(program.ProgName==ProgramName.PDMP.ToString()) {
-						if(hasUrl) {//Logicoy errors throw exceptions.
-							RxPats.CreatePdmpAccessLog(patient,Security.CurUser,program);
-							FormLauncher formLauncher=new FormLauncher(EnumFormName.FormWebBrowser);
-							formLauncher.SetField("UrlBrowseTo",pDMP.Url);
-							formLauncher.Show();
-						}
-						else {
-							throw new ApplicationException(Lans.g("PDMP","Unable to get report URL."));
-						}
-					}
-					else {
-						bool showCancel=true;
-						StringBuilder stringBuilder=new StringBuilder();
-						if(!string.IsNullOrWhiteSpace(pDMP.Message)) {
-							stringBuilder.AppendLine(pDMP.Message);
-							if(!hasUrl) {
-								stringBuilder.Append(Lans.g("PDMP","No report URL retrieved from Bamboo."));
-								showCancel=false;
-							}
-						}
-						bool isOK=false;
-						if(showCancel){
-							isOK=MsgBox.Show(MsgBoxButtons.OKCancel,stringBuilder.ToString(),Lans.g("PDMP","Bamboo"));
-						}
-						else{
-							MsgBox.Show(stringBuilder.ToString());
-							isOK=true;
-						}
-						if(isOK && hasUrl) {
-							RxPats.CreatePdmpAccessLog(patient,Security.CurUser,program);
-							FormLauncher formLauncher=new FormLauncher(EnumFormName.FormWebBrowser);
-							formLauncher.SetField("UrlBrowseTo",pDMP.Url);
-							formLauncher.SetField("IsUrlSingleUse",true);
-							formLauncher.Show();
-						}
-					}
-				}
-				catch(ApplicationException appEx) {
-					MsgBox.Show(Lans.g("PDMP","An error occurred while loading ")+program.ProgName+"\n"+appEx.Message);
-				}
-				catch(Exception ex) {
-					FriendlyException.Show(Lans.g("PDMP","An error occurred while loading ")+program.ProgName+". \n"+ex.Message,ex);
-				}
-				return;
-			}
 			else if(program.ProgName==ProgramName.Pearl.ToString()) {
 				//Pearl is handled separately in ControlImagesJ
 				return;
@@ -382,12 +322,6 @@ namespace WpfControls {
 				Scanora.SendData(program,patient);
 				return;
 			}
-#if !DISABLE_WINDOWS_BRIDGES
-			else if(program.ProgName==ProgramName.Schick.ToString()) {
-				Schick.SendData(program,patient);
-				return;
-			}
-#endif
 			else if(program.ProgName==ProgramName.Shining3D.ToString()) {
 				Shining3D.SendData(program,patient);
 				return;

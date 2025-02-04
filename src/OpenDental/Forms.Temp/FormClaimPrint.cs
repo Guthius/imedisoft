@@ -1,10 +1,6 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Diagnostics;
 using System.Drawing;
-using System.Drawing.Imaging;
 using System.Drawing.Printing;
 using System.Globalization;
 using System.IO;
@@ -461,10 +457,10 @@ public partial class FormClaimPrint : FormODBase {
 		}
 		_stringArrayAllDiagnoses=Procedures.GetUniqueDiagnosticCodes(Procedures.GetProcsFromClaimProcs(_listClaimProcs),true).ToArray();
 		var providerFirst=Providers.GetFirst();//Used in order to preserve old behavior...  If this fails, then old code would have failed.
-		var providerClaimTreat=Providers.GetFirstOrDefault(x => x.ProvNum==_claim.ProvTreat)??providerFirst;
-		var providerClinicClaimTreat=ProviderClinics.GetOneOrDefault(providerClaimTreat.ProvNum,(clinic==null ? 0 : clinic.Id));
-		var providerClaimBill=Providers.GetFirstOrDefault(x => x.ProvNum==_claim.ProvBill)??providerFirst;
-		var provClinicClaimBill=ProviderClinics.GetOneOrDefault(providerClaimBill.ProvNum,(clinic==null ? 0 : clinic.Id));
+		var providerClaimTreat=Providers.GetFirstOrDefault(x => x.Id==_claim.ProvTreat)??providerFirst;
+		var providerClinicClaimTreat=ProviderClinics.GetOneOrDefault(providerClaimTreat.Id,(clinic==null ? 0 : clinic.Id));
+		var providerClaimBill=Providers.GetFirstOrDefault(x => x.Id==_claim.ProvBill)??providerFirst;
+		var provClinicClaimBill=ProviderClinics.GetOneOrDefault(providerClaimBill.Id,(clinic==null ? 0 : clinic.Id));
 		if(ClaimFormCur==null){
 			if(_claim.ClaimForm>0){
 				ClaimFormCur=ClaimForms.GetClaimForm(_claim.ClaimForm);
@@ -1612,14 +1608,14 @@ public partial class FormClaimPrint : FormODBase {
 				#region BillingDentist
 				case "BillingDentist":
 					if(providerClaimBill.IsNotPerson) {
-						_stringArrayDisplay[i]=providerClaimBill.LName+" "+providerClaimBill.Suffix;
+						_stringArrayDisplay[i]=providerClaimBill.LastName+" "+providerClaimBill.Suffix;
 					}
 					else {
-						_stringArrayDisplay[i]=providerClaimBill.FName+" "+providerClaimBill.MI+" "+providerClaimBill.LName+" "+providerClaimBill.Suffix;
+						_stringArrayDisplay[i]=providerClaimBill.FirstName+" "+providerClaimBill.MiddleName+" "+providerClaimBill.LastName+" "+providerClaimBill.Suffix;
 					}
 					break;
 				case "BillingDentistMedicaidID":
-					_stringArrayDisplay[i]=providerClaimBill.MedicaidID;
+					_stringArrayDisplay[i]=providerClaimBill.MedicaidId;
 					break;
 				case "BillingDentistProviderID":
 					var providerIdentArray=ProviderIdents.GetForPayor(_claim.ProvBill,_carrier.ElectID);
@@ -1628,10 +1624,10 @@ public partial class FormClaimPrint : FormODBase {
 					}
 					break;
 				case "BillingDentistNPI":
-					_stringArrayDisplay[i]=providerClaimBill.NationalProvID;
+					_stringArrayDisplay[i]=providerClaimBill.NationalProviderId;
 					if(CultureInfo.CurrentCulture.Name.EndsWith("CA") && //Canadian. en-CA or fr-CA
 					   _carrier.ElectID=="000064" && //Pacific Blue Cross (PBC)
-					   providerClaimBill.NationalProvID!=providerClaimTreat.NationalProvID && //Billing and treating providers are different
+					   providerClaimBill.NationalProviderId!=providerClaimTreat.NationalProviderId && //Billing and treating providers are different
 					   _stringArrayDisplay[i].Length==9) { //Only for provider numbers which have been entered correctly (to prevent and indexing exception).
 						_stringArrayDisplay[i]="00"+_stringArrayDisplay[i].Substring(2,5)+"00";
 					}
@@ -1640,23 +1636,16 @@ public partial class FormClaimPrint : FormODBase {
 					_stringArrayDisplay[i]=(provClinicClaimBill==null ? "" : provClinicClaimBill.StateLicense);
 					break;
 				case "BillingDentistSSNorTIN":
-					_stringArrayDisplay[i]=providerClaimBill.SSN;
+					_stringArrayDisplay[i]=providerClaimBill.Ssn;
 					break;
 				case "BillingDentistNumIsSSN":
-					if(!providerClaimBill.UsingTIN) {
+					if(!providerClaimBill.IsTin) {
 						_stringArrayDisplay[i]="X";
 					}
 					break;
 				case "BillingDentistNumIsTIN":
-					if(providerClaimBill.UsingTIN) {
+					if(providerClaimBill.IsTin) {
 						_stringArrayDisplay[i]="X";
-					}
-					break;
-					if(clinic.UseBillingAddressOnClaims && clinic.PhoneNumber.Length==10) {
-						_stringArrayDisplay[i]=clinic.PhoneNumber.Substring(0,3);
-					}
-					else if(clinic.PhoneNumber.Length==10) {
-						_stringArrayDisplay[i]=clinic.PhoneNumber.Substring(0,3);
 					}
 					break;
 				case "BillingDentistPh456":
@@ -1792,30 +1781,30 @@ public partial class FormClaimPrint : FormODBase {
 				#region TreatingDentist
 				case "TreatingDentist":
 					if(providerClaimTreat.IsNotPerson) {
-						_stringArrayDisplay[i]=providerClaimTreat.LName+" "+providerClaimTreat.Suffix;
+						_stringArrayDisplay[i]=providerClaimTreat.LastName+" "+providerClaimTreat.Suffix;
 					}
 					else {
-						_stringArrayDisplay[i]=providerClaimTreat.FName+" "+providerClaimTreat.MI+" "+providerClaimTreat.LName+" "+providerClaimTreat.Suffix;
+						_stringArrayDisplay[i]=providerClaimTreat.FirstName+" "+providerClaimTreat.MiddleName+" "+providerClaimTreat.LastName+" "+providerClaimTreat.Suffix;
 					}
 					break;
 				case "TreatingDentistFName":
-					_stringArrayDisplay[i]=providerClaimTreat.FName;
+					_stringArrayDisplay[i]=providerClaimTreat.FirstName;
 					break;
 				case "TreatingDentistLName":
-					_stringArrayDisplay[i]=providerClaimTreat.LName;
+					_stringArrayDisplay[i]=providerClaimTreat.LastName;
 					break;
 				case "TreatingDentistSignature":
-					if(providerClaimTreat.SigOnFile){
+					if(providerClaimTreat.IsSignatureOnFile){
 						if(PrefC.GetBool(PrefName.ClaimFormTreatDentSaysSigOnFile)){
 							_stringArrayDisplay[i]="Signature on File";
 						}
 						else{
-							_stringArrayDisplay[i]=providerClaimTreat.FName+" "+providerClaimTreat.MI+" "+providerClaimTreat.LName+" "+providerClaimTreat.Suffix;
+							_stringArrayDisplay[i]=providerClaimTreat.FirstName+" "+providerClaimTreat.MiddleName+" "+providerClaimTreat.LastName+" "+providerClaimTreat.Suffix;
 						}
 					}
 					break;
 				case "TreatingDentistSigDate":
-					if(providerClaimTreat.SigOnFile){
+					if(providerClaimTreat.IsSignatureOnFile){
 						if(ClaimFormCur.Items[i].FormatString=="") {
 							_stringArrayDisplay[i]=dateSignature.ToShortDateString();
 						}
@@ -1825,7 +1814,7 @@ public partial class FormClaimPrint : FormODBase {
 					}
 					break;
 				case "TreatingDentistMedicaidID":
-					_stringArrayDisplay[i]=providerClaimTreat.MedicaidID;
+					_stringArrayDisplay[i]=providerClaimTreat.MedicaidId;
 					break;
 				case "TreatingDentistProviderID":
 					providerIdentArray=ProviderIdents.GetForPayor(_claim.ProvTreat,_carrier.ElectID);
@@ -1834,7 +1823,7 @@ public partial class FormClaimPrint : FormODBase {
 					}
 					break;
 				case "TreatingDentistNPI":
-					_stringArrayDisplay[i]=providerClaimTreat.NationalProvID;
+					_stringArrayDisplay[i]=providerClaimTreat.NationalProviderId;
 					break;
 				case "TreatingDentistLicense":
 					_stringArrayDisplay[i]=(providerClinicClaimTreat==null ? "" : providerClinicClaimTreat.StateLicense);
@@ -1997,7 +1986,7 @@ public partial class FormClaimPrint : FormODBase {
 					_stringArrayDisplay[i]=_claim.IsOutsideLab?"":"X";
 					break;
 				case "OfficeNumber":
-					_stringArrayDisplay[i]=providerClaimTreat.CanadianOfficeNum;
+					_stringArrayDisplay[i]=providerClaimTreat.CanadianOfficeNumber;
 					break;
 				case "OutsideLabFee":
 					if(!_claim.IsOutsideLab) {
@@ -4250,9 +4239,9 @@ public partial class FormClaimPrint : FormODBase {
 			else if(ClaimFormCur.Items[i].FieldName=="MedIns"+insLine+"OtherProvID") { //MedInsAOtherProvID, MedInsBOtherProvID, MedInsCOtherProvID
 				var carrierElectID=_carrier.ElectID;
 				var providerFirst=Providers.GetFirst();//Used in order to preserve old behavior...  If this fails, then old code would have failed.
-				var provider=Providers.GetFirstOrDefault(x => x.ProvNum==_claim.ProvBill)??providerFirst;
-				if(provider.ProvNum>0 && carrierElectID!="" && ProviderIdents.GetForPayor(provider.ProvNum,carrierElectID).Length>0) {
-					var providerIdent=ProviderIdents.GetForPayor(provider.ProvNum,carrierElectID)[0];
+				var provider=Providers.GetFirstOrDefault(x => x.Id==_claim.ProvBill)??providerFirst;
+				if(provider.Id>0 && carrierElectID!="" && ProviderIdents.GetForPayor(provider.Id,carrierElectID).Length>0) {
+					var providerIdent=ProviderIdents.GetForPayor(provider.Id,carrierElectID)[0];
 					if(providerIdent.IDNumber != "") {
 						_stringArrayDisplay[i]=providerIdent.IDNumber;
 					}
@@ -4439,8 +4428,8 @@ public partial class FormClaimPrint : FormODBase {
 				}
 				else {
 					var providerFirst=Providers.GetFirst();//Used in order to preserve old behavior...  If this fails, then old code would have failed.
-					var providerClaimProc=Providers.GetFirstOrDefault(x => x.ProvNum==_listClaimProcs[procIndex].ProvNum)??providerFirst;
-					return providerClaimProc.MedicaidID;
+					var providerClaimProc=Providers.GetFirstOrDefault(x => x.Id==_listClaimProcs[procIndex].ProvNum)??providerFirst;
+					return providerClaimProc.MedicaidId;
 				}
 			case "TreatProvNPI":
 				if(_listClaimProcs[procIndex].ProvNum==0) {
@@ -4448,8 +4437,8 @@ public partial class FormClaimPrint : FormODBase {
 				}
 				else {
 					var providerFirst=Providers.GetFirst();//Used in order to preserve old behavior...  If this fails, then old code would have failed.
-					var providerClaimProc=Providers.GetFirstOrDefault(x => x.ProvNum==_listClaimProcs[procIndex].ProvNum)??providerFirst;
-					return providerClaimProc.NationalProvID;
+					var providerClaimProc=Providers.GetFirstOrDefault(x => x.Id==_listClaimProcs[procIndex].ProvNum)??providerFirst;
+					return providerClaimProc.NationalProviderId;
 				}
 			case "TreatProvSpecialty":
 				if(_listClaimProcs[procIndex].ProvNum==0) {
@@ -4457,7 +4446,7 @@ public partial class FormClaimPrint : FormODBase {
 				}
 				else {
 					var providerFirst=Providers.GetFirst();//Used in order to preserve old behavior...  If this fails, then old code would have failed.
-					var providerClaimProc=Providers.GetFirstOrDefault(x => x.ProvNum==_listClaimProcs[procIndex].ProvNum)??providerFirst;
+					var providerClaimProc=Providers.GetFirstOrDefault(x => x.Id==_listClaimProcs[procIndex].ProvNum)??providerFirst;
 					return X12Generator.GetTaxonomy(providerClaimProc);
 				}
 			case "PlaceNumericCode":

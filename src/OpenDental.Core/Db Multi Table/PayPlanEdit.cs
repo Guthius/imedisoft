@@ -16,28 +16,19 @@ namespace OpenDentBusiness
     {
         public static PayPlanCharge CreateDebitCharge(PayPlan payplan, Family famCur, long provNum, long clinicNum, double principalAmt, double interestAmt, DateTime dateCharge, string note)
         {
-            var ppCharge = new PayPlanCharge();
-            ppCharge.PayPlanNum = payplan.PayPlanNum;
-            //FamCur is the family of the patient, so check to see if the guarantor is in the patient's family. 
-            //If the guar and pat are in the same family, then use the patnum. else, use guarantor.
-            if (famCur.ListPats.Select(x => x.PatNum).Contains(payplan.Guarantor))
+            return new PayPlanCharge
             {
-                ppCharge.Guarantor = payplan.PatNum;
-            }
-            else
-            {
-                ppCharge.Guarantor = payplan.Guarantor;
-            }
-
-            ppCharge.PatNum = payplan.PatNum;
-            ppCharge.ChargeDate = dateCharge;
-            ppCharge.Interest = interestAmt;
-            ppCharge.Principal = principalAmt;
-            ppCharge.Note = note;
-            ppCharge.ChargeType = PayPlanChargeType.Debit;
-            ppCharge.ProvNum = provNum;
-            ppCharge.ClinicNum = clinicNum;
-            return ppCharge;
+                PayPlanNum = payplan.PayPlanNum,
+                Guarantor = famCur.ListPats.Select(x => x.PatNum).Contains(payplan.Guarantor) ? payplan.PatNum : payplan.Guarantor,
+                PatNum = payplan.PatNum,
+                ChargeDate = dateCharge,
+                Interest = interestAmt,
+                Principal = principalAmt,
+                Note = note,
+                ChargeType = PayPlanChargeType.Debit,
+                ProvNum = provNum,
+                ClinicNum = clinicNum
+            };
         }
 
         public static PayPlanCharge CreateDebitChargeDynamic(PayPlan payplan, Family famCur, long provNum, long clinicNum, double principalAmt, double interestAmt, DateTime dateCharge, string note, long fKey, PayPlanLinkType linkType)
@@ -468,7 +459,7 @@ namespace OpenDentBusiness
             }
 
             retVal["ChargeDate"] = SIn.DateTime(rowBundleClaimProc["DateCP"].ToString()).ToShortDateString(); //0 Date
-            retVal["Provider"] = Providers.GetLName(SIn.Long(rowBundleClaimProc["ProvNum"].ToString())); //1 Prov Abbr
+            retVal["Provider"] = Providers.GetLastName(SIn.Long(rowBundleClaimProc["ProvNum"].ToString())); //1 Prov Abbr
             retVal["Description"] = descript; //2 Descript
             retVal["Principal"] = ""; //3 Principal
             retVal["Interest"] = ""; //4 Interest
@@ -1407,12 +1398,11 @@ namespace OpenDentBusiness
             return period;
         }
 
-        public static void IssueChargesDueForDynamicPaymentPlans(List<PayPlan> listDynamicPayPlans, LogWriter log, bool isOpenDentalService = false)
+        public static void IssueChargesDueForDynamicPaymentPlans(List<PayPlan> listDynamicPayPlans, bool isOpenDentalService = false)
         {
             Signalods.SetInvalid(InvalidType.Prefs);
             try
             {
-                log.WriteLine("Running payment plan logic.", LogLevel.Verbose);
                 var listPayPlanLinksAll = PayPlanLinks.GetForPayPlans(listDynamicPayPlans.Select(x => x.PayPlanNum).ToList());
                 var dictPayPlanCharges = PayPlanCharges.GetForPayPlans(listDynamicPayPlans.Select(x => x.PayPlanNum).ToList())
                     .GroupBy(x => x.PayPlanNum)
@@ -1434,7 +1424,6 @@ namespace OpenDentBusiness
                     dictFamilies[patNum] = listFamilies.First(x => x.ListPats.Any(y => y.PatNum == patNum));
                 }
 
-                log.WriteLine($"Payment plans found: {listDynamicPayPlans.Count}", LogLevel.Verbose);
                 //Create any necessary pay plan charges for dynamic payment plans.
                 foreach (var payplan in listDynamicPayPlans)
                 {
@@ -1459,7 +1448,7 @@ namespace OpenDentBusiness
                     if (nextExpectedDate == DateTime_.Today && !listPayPlanChargesExpected.IsNullOrEmpty())
                     {
                         //Any prepayments should be automatically applied to charges that are due today.
-                        ApplyPrepaymentsToCharges(payplan, listPayPlanChargesExpected, listPaySplits, log);
+                        ApplyPrepaymentsToCharges(payplan, listPayPlanChargesExpected, listPaySplits);
                         continue;
                     }
 
@@ -1497,20 +1486,18 @@ namespace OpenDentBusiness
                         nextExpectedDate = CalcNextPeriodDate(payplan.DatePayPlanStart, periodCount, payplan.ChargeFrequency);
                         payPeriodsMissable--;
                     }
-
-                    log.WriteLine($"Expected PayPlanCharges to be inserted for PayPlanNum #{payplan.PayPlanNum}: {listPayPlanChargesNew.Count}", LogLevel.Verbose);
+                    
                     //Loop through each expected charge and insert them into the database one at a time so that the primary keys in memory are set correctly.
                     foreach (var payPlanCharge in listPayPlanChargesNew)
                     {
                         PayPlanCharges.Insert(payPlanCharge);
                     }
 
-                    ApplyPrepaymentsToCharges(payplan, listPayPlanChargesNew, listPaySplits, log);
+                    ApplyPrepaymentsToCharges(payplan, listPayPlanChargesNew, listPaySplits);
                 }
             }
-            catch (Exception ex)
+            catch
             {
-                log.WriteLine(ex.Message, LogLevel.Error);
             }
             finally
             {
@@ -1524,15 +1511,14 @@ namespace OpenDentBusiness
             }
         }
 
-        private static void ApplyPrepaymentsToCharges(PayPlan payplan, List<PayPlanCharge> listPayPlanCharges, List<PaySplit> listPaySplits, LogWriter log)
+        private static void ApplyPrepaymentsToCharges(PayPlan payplan, List<PayPlanCharge> listPayPlanCharges, List<PaySplit> listPaySplits)
         {
             var prepaymentAmount = GetDynamicPayPlanPrepaymentAmount(listPaySplits);
             if (CompareDouble.IsLessThanOrEqualToZero(prepaymentAmount))
             {
                 return;
             }
-
-            log.WriteLine($"Hidden unearned prepayments detected for PayPlanNum #{payplan.PayPlanNum}. Applying up to {prepaymentAmount.ToString("c")} to any new charges.", LogLevel.Verbose);
+            
             ApplyPrepaymentToDynamicPaymentPlan(payplan.Guarantor, prepaymentAmount, listPayPlanCharges, listPaySplits); //Guarantors on payment plans are the ones that make the payments.
         }
 

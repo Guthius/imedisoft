@@ -1,11 +1,5 @@
 using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
 using System.Diagnostics;
-using System.Drawing;
-using System.Text;
-using System.Web;
 using System.Windows.Forms;
 using OpenDental.UI;
 using OpenDentBusiness;

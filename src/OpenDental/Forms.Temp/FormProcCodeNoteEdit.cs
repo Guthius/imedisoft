@@ -1,14 +1,12 @@
 using System;
 using System.Drawing;
-using System.Collections;
-using System.ComponentModel;
 using System.Text;
 using System.Windows.Forms;
 using OpenDentBusiness;
-using OpenDentBusiness.UI;
 using System.Collections.Generic;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Entities;
+using Imedisoft.Features.Providers.Dtos;
 
 namespace OpenDental;
 
@@ -23,7 +21,7 @@ public partial class FormProcCodeNoteEdit : FormODBase {
 	private bool _hasChanged=false;
 	///<summary>Set to true to use the corresponding DefaultTPNote, otherwise uses the "complete" default note.</summary>
 	private bool _isTp;
-	private List<Provider> _listProviders;
+	private List<ProviderDto> _listProviders;
 
 		
 	public FormProcCodeNoteEdit()
@@ -51,8 +49,8 @@ public partial class FormProcCodeNoteEdit : FormODBase {
 		_listProviders=Providers.GetDeepCopy(true);
 		_stringBuilderTime=new StringBuilder(ProcCodeNoteCur.ProcTime);
 		for(var i=0;i<_listProviders.Count;i++){
-			listProv.Items.Add(_listProviders[i].GetLongDesc());
-			if(ProcCodeNoteCur.ProvNum==_listProviders[i].ProvNum){
+			listProv.Items.Add(_listProviders[i].Description);
+			if(ProcCodeNoteCur.ProvNum==_listProviders[i].Id){
 				listProv.SelectedIndex=i;
 			}
 		}
@@ -140,7 +138,7 @@ public partial class FormProcCodeNoteEdit : FormODBase {
 			return;
 		}
 		ProcCodeNoteCur.ProcTime=_stringBuilderTime.ToString();
-		ProcCodeNoteCur.ProvNum=_listProviders[listProv.SelectedIndex].ProvNum;
+		ProcCodeNoteCur.ProvNum=_listProviders[listProv.SelectedIndex].Id;
 		ProcCodeNoteCur.Note=textNote.Text;
 		if(_isTp) {
 			ProcCodeNoteCur.ProcStatus=ProcStat.TP;

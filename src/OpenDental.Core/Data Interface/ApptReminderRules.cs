@@ -240,10 +240,10 @@ Password: [Password]
                     ClinicNum = clinicNum,
                     TypeCur = ApptReminderType.Arrival,
                     TSPrior = TimeSpan.FromHours(3),
-                    TemplateSMS = $"[NameF] is scheduled for [ApptTime] on [ApptDate] at [ClinicName]. When you arrive, please respond with {ArrivalsTagReplacer.ARRIVED_TAG}. If you have questions call [ClinicPhone].",
+                    TemplateSMS = $"[NameF] is scheduled for [ApptTime] on [ApptDate] at [ClinicName]. When you arrive, please respond with {ArrivalsTagReplacer.ArrivedTag}. If you have questions call [ClinicPhone].",
                     TemplateEmail = "",
                     TemplateEmailSubject = "",
-                    TemplateSMSAggShared = $"[Appts]\nWhen you arrive, please respond with {ArrivalsTagReplacer.ARRIVED_TAG}. If you have questions call [ClinicPhone].",
+                    TemplateSMSAggShared = $"[Appts]\nWhen you arrive, please respond with {ArrivalsTagReplacer.ArrivedTag}. If you have questions call [ClinicPhone].",
                     TemplateSMSAggPerAppt = "[NameF] is scheduled for [ApptTime] on [ApptDate] at [ClinicName].",
                     TemplateEmailSubjAggShared = "",
                     TemplateEmailAggShared = "",
@@ -338,19 +338,19 @@ Password: [Password]
                 break;
 
             case ApptReminderType.Arrival:
-                replacementTags.Add(ArrivalsTagReplacer.ARRIVED_TAG);
+                replacementTags.Add(ArrivalsTagReplacer.ArrivedTag);
                 break;
 
             case ApptReminderType.PayPortalMsgToPay:
-                replacementTags.Add(MsgToPayTagReplacer.MSG_TO_PAY_TAG);
-                replacementTags.Add(MsgToPayTagReplacer.MONTHLY_CARD_TAG);
-                replacementTags.Add(MsgToPayTagReplacer.NAME_PREF_TAG);
-                replacementTags.Add(MsgToPayTagReplacer.PATNUM_TAG);
-                replacementTags.Add(MsgToPayTagReplacer.CURMONTH_TAG);
-                replacementTags.Add(MsgToPayTagReplacer.STATEMENT_URL_TAG);
-                replacementTags.Add(MsgToPayTagReplacer.STATEMENT_SHORT_TAG);
-                replacementTags.Add(MsgToPayTagReplacer.STATEMENT_BALANCE_TAG);
-                replacementTags.Add(MsgToPayTagReplacer.STATEMENT_INS_EST_TAG);
+                replacementTags.Add(MsgToPayTagReplacer.MsgToPayTag);
+                replacementTags.Add(MsgToPayTagReplacer.MonthlyCardTag);
+                replacementTags.Add(MsgToPayTagReplacer.NamePrefTag);
+                replacementTags.Add(MsgToPayTagReplacer.PatnumTag);
+                replacementTags.Add(MsgToPayTagReplacer.CurmonthTag);
+                replacementTags.Add(MsgToPayTagReplacer.StatementUrlTag);
+                replacementTags.Add(MsgToPayTagReplacer.StatementShortTag);
+                replacementTags.Add(MsgToPayTagReplacer.StatementBalanceTag);
+                replacementTags.Add(MsgToPayTagReplacer.StatementInsEstTag);
                 break;
         }
 

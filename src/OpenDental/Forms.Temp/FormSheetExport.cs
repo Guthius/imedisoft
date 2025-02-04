@@ -1,18 +1,14 @@
 using System;
 using System.Collections.Generic;
-using System.Data;
 using System.IO;
-using System.Linq;
 using System.Text;
 using System.Windows.Forms;
-using System.Xml;
 using System.Xml.Serialization;
 using CodeBase;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Entities;
 using OpenDental.UI;
 using OpenDentBusiness;
-using OpenDental.Thinfinity;
 
 namespace OpenDental;
 

@@ -1,181 +1,172 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Data;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Net.Mail;
 using System.Text.RegularExpressions;
 using System.Windows.Forms;
 using CodeBase;
 using DataConnectionBase;
-using Imedisoft.Core.Caching;
-using Imedisoft.Core.Entities;
-using OpenDental.UI;
-using OpenDentBusiness;
 
-namespace OpenDentBusiness.UI {
-	//=====WARNING! THERE IS A DUPLICATE OF THIS FILE OVER IN WpfControlsOD/UI/Controls/Supplemental/PopupHelper2
-	//=====UNTIL THIS FILE IS COMPLETELY DEPRECATED, BOTH FILES MUST BE KEPT IN SYNC.
-	//=====ANY CHANGES TO ONE MUST ALSO BE MADE IN THE OTHER.
-	///<summary>A helper class used add reference links to context menus</summary>
-	public class PopupHelper {
-		#region Methods - Public
-		///<summary>For a given context menu item, returns a sorted list of menu item links. This supports wiki, patient, task, Job, URL, web, and file explorer.</summary>
-		public static List<MenuItem> GetContextMenuItemLinks(string contextMenuItemText,bool rightClickLinks) {
-			List<MenuItem> listMenuItemsLinks=new List<MenuItem>();
-			List<string> listStringMatches=new List<string>();
-			List<long> listNumMatches=new List<long>();
-			listStringMatches=GetURLsFromText(contextMenuItemText);
-			for(int i=0;i<listStringMatches.Count;i++) {
-				string title=listStringMatches[i];
-				if(title.Length>24) {
-					title=title.Substring(0,24)+"...";
-				}
-				string strMatch=listStringMatches[i]; //To avoid lazy eval
-				EventHandler eventHandler=(s,eArg)=> { OpenWebPage(strMatch); };
-				listMenuItemsLinks.Add(new MenuItem("Web - "+title,eventHandler));
-			}
-			listStringMatches=ODFileUtils.GetFilePathsFromText(contextMenuItemText);
-			for(int i=0;i<listStringMatches.Count;i++) {
-				string strMatch=listStringMatches[i]; //To avoid lazy eval
-				EventHandler eventHandler=(s,eArg) => { OpenUNCPath(strMatch); };
-				if(!false) {
-					listMenuItemsLinks.Add(new MenuItem("File Explorer - "+listStringMatches[i],eventHandler));
-				}
-			}
-			if(rightClickLinks) {
-				listNumMatches=GetPatNumsFromText(contextMenuItemText);
-				for(int i=0;i<listNumMatches.Count;i++) {
-					long patNum=listNumMatches[i];
-					EventHandler eventHandler=(s,eArg) => { OpenPatNum(patNum); };
-					listMenuItemsLinks.Add(new MenuItem("PatNum - "+listNumMatches[i],eventHandler));
-				}
-				listNumMatches=GetTaskNumsFromText(contextMenuItemText);
-				for(int i=0;i<listNumMatches.Count;i++) {
-					long taskNum=listNumMatches[i];
-					EventHandler eventHandler=(s,eArg) => { OpenTaskNum(taskNum); };
-					listMenuItemsLinks.Add(new MenuItem("TaskNum - "+listNumMatches[i],eventHandler));
-				}
-			}
-			listMenuItemsLinks=listMenuItemsLinks.OrderByDescending(x => x.Text=="-").ThenBy(x => x.Text).ToList();//alphabetize the link items.
-			return listMenuItemsLinks;
-		}
+namespace OpenDentBusiness.UI;
 
-		///<summary>Returns a list of strings from the given text that are URLs.</summary>
-		public static List<string> GetURLsFromText(string text) {
-			//Regular expresion used to help identify URLs. This is not all encompassing.
-			//There will be URLs that do not match this but this should work for 99%.
-			//The url regex is generous enough to match urls fine and excludes emails well, but matches some files too.
-			//These files get cleaned out though.
-			string urlPattern=@"(?<!@)\b(?:https?:\/\/)?(?:www\.)?(?:[a-zA-Z0-9-]+\.)+[a-zA-Z]{2,4}(?:(?:\/|:)[^\s]*)?\b(?!(?:\\))";
-			List<string> listStringMatches=Regex.Matches(text,urlPattern)
-				.OfType<Match>()
-				.Select(m => m.Groups[0].Value)
-				.Distinct()
-				.ToList();
-			for(int i=listStringMatches.Count-1;i>=0;i--) {
-				if(listStringMatches[i].StartsWith("(") && listStringMatches[i].EndsWith(")")) {
-					listStringMatches[i]=listStringMatches[i].Substring(1,listStringMatches[i].Length-2);
-				}
-				if(!listStringMatches[i].StartsWith("http") && !listStringMatches[i].StartsWith("www.")){
-					if(ODFileUtils.IsKnownFileType(listStringMatches[i])){
-						listStringMatches.RemoveAt(i);
-						continue;
-					}
-				}
-				listStringMatches[i]=listStringMatches[i].TrimEnd('.');
-				Regex rgx=new Regex(@"[\\]{1}");
-				if(rgx.IsMatch(listStringMatches[i])) {
-					listStringMatches.RemoveAt(i);
-					continue;
-				}
-			}
-			return listStringMatches;
-		}
+public class PopupHelper
+{
+    public static List<MenuItem> GetContextMenuItemLinks(string contextMenuItemText, bool rightClickLinks)
+    {
+        var menuItems = new List<MenuItem>();
 
-		public static List<long> GetPatNumsFromText(string text) {
-			//If this Regex pattern is ever changed, we may need to change the Select statement below.
-			string strPatNum="patnum:";
-			List<long> listNumMatches=Regex.Matches(text,$@"{strPatNum}\d+",RegexOptions.IgnoreCase)
-				.OfType<Match>()
-				.Select(x => SIn.Long(x.Groups[0].Value.Substring(strPatNum.Length),false))//Get pat num out of text.
-				.Distinct()
-				.ToList();
-			return listNumMatches;
-		}
+        var matches = GetURLsFromText(contextMenuItemText);
+        foreach (var match in matches)
+        {
+            var title = match;
+            if (title.Length > 24)
+            {
+                title = title.Substring(0, 24) + "...";
+            }
 
-		public static List<long> GetTaskNumsFromText(string text) {
-			//If this Regex pattern is ever changed, we may need to change the Select statement below.
-			string strTaskNum="tasknum:";
-			List<long> listNumMatches=Regex.Matches(text,$@"{strTaskNum}\d+",RegexOptions.IgnoreCase)
-				.OfType<Match>()
-				.Select(x => SIn.Long(x.Groups[0].Value.Substring(strTaskNum.Length),false))//Get task num out of text.
-				.Distinct()
-				.ToList();
-			return listNumMatches;
-		}
+            menuItems.Add(new MenuItem("Web - " + title, (_, _) => OpenWebPage(match)));
+        }
 
-		public static List<long> GetJobNumsFromText(string text) {
-			//If this Regex pattern is ever changed, we may need to change the Select statement below.
-			string strJobNum = "jobnum:";
-			List<long> listNumMatches = Regex.Matches(text,$@"{strJobNum}\d+",RegexOptions.IgnoreCase)
-				.OfType<Match>()
-				.Select(x => SIn.Long(x.Groups[0].Value.Substring(strJobNum.Length),false))//Get Job num out of text.
-				.Distinct()
-				.ToList();
-			return listNumMatches;
-		}
+        matches = ODFileUtils.GetFilePathsFromText(contextMenuItemText);
+        foreach (var match in matches)
+        {
+            menuItems.Add(new MenuItem("File Explorer - " + match, (_, _) => OpenUncPath(match)));
+        }
 
-		#endregion Methods - Public
+        if (!rightClickLinks)
+        {
+            return menuItems
+                .OrderByDescending(x => x.Text == "-")
+                .ThenBy(x => x.Text)
+                .ToList();
+        }
+        
+        var patNums = GetPatNumsFromText(contextMenuItemText);
+        foreach (var patNum in patNums)
+        {
+            menuItems.Add(new MenuItem("PatNum - " + patNum, (_, _) => OpenPatNum(patNum)));
+        }
 
-		#region Methods - Private
-		private static void OpenPatNum(long patNum) {
-			Patient pat=Patients.GetPat(patNum);
-			if(pat==null) {
-				MessageBox.Show(Lans.g("OpenDental","Patient does not exist."));
-				return;
-			}
-			GlobalFormOpenDental.PatientSelected(pat,true);
-		}
+        var taskNums = GetTaskNumsFromText(contextMenuItemText);
+        foreach (var taskNum in taskNums)
+        {
+            menuItems.Add(new MenuItem("TaskNum - " + taskNum, (_, _) => OpenTaskNum(taskNum)));
+        }
 
-		private static void OpenTaskNum(long taskNum) {
-			if(Tasks.NavTaskDelegate!=null) {
-				Tasks.NavTaskDelegate.Invoke(taskNum);
-			}
-		}
-		
-		private static void OpenWebPage(string url) {
-			try {
-				if(!url.ToLower().StartsWith("http")) {
-					url=@"http://"+url;
-				}
+        return menuItems
+            .OrderByDescending(x => x.Text == "-")
+            .ThenBy(x => x.Text)
+            .ToList();
+    }
 
-				Process.Start(url);
-			}
-			catch {
-				MessageBox.Show(Lans.g("PopupHelper","Failed to open web browser.  Please make sure you have a default browser set and are connected to the internet then try again."),Lans.g("PopupHelper","Attention"));
-			}
-		}
+    public static List<string> GetURLsFromText(string text)
+    {
+        //Regular expresion used to help identify URLs. This is not all encompassing.
+        //There will be URLs that do not match this but this should work for 99%.
+        //The url regex is generous enough to match urls fine and excludes emails well, but matches some files too.
+        //These files get cleaned out though.
+        var urlPattern = @"(?<!@)\b(?:https?:\/\/)?(?:www\.)?(?:[a-zA-Z0-9-]+\.)+[a-zA-Z]{2,4}(?:(?:\/|:)[^\s]*)?\b(?!(?:\\))";
+        var listStringMatches = Regex.Matches(text, urlPattern)
+            .OfType<Match>()
+            .Select(m => m.Groups[0].Value)
+            .Distinct()
+            .ToList();
+        for (var i = listStringMatches.Count - 1; i >= 0; i--)
+        {
+            if (listStringMatches[i].StartsWith("(") && listStringMatches[i].EndsWith(")"))
+            {
+                listStringMatches[i] = listStringMatches[i].Substring(1, listStringMatches[i].Length - 2);
+            }
 
-		private static void OpenUNCPath(string folderPath) {
-			//It is significantly faster to check if the directory exists before calling Process.Start() in the case that you have an invalid path.
-			//Everything is a directory, scrubbed all specific files.
-			bool isValidPath=Directory.Exists(folderPath);
-			if(isValidPath) {
-				try {
-					Process.Start(folderPath);
-				}
-				catch(Exception e) {
-					MessageBox.Show(e.Message);
-				}
-			}
-			else {
-				MessageBox.Show(Lans.g("PopupHelper","Failed to open file location. Please make sure file path is valid."));
-			}
-		}
-		#endregion Methods - Private
+            listStringMatches[i] = listStringMatches[i].TrimEnd('.');
+            var rgx = new Regex(@"[\\]{1}");
+            if (rgx.IsMatch(listStringMatches[i]))
+            {
+                listStringMatches.RemoveAt(i);
+                continue;
+            }
+        }
 
+        return listStringMatches;
+    }
 
-	}
+    public static List<long> GetPatNumsFromText(string text)
+    {
+        //If this Regex pattern is ever changed, we may need to change the Select statement below.
+        var strPatNum = "patnum:";
+        var listNumMatches = Regex.Matches(text, $@"{strPatNum}\d+", RegexOptions.IgnoreCase)
+            .OfType<Match>()
+            .Select(x => SIn.Long(x.Groups[0].Value.Substring(strPatNum.Length), false)) //Get pat num out of text.
+            .Distinct()
+            .ToList();
+        return listNumMatches;
+    }
+
+    public static List<long> GetTaskNumsFromText(string text)
+    {
+        //If this Regex pattern is ever changed, we may need to change the Select statement below.
+        var strTaskNum = "tasknum:";
+        var listNumMatches = Regex.Matches(text, $@"{strTaskNum}\d+", RegexOptions.IgnoreCase)
+            .OfType<Match>()
+            .Select(x => SIn.Long(x.Groups[0].Value.Substring(strTaskNum.Length), false)) //Get task num out of text.
+            .Distinct()
+            .ToList();
+        return listNumMatches;
+    }
+    
+    private static void OpenPatNum(long patNum)
+    {
+        var patient = Patients.GetPat(patNum);
+
+        if (patient is null)
+        {
+            MessageBox.Show("Patient does not exist.");
+            return;
+        }
+
+        GlobalFormOpenDental.PatientSelected(patient, true);
+    }
+
+    private static void OpenTaskNum(long taskNum)
+    {
+        Tasks.NavTaskDelegate?.Invoke(taskNum);
+    }
+
+    private static void OpenWebPage(string url)
+    {
+        try
+        {
+            if (!url.ToLower().StartsWith("http"))
+            {
+                url = @"https://" + url;
+            }
+
+            Process.Start(url);
+        }
+        catch
+        {
+            MessageBox.Show("Failed to open web browser. Please make sure you have a default browser set and are connected to the internet then try again.", "Attention");
+        }
+    }
+
+    private static void OpenUncPath(string folderPath)
+    {
+        var isValidPath = Directory.Exists(folderPath);
+        if (isValidPath)
+        {
+            try
+            {
+                Process.Start(folderPath);
+            }
+            catch (Exception e)
+            {
+                MessageBox.Show(e.Message);
+            }
+        }
+        else
+        {
+            MessageBox.Show("Failed to open file location. Please make sure file path is valid.");
+        }
+    }
 }

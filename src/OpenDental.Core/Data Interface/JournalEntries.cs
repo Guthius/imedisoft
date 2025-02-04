@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using CodeBase;
 using DataConnectionBase;
 using Imedisoft.Core.Crud;
 using Imedisoft.Core.Entities;
@@ -12,311 +11,378 @@ public class JournalEntries
 {
     public static List<JournalEntry> GetForTrans(long transactionNum)
     {
-        var command =
-            "SELECT * FROM journalentry "
-            + "WHERE TransactionNum=" + SOut.Long(transactionNum);
-        return JournalEntryCrud.SelectMany(command);
+        return JournalEntryCrud.SelectMany("SELECT * FROM journalentry WHERE TransactionNum = " + transactionNum);
     }
-    
+
     public static List<JournalEntry> GetForAccount(Account account, DateTime dateFrom, DateTime dateTo)
     {
-        string command;
-        var listJournalEntries = new List<JournalEntry>();
+        var journalEntries = new List<JournalEntry>();
 
-        #region StartingBalanceRow
+        var from = new DateTime(dateFrom.Year, 1, 1);
+        var to = new DateTime(dateTo.Year, 1, 1);
 
-        //Get history balance and create a starting balance row.
-        var dateFirstOfYearFrom = new DateTime(dateFrom.Year, 1, 1);
-        var dateFirstOfYearTo = new DateTime(dateTo.Year, 1, 1);
-        command = "SELECT SUM(ROUND(CreditAmt,3)) SumCredit, "
-                  + "SUM(ROUND(DebitAmt,3)) SumDebit "
-                  + "FROM journalentry "
-                  + "WHERE AccountNum='" + SOut.Long(account.AccountNum) + "' "
-                  + "AND DateDisplayed < " + SOut.Date(dateFrom);
-        if (account.AcctType.In(AccountType.Income, AccountType.Expense))
-            //For Income and Expense, if their dateFrom is not 1/1, then we might need a starting balance for part of a year.
-            //Usually, with a 1/1 start date, this will result in no range, and a $0 starting row that doesn't show.
-            command += " AND DateDisplayed >= " + SOut.Date(dateFirstOfYearFrom);
-        var table = DataCore.GetTable(command); //always exactly one row
-        var credit = SIn.Double(table.Rows[0]["SumCredit"].ToString());
-        var debit = SIn.Double(table.Rows[0]["SumDebit"].ToString());
-        double balStart = 0;
-        if (Accounts.DebitIsPos(account.AcctType))
-            balStart = debit - credit;
-        else
-            balStart = credit - debit;
-        double amtBalRE = 0;
-        if (account.IsRetainedEarnings)
+        var commandText =
+            "SELECT SUM(ROUND(CreditAmt,3)) SumCredit, " +
+            "SUM(ROUND(DebitAmt,3)) SumDebit " +
+            "FROM journalentry " +
+            "WHERE AccountNum='" + account.AccountNum + "' " +
+            "AND DateDisplayed < " + SOut.Date(dateFrom);
+
+        if (account.AcctType is AccountType.Income or AccountType.Expense)
         {
-            //Now we need an entry that's the sum all previous RE entries
-            command = "SELECT SUM(ROUND(CreditAmt,3))-SUM(ROUND(DebitAmt,3)) "
-                      + "FROM journalentry,account "
-                      + "WHERE journalentry.AccountNum=account.AccountNum "
-                      + "AND (account.AcctType='" + SOut.Enum(AccountType.Income) + "' "
-                      + "OR account.AcctType='" + SOut.Enum(AccountType.Expense) + "') "
-                      + "AND DateDisplayed < " + SOut.Date(dateFirstOfYearFrom);
-            amtBalRE = SIn.Double(Db.GetCount(command)); //always a single cell
+            commandText += " AND DateDisplayed >= " + SOut.Date(from);
         }
 
-        balStart += amtBalRE; //no change for non-RE
-        var journalEntry = new JournalEntry();
-        journalEntry.CheckNumber = "";
-        if (dateFrom.Year > 1880) journalEntry.DateDisplayed = dateFrom.AddDays(-1);
-        journalEntry.Memo = Lans.g("FormJournal", "(starting balance)");
-        journalEntry.Splits = "";
+        var dataTable = DataCore.GetTable(commandText);
+
+        var credit = SIn.Double(dataTable.Rows[0]["SumCredit"].ToString());
+        var debit = SIn.Double(dataTable.Rows[0]["SumDebit"].ToString());
+
+        double startBalance;
         if (Accounts.DebitIsPos(account.AcctType))
         {
-            if (balStart >= 0)
-                journalEntry.DebitAmt = balStart;
-            else
-                journalEntry.CreditAmt = -balStart;
+            startBalance = debit - credit;
         }
         else
         {
-            if (balStart >= 0)
-                journalEntry.CreditAmt = balStart;
-            else
-                journalEntry.DebitAmt = -balStart;
+            startBalance = credit - debit;
         }
 
-        //The debit or credit will be used later to arrive at a starting bal to show
-        listJournalEntries.Add(journalEntry);
-
-        #endregion StartingBalanceRow
-
-        #region RetainedEarningsAutoEntries
+        double retainedEarningsBalance = 0;
 
         if (account.IsRetainedEarnings)
         {
-            //For Retained Earnings, add the auto entries for each year
-            //Only show the ones in our date range.
-            //RE entries prior to our date range are already included in starting bal.
-            //This will normally return no rows, unless date span is greater than one year.
-            //dateFrom could be empty, so 1/1/1
-            command = "SELECT SUM(ROUND(CreditAmt,3))-SUM(ROUND(DebitAmt,3)) AS Amount, "
-                      + "YEAR(journalentry.DateDisplayed) AS yearDis "
-                      + "FROM journalentry,account "
-                      + "WHERE journalentry.AccountNum=account.AccountNum "
-                      + "AND (account.AcctType='" + SOut.Enum(AccountType.Income) + "' "
-                      + "OR account.AcctType='" + SOut.Enum(AccountType.Expense) + "') "
-                      + "AND DateDisplayed < " + SOut.Date(dateFirstOfYearTo) + " "
-                      + "AND DateDisplayed >= " + SOut.Date(dateFirstOfYearFrom) + " "
-                      + "GROUP BY yearDis";
-            table = DataCore.GetTable(command);
-            for (var i = 0; i < table.Rows.Count; i++)
+            retainedEarningsBalance = SIn.Double(Db.GetCount(
+                "SELECT SUM(ROUND(CreditAmt,3))-SUM(ROUND(DebitAmt,3)) " +
+                "FROM journalentry,account " +
+                "WHERE journalentry.AccountNum=account.AccountNum " +
+                "AND (account.AcctType='" + (int) AccountType.Income + "' " +
+                "OR account.AcctType='" + (int) AccountType.Expense + "') " +
+                "AND DateDisplayed < " + SOut.Date(from)));
+        }
+
+        startBalance += retainedEarningsBalance;
+
+        var journalEntry = new JournalEntry
+        {
+            CheckNumber = "",
+            Memo = "(starting balance)",
+            Splits = ""
+        };
+
+        if (dateFrom.Year > 1880)
+        {
+            journalEntry.DateDisplayed = dateFrom.AddDays(-1);
+        }
+
+        if (Accounts.DebitIsPos(account.AcctType))
+        {
+            if (startBalance >= 0)
             {
-                journalEntry = new JournalEntry();
-                journalEntry.CheckNumber = "";
-                journalEntry.Splits = "";
-                var year = SIn.Int(table.Rows[i]["yearDis"].ToString());
-                journalEntry.DateDisplayed = new DateTime(year, 12, 31);
-                var amount = SIn.Double(table.Rows[i]["Amount"].ToString());
+                journalEntry.DebitAmt = startBalance;
+            }
+            else
+            {
+                journalEntry.CreditAmt = -startBalance;
+            }
+        }
+        else
+        {
+            if (startBalance >= 0)
+            {
+                journalEntry.CreditAmt = startBalance;
+            }
+            else
+            {
+                journalEntry.DebitAmt = -startBalance;
+            }
+        }
+
+        journalEntries.Add(journalEntry);
+
+        if (account.IsRetainedEarnings)
+        {
+            dataTable = DataCore.GetTable(
+                "SELECT SUM(ROUND(CreditAmt, 3)) - SUM(ROUND(DebitAmt, 3)) AS Amount, " +
+                "YEAR(journalentry.DateDisplayed) AS yearDis " +
+                "FROM journalentry, account " +
+                "WHERE journalentry.AccountNum=account.AccountNum " +
+                "AND (account.AcctType = '" + (int) AccountType.Income + "' " +
+                "OR account.AcctType = '" + (int) AccountType.Expense + "') " +
+                "AND DateDisplayed < " + SOut.Date(to) + " " +
+                "AND DateDisplayed >= " + SOut.Date(from) + " " +
+                "GROUP BY yearDis");
+
+            for (var i = 0; i < dataTable.Rows.Count; i++)
+            {
+                var year = SIn.Int(dataTable.Rows[i]["yearDis"].ToString());
+
+                journalEntry = new JournalEntry
+                {
+                    CheckNumber = "",
+                    Splits = "",
+                    DateDisplayed = new DateTime(year, 12, 31)
+                };
+
+                var amount = SIn.Double(dataTable.Rows[i]["Amount"].ToString());
                 if (amount > 0)
+                {
                     journalEntry.CreditAmt = amount;
+                }
                 else
+                {
                     journalEntry.DebitAmt = -amount;
-                journalEntry.Memo = Lans.g("FormJournal", "(auto)");
-                listJournalEntries.Add(journalEntry);
+                }
+
+                journalEntry.Memo = "(auto)";
+
+                journalEntries.Add(journalEntry);
             }
         }
 
-        #endregion RetainedEarningsAutoEntries
-
-        #region ExpenseIncomeAutoEntries
-
-        //For income and expense accounts, if our range showing crosses any annual boundaries,
-        //then we need to have an auto entry at each of those points to zero out the running balance
-        if (account.AcctType.In(AccountType.Income, AccountType.Expense))
+        if (account.AcctType is AccountType.Income or AccountType.Expense)
         {
-            command = "SELECT SUM(ROUND(CreditAmt,3))-SUM(ROUND(DebitAmt,3)) AS Amount, "
-                      + "YEAR(DateDisplayed) AS yearDis "
-                      + "FROM journalentry "
-                      + "WHERE AccountNum='" + SOut.Long(account.AccountNum) + "' "
-                      + "AND DateDisplayed < " + SOut.Date(dateFirstOfYearTo) + " "
-                      + "AND DateDisplayed >= " + SOut.Date(dateFirstOfYearFrom) + " "
-                      + "GROUP BY yearDis";
-            table = DataCore.GetTable(command);
-            for (var i = 0; i < table.Rows.Count; i++)
+            dataTable = DataCore.GetTable(
+                "SELECT SUM(ROUND(CreditAmt,3))-SUM(ROUND(DebitAmt,3)) AS Amount, " +
+                "YEAR(DateDisplayed) AS yearDis " +
+                "FROM journalentry " +
+                "WHERE AccountNum='" + account.AccountNum + "' " +
+                "AND DateDisplayed < " + SOut.Date(to) + " " +
+                "AND DateDisplayed >= " + SOut.Date(from) + " " +
+                "GROUP BY yearDis");
+
+            for (var i = 0; i < dataTable.Rows.Count; i++)
             {
-                journalEntry = new JournalEntry();
-                journalEntry.CheckNumber = "";
-                journalEntry.Splits = "";
-                var year = SIn.Int(table.Rows[i]["yearDis"].ToString());
-                journalEntry.DateDisplayed = new DateTime(year, 12, 31);
-                var amount = SIn.Double(table.Rows[i]["Amount"].ToString());
-                //this math is the same for both types because the query got credits as pos.
+                var year = SIn.Int(dataTable.Rows[i]["yearDis"].ToString());
+
+                journalEntry = new JournalEntry
+                {
+                    CheckNumber = "",
+                    Splits = "",
+                    DateDisplayed = new DateTime(year, 12, 31)
+                };
+
+                var amount = SIn.Double(dataTable.Rows[i]["Amount"].ToString());
                 if (amount > 0)
+                {
                     journalEntry.DebitAmt = amount;
+                }
                 else
+                {
                     journalEntry.CreditAmt = -amount;
-                journalEntry.Memo = Lans.g("FormJournal", "(auto)");
-                listJournalEntries.Add(journalEntry);
+                }
+
+                journalEntry.Memo = "(auto)";
+
+                journalEntries.Add(journalEntry);
             }
         }
 
-        #endregion ExpenseIncomeAutoEntries
+        journalEntries.AddRange(JournalEntryCrud.SelectMany(
+            "SELECT * FROM journalentry " +
+            "WHERE AccountNum = '" + account.AccountNum + "' " +
+            "AND DateDisplayed >= " + SOut.Date(dateFrom) + " " +
+            "AND DateDisplayed <= " + SOut.Date(dateTo) + " " +
+            "ORDER BY DateDisplayed"));
 
-        command =
-            "SELECT * FROM journalentry "
-            + "WHERE AccountNum='" + SOut.Long(account.AccountNum) + "' "
-            + "AND DateDisplayed >= " + SOut.Date(dateFrom) + " "
-            + "AND DateDisplayed <= " + SOut.Date(dateTo) + " "
-            + "ORDER BY DateDisplayed";
-        listJournalEntries.AddRange(JournalEntryCrud.SelectMany(command));
-        listJournalEntries = listJournalEntries.OrderBy(x => x.DateDisplayed)
-            .ThenByDescending(x => x.AccountNum).ToList(); //this makes the auto entry come after other entries on that date
-        return listJournalEntries;
+        return journalEntries
+            .OrderBy(x => x.DateDisplayed)
+            .ThenByDescending(x => x.AccountNum)
+            .ToList();
     }
 
     public static List<JournalEntry> GetForReconcile(long accountNum, bool includeUncleared, long reconcileNum)
     {
-        var command =
-            "SELECT * FROM journalentry "
-            + "WHERE AccountNum=" + SOut.Long(accountNum)
-            + " AND (ReconcileNum=" + SOut.Long(reconcileNum);
+        var commandText = "SELECT * FROM journalentry WHERE AccountNum = " + accountNum + " AND (ReconcileNum = " + reconcileNum;
+
         if (includeUncleared)
-            command += " OR ReconcileNum=0)";
+        {
+            commandText += " OR ReconcileNum = 0)";
+        }
         else
-            command += ")";
-        command += " ORDER BY DateDisplayed";
-        return JournalEntryCrud.SelectMany(command);
+        {
+            commandText += ")";
+        }
+
+        commandText += " ORDER BY DateDisplayed";
+
+        return JournalEntryCrud.SelectMany(commandText);
     }
-    
+
     public static void Insert(JournalEntry journalEntry)
     {
-        journalEntry.SecUserNumEntry = Security.CurUser.UserNum; //Before middle tier check to catch user at workstation
+        journalEntry.SecUserNumEntry = Security.CurUser.UserNum;
         journalEntry.SecUserNumEdit = Security.CurUser.UserNum;
 
-        if (journalEntry.DebitAmt < 0 || journalEntry.CreditAmt < 0) throw new ApplicationException(Lans.g("JournalEntries", "Error. Credit and debit must both be positive."));
+        if (journalEntry.DebitAmt < 0 || journalEntry.CreditAmt < 0)
+        {
+            throw new ApplicationException("Error. Credit and debit must both be positive.");
+        }
+
         JournalEntryCrud.Insert(journalEntry);
     }
-    
+
     public static void Update(JournalEntry journalEntry)
     {
-        journalEntry.SecUserNumEdit = Security.CurUser.UserNum; //Before middle tier check to catch user at workstation
+        journalEntry.SecUserNumEdit = Security.CurUser.UserNum;
 
-        if (journalEntry.DebitAmt < 0 || journalEntry.CreditAmt < 0) throw new ApplicationException(Lans.g("JournalEntries", "Error. Credit and debit must both be positive."));
+        if (journalEntry.DebitAmt < 0 || journalEntry.CreditAmt < 0)
+        {
+            throw new ApplicationException("Error. Credit and debit must both be positive.");
+        }
+
         JournalEntryCrud.Update(journalEntry);
     }
 
     public static void Delete(JournalEntry journalEntry)
     {
-        //This method is only used once in synch below.  Validation needs to be done, but doing it inside the loop would be dangerous.
-        //So validation is done in the UI as follows:
-        //1. Deleting an entire transaction is validated in business layer.
-        //2. When editing a transaction attached to reconcile, simple view is blocked.
-        //3. Double clicking on grid lets you change JEs not attached to reconcile.
-        //4. Double clicking on grid lets you change notes even if attached to reconcile.
-        var command = "DELETE FROM journalentry WHERE JournalEntryNum = " + SOut.Long(journalEntry.JournalEntryNum);
-        Db.NonQ(command);
+        Db.NonQ("DELETE FROM journalentry WHERE JournalEntryNum = " + journalEntry.JournalEntryNum);
     }
 
-    public static void UpdateList(List<JournalEntry> listJournalEntriesOld, List<JournalEntry> listJournalEntriesNew)
+    public static void UpdateList(List<JournalEntry> journalEntriesOld, List<JournalEntry> journalEntriesNew)
     {
-        for (var i = 0; i < listJournalEntriesNew.Count; i++)
-            if (listJournalEntriesNew[i].DebitAmt < 0 || listJournalEntriesNew[i].CreditAmt < 0)
-                throw new ApplicationException(Lans.g("JournalEntries", "Error. Credit and debit must both be positive."));
-
-        JournalEntry journalEntryNew;
-        for (var i = 0; i < listJournalEntriesOld.Count; i++)
+        foreach (var journalEntry in journalEntriesNew)
         {
-            //loop through the old list
-            journalEntryNew = null;
-            for (var j = 0; j < listJournalEntriesNew.Count; j++)
+            if (journalEntry.DebitAmt < 0 || journalEntry.CreditAmt < 0)
             {
-                if (listJournalEntriesNew[j] == null || listJournalEntriesNew[j].JournalEntryNum == 0) continue;
-                if (listJournalEntriesOld[i].JournalEntryNum == listJournalEntriesNew[j].JournalEntryNum)
+                throw new ApplicationException("Error. Credit and debit must both be positive.");
+            }
+        }
+
+        foreach (var journalEntry in journalEntriesOld)
+        {
+            JournalEntry journalEntryNew = null;
+            foreach (var newJournalEntry in journalEntriesNew)
+            {
+                if (newJournalEntry is null || newJournalEntry.JournalEntryNum == 0)
                 {
-                    journalEntryNew = listJournalEntriesNew[j];
-                    break;
+                    continue;
                 }
+                
+                if (journalEntry.JournalEntryNum != newJournalEntry.JournalEntryNum)
+                {
+                    continue;
+                }
+
+                journalEntryNew = newJournalEntry;
+                break;
             }
 
-            if (journalEntryNew == null)
+            if (journalEntryNew is null)
             {
-                //journalentry with matching journalEntryNum was not found, so it must have been deleted
-                Delete(listJournalEntriesOld[i]);
+                Delete(journalEntry);
+
                 continue;
             }
 
-            //journalentry was found with matching journalEntryNum, so check for changes
-            if (journalEntryNew.AccountNum != listJournalEntriesOld[i].AccountNum
-                || journalEntryNew.DateDisplayed != listJournalEntriesOld[i].DateDisplayed
-                || journalEntryNew.DebitAmt != listJournalEntriesOld[i].DebitAmt
-                || journalEntryNew.CreditAmt != listJournalEntriesOld[i].CreditAmt
-                || journalEntryNew.Memo != listJournalEntriesOld[i].Memo
-                || journalEntryNew.Splits != listJournalEntriesOld[i].Splits
-                || journalEntryNew.CheckNumber != listJournalEntriesOld[i].CheckNumber)
+            if (journalEntryNew.AccountNum != journalEntry.AccountNum ||
+                journalEntryNew.DateDisplayed != journalEntry.DateDisplayed ||
+                journalEntryNew.DebitAmt != journalEntry.DebitAmt ||
+                journalEntryNew.CreditAmt != journalEntry.CreditAmt ||
+                journalEntryNew.Memo != journalEntry.Memo ||
+                journalEntryNew.Splits != journalEntry.Splits ||
+                journalEntryNew.CheckNumber != journalEntry.CheckNumber)
+            {
                 Update(journalEntryNew);
+            }
         }
 
-        for (var i = 0; i < listJournalEntriesNew.Count; i++)
+        foreach (var journalEntry in journalEntriesNew)
         {
-            //loop through the new list
-            if (listJournalEntriesNew[i] == null) continue;
-            if (listJournalEntriesNew[i].JournalEntryNum != 0) continue;
-            //entry with journalEntryNum=0, so it's new
-            Insert(listJournalEntriesNew[i]);
+            if (journalEntry is not {JournalEntryNum: 0})
+            {
+                continue;
+            }
+
+            Insert(journalEntry);
         }
     }
 
-    public static bool AttachedToReconcile(List<JournalEntry> listJournalEntries)
+    public static bool AttachedToReconcile(List<JournalEntry> journalEntries)
     {
-        for (var i = 0; i < listJournalEntries.Count; i++)
-            if (listJournalEntries[i].ReconcileNum != 0)
+        foreach (var journalEntry in journalEntries)
+        {
+            if (journalEntry.ReconcileNum != 0)
+            {
                 return true;
+            }
+        }
 
         return false;
     }
 
-    public static DateTime GetReconcileDate(List<JournalEntry> listJournalEntries)
+    public static DateTime GetReconcileDate(List<JournalEntry> journalEntries)
     {
-        for (var i = 0; i < listJournalEntries.Count; i++)
-            if (listJournalEntries[i].ReconcileNum != 0)
-                return Reconciles.GetOne(listJournalEntries[i].ReconcileNum).DateReconcile;
+        foreach (var journalEntry in journalEntries)
+        {
+            if (journalEntry.ReconcileNum != 0)
+            {
+                return Reconciles.GetOne(journalEntry.ReconcileNum).DateReconcile;
+            }
+        }
 
         return DateTime.MinValue;
     }
 
-    public static void SaveList(List<JournalEntry> listJournalEntries, long reconcileNum)
+    public static void SaveList(List<JournalEntry> journalEntries, long reconcileNum)
     {
-        var command = "UPDATE journalentry SET ReconcileNum=0 WHERE";
+        var commandText = "UPDATE journalentry SET ReconcileNum = 0 WHERE";
+
         var str = "";
-        for (var i = 0; i < listJournalEntries.Count; i++)
+        foreach (var journalEntry in journalEntries)
         {
-            if (listJournalEntries[i].ReconcileNum != 0) continue;
-            if (str != "") str += " OR";
-            str += " JournalEntryNum=" + SOut.Long(listJournalEntries[i].JournalEntryNum);
+            if (journalEntry.ReconcileNum != 0)
+            {
+                continue;
+            }
+
+            if (str != "")
+            {
+                str += " OR";
+            }
+
+            str += " JournalEntryNum=" + journalEntry.JournalEntryNum;
         }
 
         if (str != "")
         {
-            command += str;
-            Db.NonQ(command);
+            commandText += str;
+
+            Db.NonQ(commandText);
         }
 
-        command = "UPDATE journalentry SET ReconcileNum=" + SOut.Long(reconcileNum) + " WHERE";
+        commandText = "UPDATE journalentry SET ReconcileNum = " + reconcileNum + " WHERE";
+
         str = "";
-        for (var i = 0; i < listJournalEntries.Count; i++)
+        foreach (var journalEntry in journalEntries)
         {
-            if (listJournalEntries[i].ReconcileNum != reconcileNum) continue;
-            if (str != "") str += " OR";
-            str += " JournalEntryNum=" + SOut.Long(listJournalEntries[i].JournalEntryNum);
+            if (journalEntry.ReconcileNum != reconcileNum)
+            {
+                continue;
+            }
+
+            if (str != "")
+            {
+                str += " OR";
+            }
+
+            str += " JournalEntryNum=" + journalEntry.JournalEntryNum;
         }
 
-        if (str != "")
+        if (str == "")
         {
-            command += str;
-            Db.NonQ(command);
+            return;
         }
+
+        commandText += str;
+
+        Db.NonQ(commandText);
     }
 
     public static bool IsInUse(long accountNum)
     {
-        var command = "SELECT COUNT(*) FROM journalentry "
-                      + "WHERE AccountNum=" + SOut.Long(accountNum);
-        var count = Db.GetCount(command);
-        if (count == "0") return false;
-        return true;
+        var count = Db.GetCount("SELECT COUNT(*) FROM journalentry WHERE AccountNum = " + accountNum);
+
+        return count != "0";
     }
 }

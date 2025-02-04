@@ -1,7 +1,6 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Drawing;
 using System.Windows.Forms;
 using System.Globalization;
@@ -9,22 +8,19 @@ using System.IO;
 using System.Linq;
 using OpenDental.UI;
 using OpenDentBusiness.HL7;
-using SparksToothChart;
 using OpenDentBusiness;
 using CodeBase;
 using PdfSharp.Pdf;
 using MigraDoc.DocumentObjectModel;
 using MigraDoc.DocumentObjectModel.Shapes;
-using MigraDoc.Rendering;
-using MigraDoc.Rendering.Printing;
 using Document=Imedisoft.Core.Entities.Document;
-using OpenDentBusiness.WebTypes;
 using System.Text.RegularExpressions;
 using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Data;
 using Imedisoft.Core.Entities;
 using Imedisoft.Core.Features.Clinics;
+using OpenDental.Chart;
 using OpenDental.Logic;
 
 namespace OpenDental;
@@ -32,7 +28,7 @@ namespace OpenDental;
 public partial class ControlTreat : System.Windows.Forms.UserControl{
 	#region Fields - Public
 	public bool HasNoteChanged=false;
-	public LayoutManagerForms LayoutManager=new LayoutManagerForms();
+	
 	public Patient PatientCur;
 	#endregion Fields - Public
 
@@ -177,20 +173,6 @@ public partial class ControlTreat : System.Windows.Forms.UserControl{
 		}
 		RefreshModuleScreen(false);
 		ODEvent.Fire(ODEventType.ModuleSelected,_tpModuleData);
-		if(PatientCur!=null && DatabaseIntegrities.DoShowPopup(PatientCur.PatNum,EnumModuleType.TreatPlan)) {
-			var listAppointments=Appointments.GetAppointmentsForPat(PatientCur.PatNum);
-			var listClaims=_listClaims;
-			var listClaimProcs=ClaimProcs.Refresh([PatientCur.PatNum]); //The TP module only has ClaimProcs with a status of Estimate or CapEstimate.
-			var areHashesValid=Patients.AreAllHashesValid(PatientCur,listAppointments, [], [],listClaims,listClaimProcs);
-			if(!areHashesValid) {
-				DatabaseIntegrities.AddPatientModuleToCache(PatientCur.PatNum,EnumModuleType.TreatPlan); //Add to cached list for next time
-				//show popup
-				var databaseIntegrity=DatabaseIntegrities.GetModule();
-				var frmDatabaseIntegrity=new FrmDatabaseIntegrity();
-				frmDatabaseIntegrity.MessageToShow=databaseIntegrity.Message;
-				frmDatabaseIntegrity.ShowDialog();
-			}
-		}
 	}
 
 		
@@ -427,10 +409,6 @@ public partial class ControlTreat : System.Windows.Forms.UserControl{
 		ToolBarMainCreate_Click();
 	}
 
-	private void butSendToDevice_Click(object sender,EventArgs e) {
-		TrySendTreatPlan();
-	}
-
 	private void FillPlans(bool doRefreshData=true){
 		gridPlans.BeginUpdate();
 		gridPlans.Columns.Clear();
@@ -455,24 +433,8 @@ public partial class ControlTreat : System.Windows.Forms.UserControl{
 		_listProceduresTP=Procedures.SortListByTreatPlanPriority(_listProcedures.FindAll(x => x.ProcStatus==ProcStat.TP || x.ProcStatus==ProcStat.TPi)
 			,PrefC.IsTreatPlanSortByTooth);//sorted by priority, then (conditionally) toothnum
 		//_listTPCurrent=TreatPlans.Refresh(PatCur.PatNum,new[] {TreatPlanStatus.Active,TreatPlanStatus.Inactive});
-		//todo: get all mobile devices here instead
-		var listMobileAppDevices=MobileAppDevices.GetAll(PatientCur.PatNum);
 		if(doRefreshData || _listTreatPlans==null) {
 			_listTreatPlans=TreatPlans.GetAllForPat(PatientCur.PatNum);
-			//Check if the treatment plans are actually still on mobile devices. If eClipboard crashed, for example, then the patient is no longer on that device,
-			//but treatment plans MobileAppDeviceNum wouldn't have been cleared.
-			if(listMobileAppDevices.Count==0) {
-				//Patient is on no devices, so clear out MobileAppDeviceNum on treatment plans
-				for(var i=0;i<_listTreatPlans.Count;i++) {
-					if(_listTreatPlans[i].MobileAppDeviceNum>0) {
-						TreatPlans.UpdateMobileAppDeviceNum(_listTreatPlans[i],0);
-						Signalods.SetInvalid(InvalidType.TPModule,KeyType.PatNum,_listTreatPlans[i].PatNum);
-						Signalods.SetInvalid(InvalidType.EClipboard);
-					}
-				}
-				//Patient isn't on a device, so there shouldn't be any TreatPlanParams for the pat.
-				TreatPlanParams.RemoveAllByPatNum(PatientCur.PatNum);
-			}
 		}
 		_listTreatPlans=_listTreatPlans
 			.OrderBy(x => x.TPStatus!=TreatPlanStatus.Active)
@@ -507,14 +469,7 @@ public partial class ControlTreat : System.Windows.Forms.UserControl{
 			else{
 				row.Cells.Add("X");
 			}
-			if(treatPlan.MobileAppDeviceNum>0 
-			   && listMobileAppDevices.FirstOrDefault(x => x.MobileAppDeviceNum==treatPlan.MobileAppDeviceNum)?.PatNum==treatPlan.PatNum) 
-			{
-				row.Cells.Add("X");
-			}
-			else {
-				row.Cells.Add("");
-			}
+			row.Cells.Add("");
 			row.Tag=treatPlan;
 			gridPlans.ListGridRows.Add(row);
 		}
@@ -608,7 +563,7 @@ public partial class ControlTreat : System.Windows.Forms.UserControl{
 			   || listDisplayFields[i].InternalName=="Pat"
 			   || listDisplayFields[i].InternalName=="Allowed"
 			   || listDisplayFields[i].InternalName=="Tax Est"
-			   || listDisplayFields[i].InternalName==DisplayFields.InternalNames.TreatmentPlanModule.CatPercUCR) 
+			   || listDisplayFields[i].InternalName==DisplayFields.InternalNames.TreatmentPlanModule.CatPercUcr) 
 			{
 				col.TextAlign=HorizontalAlignment.Right;
 			}
@@ -781,7 +736,7 @@ public partial class ControlTreat : System.Windows.Forms.UserControl{
 					case DisplayFields.InternalNames.TreatmentPlanModule.Appt:
 						row.Cells.Add(_listTpRowsMain[i].Appt);//"X" if procedure has an AptNum>0 otherwise blank.
 						break;
-					case DisplayFields.InternalNames.TreatmentPlanModule.CatPercUCR:
+					case DisplayFields.InternalNames.TreatmentPlanModule.CatPercUcr:
 						row.Cells.Add(_listTpRowsMain[i].CatPercUCR.ToString("F"));
 						break;
 				}
@@ -844,7 +799,7 @@ public partial class ControlTreat : System.Windows.Forms.UserControl{
 			   || listDisplayFields[i].InternalName=="Discount"
 			   || listDisplayFields[i].InternalName=="Pat"
 			   || listDisplayFields[i].InternalName=="Tax Est"
-			   || listDisplayFields[i].InternalName==DisplayFields.InternalNames.TreatmentPlanModule.CatPercUCR)
+			   || listDisplayFields[i].InternalName==DisplayFields.InternalNames.TreatmentPlanModule.CatPercUcr)
 			{
 				col.TextAlign=HorizontalAlignment.Right;
 			}
@@ -1031,7 +986,7 @@ public partial class ControlTreat : System.Windows.Forms.UserControl{
 					case DisplayFields.InternalNames.TreatmentPlanModule.Appt:
 						row.Cells.Add(_listTpRowsMain[i].Appt);//"X" if procedure has an AptNum>0 otherwise blank.
 						break;
-					case DisplayFields.InternalNames.TreatmentPlanModule.CatPercUCR:
+					case DisplayFields.InternalNames.TreatmentPlanModule.CatPercUcr:
 						if(PrefC.GetBool(PrefName.TreatPlanItemized) 
 						   || _listTpRowsMain[i].Description.In(Lan.g("TableTP","Total"),Lan.g("TableTP","Subtotal"))) 
 						{
@@ -1260,16 +1215,6 @@ public partial class ControlTreat : System.Windows.Forms.UserControl{
 				}
 			}
 		}
-		if(gridPlans.Columns[e.Col].Heading=="eClipboard") {
-			if(_listTreatPlans[gridPlans.SelectedIndices[0]].MobileAppDeviceNum>0) {
-				if(MsgBox.Show(this,MsgBoxButtons.YesNo,"Would you like to recall this treatment plan from the mobile device?")) {
-					treatPlan=_listTreatPlans[gridPlans.SelectedIndices[0]];
-					MobileNotifications.CI_RemoveTreatmentPlan(treatPlan.MobileAppDeviceNum,treatPlan);
-					FillPlans();
-					return;
-				}
-			}
-		}
 		FillMain();
 		gridPreAuth.SetAll(false);
 		if(gridPlans.SelectedIndices.Length <= 0) {
@@ -1279,7 +1224,7 @@ public partial class ControlTreat : System.Windows.Forms.UserControl{
 			//In 17.1 we forced everyone to switch to using sheets for TPs. In order to avoid making it appear that historical data has changed,
 			//we give the option to print using the classic view for treatment plans that were saved before updating to 17.1.
 			if(!tabControlShowSort.TabPages.Contains(tabPagePrint)) {
-				LayoutManagerForms.Add(tabPagePrint,tabControlShowSort);
+				tabControlShowSort.Controls.Add(tabPagePrint);
 			}
 			return;
 		}
@@ -1310,153 +1255,6 @@ public partial class ControlTreat : System.Windows.Forms.UserControl{
 			}
 		}
 		FillMain();
-	}
-		
-	///<summary>Attempts to update the eClipbaord device with the currently selected TP in gridPlans.
-	///If a device is set to the same patient as PatCur then we will automatically create the notification for that device.
-	///Otherwise we prompt for an unlock code if doPromptForDevice is not enabled.</summary>
-	private void TrySendTreatPlan(){
-		//Mimics FillPlans()
-		var treatPlan=gridPlans.SelectedTag<TreatPlan>();
-		Sheet sheetTP=null;
-		if(PatientCur==null) {
-			return;
-		}
-		if(DoPrintUsingSheets()) {
-			sheetTP=SheetUtil.CreateSheet(SheetDefs.GetInternalOrCustom(SheetInternalType.TreatmentPlan),PatientCur.PatNum);
-		}
-		var hasPracticeSig=sheetTP?.SheetFields?.Any(x => x.FieldType==SheetFieldType.SigBoxPractice)??false;
-		if(PatientCur==null){
-			MsgBox.Show("Please select a patient first.");
-			return;
-		}
-		if(treatPlan==null) {//Shouldn't happen, control auto selects when loading.
-			MsgBox.Show("Please select a Saved Treatment Plan first.");
-			return;
-		}
-		else if(treatPlan.TPStatus!=TreatPlanStatus.Saved){
-			//Eventually we plan on implementing something here to save TPs for user when not saved.
-			MsgBox.Show("Only Saved Treatment Plans can be sent to a mobile device.");
-			return;
-		}
-		else if(!string.IsNullOrEmpty(treatPlan.Signature) || (hasPracticeSig && !string.IsNullOrEmpty(treatPlan.SignaturePractice)))
-		{
-			MsgBox.Show("This Treatment Plan has already been signed.");
-			return;
-		}
-		var mobileAppDevice=MobileAppDevices.ShouldCreateMobileNotification(PatientCur.PatNum);
-		if(mobileAppDevice==null) {
-			OpenUnlockCodeForTP();
-			return;
-		}
-		PushSelectedTpToEclipboard(mobileAppDevice);
-	}
-
-	///<summary>Sends the currently selected TreatmentPlan in gridPlans to a given target mobile device.
-	///If no selection is currently made then this simply returns.
-	///Shows a MsgBox when done or if error occurs.</summary>
-	private void PushSelectedTpToEclipboard(MobileAppDevice mobileAppDevice){
-		if(gridPlans.SelectedIndices.Count()==0){
-			return;//document wont be null below.
-		}
-		using var pdfDocument=GetTreatPlanPDF(out var treatPlan,out var hasPracticeSig); //Cant be null due to above check.
-		try {
-			MobileNotifications.CI_SendTreatmentPlan(pdfDocument,treatPlan,hasPracticeSig,mobileAppDevice.MobileAppDeviceNum);
-		}
-		catch (Exception ex) {
-			//Error occurred
-			//It failed to send to device, so clear out what ever device num was there
-			TreatPlans.UpdateMobileAppDeviceNum(treatPlan,0);
-			Signalods.SetInvalid(InvalidType.TPModule,KeyType.PatNum,treatPlan.PatNum);
-			Signalods.SetInvalid(InvalidType.EClipboard);
-			MsgBox.Show($"Error sending Treatment Plan: {ex.Message}");
-			return;
-		}
-		SendTreatPlanParam(treatPlan);
-		//The treatment plan's MobileAppDeviceNum needs to be updated so that we know it is on a device
-		FillPlans();
-		MsgBox.Show($"Treatment Plan sent to device: {mobileAppDevice.DeviceName}");
-	}
-
-	///<summary>Opens a FormMobileCode window with the currently selected TP.</summary>
-	private void OpenUnlockCodeForTP(){
-		long treatPlanParamNum=0;
-		MobileDataByte funcInsertDataForUnlockCode(string unlockCode) {
-			using var pdfDocument=GetTreatPlanPDF(out var treatPlan,out var hasPracticeSig); 
-			MobileDataByte mobileDataByte=null;
-			try {
-				mobileDataByte=MobileDataBytes.InsertTreatPlanPDF(pdfDocument,treatPlan,hasPracticeSig,unlockCode);
-			}
-			catch (Exception ex) {
-				//Failed to insert mobile data byte and won't be retrievable in eClipboard so clear out mobile app device num
-				TreatPlans.UpdateMobileAppDeviceNum(treatPlan,0);
-				Signalods.SetInvalid(InvalidType.TPModule,KeyType.PatNum,treatPlan.PatNum);
-				Signalods.SetInvalid(InvalidType.EClipboard);
-				MsgBox.Show(ex.Message);
-				return null;
-			}
-			treatPlanParamNum=SendTreatPlanParam(treatPlan);
-			return mobileDataByte;
-		}
-		using var formMobileCode=new FormMobileCode(funcInsertDataForUnlockCode);
-		formMobileCode.ShowDialog();
-		if(formMobileCode.DialogResult==DialogResult.Cancel && treatPlanParamNum>0) {
-			//A TreatPlanParam was inserted into the DB already, so it needs to be removed if the unlock code isn't used.
-			TreatPlanParams.Delete(treatPlanParamNum);
-		}
-	}
-
-	///<summary>Inserts a new TreatPlanParam into the database if PrefName.TreatPlanSaveSignedToPdf is true.
-	///This will be used when they save from eClipboard and it needs to create a signed treatment plan PDF based on these check boxes.</summary>
-	private long SendTreatPlanParam(TreatPlan treatPlan) {
-		if(!PrefC.GetBool(PrefName.TreatPlanSaveSignedToPdf)) {//no need to create a treatPlanParam if not saving PDF
-			return 0;
-		}
-		return TreatPlanParams.Insert(new TreatPlanParam {
-			IsNew=true,
-			PatNum=treatPlan.PatNum,
-			TreatPlanNum=treatPlan.TreatPlanNum,
-			ShowCompleted=checkShowCompleted.Checked,
-			ShowDiscount=checkShowDiscount.Checked,
-			ShowFees=checkShowFees.Checked,
-			ShowIns=checkShowIns.Checked,
-			ShowMaxDed=checkShowMaxDed.Checked,
-			ShowSubTotals=checkShowSubtotals.Checked,
-			ShowTotals=checkShowTotals.Checked
-		});
-	}
-
-	///<summary>Returns a PDF for the currently selected TreatmentPlan and sets out TreatmentPlan to selected TreatmentPlan.
-	///If nothing is selected in gridPlans then returns null and out TreatPlan is set to null.</summary>
-	private PdfDocument GetTreatPlanPDF(out TreatPlan treatPlan,out bool hasPracticeSig){
-		treatPlan=null;
-		hasPracticeSig=false;
-		PdfDocument pdfDocument=null;
-		if(gridPlans.SelectedIndices.Count()==1) {
-			var actionCloseProgress=ODProgress.Show(); //Immediately shows a progress window.
-			//The following logic mimics ToolBarMainEmail_Click()
-			treatPlan=_listTreatPlans[gridPlans.SelectedIndices[0]].Copy();
-			if(DoPrintUsingSheets()) {
-				if(treatPlan.TPStatus==TreatPlanStatus.Saved) {
-					treatPlan.ListProcTPs=ProcTPs.RefreshForTP(treatPlan.TreatPlanNum);
-				}
-				else {
-					treatPlan.ListProcTPs=LoadTP(treatPlan);
-				}
-				var sheet=TreatPlanToSheet(treatPlan);
-				hasPracticeSig=sheet.SheetFields.Any(x => x.FieldType==SheetFieldType.SigBoxPractice);
-				pdfDocument=SheetPrinting.CreatePdf(sheet,"",null,null,null,null,null,false);
-			}
-			else {//generate and save a new document from scratch
-				PrepImageForPrinting();
-				var pdfDocumentRenderer=new PdfDocumentRenderer(true,PdfFontEmbedding.Always);
-				pdfDocumentRenderer.Document=CreateDocument();
-				pdfDocumentRenderer.RenderDocument();
-				pdfDocument=pdfDocumentRenderer.PdfDocument;
-			}
-			actionCloseProgress();//Closes the progress window. 
-		}
-		return pdfDocument;
 	}
 
 	private void listSetPr_MouseDown(object sender,System.Windows.Forms.MouseEventArgs e) {
@@ -1602,15 +1400,9 @@ public partial class ControlTreat : System.Windows.Forms.UserControl{
 			migraDocPrintDocument.Renderer=documentRenderer;
 			//we might want to surround some of this with a try-catch
 			//TODO: Implement ODprintout pattern - MigraDoc
-			if(/* ODBuild.IsDebug() */ false) {
-				using var formRpPrintPreview=new FormRpPrintPreview(migraDocPrintDocument);
-				formRpPrintPreview.ShowDialog();
-			}
-			else {
-				if(PrinterL.SetPrinter(pd2,PrintSituation.TPPerio,PatientCur.PatNum,"Treatment plan for printed")){
-					migraDocPrintDocument.PrinterSettings=pd2.PrinterSettings;
-					migraDocPrintDocument.Print();
-				}
+			if(PrinterL.SetPrinter(pd2,PrintSituation.TPPerio,PatientCur.PatNum,"Treatment plan for printed")){
+				migraDocPrintDocument.PrinterSettings=pd2.PrinterSettings;
+				migraDocPrintDocument.Print();
 			}
 		}
 		SaveTPAsDocument(false,sheetTP);
@@ -1624,10 +1416,7 @@ public partial class ControlTreat : System.Windows.Forms.UserControl{
 		var attachPath=EmailAttaches.GetAttachPath();
 		var random=new Random();
 		var fileName=DateTime.Now.ToString("yyyyMMdd")+"_"+DateTime.Now.TimeOfDay.Ticks+random.Next(1000)+".pdf";
-		var filePathAndName=FileAtoZ.CombinePaths(attachPath,fileName);
-		if(false) {
-			filePathAndName=PrefC.GetRandomTempFile("pdf");//Save the pdf to a temp file and then upload it the Email Attachment folder later.
-		}
+		var filePathAndName=Path.Combine(attachPath,fileName);
 		if(gridPlans.SelectedIndices[0]>0 //not the default plan.
 		   && PrefC.GetBool(PrefName.TreatPlanSaveSignedToPdf) //preference enabled
 		   && _listTreatPlans[gridPlans.SelectedIndices[0]].Signature!="" //and document is signed
@@ -1665,9 +1454,6 @@ public partial class ControlTreat : System.Windows.Forms.UserControl{
 			pdfRenderer.PdfDocument.Save(filePathAndName);
 		}
 		//Process.Start(filePathAndName);
-		if(false) {
-			FileAtoZ.Copy(filePathAndName,FileAtoZ.CombinePaths(attachPath,fileName));
-		}
 		var emailMessage=new EmailMessage();
 		emailMessage.PatNum=PatientCur.PatNum;
 		emailMessage.ToAddress=PatientCur.Email;
@@ -1761,8 +1547,8 @@ public partial class ControlTreat : System.Windows.Forms.UserControl{
 		if(Clinics.IsMedicalPracticeOrClinic(Clinics.ClinicNum)){
 			return;
 		}
-		_toothChartWrapper=new SparksToothChart.ToothChartWrapper();
-		_toothChartRelay= new ToothChartRelay(false);
+		_toothChartWrapper=new ToothChartWrapper();
+		_toothChartRelay= new ToothChartRelay();
 		_toothChartRelay.SetToothChartWrapper(_toothChartWrapper);
 		if(ToothChartRelay.IsSparks3DPresent){
 			_controlToothChart=_toothChartRelay.GetToothChart();
@@ -2459,10 +2245,10 @@ public partial class ControlTreat : System.Windows.Forms.UserControl{
 					_toothChartRelay.SetImplant(procedure.ToothNum,cDark);
 					break;
 				case ToothPaintingType.PostBU:
-					_toothChartRelay.SetBU(procedure.ToothNum,cDark);
+					_toothChartRelay.SetBu(procedure.ToothNum,cDark);
 					break;
 				case ToothPaintingType.RCT:
-					_toothChartRelay.SetRCT(procedure.ToothNum,cDark);
+					_toothChartRelay.SetRct(procedure.ToothNum,cDark);
 					break;
 				case ToothPaintingType.RetainedRoot:
 					_toothChartRelay.SetRetainedRoot(procedure.ToothNum,cDark);
@@ -2619,15 +2405,6 @@ public partial class ControlTreat : System.Windows.Forms.UserControl{
 			MsgBox.Show(this,"An Active or Inactive TP must be selected before saving a TP.  You can highlight some procedures in the TP to save a TP with only those procedures in it.");
 			return;
 		}
-		//Check for duplicate procedures on the appointment before sending the DFT to eCW.
-		if(Programs.UsingEcwTightOrFullMode() && Bridges.ECW.AptNum!=0) {
-			var listProcedures=Procedures.GetProcsForSingle(Bridges.ECW.AptNum,false);
-			var duplicateProcs=ProcedureL.ProcsContainDuplicates(listProcedures);
-			if(duplicateProcs!="") {
-				ODMessageBox.Show(duplicateProcs);
-				return;
-			}
-		}
 		if(gridMain.SelectedIndices.Length==0){
 			gridMain.SetAll(true);//Select all if none selected.
 		}
@@ -2675,39 +2452,6 @@ public partial class ControlTreat : System.Windows.Forms.UserControl{
 			if(_listTreatPlans[i].TreatPlanNum==treatPlanNum){
 				gridPlans.SetSelected(i,true);
 				FillMain();
-			}
-		}
-		//Send TP DFT HL7 message to ECW with embedded PDF when using tight or full integration only.
-		if(Programs.UsingEcwTightOrFullMode() && Bridges.ECW.AptNum!=0){
-			PrepImageForPrinting();
-			var pdfDocumentRenderer=new MigraDoc.Rendering.PdfDocumentRenderer(true,PdfFontEmbedding.Always);
-			pdfDocumentRenderer.Document=CreateDocument();
-			pdfDocumentRenderer.RenderDocument();
-			var memoryStream=new MemoryStream();
-			pdfDocumentRenderer.PdfDocument.Save(memoryStream);
-			var byteArrayPdf=memoryStream.GetBuffer();
-			//#region Remove when testing is complete.
-			//string tempFilePath=Path.GetTempFileName();
-			//File.WriteAllBytes(tempFilePath,pdfBytes);
-			//#endregion
-			var pdfDataStr=Convert.ToBase64String(byteArrayPdf);
-			if(HL7Defs.IsExistingHL7Enabled()) {
-				//DFT messages that are PDF's only and do not include FT1 segments, so proc list can be empty
-				//MessageConstructor.GenerateDFT(procList,EventTypeHL7.P03,PatCur,Patients.GetPat(PatCur.Guarantor),Bridges.ECW.AptNum,"treatment",pdfDataStr);
-				var messageHL7=MessageConstructor.GenerateDFT([],EventTypeHL7.P03,PatientCur,Patients.GetPat(PatientCur.Guarantor),Bridges.ECW.AptNum,"treatment",pdfDataStr);
-				if(messageHL7==null) {
-					MsgBox.Show(this,"There is no DFT message type defined for the enabled HL7 definition.");
-					return;
-				}
-				var hL7Msg=new HL7Msg();
-				hL7Msg.AptNum=0;//Prevents the appt complete button from changing to the "Revise" button prematurely.
-				hL7Msg.HL7Status=HL7MessageStatus.OutPending;//it will be marked outSent by the HL7 service.
-				hL7Msg.MsgText=messageHL7.ToString();
-				hL7Msg.PatNum=PatientCur.PatNum;
-				HL7Msgs.Insert(hL7Msg);
-			}
-			else {
-				Bridges.ECW.SendHL7(Bridges.ECW.AptNum,PatientCur.PriProv,PatientCur,pdfDataStr,"treatment",true,null);//just pdf, passing null proc list
 			}
 		}
 	}
@@ -2800,9 +2544,6 @@ public partial class ControlTreat : System.Windows.Forms.UserControl{
 		var rawBase64="";
 		if(DoPrintUsingSheets()) {
 			SheetPrinting.CreatePdf(sheet,tempFile,null);
-			if(false) {
-				rawBase64=Convert.ToBase64String(System.IO.File.ReadAllBytes(tempFile));//Todo test this
-			}
 		}
 		else {//classic TPs
 			MigraDoc.Rendering.PdfDocumentRenderer pdfDocumentRenderer;
@@ -2810,12 +2551,6 @@ public partial class ControlTreat : System.Windows.Forms.UserControl{
 			pdfDocumentRenderer.Document=CreateDocument();
 			pdfDocumentRenderer.RenderDocument();
 			pdfDocumentRenderer.Save(tempFile);
-			if(false) {
-				using var memoryStream=new MemoryStream();
-				pdfDocumentRenderer.Save(memoryStream,false);
-				rawBase64=Convert.ToBase64String(memoryStream.ToArray());
-				memoryStream.Close();
-			}
 		}
 		for(var i=0;i< listNumsCategories.Count;i++) {//usually only one, but do allow them to be saved once per image category.
 			var documentSave=new Document();
@@ -2945,7 +2680,7 @@ public partial class ControlTreat : System.Windows.Forms.UserControl{
 			if(claim.ProvTreat==0){//makes sure that at least one prov is set
 				claim.ProvTreat=procedure.ProvNum;
 			}
-			if(!Providers.GetIsSec(procedure.ProvNum)) {
+			if(!Providers.IsSecondary(procedure.ProvNum)) {
 				claim.ProvTreat=procedure.ProvNum;
 			}
 			var procedureCode=ProcedureCodes.GetProcCode(procedure.CodeNum);
@@ -2998,14 +2733,14 @@ public partial class ControlTreat : System.Windows.Forms.UserControl{
 		}
 		//Make the clinic on the claim match the clinic of the procedures.  Use the patients clinic if no procedures selected (shouldn't happen).
 		claim.ClinicNum=(procClinicNum > -1) ? procClinicNum : PatientCur.ClinicNum;
-		if(Providers.GetIsSec(claim.ProvTreat)){
+		if(Providers.IsSecondary(claim.ProvTreat)){
 			claim.ProvTreat=PatientCur.PriProv;
 			//OK if 0, because auto select first in list when open claim
 		}
 		claim.ProvBill=Providers.GetBillingProvNum(claim.ProvTreat,claim.ClinicNum);
-		var provider=Providers.GetProv(claim.ProvTreat);//If ever null then check this same line inside AccountModules.CreateClaim()
-		if(provider.ProvNumBillingOverride!=0) {
-			claim.ProvBill=provider.ProvNumBillingOverride;
+		var provider=Providers.GetById(claim.ProvTreat);//If ever null then check this same line inside AccountModules.CreateClaim()
+		if(provider.BillingProvider is not null) {
+			claim.ProvBill=provider.BillingProvider.Id;
 		}
 		claim.EmployRelated=YN.No;
 		claim.ClaimType="PreAuth";

@@ -17,7 +17,6 @@ public class DrCephArgs
     public string SSN;
     public string Sex;
     public string Race;
-    public string AngleClass;
     public string Birthdate;
     public string RecordsDate;
     public string ReferringDr;

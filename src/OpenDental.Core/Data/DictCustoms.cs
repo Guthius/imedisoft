@@ -54,19 +54,19 @@ public static class DictCustoms
 
     private static readonly DictCustomCache Cache = new();
 
-    public static List<DictCustom> GetDeepCopy(bool isShort = false)
+    public static List<DictCustom> GetDeepCopy(bool shortList = false)
     {
-        return Cache.GetDeepCopy(isShort);
+        return Cache.GetDeepCopy(shortList);
     }
 
-    public static DictCustom GetFirstOrDefault(Func<DictCustom, bool> match, bool isShort = false)
+    public static DictCustom GetFirstOrDefault(Func<DictCustom, bool> predicate, bool shortList = false)
     {
-        return Cache.GetFirstOrDefault(match, isShort);
+        return Cache.GetFirstOrDefault(predicate, shortList);
     }
 
-    public static DataTable GetTableFromCache(bool doRefreshCache)
+    public static DataTable GetTableFromCache(bool refreshCache)
     {
-        return Cache.GetTableFromCache(doRefreshCache);
+        return Cache.GetTableFromCache(refreshCache);
     }
 
     public static void ClearCache()

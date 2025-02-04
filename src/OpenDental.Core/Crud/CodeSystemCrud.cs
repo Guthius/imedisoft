@@ -17,16 +17,17 @@ public class CodeSystemCrud
     public static List<CodeSystem> TableToList(DataTable table)
     {
         var retVal = new List<CodeSystem>();
-        CodeSystem codeSystem;
         foreach (DataRow row in table.Rows)
         {
-            codeSystem = new CodeSystem();
-            codeSystem.CodeSystemNum = SIn.Long(row["CodeSystemNum"].ToString());
-            codeSystem.CodeSystemName = SIn.String(row["CodeSystemName"].ToString());
-            codeSystem.VersionCur = SIn.String(row["VersionCur"].ToString());
-            codeSystem.VersionAvail = SIn.String(row["VersionAvail"].ToString());
-            codeSystem.HL7OID = SIn.String(row["HL7OID"].ToString());
-            codeSystem.Note = SIn.String(row["Note"].ToString());
+            var codeSystem = new CodeSystem
+            {
+                CodeSystemNum = SIn.Long(row["CodeSystemNum"].ToString()),
+                CodeSystemName = SIn.String(row["CodeSystemName"].ToString()),
+                VersionCur = SIn.String(row["VersionCur"].ToString()),
+                VersionAvail = SIn.String(row["VersionAvail"].ToString()),
+                HL7OID = SIn.String(row["HL7OID"].ToString()),
+                Note = SIn.String(row["Note"].ToString())
+            };
             retVal.Add(codeSystem);
         }
 

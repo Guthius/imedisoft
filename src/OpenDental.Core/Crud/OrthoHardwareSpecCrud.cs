@@ -18,16 +18,17 @@ public class OrthoHardwareSpecCrud
     public static List<OrthoHardwareSpec> TableToList(DataTable table)
     {
         var retVal = new List<OrthoHardwareSpec>();
-        OrthoHardwareSpec orthoHardwareSpec;
         foreach (DataRow row in table.Rows)
         {
-            orthoHardwareSpec = new OrthoHardwareSpec();
-            orthoHardwareSpec.OrthoHardwareSpecNum = SIn.Long(row["OrthoHardwareSpecNum"].ToString());
-            orthoHardwareSpec.OrthoHardwareType = (EnumOrthoHardwareType) SIn.Int(row["OrthoHardwareType"].ToString());
-            orthoHardwareSpec.Description = SIn.String(row["Description"].ToString());
-            orthoHardwareSpec.ItemColor = Color.FromArgb(SIn.Int(row["ItemColor"].ToString()));
-            orthoHardwareSpec.IsHidden = SIn.Bool(row["IsHidden"].ToString());
-            orthoHardwareSpec.ItemOrder = SIn.Int(row["ItemOrder"].ToString());
+            var orthoHardwareSpec = new OrthoHardwareSpec
+            {
+                OrthoHardwareSpecNum = SIn.Long(row["OrthoHardwareSpecNum"].ToString()),
+                OrthoHardwareType = (EnumOrthoHardwareType) SIn.Int(row["OrthoHardwareType"].ToString()),
+                Description = SIn.String(row["Description"].ToString()),
+                ItemColor = Color.FromArgb(SIn.Int(row["ItemColor"].ToString())),
+                IsHidden = SIn.Bool(row["IsHidden"].ToString()),
+                ItemOrder = SIn.Int(row["ItemOrder"].ToString())
+            };
             retVal.Add(orthoHardwareSpec);
         }
 

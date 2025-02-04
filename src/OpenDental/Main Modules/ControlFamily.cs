@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Drawing;
 using System.Globalization;
 using System.Linq;
@@ -19,14 +18,11 @@ namespace OpenDental;
 
 public partial class ControlFamily : UserControl {
 	#region Fields - Public
-	public LayoutManagerForms LayoutManager=new LayoutManagerForms();
+	
 	#endregion Fields - Public
 
 	#region Fields - Private
 	private PatField[] _arrayPatFields;
-	///<summary>Filled with all clones for the currently selected patient and their corresponding specialty.
-	///Specialties are only important if clinics are enabled.  If clinics are disabled then the corresponding Def will be null.</summary>
-	private Dictionary<Patient,Def> _dictCloneSpecialty;
 	private DiscountPlanSub _discountPlanSub;
 	private Family _family;
 	private bool _initializedOnStartup;
@@ -553,19 +549,6 @@ public partial class ControlFamily : UserControl {
 		}
 		RefreshModuleScreen();
 		ODEvent.Fire(ODEventType.ModuleSelected,_loadData);
-		if(_patient!=null && DatabaseIntegrities.DoShowPopup(_patient.PatNum,EnumModuleType.Family)) {
-			var listClaims=Claims.GetForPat(_patient.PatNum);
-			var listClaimProcs=ClaimProcs.Refresh([_patient.PatNum]);
-			var areHashesValid=Patients.AreAllHashesValid(_patient, [], [], [],listClaims,listClaimProcs);
-			if(!areHashesValid) {
-				DatabaseIntegrities.AddPatientModuleToCache(_patient.PatNum,EnumModuleType.Family); //Add to cached list for next time
-				//show popup
-				var databaseIntegrity=DatabaseIntegrities.GetModule();
-				var frmDatabaseIntegrity=new FrmDatabaseIntegrity();
-				frmDatabaseIntegrity.MessageToShow=databaseIntegrity.Message;
-				frmDatabaseIntegrity.ShowDialog();
-			}
-		}
 	}
 
 		

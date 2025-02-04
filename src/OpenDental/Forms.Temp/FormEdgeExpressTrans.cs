@@ -58,10 +58,10 @@ public partial class FormEdgeExpressTrans:FormODBase {
 		listBoxTransType.Items.Clear();
 		List<EdgeExpressTransType> listEdgeExpressTransTypes;
 		if(radioTerminal.Checked) {
-			listEdgeExpressTransTypes=EdgeExpress.ListTerminalTransTypes;
+			listEdgeExpressTransTypes=EdgeExpress.TerminalTransTypes;
 		}
 		else {
-			listEdgeExpressTransTypes=EdgeExpress.ListWebTransTypes;
+			listEdgeExpressTransTypes=EdgeExpress.WebTransTypes;
 		}
 		for(var i=0;i<listEdgeExpressTransTypes.Count;i++) {
 			listBoxTransType.Items.Add(listEdgeExpressTransTypes[i].GetDescription(),listEdgeExpressTransTypes[i]);

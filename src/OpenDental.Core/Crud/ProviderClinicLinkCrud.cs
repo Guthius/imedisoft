@@ -1,5 +1,3 @@
-#region
-
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
@@ -7,28 +5,10 @@ using DataConnectionBase;
 using Imedisoft.Core.Entities;
 using OpenDentBusiness;
 
-#endregion
-
 namespace Imedisoft.Core.Crud;
 
 public class ProviderClinicLinkCrud
 {
-    public static ProviderClinicLink SelectOne(long providerClinicLinkNum)
-    {
-        var command = "SELECT * FROM providercliniclink "
-                      + "WHERE ProviderClinicLinkNum = " + SOut.Long(providerClinicLinkNum);
-        var list = TableToList(DataCore.GetTable(command));
-        if (list.Count == 0) return null;
-        return list[0];
-    }
-
-    public static ProviderClinicLink SelectOne(string command)
-    {
-        var list = TableToList(DataCore.GetTable(command));
-        if (list.Count == 0) return null;
-        return list[0];
-    }
-
     public static List<ProviderClinicLink> SelectMany(string command)
     {
         var list = TableToList(DataCore.GetTable(command));
@@ -38,13 +18,14 @@ public class ProviderClinicLinkCrud
     public static List<ProviderClinicLink> TableToList(DataTable table)
     {
         var retVal = new List<ProviderClinicLink>();
-        ProviderClinicLink providerClinicLink;
         foreach (DataRow row in table.Rows)
         {
-            providerClinicLink = new ProviderClinicLink();
-            providerClinicLink.ProviderClinicLinkNum = SIn.Long(row["ProviderClinicLinkNum"].ToString());
-            providerClinicLink.ProvNum = SIn.Long(row["ProvNum"].ToString());
-            providerClinicLink.ClinicNum = SIn.Long(row["ClinicNum"].ToString());
+            var providerClinicLink = new ProviderClinicLink
+            {
+                ProviderClinicLinkNum = SIn.Long(row["ProviderClinicLinkNum"].ToString()),
+                ProvNum = SIn.Long(row["ProvNum"].ToString()),
+                ClinicNum = SIn.Long(row["ClinicNum"].ToString())
+            };
             retVal.Add(providerClinicLink);
         }
 
@@ -63,12 +44,7 @@ public class ProviderClinicLinkCrud
         return table;
     }
 
-    public static long Insert(ProviderClinicLink providerClinicLink)
-    {
-        return Insert(providerClinicLink, false);
-    }
-
-    public static long Insert(ProviderClinicLink providerClinicLink, bool useExistingPK)
+    public static void Insert(ProviderClinicLink providerClinicLink)
     {
         var command = "INSERT INTO providercliniclink (";
 
@@ -80,38 +56,6 @@ public class ProviderClinicLinkCrud
         {
             providerClinicLink.ProviderClinicLinkNum = Db.NonQ(command, true, "ProviderClinicLinkNum", "providerClinicLink");
         }
-        return providerClinicLink.ProviderClinicLinkNum;
-    }
-
-    public static long InsertNoCache(ProviderClinicLink providerClinicLink)
-    {
-        return InsertNoCache(providerClinicLink, false);
-    }
-
-    public static long InsertNoCache(ProviderClinicLink providerClinicLink, bool useExistingPK)
-    {
-        const bool isRandomKeys = false;
-        var command = "INSERT INTO providercliniclink (";
-        if (isRandomKeys || useExistingPK) command += "ProviderClinicLinkNum,";
-        command += "ProvNum,ClinicNum) VALUES(";
-        if (isRandomKeys || useExistingPK) command += SOut.Long(providerClinicLink.ProviderClinicLinkNum) + ",";
-        command +=
-            SOut.Long(providerClinicLink.ProvNum) + ","
-                                                  + SOut.Long(providerClinicLink.ClinicNum) + ")";
-        if (useExistingPK || isRandomKeys)
-            Db.NonQ(command);
-        else
-            providerClinicLink.ProviderClinicLinkNum = Db.NonQ(command, true, "ProviderClinicLinkNum", "providerClinicLink");
-        return providerClinicLink.ProviderClinicLinkNum;
-    }
-
-    public static void Update(ProviderClinicLink providerClinicLink)
-    {
-        var command = "UPDATE providercliniclink SET "
-                      + "ProvNum              =  " + SOut.Long(providerClinicLink.ProvNum) + ", "
-                      + "ClinicNum            =  " + SOut.Long(providerClinicLink.ClinicNum) + " "
-                      + "WHERE ProviderClinicLinkNum = " + SOut.Long(providerClinicLink.ProviderClinicLinkNum);
-        Db.NonQ(command);
     }
 
     public static bool Update(ProviderClinicLink providerClinicLink, ProviderClinicLink oldProviderClinicLink)
@@ -136,20 +80,6 @@ public class ProviderClinicLinkCrud
         return true;
     }
 
-    public static bool UpdateComparison(ProviderClinicLink providerClinicLink, ProviderClinicLink oldProviderClinicLink)
-    {
-        if (providerClinicLink.ProvNum != oldProviderClinicLink.ProvNum) return true;
-        if (providerClinicLink.ClinicNum != oldProviderClinicLink.ClinicNum) return true;
-        return false;
-    }
-
-    public static void Delete(long providerClinicLinkNum)
-    {
-        var command = "DELETE FROM providercliniclink "
-                      + "WHERE ProviderClinicLinkNum = " + SOut.Long(providerClinicLinkNum);
-        Db.NonQ(command);
-    }
-
     public static void DeleteMany(List<long> listProviderClinicLinkNums)
     {
         if (listProviderClinicLinkNums == null || listProviderClinicLinkNums.Count == 0) return;
@@ -170,15 +100,13 @@ public class ProviderClinicLinkCrud
         var idxNew = 0;
         var idxDB = 0;
         var rowsUpdatedCount = 0;
-        ProviderClinicLink fieldNew;
-        ProviderClinicLink fieldDB;
         //Because both lists have been sorted using the same criteria, we can now walk each list to determine which list contians the next element.  The next element is determined by Primary Key.
         //If the New list contains the next item it will be inserted.  If the DB contains the next item, it will be deleted.  If both lists contain the next item, the item will be updated.
         while (idxNew < listNew.Count || idxDB < listDB.Count)
         {
-            fieldNew = null;
+            ProviderClinicLink fieldNew = null;
             if (idxNew < listNew.Count) fieldNew = listNew[idxNew];
-            fieldDB = null;
+            ProviderClinicLink fieldDB = null;
             if (idxDB < listDB.Count) fieldDB = listDB[idxDB];
             //begin compare
             if (fieldNew != null && fieldDB == null)

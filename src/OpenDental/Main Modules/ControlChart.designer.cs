@@ -1,4 +1,6 @@
-﻿namespace OpenDental {
+﻿using OpenDental.Chart;
+
+namespace OpenDental {
 	partial class ControlChart {
 		/// <summary> 
 		/// Required designer variable.
@@ -2858,7 +2860,7 @@
 		private OpenDental.UI.ODGridPageNav gridProgPageNav;
 		private OpenDental.UI.GridOld gridProg;
 		private System.Windows.Forms.Panel panelGridProg;
-		private SparksToothChart.ToothChartWrapper toothChartWrapper;
+		private ToothChartWrapper toothChartWrapper;
 		private OpenDental.UI.GroupBox groupBox9;
 		private UI.Button butClearSelectedMovements;
 		private OpenDental.UI.CheckBox checkShowCommAuto;

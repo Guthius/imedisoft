@@ -28,25 +28,26 @@ public class AdjustmentCrud
     public static List<Adjustment> TableToList(DataTable table)
     {
         var retVal = new List<Adjustment>();
-        Adjustment adjustment;
         foreach (DataRow row in table.Rows)
         {
-            adjustment = new Adjustment();
-            adjustment.AdjNum = SIn.Long(row["AdjNum"].ToString());
-            adjustment.AdjDate = SIn.Date(row["AdjDate"].ToString());
-            adjustment.AdjAmt = SIn.Double(row["AdjAmt"].ToString());
-            adjustment.PatNum = SIn.Long(row["PatNum"].ToString());
-            adjustment.AdjType = SIn.Long(row["AdjType"].ToString());
-            adjustment.ProvNum = SIn.Long(row["ProvNum"].ToString());
-            adjustment.AdjNote = SIn.String(row["AdjNote"].ToString());
-            adjustment.ProcDate = SIn.Date(row["ProcDate"].ToString());
-            adjustment.ProcNum = SIn.Long(row["ProcNum"].ToString());
-            adjustment.DateEntry = SIn.Date(row["DateEntry"].ToString());
-            adjustment.ClinicNum = SIn.Long(row["ClinicNum"].ToString());
-            adjustment.StatementNum = SIn.Long(row["StatementNum"].ToString());
-            adjustment.SecUserNumEntry = SIn.Long(row["SecUserNumEntry"].ToString());
-            adjustment.SecDateTEdit = SIn.DateTime(row["SecDateTEdit"].ToString());
-            adjustment.TaxTransID = SIn.Long(row["TaxTransID"].ToString());
+            var adjustment = new Adjustment
+            {
+                AdjNum = SIn.Long(row["AdjNum"].ToString()),
+                AdjDate = SIn.Date(row["AdjDate"].ToString()),
+                AdjAmt = SIn.Double(row["AdjAmt"].ToString()),
+                PatNum = SIn.Long(row["PatNum"].ToString()),
+                AdjType = SIn.Long(row["AdjType"].ToString()),
+                ProvNum = SIn.Long(row["ProvNum"].ToString()),
+                AdjNote = SIn.String(row["AdjNote"].ToString()),
+                ProcDate = SIn.Date(row["ProcDate"].ToString()),
+                ProcNum = SIn.Long(row["ProcNum"].ToString()),
+                DateEntry = SIn.Date(row["DateEntry"].ToString()),
+                ClinicNum = SIn.Long(row["ClinicNum"].ToString()),
+                StatementNum = SIn.Long(row["StatementNum"].ToString()),
+                SecUserNumEntry = SIn.Long(row["SecUserNumEntry"].ToString()),
+                SecDateTEdit = SIn.DateTime(row["SecDateTEdit"].ToString()),
+                TaxTransID = SIn.Long(row["TaxTransID"].ToString())
+            };
             retVal.Add(adjustment);
         }
 

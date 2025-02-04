@@ -5,16 +5,9 @@ using System.Drawing;
 using System.Drawing.Printing;
 using System.Collections;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Diagnostics;
 using System.IO;
-using System.Reflection;
-using System.Text.RegularExpressions;
-using System.Web;
 using System.Windows.Forms;
-using System.Threading;
 using OpenDentBusiness;
-using OpenDental.Thinfinity;
 using CodeBase;
 using DataConnectionBase;
 using Imedisoft.Core.Caching;
@@ -105,7 +98,7 @@ public partial class FormQuery : FormODBase {
 		try {
 			ODClipboard.SetClipboard(textQuery.Text);
 		}
-		catch(Exception ex) {
+		catch {
 			MsgBox.Show(this,"Could not copy contents to the clipboard.  Please try again.");
 		}
 	}
@@ -272,13 +265,9 @@ public partial class FormQuery : FormODBase {
 	private void butPaste_Click(object sender, System.EventArgs e){
 		IDataObject iData;
 		try {
-			if(/* ODEnvironment.IsCloudServer */ false) {
-				textQuery.Text=ODClipboard.GetText();
-				return;
-			}
 			iData=Clipboard.GetDataObject();
 		}
-		catch(Exception ex) {
+		catch {
 			MsgBox.Show(this,"Could not paste contents from the clipboard.  Please try again.");
 			return;
 		}
@@ -1119,7 +1108,7 @@ public partial class FormQuery : FormODBase {
 			_serverThreadID=0;
 			FillForm();
 		}
-		catch(Exception e) {
+		catch {
 		}
 	}
 

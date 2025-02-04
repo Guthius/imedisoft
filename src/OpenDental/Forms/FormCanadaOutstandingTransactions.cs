@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Windows.Forms;
 using Imedisoft.Core.Entities;
+using Imedisoft.Features.Providers.Dtos;
 using OpenDentBusiness;
 using OpenDentBusiness.Eclaims;
 
@@ -10,7 +11,7 @@ namespace OpenDental.Forms;
 public partial class FormCanadaOutstandingTransactions : FormODBase
 {
     private List<Carrier> _carriers = [];
-    private List<Provider> _providers;
+    private List<ProviderDto> _providers;
 
     public FormCanadaOutstandingTransactions()
     {
@@ -29,14 +30,14 @@ public partial class FormCanadaOutstandingTransactions : FormODBase
 
         foreach (var provider in _providers)
         {
-            if (!provider.IsCDAnet || provider.NationalProvID == "" || provider.CanadianOfficeNum == "")
+            if (!provider.IsCdaNet || provider.NationalProviderId == "" || provider.CanadianOfficeNumber == "")
             {
                 continue;
             }
 
-            if (!listOfficeNumbers.Items.Contains(provider.CanadianOfficeNum))
+            if (!listOfficeNumbers.Items.Contains(provider.CanadianOfficeNumber))
             {
-                listOfficeNumbers.Items.Add(provider.CanadianOfficeNum);
+                listOfficeNumbers.Items.Add(provider.CanadianOfficeNumber);
             }
         }
 
@@ -83,11 +84,11 @@ public partial class FormCanadaOutstandingTransactions : FormODBase
 
         Cursor = Cursors.WaitCursor;
 
-        Provider selectedProvider = null;
+        ProviderDto selectedProvider = null;
 
         foreach (var provider in _providers)
         {
-            if (provider.CanadianOfficeNum != listOfficeNumbers.SelectedItem.ToString() || provider.NationalProvID == "" || !provider.IsCDAnet)
+            if (provider.CanadianOfficeNumber != listOfficeNumbers.SelectedItem.ToString() || provider.NationalProviderId == "" || !provider.IsCdaNet)
             {
                 continue;
             }

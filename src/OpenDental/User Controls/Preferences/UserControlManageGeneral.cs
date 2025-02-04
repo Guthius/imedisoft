@@ -1,14 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Diagnostics;
-using System.Drawing;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
-using CodeBase;
 using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Entities;
@@ -42,35 +34,6 @@ public partial class UserControlManageGeneral:UserControl {
 		}
 	}
 
-	private void linkLabelClaimPaymentBatchOnly_LinkClicked(object sender,LinkLabelLinkClickedEventArgs e) {
-		try {
-			Process.Start("https://opendental.com/manual/claimedit.html");
-		}
-		catch(Exception ex) {
-			ODMessageBox.Show(Lan.g(this,"Could not find")+" "+"https://opendental.com/manual/claimedit.html"+"\r\n"
-			                  +Lan.g(this,"Please set up a default web browser."));
-		}
-	}
-
-	private void linkLabelClaimsReceivedDaysDetails_LinkClicked(object sender,LinkLabelLinkClickedEventArgs e) {
-		try {
-			Process.Start("https://www.opendental.com/manual/claimpaymentbatch.html");
-		}
-		catch(Exception ex) {
-			ODMessageBox.Show(Lan.g(this,"Could not find")+" "+"https://www.opendental.com/manual/claimpaymentbatch.html"+"\r\n"
-			                  +Lan.g(this,"Please set up a default web browser."));
-		}
-	}
-
-	private void linkLabelShowAutoDepositDetails_LinkClicked(object sender,LinkLabelLinkClickedEventArgs e) {
-		try {
-			Process.Start("https://opendental.com/manual/claimpayfinalize.html");
-		}
-		catch(Exception ex) {
-			ODMessageBox.Show(Lan.g(this,"Could not find")+" "+"https://opendental.com/manual/claimpayfinalize.html"+"\r\n"
-			                  +Lan.g(this,"Please set up a default web browser."));
-		}
-	}
 	#endregion Methods - Event Handlers
 
 	#region Methods - Private

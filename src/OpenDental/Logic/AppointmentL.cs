@@ -3,13 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Windows.Forms;
 using CodeBase;
-using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Data;
 using Imedisoft.Core.Entities;
 using Imedisoft.Core.Features.Clinics;
 using OpenDental.Logic;
-using OpenDental.UI;
 using OpenDentBusiness;
 using OpenDentBusiness.AutoComm;
 using OpenDentBusiness.HL7;
@@ -18,7 +16,7 @@ namespace OpenDental;
 
 public class AppointmentL
 {
-    public static Appointment CreateRecallApt(Patient patient, List<InsPlan> listInsPlans, long recallNum, List<InsSub> listInsSubs, DateTime dateAppt = default)
+    public static Appointment CreateRecallApt(Patient patient, long recallNum, DateTime dateAppt = default)
     {
         var recalls = Recalls.GetList(patient.PatNum);
         
@@ -102,10 +100,6 @@ public class AppointmentL
                 hl7Msg.MsgText = messageHL7.ToString();
                 hl7Msg.PatNum = patient.PatNum;
                 HL7Msgs.Insert(hl7Msg);
-                if (/* ODBuild.IsDebug() */ false)
-                {
-                    ODMessageBox.Show("Appointments", messageHL7.ToString());
-                }
             }
         }
 
@@ -127,7 +121,7 @@ public class AppointmentL
         double amtBrokenProc = 0;
         var procedureBroken = new Procedure();
         var wasBrokenProcDeleted = false;
-        if (PrefC.GetYN(PrefName.PrePayAllowedForTpProcs))
+        if (PrefC.GetYn(PrefName.PrePayAllowedForTpProcs))
         {
             listProcedures = Procedures.GetProcsForSingle(appointment.AptNum, false);
             if (listProcedures.Count > 0)
@@ -200,7 +194,7 @@ public class AppointmentL
             if (insPlanPrimary != null && insPlanPrimary.PlanType == "p" && !insPlanPrimary.IsMedical)
             {
                 //PPO
-                var provFee = Fees.GetAmount0(procedureBroken.CodeNum, Providers.GetProv(procedureBroken.ProvNum).FeeSched, procedureBroken.ClinicNum,
+                var provFee = Fees.GetAmount0(procedureBroken.CodeNum, Providers.GetById(procedureBroken.ProvNum).FeeScheduleId??0, procedureBroken.ClinicNum,
                     procedureBroken.ProvNum);
                 procedureBroken.ProcFee = Math.Max(provFee, procFee);
             }
@@ -338,36 +332,11 @@ public class AppointmentL
         Recalls.SynchScheduledApptFull(appointment.PatNum);
     }
 
-    /// <summary>If an appointment is broken, prompts the user if they would like to text the ASAP list to offer the newly opened time slot. Prompt only appears 
-    /// if WebSchedAsapEnabled pref is true, AND there are appointments in the ASAP list, and AsapPromptEnabled pref is true. Returns false if any of these 
-    /// conditions are false, or user chooses not to text ASAP list, otherwise true. 
-    /// </summary>
-    public static bool PromptTextAsapList(long clinicNum)
+    public static bool PromptTextAsapList()
     {
-        if (!PrefC.GetBool(PrefName.WebSchedAsapEnabled))
-        {
-            return false;
-        }
-
-        if (!SIn.Bool(ClinicPrefs.GetPrefValue(PrefName.AsapPromptEnabled, clinicNum)))
-        {
-            return false; //If the prompt is disabled
-        }
-
-        if (Appointments.RefreshASAP(0, 0, clinicNum, []).Count == 0)
-        {
-            return false; //If no ASAP appointments available
-        }
-
-        if (!MsgBox.Show("Appointment", MsgBoxButtons.YesNo, "Text patients on the ASAP List and offer them this opening?"))
-        {
-            return false;
-        }
-
-        return true;
+        return false;
     }
 
-    ///<summary>Throw exceptions. Calculates the start and end time that is used by websched to offer an open timeslot to patients on the ASAP List.</summary>
     public static DateRange GetAsapRange(long operatoryNum, DateTime dateTimeSelected, long aptNum, List<Schedule> listSchedules)
     {
         var dateTimeSlotStart = dateTimeSelected.Date; //Midnight contrAppt=dateTimeClicked not DateSelected
@@ -451,9 +420,6 @@ public class AppointmentL
         return true;
     }
 
-    /// <summary>Helper method to send given appt to pinboard.
-    /// Refreshes Appointment module.
-    /// Also does some appointment and security validation.</summary>
     public static void CopyAptToPinboardHelper(Appointment appointment)
     {
         GlobalFormOpenDental.GoToModule(EnumModuleType.Appointments, listPinApptNums: [appointment.AptNum], patNum: appointment.PatNum, dateSelected: DateTime.Today);
@@ -485,8 +451,6 @@ public class AppointmentL
         return true;
     }
 
-    /// <summary>Helper method to send given appt to the unscheduled list.
-    /// Creates SecurityLogs and considers HL7.</summary>
     public static void SetApptUnschedHelper(Appointment appointment, Patient patient = null, bool doFireApptEvent = true)
     {
         var datePrevious = appointment.DateTStamp;
@@ -531,10 +495,6 @@ public class AppointmentL
                 hl7Msg.MsgText = messageHL7.ToString();
                 hl7Msg.PatNum = patient.PatNum;
                 HL7Msgs.Insert(hl7Msg);
-                if (/* ODBuild.IsDebug() */ false)
-                {
-                    ODMessageBox.Show("Appointments", messageHL7.ToString());
-                }
             }
         }
 
@@ -562,10 +522,6 @@ public class AppointmentL
         Recalls.SynchScheduledApptFull(appointment.PatNum);
     }
 
-    ///<summary>Creats a new appointment for the given patient.  A valid patient must be passed in.
-    ///Set useApptDrawingSettings to true if the user double clicked on the appointment schedule in order to make a new appointment.
-    ///It will utilize the global static properties to help set required fields for "Scheduled" appointments.
-    ///Otherwise, simply sets the corresponding PatNum and then the status to "Unscheduled".</summary>
     public static Appointment MakeNewAppointment(Patient patient, bool useApptDrawingSettings, DateTime? dateTNew = null, long? opNumNew = null)
     {
         //Appointments.MakeNewAppointment may or may not use apptDateTime depending on useApptDrawingSettings,
@@ -593,7 +549,6 @@ public class AppointmentL
         return appointment;
     }
 
-    ///<summary>Checks to see if patient was previously merged. If so, prompts asking if you'd like to switch and returns the switched patient, otherwise returns null.</summary>
     public static Patient GetPatientMergePrompt(long patNum)
     {
         var listPatientLinks = PatientLinks.GetLinks(patNum, PatientLinkType.Merge);
@@ -697,8 +652,6 @@ public class AppointmentL
         return PlannedApptStatus.Success;
     }
 
-    /// <summary>Checks for specialty mismatch between pat and op. Then prompts user according to behavior defined by 
-    /// PrefName.ApptSchedEnforceSpecialty.  Returns true if the Appointment is allowed to be scheduled, false otherwise.</summary>
     public static bool IsSpecialtyMismatchAllowed(long patNum, long clinicNum)
     {
         try
@@ -726,8 +679,6 @@ public class AppointmentL
         return true;
     }
 
-    /// <summary>Tests the appointment to see if it is acceptable to send it to the pinboard.  Also asks user appropriate questions to verify that's
-    /// what they want to do.  Returns false if it will not be going to pinboard after all.</summary>
     public static bool OKtoSendToPinboard(ApptOther apptOther, List<ApptOther> listApptOthers, Control control)
     {
         if (apptOther.AptStatus == ApptStatus.Planned)
@@ -776,8 +727,6 @@ public class AppointmentL
         return true;
     }
 
-    ///<summary>If changing to 'Arrived' trigger, check if using eClipboard and setup to popup Kiosk Manager, or attempt to process the patient's
-    ///arrival as if they had texted 'A' to indicate 'Arrived'.</summary>
     public static void ShowKioskManagerIfNeeded(Appointment appointmentOld, long defNumConfirmedNew)
     {
         if (defNumConfirmedNew == appointmentOld.Confirmed || defNumConfirmedNew != PrefC.GetLong(PrefName.AppointmentTimeArrivedTrigger))
@@ -785,109 +734,22 @@ public class AppointmentL
             //If no change to Appointment.Confirmed, or new status is not the Arrived trigger, nothing to do.
             return;
         }
-
-        long clinicNum = 0;
-        if (true)
-        {
-            clinicNum = appointmentOld.ClinicNum;
-        }
-
-        if (MobileAppDevices.IsClinicSignedUpForEClipboard(clinicNum) && ClinicPrefs.GetBool(PrefName.EClipboardPopupKioskOnCheckIn, clinicNum))
-        {
-            var appointmentNew = appointmentOld.Copy();
-            appointmentNew.Confirmed = defNumConfirmedNew;
-            using var formTerminalManager = new FormTerminalManager(appointment: appointmentNew);
-            formTerminalManager.ShowDialog();
-            return;
-        }
-
+        
         //Manually marked as Arrived, if they had been sent an Arrival sms, try to process and send theArrival Response.
         //Pass oldAppt so it still has the old confirmation status; which has already updated in db.
         Arrivals.ProcessArrival(appointmentOld.PatNum, appointmentOld.ClinicNum, ListTools.FromSingle(appointmentOld));
     }
 
-    ///<summary>Attempts to send a BYOD/Check-In link for the given appointment.  Prompts user appropriately on success(Text Message winodw) or 
-    ///failure.</summary>
-    public static void SendByodLink(Appointment appointment)
-    {
-        void displayError(string error)
-        {
-            MsgBox.Show(nameof(Byod), $"Unable to {MenuItemNames.SendEClipboardByod}.  " + error);
-        }
-
-        string message = null;
-        var progressOD = new ProgressWin();
-        progressOD.ActionMain = () =>
-        {
-            if (appointment is null)
-            {
-                ODMessageBox.Show(Lan.g(nameof(Byod), "Unable to send for an invalid appointment."));
-                return;
-            }
-
-            long clinicNum = 0;
-            if (true)
-            {
-                clinicNum = appointment.ClinicNum;
-            }
-
-            if (Byod.IsEnabledForConfirmed(appointment.Confirmed, appointment.ClinicNum, out var err))
-            {
-                var listPatComms = Patients.GetPatComms([appointment.PatNum], Clinics.GetClinic(clinicNum), isGetFamily: false);
-                //This is not automated messaging, so we don't need to consider CommOptOuts, just IsSmsAnOption
-                var patComm = listPatComms.Find(x => x.PatNum == appointment.PatNum);
-                if (patComm == null)
-                {
-                    ODMessageBox.Show(Lan.g(nameof(Byod), "Patient is not setup to receive text messages."));
-                    return;
-                }
-
-                if (!patComm.IsSmsAnOption)
-                {
-                    ODMessageBox.Show(Lan.g(nameof(Byod), "Patient is not setup to receive text messages."));
-                    return;
-                }
-
-                message = Byod.GetCheckInMsg([appointment], listPatComms);
-            }
-            else
-            {
-                ODMessageBox.Show(err);
-                return;
-            }
-        };
-        progressOD.StartingMessage = Lans.g(nameof(Byod), "Generating eClipboard links...");
-        progressOD.ShowDialog();
-        if (progressOD.IsCancelled)
-        {
-            return;
-        }
-
-        if (string.IsNullOrWhiteSpace(message))
-        {
-            ODMessageBox.Show(Lan.g(nameof(Byod), "Unable to generate links for the appointment."));
-            return;
-        }
-
-        GlobalFormOpenDental.SendTextMessage(appointment.PatNum, message);
-    }
-
-    ///<summary>Returns true if the PrefName.ApptPreventChangesToCompleted is true, the appointment has completed procedures attached, and the appointment 
-    ///has a completed status. Otherwise it will return false.</summary>
     public static bool DoPreventChangesToCompletedAppt(Appointment appointment, PreventChangesApptAction preventChangesApptAction, List<Procedure> listProceduresAttached = null)
     {
         return DoPreventChangesToCompletedAppt(appointment, preventChangesApptAction, out var msg, listProceduresAttached, false);
     }
 
-    ///<summary>Returns true if the PrefName.ApptPreventChangesToCompleted is true, the appointment has completed procedures attached, and the appointment 
-    ///has a completed status. Otherwise it will return false.</summary>
     public static bool DoPreventChangesToCompletedAppt(Appointment appointment, PreventChangesApptAction preventChangesApptAction, out string msg, List<Procedure> listProceduresAttached = null)
     {
         return DoPreventChangesToCompletedAppt(appointment, preventChangesApptAction, out msg, listProceduresAttached, true);
     }
 
-    ///<summary>Returns true if the PrefName.ApptPreventChangesToCompleted is true, the appointment has completed procedures attached, and the appointment 
-    ///has a completed status. Otherwise it will return false.</summary>
     public static bool DoPreventChangesToCompletedAppt(Appointment appointment, PreventChangesApptAction preventChangesApptAction, out string msg, List<Procedure> listProceduresAttached = null, bool doSupressMsg = false)
     {
         msg = null;
@@ -952,17 +814,17 @@ public enum PlannedApptStatus
 public enum PreventChangesApptAction
 {
     ///<summary>0 - Used when a completed appointment is broken.</summary>
-    Break,
+    Break = 0,
 
     ///<summary>1 - Used when a completed appointment is deleted.</summary>
-    Delete,
+    Delete = 1,
 
     ///<summary>2 - Used when a completed apopintment status is changed.</summary>
-    Status,
+    Status = 2,
 
     ///<summary>3 - Used when a completed apopintment is sent to the unscheduled list.</summary>
-    Unsched,
+    Unsched = 3,
 
     ///<summary>4 - Used when attempting to detach a completed proc from a completed appt.</summary>
-    Procedures
+    Procedures = 4
 }

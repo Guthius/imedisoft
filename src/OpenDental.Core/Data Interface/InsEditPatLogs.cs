@@ -14,11 +14,11 @@ public class InsEditPatLogs
     public static List<InsEditPatLog> GetLogsForPatPlan(long patPlanNum, long insSubNum)
     {
         var listWhereOrs = new List<string>();
-        if (patPlanNum > 0) listWhereOrs.Add($"(LogType={SOut.Int((int) InsEditPatLogType.PatPlan)} AND FKey = {SOut.Long(patPlanNum)})");
+        if (patPlanNum > 0) listWhereOrs.Add($"(LogType={SOut.Int((int) InsEditPatLogType.PatPlan)} AND FKey = {(patPlanNum)})");
         if (insSubNum > 0)
         {
-            listWhereOrs.Add($"(LogType={SOut.Int((int) InsEditPatLogType.Subscriber)} AND FKey = " + SOut.Long(insSubNum) + ")");
-            listWhereOrs.Add($"(LogType={SOut.Int((int) InsEditPatLogType.Adjustment)} AND ParentKey={SOut.Long(insSubNum)})");
+            listWhereOrs.Add($"(LogType={SOut.Int((int) InsEditPatLogType.Subscriber)} AND FKey = " + (insSubNum) + ")");
+            listWhereOrs.Add($"(LogType={SOut.Int((int) InsEditPatLogType.Adjustment)} AND ParentKey={(insSubNum)})");
         }
 
         var command = @"SELECT * FROM inseditpatlog
@@ -154,7 +154,7 @@ public class InsEditPatLogs
                 if (tableColumn.Name == nameof(PatPlan.OrthoAutoFeeBilledOverride) && (strValOld == "-1" || strValCur == "-1"))
                 {
                     var patPlan = priKeyItem as PatPlan;
-                    var insPlanForPatPlan = InsPlans.GetByInsSubs(new List<long> {patPlan.InsSubNum}).FirstOrDefault();
+                    var insPlanForPatPlan = InsPlans.GetByInsSubs([patPlan.InsSubNum]).FirstOrDefault();
                     //The UseDefaultFee check box was altered. Create a new log entry for the UseDefaultFee value.
                     insEditPatLog = new InsEditPatLog
                     {

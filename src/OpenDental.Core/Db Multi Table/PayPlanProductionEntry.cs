@@ -23,10 +23,7 @@ public class PayPlanProductionEntry
     public readonly PayPlanLinkType LinkType;
     public readonly bool IsProcedureCompleted;
 
-    public long PayPlanNum
-    {
-        get { return LinkedCredit.PayPlanNum; }
-    }
+    public long PayPlanNum => LinkedCredit.PayPlanNum;
 
     public PayPlanProductionEntry(Procedure proc, PayPlanLink credit, List<ClaimProc> listClaimProcs, List<Adjustment> listAdjustments, List<PaySplit> listPaySplits, decimal amountOriginal = decimal.MinValue)
     {
@@ -39,7 +36,7 @@ public class PayPlanProductionEntry
         PatNum = proc.PatNum;
         if (amountOriginal == decimal.MinValue)
         {
-            decimal patPortion = ClaimProcs.GetPatPortion(proc, listClaimProcs, listAdjustments);
+            var patPortion = ClaimProcs.GetPatPortion(proc, listClaimProcs, listAdjustments);
             if (proc.ProcStatus == ProcStat.TP)
             {
                 patPortion -= (decimal) proc.DiscountPlanAmt;
@@ -47,7 +44,7 @@ public class PayPlanProductionEntry
             }
 
             //Get the amount that was paid to the procedure prior to the procedure being attached to a payment plan.
-            decimal patPaid = (decimal) listPaySplits.FindAll(x => x.ProcNum == proc.ProcNum && x.PayPlanNum == 0 && x.PayPlanChargeNum == 0).Sum(x => x.SplitAmt);
+            var patPaid = (decimal) listPaySplits.FindAll(x => x.ProcNum == proc.ProcNum && x.PayPlanNum == 0 && x.PayPlanChargeNum == 0).Sum(x => x.SplitAmt);
             AmountOriginal = patPortion - patPaid;
         }
         else
@@ -75,7 +72,7 @@ public class PayPlanProductionEntry
         if (amountOriginal == decimal.MinValue)
         {
             //Get the amount that was paid to the adjustment prior to the adjustment being attached to a payment plan.
-            decimal patPaid = (decimal) listPaySplits.FindAll(x => x.DatePay <= credit.SecDateTEntry && x.AdjNum == adj.AdjNum && x.PayPlanNum == 0 && x.PayPlanChargeNum == 0)
+            var patPaid = (decimal) listPaySplits.FindAll(x => x.DatePay <= credit.SecDateTEntry && x.AdjNum == adj.AdjNum && x.PayPlanNum == 0 && x.PayPlanChargeNum == 0)
                 .Sum(x => x.SplitAmt);
             AmountOriginal = (decimal) adj.AdjAmt - patPaid;
         }
@@ -124,8 +121,8 @@ public class PayPlanProductionEntry
     public static List<PayPlanProductionEntry> GetWithAmountRemaining(List<PayPlanLink> listPayPlanLinks, List<PayPlanCharge> listChargesInDB)
     {
         //calculate remaining amounts for attached production
-        List<PayPlanProductionEntry> listCreditsAndProduction = GetProductionForLinks(listPayPlanLinks); //will need to account for newly added
-        foreach (PayPlanProductionEntry entry in listCreditsAndProduction)
+        var listCreditsAndProduction = GetProductionForLinks(listPayPlanLinks); //will need to account for newly added
+        foreach (var entry in listCreditsAndProduction)
         {
             //find amount remaining for each credit/production object. This will be our basis for caculating estimated remaining charges. 
             if (CompareDecimal.IsEqual(entry.AmountRemaining, 0))
@@ -133,8 +130,8 @@ public class PayPlanProductionEntry
                 continue;
             }
 
-            List<PayPlanCharge> listChargesInDbForEntry = listChargesInDB.FindAll(x => x.LinkType == entry.LinkType && x.FKey == entry.PriKey);
-            foreach (PayPlanCharge chargeForEntry in listChargesInDbForEntry)
+            var listChargesInDbForEntry = listChargesInDB.FindAll(x => x.LinkType == entry.LinkType && x.FKey == entry.PriKey);
+            foreach (var chargeForEntry in listChargesInDbForEntry)
             {
                 entry.AmountRemaining -= Math.Min((decimal) chargeForEntry.Principal, entry.AmountRemaining);
                 if (CompareDecimal.IsEqual(entry.AmountRemaining, 0))
@@ -151,32 +148,32 @@ public class PayPlanProductionEntry
 
     public static List<PayPlanProductionEntry> GetProductionForLinks(List<PayPlanLink> listCredits)
     {
-        List<long> listProcNums = listCredits.FindAll(x => x.LinkType == PayPlanLinkType.Procedure).Select(x => x.FKey).ToList();
-        List<long> listAdjNumsForCredits = listCredits.FindAll(x => x.LinkType == PayPlanLinkType.Adjustment).Select(x => x.FKey).ToList();
-        List<PayPlanProductionEntry> listPayPlanProductionEntries = new List<PayPlanProductionEntry>();
-        List<Procedure> listProcedures = Procedures.GetManyProc(listProcNums, false);
-        List<Adjustment> listCreditAdjustments = Adjustments.GetMany(listAdjNumsForCredits);
-        List<Adjustment> listProcAdjustments = Adjustments.GetForProcs(listProcNums);
-        List<ClaimProc> listClaimProcs = ClaimProcs.GetForProcs(listProcNums); //used for calculating patient porition
-        List<PaySplit> listAdjPaySplits = PaySplits.GetForAdjustments(listAdjNumsForCredits);
-        List<PaySplit> listProcPaySplits = PaySplits.GetPaySplitsFromProcs(listProcNums);
-        foreach (PayPlanLink credit in listCredits)
+        var listProcNums = listCredits.FindAll(x => x.LinkType == PayPlanLinkType.Procedure).Select(x => x.FKey).ToList();
+        var listAdjNumsForCredits = listCredits.FindAll(x => x.LinkType == PayPlanLinkType.Adjustment).Select(x => x.FKey).ToList();
+        var listPayPlanProductionEntries = new List<PayPlanProductionEntry>();
+        var listProcedures = Procedures.GetManyProc(listProcNums, false);
+        var listCreditAdjustments = Adjustments.GetMany(listAdjNumsForCredits);
+        var listProcAdjustments = Adjustments.GetForProcs(listProcNums);
+        var listClaimProcs = ClaimProcs.GetForProcs(listProcNums); //used for calculating patient porition
+        var listAdjPaySplits = PaySplits.GetForAdjustments(listAdjNumsForCredits);
+        var listProcPaySplits = PaySplits.GetPaySplitsFromProcs(listProcNums);
+        foreach (var credit in listCredits)
         {
             if (credit.LinkType == PayPlanLinkType.Procedure)
             {
-                Procedure proc = listProcedures.FirstOrDefault(x => x.ProcNum == credit.FKey);
+                var proc = listProcedures.FirstOrDefault(x => x.ProcNum == credit.FKey);
                 if (proc != null)
                 {
-                    List<Adjustment> listExplicitAdjs = listProcAdjustments.FindAll(x => x.ProcNum == proc.ProcNum
-                                                                                         && x.PatNum == proc.PatNum
-                                                                                         && x.ProvNum == proc.ProvNum
-                                                                                         && x.ClinicNum == proc.ClinicNum);
+                    var listExplicitAdjs = listProcAdjustments.FindAll(x => x.ProcNum == proc.ProcNum
+                                                                            && x.PatNum == proc.PatNum
+                                                                            && x.ProvNum == proc.ProvNum
+                                                                            && x.ClinicNum == proc.ClinicNum);
                     listPayPlanProductionEntries.Add(new PayPlanProductionEntry(proc, credit, listClaimProcs, listExplicitAdjs, listProcPaySplits));
                 }
             }
             else if (credit.LinkType == PayPlanLinkType.Adjustment)
             {
-                Adjustment adj = listCreditAdjustments.FirstOrDefault(x => x.AdjNum == credit.FKey);
+                var adj = listCreditAdjustments.FirstOrDefault(x => x.AdjNum == credit.FKey);
                 if (adj != null)
                 {
                     listPayPlanProductionEntries.Add(new PayPlanProductionEntry(adj, credit, listAdjPaySplits));
@@ -190,12 +187,12 @@ public class PayPlanProductionEntry
     public static double GetDynamicPayPlanCompletedAmount(PayPlan payPlan, List<PayPlanProductionEntry> listPayPlanProductionEntries)
     {
         double completedAmt = 0;
-        for (int i = 0; i < listPayPlanProductionEntries.Count; i++)
+        for (var i = 0; i < listPayPlanProductionEntries.Count; i++)
         {
-            PayPlanProductionEntry entry = listPayPlanProductionEntries[i];
+            var entry = listPayPlanProductionEntries[i];
             if (entry.LinkType == PayPlanLinkType.Procedure)
             {
-                Procedure procAssociated = (Procedure) entry.ProductionTag;
+                var procAssociated = (Procedure) entry.ProductionTag;
                 if (procAssociated == null)
                 {
                     completedAmt += 0;

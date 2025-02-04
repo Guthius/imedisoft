@@ -1,11 +1,9 @@
 using System;
-using System.Collections.Generic;
 using System.Windows.Forms;
 using OpenDentBusiness;
 using System.Linq;
 using OpenDental.UI;
 using System.Text.RegularExpressions;
-using System.Drawing;
 using Imedisoft.Core.Data;
 using Imedisoft.Core.Entities;
 

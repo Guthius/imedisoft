@@ -1,7 +1,6 @@
 using System;
 using System.Drawing;
 using System.IO;
-using System.Text;
 using System.Windows.Forms;
 using OpenDentBusiness;
 using CodeBase;
@@ -28,11 +27,6 @@ public partial class FormEtrans834Import:FormODBase {
 
 	private void FormEtrans834Import_Load(object sender,EventArgs e) {
 		textImportPath.Text=PrefC.GetString(PrefName.Ins834ImportPath);
-		if(/* ODEnvironment.IsCloudServer */ false) {
-			//Not implemented yet for OD Cloud
-			textImportPath.Text="";
-			textImportPath.Enabled=false;
-		}
 		FillGridInsPlanFiles();
 	}
 
@@ -134,7 +128,7 @@ public partial class FormEtrans834Import:FormODBase {
 				row.Cells[_idxErrorCol].Text="Is inaccessible, locked by OS.";
 				continue;
 			}
-			catch (Exception ex) {//Any other exception types will be silently dropped
+			catch {//Any other exception types will be silently dropped
 			}
 			var x12object=X12object.ToX12object(messageText);
 			if(x12object==null) {

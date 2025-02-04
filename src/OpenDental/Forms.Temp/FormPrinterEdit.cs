@@ -1,9 +1,5 @@
 using System;
-using System.Collections.Generic;
-using System.Data;
-using System.Drawing;
 using System.Drawing.Printing;
-using System.Text;
 using System.Windows.Forms;
 using CodeBase;
 using Imedisoft.Core.Entities;
@@ -17,12 +13,6 @@ public partial class FormPrinterEdit:FormODBase {
 	public FormPrinterEdit(Printer printer) {
 		InitializeComponent();
 
-		if(false) {
-			labelExtension.Visible=false;
-			labelExtensionNote.Visible=false;
-			textFileExtension.Visible=false;
-			checkVirtualPrinter.Visible=false;
-		}
 		_printSituation=printer.PrintSit;
 		textFileExtension.Text=printer.FileExtension;
 		checkPrompt.Checked=printer.DisplayPrompt;
@@ -60,7 +50,7 @@ public partial class FormPrinterEdit:FormODBase {
 	}
 
 	private void butSave_Click(object sender,EventArgs e) {
-		var compName=ODEnvironment.MachineName;
+		var compName=Environment.MachineName;
 		var printerName="";
 		var isChecked=checkPrompt.Checked;
 		//PrintSituation sit=PrintSituation.Default;

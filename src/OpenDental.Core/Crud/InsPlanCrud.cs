@@ -24,57 +24,58 @@ public class InsPlanCrud
     public static List<InsPlan> TableToList(DataTable table)
     {
         var retVal = new List<InsPlan>();
-        InsPlan insPlan;
         foreach (DataRow row in table.Rows)
         {
-            insPlan = new InsPlan();
-            insPlan.PlanNum = SIn.Long(row["PlanNum"].ToString());
-            insPlan.GroupName = SIn.String(row["GroupName"].ToString());
-            insPlan.GroupNum = SIn.String(row["GroupNum"].ToString());
-            insPlan.PlanNote = SIn.String(row["PlanNote"].ToString());
-            insPlan.FeeSched = SIn.Long(row["FeeSched"].ToString());
-            insPlan.PlanType = SIn.String(row["PlanType"].ToString());
-            insPlan.ClaimFormNum = SIn.Long(row["ClaimFormNum"].ToString());
-            insPlan.UseAltCode = SIn.Bool(row["UseAltCode"].ToString());
-            insPlan.ClaimsUseUCR = SIn.Bool(row["ClaimsUseUCR"].ToString());
-            insPlan.CopayFeeSched = SIn.Long(row["CopayFeeSched"].ToString());
-            insPlan.EmployerNum = SIn.Long(row["EmployerNum"].ToString());
-            insPlan.CarrierNum = SIn.Long(row["CarrierNum"].ToString());
-            insPlan.AllowedFeeSched = SIn.Long(row["AllowedFeeSched"].ToString());
-            insPlan.TrojanID = SIn.String(row["TrojanID"].ToString());
-            insPlan.DivisionNo = SIn.String(row["DivisionNo"].ToString());
-            insPlan.IsMedical = SIn.Bool(row["IsMedical"].ToString());
-            insPlan.FilingCode = SIn.Long(row["FilingCode"].ToString());
-            insPlan.DentaideCardSequence = SIn.Byte(row["DentaideCardSequence"].ToString());
-            insPlan.ShowBaseUnits = SIn.Bool(row["ShowBaseUnits"].ToString());
-            insPlan.CodeSubstNone = SIn.Bool(row["CodeSubstNone"].ToString());
-            insPlan.IsHidden = SIn.Bool(row["IsHidden"].ToString());
-            insPlan.MonthRenew = SIn.Byte(row["MonthRenew"].ToString());
-            insPlan.FilingCodeSubtype = SIn.Long(row["FilingCodeSubtype"].ToString());
-            insPlan.CanadianPlanFlag = SIn.String(row["CanadianPlanFlag"].ToString());
-            insPlan.CanadianDiagnosticCode = SIn.String(row["CanadianDiagnosticCode"].ToString());
-            insPlan.CanadianInstitutionCode = SIn.String(row["CanadianInstitutionCode"].ToString());
-            insPlan.RxBIN = SIn.String(row["RxBIN"].ToString());
-            insPlan.CobRule = (EnumCobRule) SIn.Int(row["CobRule"].ToString());
-            insPlan.SopCode = SIn.String(row["SopCode"].ToString());
-            insPlan.SecUserNumEntry = SIn.Long(row["SecUserNumEntry"].ToString());
-            insPlan.SecDateEntry = SIn.Date(row["SecDateEntry"].ToString());
-            insPlan.SecDateTEdit = SIn.DateTime(row["SecDateTEdit"].ToString());
-            insPlan.HideFromVerifyList = SIn.Bool(row["HideFromVerifyList"].ToString());
-            insPlan.OrthoType = (OrthoClaimType) SIn.Int(row["OrthoType"].ToString());
-            insPlan.OrthoAutoProcFreq = (OrthoAutoProcFrequency) SIn.Int(row["OrthoAutoProcFreq"].ToString());
-            insPlan.OrthoAutoProcCodeNumOverride = SIn.Long(row["OrthoAutoProcCodeNumOverride"].ToString());
-            insPlan.OrthoAutoFeeBilled = SIn.Double(row["OrthoAutoFeeBilled"].ToString());
-            insPlan.OrthoAutoClaimDaysWait = SIn.Int(row["OrthoAutoClaimDaysWait"].ToString());
-            insPlan.BillingType = SIn.Long(row["BillingType"].ToString());
-            insPlan.HasPpoSubstWriteoffs = SIn.Bool(row["HasPpoSubstWriteoffs"].ToString());
-            insPlan.ExclusionFeeRule = (ExclusionRule) SIn.Int(row["ExclusionFeeRule"].ToString());
-            insPlan.ManualFeeSchedNum = SIn.Long(row["ManualFeeSchedNum"].ToString());
-            insPlan.IsBlueBookEnabled = SIn.Bool(row["IsBlueBookEnabled"].ToString());
-            insPlan.InsPlansZeroWriteOffsOnAnnualMaxOverride = (YN) SIn.Int(row["InsPlansZeroWriteOffsOnAnnualMaxOverride"].ToString());
-            insPlan.InsPlansZeroWriteOffsOnFreqOrAgingOverride = (YN) SIn.Int(row["InsPlansZeroWriteOffsOnFreqOrAgingOverride"].ToString());
-            insPlan.PerVisitPatAmount = SIn.Double(row["PerVisitPatAmount"].ToString());
-            insPlan.PerVisitInsAmount = SIn.Double(row["PerVisitInsAmount"].ToString());
+            var insPlan = new InsPlan
+            {
+                PlanNum = SIn.Long(row["PlanNum"].ToString()),
+                GroupName = SIn.String(row["GroupName"].ToString()),
+                GroupNum = SIn.String(row["GroupNum"].ToString()),
+                PlanNote = SIn.String(row["PlanNote"].ToString()),
+                FeeSched = SIn.Long(row["FeeSched"].ToString()),
+                PlanType = SIn.String(row["PlanType"].ToString()),
+                ClaimFormNum = SIn.Long(row["ClaimFormNum"].ToString()),
+                UseAltCode = SIn.Bool(row["UseAltCode"].ToString()),
+                ClaimsUseUCR = SIn.Bool(row["ClaimsUseUCR"].ToString()),
+                CopayFeeSched = SIn.Long(row["CopayFeeSched"].ToString()),
+                EmployerNum = SIn.Long(row["EmployerNum"].ToString()),
+                CarrierNum = SIn.Long(row["CarrierNum"].ToString()),
+                AllowedFeeSched = SIn.Long(row["AllowedFeeSched"].ToString()),
+                TrojanID = SIn.String(row["TrojanID"].ToString()),
+                DivisionNo = SIn.String(row["DivisionNo"].ToString()),
+                IsMedical = SIn.Bool(row["IsMedical"].ToString()),
+                FilingCode = SIn.Long(row["FilingCode"].ToString()),
+                DentaideCardSequence = SIn.Byte(row["DentaideCardSequence"].ToString()),
+                ShowBaseUnits = SIn.Bool(row["ShowBaseUnits"].ToString()),
+                CodeSubstNone = SIn.Bool(row["CodeSubstNone"].ToString()),
+                IsHidden = SIn.Bool(row["IsHidden"].ToString()),
+                MonthRenew = SIn.Byte(row["MonthRenew"].ToString()),
+                FilingCodeSubtype = SIn.Long(row["FilingCodeSubtype"].ToString()),
+                CanadianPlanFlag = SIn.String(row["CanadianPlanFlag"].ToString()),
+                CanadianDiagnosticCode = SIn.String(row["CanadianDiagnosticCode"].ToString()),
+                CanadianInstitutionCode = SIn.String(row["CanadianInstitutionCode"].ToString()),
+                RxBIN = SIn.String(row["RxBIN"].ToString()),
+                CobRule = (EnumCobRule) SIn.Int(row["CobRule"].ToString()),
+                SopCode = SIn.String(row["SopCode"].ToString()),
+                SecUserNumEntry = SIn.Long(row["SecUserNumEntry"].ToString()),
+                SecDateEntry = SIn.Date(row["SecDateEntry"].ToString()),
+                SecDateTEdit = SIn.DateTime(row["SecDateTEdit"].ToString()),
+                HideFromVerifyList = SIn.Bool(row["HideFromVerifyList"].ToString()),
+                OrthoType = (OrthoClaimType) SIn.Int(row["OrthoType"].ToString()),
+                OrthoAutoProcFreq = (OrthoAutoProcFrequency) SIn.Int(row["OrthoAutoProcFreq"].ToString()),
+                OrthoAutoProcCodeNumOverride = SIn.Long(row["OrthoAutoProcCodeNumOverride"].ToString()),
+                OrthoAutoFeeBilled = SIn.Double(row["OrthoAutoFeeBilled"].ToString()),
+                OrthoAutoClaimDaysWait = SIn.Int(row["OrthoAutoClaimDaysWait"].ToString()),
+                BillingType = SIn.Long(row["BillingType"].ToString()),
+                HasPpoSubstWriteoffs = SIn.Bool(row["HasPpoSubstWriteoffs"].ToString()),
+                ExclusionFeeRule = (ExclusionRule) SIn.Int(row["ExclusionFeeRule"].ToString()),
+                ManualFeeSchedNum = SIn.Long(row["ManualFeeSchedNum"].ToString()),
+                IsBlueBookEnabled = SIn.Bool(row["IsBlueBookEnabled"].ToString()),
+                InsPlansZeroWriteOffsOnAnnualMaxOverride = (YN) SIn.Int(row["InsPlansZeroWriteOffsOnAnnualMaxOverride"].ToString()),
+                InsPlansZeroWriteOffsOnFreqOrAgingOverride = (YN) SIn.Int(row["InsPlansZeroWriteOffsOnFreqOrAgingOverride"].ToString()),
+                PerVisitPatAmount = SIn.Double(row["PerVisitPatAmount"].ToString()),
+                PerVisitInsAmount = SIn.Double(row["PerVisitInsAmount"].ToString())
+            };
             retVal.Add(insPlan);
         }
 

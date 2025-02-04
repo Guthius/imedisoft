@@ -1,12 +1,10 @@
 using System;
 using System.Drawing;
 using System.Drawing.Printing;
-using System.Collections;
-using System.ComponentModel;
 using System.Globalization;
 using System.Windows.Forms;
+using Imedisoft.Core.Data;
 using OpenDentBusiness;
-using CodeBase;
 using Imedisoft.Core.Entities;
 using OpenDental.Logic;
 

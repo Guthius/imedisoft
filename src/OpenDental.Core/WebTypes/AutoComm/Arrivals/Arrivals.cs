@@ -7,15 +7,14 @@ using Imedisoft.Core.Caching;
 using Imedisoft.Core.Data;
 using Imedisoft.Core.Entities;
 using Imedisoft.Core.Features.Clinics;
-using Newtonsoft.Json;
 
 namespace OpenDentBusiness.AutoComm;
 
 public class Arrivals
 {
-    private IEnumerable<ApptReminderSent> ListArrivalsSent = new List<ApptReminderSent>();
-    private IEnumerable<ApptReminderRule> ListApptReminderRules = new List<ApptReminderRule>();
-    private TagReplacer _tagReplacer;
+    private IEnumerable<ApptReminderSent> _listArrivalsSent = new List<ApptReminderSent>();
+    private IEnumerable<ApptReminderRule> _listApptReminderRules = new List<ApptReminderRule>();
+    private readonly TagReplacer _tagReplacer;
 
     private Arrivals()
     {
@@ -27,25 +26,20 @@ public class Arrivals
         return new Arrivals();
     }
 
-    ///<summary>If necessary, gets ApptReminderSents and corresponding ApptReminderRules for given appointments from database.</summary>
     public static Arrivals LoadArrivals(List<long> listClinicNums, List<long> listApptNums)
     {
-        Arrivals arrivals = LoadArrivals();
-        if (!true)
-        {
-            listClinicNums = new List<long> {0};
-        }
+        var arrivals = LoadArrivals();
 
-        List<long> listSignedUpClinics = listClinicNums.Where(x => ClinicPrefs.GetBool(PrefName.ApptConfirmAutoSignedUp, x)).ToList();
+        var listSignedUpClinics = listClinicNums.Where(x => ClinicPrefs.GetBool(PrefName.ApptConfirmAutoSignedUp, x)).ToList();
         //Only do the work of looking up ApptReminderSents and ApptReminderRules if the appropriate eServices are enabled and in use.
         if (!listApptNums.IsNullOrEmpty() && listSignedUpClinics.Any() && PrefC.GetBool(PrefName.ApptArrivalAutoEnabled))
         {
-            arrivals.ListApptReminderRules = GetApptReminderRules(listSignedUpClinics);
-            if (arrivals.ListApptReminderRules.Any())
+            arrivals._listApptReminderRules = GetApptReminderRules(listSignedUpClinics);
+            if (arrivals._listApptReminderRules.Any())
             {
-                List<long> listApptReminderRuleNums = arrivals.ListApptReminderRules.Select(x => x.ApptReminderRuleNum).ToList();
+                var listApptReminderRuleNums = arrivals._listApptReminderRules.Select(x => x.ApptReminderRuleNum).ToList();
                 //This clinic has at least one Reminder Rule with an arrival/come-in template defined.  We now know we need ApptReminderSent data.
-                arrivals.ListArrivalsSent = ApptReminderSents.GetForApt(listApptNums.ToArray())
+                arrivals._listArrivalsSent = ApptReminderSents.GetForApt(listApptNums.ToArray())
                     //Arrivals only, not eReminders.
                     .Where(x => listApptReminderRuleNums.Contains(x.ApptReminderRuleNum)).ToList();
             }
@@ -54,15 +48,14 @@ public class Arrivals
         return arrivals;
     }
 
-    ///<summary>Gets Arrival ApptReminderRules, including rules for clinics that are using default rules.</summary>
     private static List<ApptReminderRule> GetApptReminderRules(List<long> listClinicNums)
     {
-        List<ApptReminderRule> listRules = ApptReminderRules.GetForTypes(ApptReminderType.Arrival);
-        List<ApptReminderRule> listRulesDefault = listRules.Where(x => x.ClinicNum == 0).ToList();
+        var listRules = ApptReminderRules.GetForTypes(ApptReminderType.Arrival);
+        var listRulesDefault = listRules.Where(x => x.ClinicNum == 0).ToList();
         //Make sure a rule is included for clinics using defaults.
-        foreach (long clinicNum in listClinicNums)
+        foreach (var clinicNum in listClinicNums)
         {
-            ClinicPref clinicPref = ClinicPrefs.GetPref(PrefName.ApptArrivalUseDefaults, clinicNum);
+            var clinicPref = ClinicPrefs.GetPref(PrefName.ApptArrivalUseDefaults, clinicNum);
             if (clinicPref != null && SIn.Bool(clinicPref.ValueString))
             {
                 listRules.AddRange(listRulesDefault.Select(x => x.CopyWithClinicNum(clinicNum)));
@@ -79,11 +72,9 @@ public class Arrivals
         ).ToList();
     }
 
-    ///<summary>Processes an inboud SMS and determines if it is an "I have arrived" message and office is setup to send an automatic Arrival 
-    ///Response.</summary>
     public static void ProcessArrival(SmsFromMobile sms)
     {
-        if (sms.MsgTotal != 1 || sms.MsgText.ToLower().Trim() != ArrivalsTagReplacer.ARRIVED_CODE.ToLower().Trim())
+        if (sms.MsgTotal != 1 || sms.MsgText.ToLower().Trim() != ArrivalsTagReplacer.ArrivedCode.ToLower().Trim())
         {
             //Not an "Arrived" sms.
             return;
@@ -91,20 +82,18 @@ public class Arrivals
 
         //It's possible a dependent and guarantor both have appointments on the same day, but have different wireless phone numbers.
         //We don't want the dependent to mark the guarantor appointment as 'Arrived' as well.
-        List<Patient> listPatients = Patients.GetFamily(sms.PatNum).ListPats.ToList();
+        var listPatients = Patients.GetFamily(sms.PatNum).ListPats.ToList();
         listPatients.RemoveAll(x => PhoneNumbers.RemoveNonDigitsAndTrimStart(x.WirelessPhone) != PhoneNumbers.RemoveNonDigitsAndTrimStart(sms.MobilePhoneNumber));
-        long[] arrayPatNums = listPatients.Select(x => x.PatNum).ToArray();
-        List<Appointment> listAppointments = Appointments.GetAppointmentsForPat(arrayPatNums);
+        var arrayPatNums = listPatients.Select(x => x.PatNum).ToArray();
+        var listAppointments = Appointments.GetAppointmentsForPat(arrayPatNums);
         ProcessArrivalAsync(sms.PatNum, sms.ClinicNum, sms.MobilePhoneNumber, listAppointments, true);
     }
 
-    ///<summary>Determines if office is setup to send an automatic Arrival Response for the given patient.</summary>
     public static void ProcessArrival(long patNumForResponse, long clinicNum, List<Appointment> listAppts)
     {
         ProcessArrivalAsync(patNumForResponse, clinicNum, null, listAppts, false);
     }
 
-    ///<summary>Determines if office is setup to send an automatic Arrival Response for the given patient.</summary>
     private static void ProcessArrivalAsync(long patNumForResponse, long clinicNum, string mobilePhoneNumber, List<Appointment> listAppts, bool doAlert)
     {
         if (patNumForResponse <= 0)
@@ -115,96 +104,68 @@ public class Arrivals
 
         //Run Arrival Processing on a thread, because we do not want this action, which includes a web call, to slow down the UI, as everything is
         //happening behind the scenes anyway.
-        ODThread arrivalThread = new ODThread(o =>
+        var arrivalThread = new ODThread(o =>
         {
-            List<Appointment> listTodayAppts = listAppts
+            var listTodayAppts = listAppts
                 .Where(x => x.AptStatus.In(ApptStatus.Scheduled))
                 .Where(x => x.ClinicNum == clinicNum && x.AptDateTime.Date == DateTime_.Today).ToList();
-            Arrivals arrival = LoadArrivals(ListTools.FromSingle(clinicNum), listTodayAppts.Select(x => x.AptNum).ToList());
+            var arrival = LoadArrivals(ListTools.FromSingle(clinicNum), listTodayAppts.Select(x => x.AptNum).ToList());
             arrival.ProcessArrival(patNumForResponse, clinicNum, mobilePhoneNumber, listTodayAppts, doAlert);
         });
-        arrivalThread.AddExceptionHandler((ex) =>
-            Logger.WriteError(MiscUtils.GetExceptionText(ex)));
         arrivalThread.Name = nameof(ProcessArrival) + $"_PatNum{patNumForResponse}";
         arrivalThread.GroupName = nameof(ProcessArrival);
         arrivalThread.Start();
     }
 
-    ///<summary>Determines if the patient corresponding to the SmsFromMobile can be sent an Arrival Response and marked as Arrived.</summary>
     private void ProcessArrival(long patNum, long clinicNum, string mobilePhoneNumber, List<Appointment> listAppts, bool doAlert)
     {
-        List<Appointment> listApptsToday = listAppts.Where(x => x.ClinicNum == clinicNum && x.AptDateTime.Date == DateTime_.Today).OrderBy(x => x.AptDateTime).ToList();
-        string logSubDir = ODFileUtils.CombinePaths(nameof(Arrivals), nameof(ProcessArrival), clinicNum.ToString());
+        var listApptsToday = listAppts.Where(x => x.ClinicNum == clinicNum && x.AptDateTime.Date == DateTime_.Today).OrderBy(x => x.AptDateTime).ToList();
         if (listApptsToday.Count == 0)
         {
-            Logger.WriteError($"PatNum: {patNum} does not have any appointments at ClinicNum {clinicNum} today.");
             return;
         }
 
-        List<Appointment> listApptsAutomationEnabled = listApptsToday
+        var listApptsAutomationEnabled = listApptsToday
             //Check if (given clinic exists and has automation enabled) or (HQ "clinic" and Arrivals are enabled)
             .Where(x => Clinics.GetClinic(x.ClinicNum)?.IsConfirmEnabled ?? (x.ClinicNum == 0 && PrefC.GetBool(PrefName.ApptArrivalAutoEnabled)))
             .ToList();
         if (listApptsAutomationEnabled.Count == 0)
         {
-            Logger.WriteError($"PatNum: {patNum} has appointments at ClinicNum {clinicNum} today, but automation is not enabled for this clinic.");
             return;
         }
 
-        List<ApptResponse> listApptResponses = GetApptResponses(listApptsAutomationEnabled);
+        var listApptResponses = GetApptResponses(listApptsAutomationEnabled);
         MarkArrived(listApptResponses, doAlert); //All appoinments should be marked Arrived.
         listApptResponses.RemoveAll(x => string.IsNullOrWhiteSpace(x.Response)); //In case the office does not want to send Arrival Response SMS.
         if (!listApptResponses.IsNullOrEmpty())
         {
             //There is a configured Arrival Response for this patient, send sms.
-            string message = AppendEClipboardTokens(listApptResponses, logSubDir);
-            TrySendArrivalResponseSms(patNum, mobilePhoneNumber, clinicNum, message, logSubDir);
+            var message = AppendEClipboardTokens(listApptResponses);
+            TrySendArrivalResponseSms(patNum, mobilePhoneNumber, clinicNum, message);
         }
     }
 
-    private string AppendEClipboardTokens(List<ApptResponse> listApptResponses, string logSubDir)
+    private string AppendEClipboardTokens(List<ApptResponse> listApptResponses)
     {
         if (listApptResponses.IsNullOrEmpty())
         {
             return "";
         }
 
-        ApptResponse apptResponse = listApptResponses.First();
-        string message = apptResponse.Response;
-        try
-        {
-            long clinicNum = true ? apptResponse.Appointment.ClinicNum : 0;
-            //Validate preferences are setup to use this feature.
-            if (Byod.IsSetup(clinicNum, out string err)
-                && ClinicPrefs.GetBool(PrefName.EClipboardAppendByodToArrivalResponseSms, clinicNum))
-            {
-                List<Appointment> listAppts = listApptResponses.Select(x => x.Appointment).ToList();
-                List<PatComm> listPatComms = listApptResponses.Select(x => x.PatComm).ToList();
-                string checkInMsg = Byod.GetCheckInMsg(listAppts, listPatComms);
-                if (!string.IsNullOrWhiteSpace(checkInMsg))
-                {
-                    message += '\n' + checkInMsg;
-                }
-            }
-        }
-        catch (Exception ex)
-        {
-            Logger.WriteError(MiscUtils.GetExceptionText(ex));
-        }
-
+        var apptResponse = listApptResponses.First();
+        var message = apptResponse.Response;
         return message;
     }
 
-    ///<summary>Sets appointments.Confirmed to the ArrivedTimeTrigger.</summary>
     private void MarkArrived(IEnumerable<ApptResponse> listAppts, bool doAlert)
     {
-        long arrivedTrigger = PrefC.GetLong(PrefName.AppointmentTimeArrivedTrigger);
-        List<ApptResponse> listArriving = listAppts.Where(x => x.Appointment.Confirmed != arrivedTrigger).ToList();
-        for (int i = 0; i < listArriving.Count(); i++)
+        var arrivedTrigger = PrefC.GetLong(PrefName.AppointmentTimeArrivedTrigger);
+        var listArriving = listAppts.Where(x => x.Appointment.Confirmed != arrivedTrigger).ToList();
+        for (var i = 0; i < listArriving.Count(); i++)
         {
             //This update will trigger eClipboard to generate the appropriate check-in sheets if the appointment is not already marked as arrived.
             //If the clinic is setup for eClipboard checking, the appropriate token needs to be included in the Arrival Response sms.
-            long arrivedStatusNew = Appointments.GetApptConfirmationStatus(listArriving[i].Appointment.AptNum);
+            var arrivedStatusNew = Appointments.GetApptConfirmationStatus(listArriving[i].Appointment.AptNum);
             if (arrivedStatusNew != arrivedTrigger)
             {
                 //If the confirmation status has not already been updated manually, do it here and create a log.
@@ -212,8 +173,6 @@ public class Arrivals
                 SecurityLogs.MakeLogEntry(EnumPermType.ApptConfirmStatusEdit, listArriving[i].Appointment.PatNum, "Appointment confirmation status changed from "
                                                                                                                   + Defs.GetName(DefCat.ApptConfirmed, listArriving[i].Appointment.Confirmed) + " to " + Defs.GetName(DefCat.ApptConfirmed, arrivedTrigger)
                                                                                                                   + " due to an Arrival text.", listArriving[i].Appointment.AptNum, LogSources.AutoConfirmations, listArriving[i].Appointment.DateTStamp);
-                EServiceLogs.MakeLogEntry(eServiceAction.ArrivalReceived, eServiceType.Arrivals, FKeyType.ApptNum, patNum: listArriving[i].Appointment.PatNum
-                    , FKey: listArriving[i].Appointment.AptNum, clinicNum: listArriving[i].Appointment.ClinicNum);
             }
         }
 
@@ -223,12 +182,11 @@ public class Arrivals
         }
     }
 
-    ///<summary>Creates a PatientArrived alert for all given appointments. </summary>
     private void CreateArrivalAlert(List<ApptResponse> listArriving)
     {
-        foreach (ApptResponse appt in listArriving)
+        foreach (var appt in listArriving)
         {
-            AlertItem alert = new AlertItem()
+            var alert = new AlertItem()
             {
                 ClinicNum = appt.Appointment.ClinicNum,
                 Description = appt.PatComm.GetFirstOrPreferred()
@@ -246,16 +204,15 @@ public class Arrivals
         }
     }
 
-    ///<summary>Attempts to send the Arrival Response sms.  Logs on failure.</summary>
-    private bool TrySendArrivalResponseSms(long patNum, string wirelessPhone, long clinicNum, string message, string logDir)
+    private void TrySendArrivalResponseSms(long patNum, string wirelessPhone, long clinicNum, string message)
     {
-        bool retVal = false;
+        var retVal = false;
         try
         {
             if (wirelessPhone is null)
             {
                 //try to find a usable phone number for the patient.
-                foreach (PatComm pat in Patients.GetPatComms(ListTools.FromSingle(patNum), Clinics.GetClinic(clinicNum))
+                foreach (var pat in Patients.GetPatComms(ListTools.FromSingle(patNum), Clinics.GetClinic(clinicNum))
                              .OrderByDescending(x => x.PatNum == patNum))
                 {
                     if (pat.IsSmsAnOption)
@@ -268,63 +225,50 @@ public class Arrivals
 
             if (wirelessPhone is null)
             {
-                Logger.WriteError($"Unable to find a WirelessPhone for PatNum: {patNum}.");
-                return false;
+                return;
             }
 
-            SmsToMobile sent = SmsToMobiles.SendSmsSingle(patNum, wirelessPhone, message, clinicNum, SmsMessageSource.Arrival);
-            Logger.WriteLine($"Sent {JsonConvert.SerializeObject(sent)}");
+            SmsToMobiles.SendSmsSingle(patNum, wirelessPhone, message, clinicNum, SmsMessageSource.Arrival);
             retVal = true;
         }
-        catch (Exception ex)
+        catch
         {
-            string err = $"Failed to send Arrival Response '{message}' to PatNum: {patNum}, WirelessPhone: {wirelessPhone}. "
-                         + MiscUtils.GetExceptionText(ex);
-            Logger.WriteError(err);
         }
-
-        return retVal;
     }
 
-    ///<summary>Determines if the given aptNum corresponds to an ApptReminderRule that has a corresponding ComeInMessageTemplate.  Does not make
-    ///database calls.</summary>
     public bool HasComeInMsg(long aptNum)
     {
-        ApptReminderRule rule = GetArrivalRule(aptNum);
+        var rule = GetArrivalRule(aptNum);
         return !string.IsNullOrWhiteSpace(rule?.TemplateComeInMessage ?? "");
     }
 
-    ///<summary>Gets an ApptReminderRule with a ComeInMessageTemplate that corresponds to the given aptNum. Does not make database calls.</summary>
     private ApptReminderRule GetArrivalRule(long aptNum)
     {
-        IEnumerable<long> listReminderRuleNums = ListArrivalsSent.Where(x => x.ApptNum == aptNum).Select(x => x.ApptReminderRuleNum);
-        ApptReminderRule rule = ListApptReminderRules.FirstOrDefault(x => listReminderRuleNums.Contains(x.ApptReminderRuleNum));
+        var listReminderRuleNums = _listArrivalsSent.Where(x => x.ApptNum == aptNum).Select(x => x.ApptReminderRuleNum);
+        var rule = _listApptReminderRules.FirstOrDefault(x => listReminderRuleNums.Contains(x.ApptReminderRuleNum));
         return rule;
     }
 
-    ///<summary>Returns true if an appropriate 'Come In' message template was found for the given appointment.</summary>
     public bool TryGetComeInMsg(Appointment appt, out string message)
     {
-        PatComm patComm = Patients.GetPatComms(new List<long> {appt.PatNum}, null).FirstOrDefault();
+        var patComm = Patients.GetPatComms(new List<long> {appt.PatNum}, null).FirstOrDefault();
         return TryGetMsgFromTemplate(appt, patComm, (rule) => rule?.TemplateComeInMessage ?? "", out message);
     }
 
-    ///<summary>Returns a list of Appointment/PatComm/Arrival Responses for the given Appointments if the Appointment was in a Confirmed status that 
-    ///is allowed to receive Arrival Responses.  The Response field will be non-empty an Arrival Response template was found.</summary>
     private List<ApptResponse> GetApptResponses(List<Appointment> listAppts)
     {
-        List<ApptResponse> listResponses = new List<ApptResponse>();
-        List<long> listConfirmStatusToSkip = PrefC.GetString(PrefName.ApptConfirmExcludeArrivalResponse)
+        var listResponses = new List<ApptResponse>();
+        var listConfirmStatusToSkip = PrefC.GetString(PrefName.ApptConfirmExcludeArrivalResponse)
             .Split(",", StringSplitOptions.RemoveEmptyEntries)
             .Select(x => SIn.Long(x))
             .ToList();
         //It is expected here that all Appointments are for the same clinic.
         var clinic = (listAppts.Any(x => x.ClinicNum == 0)) ? Clinics.GetPracticeAsClinicZero() : Clinics.GetClinic(listAppts.First().ClinicNum);
-        List<PatComm> listPatComms = Patients.GetPatComms(listAppts.Select(x => x.PatNum).ToList(), clinic);
+        var listPatComms = Patients.GetPatComms(listAppts.Select(x => x.PatNum).ToList(), clinic);
         //We will mark all appointments with Confirmed not in the "skip list" as arrived, and send response SMS where configured.
-        foreach (Appointment appt in listAppts.Where(x => !listConfirmStatusToSkip.Contains(x.Confirmed)))
+        foreach (var appt in listAppts.Where(x => !listConfirmStatusToSkip.Contains(x.Confirmed)))
         {
-            PatComm patComm = listPatComms.FirstOrDefault(x => x.PatNum == appt.PatNum);
+            var patComm = listPatComms.FirstOrDefault(x => x.PatNum == appt.PatNum);
 
             string getAutoReplyTemplate(ApptReminderRule rule)
             {
@@ -337,7 +281,7 @@ public class Arrivals
             }
 
             //Later, we will have to filter out ApptResponses that do not have a Response/message.
-            TryGetMsgFromTemplate(appt, patComm, getAutoReplyTemplate, out string message);
+            TryGetMsgFromTemplate(appt, patComm, getAutoReplyTemplate, out var message);
             listResponses.Add(new ApptResponse(appt, patComm, message));
         }
 
@@ -347,26 +291,19 @@ public class Arrivals
     private bool TryGetMsgFromTemplate(Appointment appt, PatComm patComm, Func<ApptReminderRule, string> getTemplate, out string message)
     {
         ApptReminderRule rule = null;
-        string msg = "";
-        string logDir = ODFileUtils.CombinePaths(nameof(Arrivals), nameof(TryGetMsgFromTemplate), appt.ClinicNum.ToString());
+        var msg = "";
         try
         {
             rule = GetArrivalRule(appt.AptNum);
-            string template = getTemplate(rule);
-            if (string.IsNullOrWhiteSpace(template))
-            {
-                string info = $"Unable to find template for Appointment.AptNum: {appt.AptNum}";
-                Logger.WriteLine(info);
-            }
-            else
+            var template = getTemplate(rule);
+            if (!string.IsNullOrWhiteSpace(template))
             {
                 var clinic = (appt.ClinicNum == 0) ? Clinics.GetPracticeAsClinicZero() : Clinics.GetClinic(appt.ClinicNum);
                 msg = _tagReplacer.ReplaceTags(template, new ApptLite(appt, patComm), clinic, false);
             }
         }
-        catch (Exception ex)
+        catch
         {
-            Logger.WriteError(MiscUtils.GetExceptionText(ex));
         }
 
         message = msg;

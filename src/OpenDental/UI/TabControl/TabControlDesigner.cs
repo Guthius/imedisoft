@@ -1,39 +1,28 @@
-﻿using System;
-using System.Collections;
-using System.ComponentModel;
-using System.ComponentModel.Design;
-using System.Diagnostics;
-using System.Drawing;
-using System.Drawing.Drawing2D;
-using System.Drawing.Design;
-using System.Runtime.InteropServices;
-using System.Windows.Forms;
+﻿using System.Drawing;
 using System.Windows.Forms.Design;
-using System.Windows.Forms.Design.Behavior;
 
 namespace OpenDental.UI.Design;
 
-//[System.Security.Permissions.PermissionSet(System.Security.Permissions.SecurityAction.Demand, Name = "FullTrust")] 
-public class TabControlDesigner:ParentControlDesigner{
+public class TabControlDesigner : ParentControlDesigner
+{
+    public TabControlDesigner()
+    {
+        EnableDragDrop(true);
+    }
 
-	public TabControlDesigner(){
-		//Trace.WriteLine("TabControlDesigner ctor");
-		EnableDragDrop(true);
-	}
+    protected override bool GetHitTest(Point pointScreen)
+    {
+        var point = Control.PointToClient(pointScreen);
+        var tabControl = (TabControl) Control;
+        
+        foreach (var rectangle in tabControl.ListRectanglesTabs)
+        {
+            if (rectangle.Contains(point))
+            {
+                return true;
+            }
+        }
 
-	protected override bool GetHitTest(Point pointScreen){
-		var point=Control.PointToClient(pointScreen);
-		var tabControl = (TabControl)Control;
-		for(var i = 0;i<tabControl.ListRectanglesTabs.Count;i++){
-			if(tabControl.ListRectanglesTabs[i].Contains(point)){
-				return true;
-			}
-		}
-		return false;
-	}
-
-	//We are not using Behavior:
-	//https://stackoverflow.com/questions/8537023/enable-a-button-to-be-clicked-at-design-time-in-visual-studio
-
-
+        return false;
+    }
 }

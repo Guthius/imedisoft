@@ -26,22 +26,23 @@ public class CustReferenceCrud
     public static List<CustReference> TableToList(DataTable table)
     {
         var retVal = new List<CustReference>();
-        CustReference custReference;
         foreach (DataRow row in table.Rows)
         {
-            custReference = new CustReference();
-            custReference.CustReferenceNum = SIn.Long(row["CustReferenceNum"].ToString());
-            custReference.PatNum = SIn.Long(row["PatNum"].ToString());
-            custReference.DateMostRecent = SIn.Date(row["DateMostRecent"].ToString());
-            custReference.Note = SIn.String(row["Note"].ToString());
-            custReference.IsBadRef = SIn.Bool(row["IsBadRef"].ToString());
+            var custReference = new CustReference
+            {
+                CustReferenceNum = SIn.Long(row["CustReferenceNum"].ToString()),
+                PatNum = SIn.Long(row["PatNum"].ToString()),
+                DateMostRecent = SIn.Date(row["DateMostRecent"].ToString()),
+                Note = SIn.String(row["Note"].ToString()),
+                IsBadRef = SIn.Bool(row["IsBadRef"].ToString())
+            };
             retVal.Add(custReference);
         }
 
         return retVal;
     }
 
-    public static long Insert(CustReference custReference)
+    public static void Insert(CustReference custReference)
     {
         var command = "INSERT INTO custreference (";
 
@@ -55,7 +56,6 @@ public class CustReferenceCrud
         {
             custReference.CustReferenceNum = Db.NonQ(command, true, "CustReferenceNum", "custReference");
         }
-        return custReference.CustReferenceNum;
     }
 
     public static void Update(CustReference custReference)

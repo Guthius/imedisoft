@@ -1,16 +1,10 @@
 using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
 using System.Linq;
-using System.Text;
-using System.Windows;
 using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
 using DataConnectionBase;
-using Imedisoft.Core.Caching;
 using Imedisoft.Core.Entities;
+using Imedisoft.Features.Providers.Dtos;
 using OpenDentBusiness;
 using WpfControls.UI;
 
@@ -25,13 +19,13 @@ namespace OpenDental {
 		///<summary>Setting to true will show a none button and will allow 0 to be returned in the SelectedProvNum variable.  It will be -1 if the user cancels out of the window.</summary>
 		public bool IsNoneAvailable=false;
 		///<summary>Will be set to a specific list of providers passed in.  Will be null if no defined list of providers is desired.</summary>
-		private List<Provider> _listProviders;
+		private List<ProviderDto> _listProviders;
 		///<summary>Will enable the checkbox that shows all non-hidden providers regardless of schedule, clinic, or what _listProviders was set to initially</summary>
 		public bool IsShowAllAvailable=false;
 		private FilterControlsAndAction _filterControlsAndAction;
 		
 		
-		public FrmProviderPick(List<Provider> listProviders=null) {
+		public FrmProviderPick(List<ProviderDto> listProviders=null) {
 			InitializeComponent();
 			_listProviders=listProviders;
 			_filterControlsAndAction=new FilterControlsAndAction();
@@ -46,11 +40,11 @@ namespace OpenDental {
 		private void FrmProviderSelect_Load(object sender, System.EventArgs e) {
 			Lang.F(this);
 			checkShowAll.Visible=IsShowAllAvailable;
-			List<Provider> listProviders=RefreshDBForGrid();
+			List<ProviderDto> listProviders=RefreshDBForGrid();
 			FillGrid(listProviders);
 			if(_listProviders!=null) {
 				for(int i=0;i<_listProviders.Count;i++) {
-					if(_listProviders[i].ProvNum==ProvNumSelected) {
+					if(_listProviders[i].Id==ProvNumSelected) {
 						gridMain.SetSelected(i,true);
 						break;
 					}
@@ -67,9 +61,9 @@ namespace OpenDental {
 			textFilter.Focus();
 		}
 
-		private List<Provider> RefreshDBForGrid(){
+		private List<ProviderDto> RefreshDBForGrid(){
 			ComboBox comboBoxClass=null;
-			List<Provider> listProviders;
+			List<ProviderDto> listProviders;
 			CheckBox checkBoxShowAll=null;
 			Dispatcher.Invoke(()=>checkBoxShowAll=checkShowAll);
 			if(_listProviders!=null && checkBoxShowAll.Checked==false) {//User wants to use a specific list of providers.
@@ -107,27 +101,27 @@ namespace OpenDental {
 		}
 
 		/// <summary>Filters the list of providers by search terms and returns the filtered list. If used outside of FormProviderPick, make sure your list of providers isn't null before calling this method.</summary>
-		private List<Provider> GetFilteredProviderList(List<Provider> listProviders) {
+		private List<ProviderDto> GetFilteredProviderList(List<ProviderDto> listProviders) {
 			string txtFilter="";
 			Dispatcher.Invoke(() => txtFilter=textFilter.Text);
 			if(string.IsNullOrWhiteSpace(txtFilter)) { 
 				return listProviders;	
 			}
-			List<Provider> listProvidersFiltered=new List<Provider>();
+			List<ProviderDto> listProvidersFiltered=new List<ProviderDto>();
 			for(int i=0;i<listProviders.Count;i++) {
-				if(listProviders[i].FName==null || listProviders[i].LName==null || listProviders[i].Abbr==null) {
+				if(listProviders[i].FirstName==null || listProviders[i].LastName==null || listProviders[i].Abbr==null) {
 					continue;
 				}
-				if(listProviders[i].FName.ToUpper().Trim().Contains(txtFilter.ToUpper().Trim()) ||
-					listProviders[i].LName.ToUpper().Trim().Contains(txtFilter.ToUpper().Trim()) ||
+				if(listProviders[i].FirstName.ToUpper().Trim().Contains(txtFilter.ToUpper().Trim()) ||
+					listProviders[i].LastName.ToUpper().Trim().Contains(txtFilter.ToUpper().Trim()) ||
 					listProviders[i].Abbr.ToUpper().Trim().Contains(txtFilter.ToUpper().Trim())) 
 				{
 					listProvidersFiltered.Add(listProviders[i]);
 				}
 			}
 			listProvidersFiltered=listProvidersFiltered
-				.OrderByDescending(x=>x.FName.ToUpper().Trim().StartsWith(txtFilter.ToUpper().Trim()))
-				.ThenByDescending(x=>x.LName.ToUpper().Trim().StartsWith(txtFilter.ToUpper().Trim()))
+				.OrderByDescending(x=>x.FirstName.ToUpper().Trim().StartsWith(txtFilter.ToUpper().Trim()))
+				.ThenByDescending(x=>x.LastName.ToUpper().Trim().StartsWith(txtFilter.ToUpper().Trim()))
 				.ThenByDescending(x=>x.Abbr.ToUpper().Trim().StartsWith(txtFilter.ToUpper().Trim())).ToList();
 			return listProvidersFiltered;
 		}
@@ -141,7 +135,7 @@ namespace OpenDental {
 		}
 
 		private void checkShowAll_Click(object sender,EventArgs e) {
-			List<Provider> listProviders=RefreshDBForGrid();
+			List<ProviderDto> listProviders=RefreshDBForGrid();
 			FillGrid(listProviders);
 		}
 

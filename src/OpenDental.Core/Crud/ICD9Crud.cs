@@ -17,14 +17,15 @@ public class ICD9Crud
     public static List<ICD9> TableToList(DataTable table)
     {
         var retVal = new List<ICD9>();
-        ICD9 iCD9;
         foreach (DataRow row in table.Rows)
         {
-            iCD9 = new ICD9();
-            iCD9.ICD9Num = SIn.Long(row["ICD9Num"].ToString());
-            iCD9.ICD9Code = SIn.String(row["ICD9Code"].ToString());
-            iCD9.Description = SIn.String(row["Description"].ToString());
-            iCD9.DateTStamp = SIn.DateTime(row["DateTStamp"].ToString());
+            var iCD9 = new ICD9
+            {
+                ICD9Num = SIn.Long(row["ICD9Num"].ToString()),
+                ICD9Code = SIn.String(row["ICD9Code"].ToString()),
+                Description = SIn.String(row["Description"].ToString()),
+                DateTStamp = SIn.DateTime(row["DateTStamp"].ToString())
+            };
             retVal.Add(iCD9);
         }
 

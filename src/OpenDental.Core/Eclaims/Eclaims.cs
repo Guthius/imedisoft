@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading;
 using System.Windows.Forms;
 using CodeBase;
+using Imedisoft.Core.Data;
 using Imedisoft.Core.Entities;
 
 namespace OpenDentBusiness.Eclaims
@@ -25,7 +26,7 @@ namespace OpenDentBusiness.Eclaims
         public static void SendBatch(Clearinghouse clearinghouseClin, List<ClaimSendQueueItem> queueItems, EnumClaimMedType medType,
             IFormClaimFormItemEdit formClaimFormItemEdit, Renaissance.FillRenaissanceDelegate fillRenaissance, ITerminalConnector terminalConnector)
         {
-            string messageText = "";
+            var messageText = "";
             if (clearinghouseClin.Eformat == ElectronicClaimFormat.Canadian)
             {
                 MessageBox.Show(Lans.g("Eclaims", "Cannot send Canadian claims as part of Eclaims.SendBatch."));
@@ -183,17 +184,17 @@ namespace OpenDentBusiness.Eclaims
             }
             else if (clearinghouseClin.CommBridge == EclaimsCommBridge.VyneDental)
             {
-                if (!VyneDental.Launch(clearinghouseClin, batchNumber))
+                if (!VyneDental.Launch(clearinghouseClin))
                 {
                     MessageBox.Show(Lans.g("Eclaims", "Error sending.") + "\r\n" + VyneDental.ErrorMessage);
                     return;
                 }
             }
 
-            StringBuilder errorMessage = new StringBuilder();
+            var errorMessage = new StringBuilder();
             //----------------------------------------------------------------------------------------
             //finally, mark the claims sent. (only if not Canadian)
-            EtransType etype = EtransType.ClaimSent;
+            var etype = EtransType.ClaimSent;
             if (clearinghouseClin.Eformat == ElectronicClaimFormat.Renaissance)
             {
                 etype = EtransType.Claim_Ren;
@@ -203,12 +204,12 @@ namespace OpenDentBusiness.Eclaims
             if (clearinghouseClin.Eformat != ElectronicClaimFormat.Canadian && clearinghouseClin.Eformat != ElectronicClaimFormat.Ramq)
             {
                 //Create the etransmessagetext that all claims in the batch will point to.
-                EtransMessageText etransMsgText = new EtransMessageText();
+                var etransMsgText = new EtransMessageText();
                 etransMsgText.MessageText = messageText;
                 EtransMessageTexts.Insert(etransMsgText);
-                for (int j = 0; j < queueItems.Count; j++)
+                for (var j = 0; j < queueItems.Count; j++)
                 {
-                    Etrans etrans = Etranss.SetClaimSentOrPrinted(queueItems[j].ClaimNum, queueItems[j].ClaimStatus, queueItems[j].PatNum,
+                    var etrans = Etranss.SetClaimSentOrPrinted(queueItems[j].ClaimNum, queueItems[j].ClaimStatus, queueItems[j].PatNum,
                         clearinghouseClin.HqClearinghouseNum, etype, batchNumber, Security.CurUser.UserNum);
                     //Attempted fix for problems with Eclaims SendBatch attempts throwing null reference UEs. Job #41284
                     //If SetClaimSentOrPrinted() returns null, then we try again.
@@ -298,8 +299,8 @@ namespace OpenDentBusiness.Eclaims
             //plan (which is allowed because no claims are attached).  On server B, a user creates a claim with the insurance plan.
             //When the internet connection returns, the delete insplan statement is run on server B, which then creates a claim with
             //an invalid InsPlanNum on server B.  Without the checking below, the send claims window would crash for this one scenario.
-            Claim claim = Claims.GetClaim(queueItem.ClaimNum); //This should always exist, because we just did a select to get the queue item.
-            InsPlan insPlan = InsPlans.RefreshOne(claim.PlanNum);
+            var claim = Claims.GetClaim(queueItem.ClaimNum); //This should always exist, because we just did a select to get the queue item.
+            var insPlan = InsPlans.RefreshOne(claim.PlanNum);
             if (insPlan == null)
             {
                 //Check for missing PlanNums
@@ -310,7 +311,7 @@ namespace OpenDentBusiness.Eclaims
 
             if (claim.InsSubNum2 != 0)
             {
-                InsPlan insPlan2 = InsPlans.RefreshOne(claim.PlanNum2);
+                var insPlan2 = InsPlans.RefreshOne(claim.PlanNum2);
                 if (insPlan2 == null)
                 {
                     //Check for missing PlanNums

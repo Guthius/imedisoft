@@ -1,8 +1,5 @@
 using System;
-using System.Drawing;
-using System.Collections;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Windows.Forms;
 using OpenDentBusiness;
 using OpenDental.UI;
@@ -30,7 +27,7 @@ public partial class FormProcSelect : FormODBase {
 	public List<Procedure> ListProceduresSelected= [];
 	///<summary>List of paysplits for the current payment.</summary>
 	public List<PaySplit> ListPaySplits= [];
-	public bool IsPrepayAllowedForTpProcs=PrefC.GetYN(PrefName.PrePayAllowedForTpProcs);
+	public bool IsPrepayAllowedForTpProcs=PrefC.GetYn(PrefName.PrePayAllowedForTpProcs);
 	public List<AccountEntry> ListAccountEntries= [];
 	#endregion
 

@@ -33,13 +33,8 @@ public partial class FormTimeCardRuleEdit:FormODBase {
 	}
 
 	private void FormTimeCardRuleEdit_Load(object sender,EventArgs e) {
-		if(true) {
-			_listEmployees=Employees.GetEmpsForClinic(Clinics.ClinicNum);
-		}
-		else {
-			_listEmployees=Employees.GetForTimeCard();
-				
-		}
+		_listEmployees=Employees.GetEmpsForClinic(Clinics.ClinicNum);
+
 		listEmp.Items.Add(Lan.g(this,"All Employees"));
 		listEmp.SetSelected(0);
 		for(var i=0;i<_listEmployees.Count;i++) {

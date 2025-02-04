@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -455,18 +454,13 @@ public partial class FormCreditCardEdit:FormODBase {
 			return;
 		}
 		var textDateStartCopy=textDateStart.Text;//Copy textDateStart.Text to fill textDateStart field after textDayOfMonth_TextChanged() clears it
-		if(false) {
-			textDayOfMonth.Text=_patient.BillingCycleDay.ToString();
-		}
-		else {
-			var dateStart=SIn.Date(textDateStart.Text);
-			if(dateStart.Year < 1880 || textDayOfMonth.Text!="") {//if invalid date or if they already have something in the day of the month text
-				UpdateTextNextChargeDate();
-				return;
-			}
-			textDayOfMonth.Text=dateStart.Date.Day.ToString();
+		var dateStart=SIn.Date(textDateStart.Text);
+		if(dateStart.Year < 1880 || textDayOfMonth.Text!="") {//if invalid date or if they already have something in the day of the month text
 			UpdateTextNextChargeDate();
+			return;
 		}
+		textDayOfMonth.Text=dateStart.Date.Day.ToString();
+		UpdateTextNextChargeDate();
 		textDateStart.Text=textDateStartCopy;
 	}
 
@@ -522,7 +516,6 @@ public partial class FormCreditCardEdit:FormODBase {
 		var hasDuplicatePaySimple=CreditCards.HasDuplicatePaySimpleToken(CreditCardCur);
 		var hasDuplicateXCharge=CreditCards.HasDuplicateXChargeToken(CreditCardCur);
 		//Currently we don't send a delete request to Payconnect, but here if we need to do so in the future so this pattern isn't missed.
-		var hasDuplicatePayConnect=CreditCards.HasDuplicatePayConnectToken(CreditCardCur);
 		#region X-Charge
 		//Delete the archived X-Charge token 
 		if(!hasDuplicateXCharge && ((_isEdgeExpressEnabled || _isXChargeEnabled) && CreditCardCur.XChargeToken!="")) {

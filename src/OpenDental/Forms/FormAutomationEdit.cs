@@ -66,8 +66,6 @@ public partial class FormAutomationEdit : FormODBase
 
     private void FillGrid()
     {
-        AutomationConditions.RefreshCache();
-
         _automationConditions = AutomationConditions.GetListByAutomationNum(_automation.AutomationNum);
 
         gridMain.BeginUpdate();
@@ -95,11 +93,6 @@ public partial class FormAutomationEdit : FormODBase
         {
             _automationActions.Remove(AutomationAction.SetApptASAP);
             _automationActions.Remove(AutomationAction.SetApptType);
-        }
-
-        if (automationTrigger is not EnumAutomationTrigger.RxCreate)
-        {
-            _automationActions.Remove(AutomationAction.PrintRxInstruction);
         }
 
         _automationActions.ForEach(x => comboAction.Items.Add(x.GetDescription()));
@@ -167,7 +160,6 @@ public partial class FormAutomationEdit : FormODBase
             case AutomationAction.PrintReferralLetter:
             case AutomationAction.ShowConsentForm:
             case AutomationAction.ShowExamSheet:
-            case AutomationAction.PrintRxInstruction:
                 labelActionObject.Visible = true;
                 labelActionObject.Text = "Sheet Definition";
                 comboActionObject.Visible = true;
@@ -181,7 +173,6 @@ public partial class FormAutomationEdit : FormODBase
                         case SheetTypeEnum.ReferralLetter when _automationActions[comboAction.SelectedIndex] == AutomationAction.PrintReferralLetter:
                         case SheetTypeEnum.Consent when _automationActions[comboAction.SelectedIndex] == AutomationAction.ShowConsentForm:
                         case SheetTypeEnum.ExamSheet when _automationActions[comboAction.SelectedIndex] == AutomationAction.ShowExamSheet:
-                        case SheetTypeEnum.RxInstruction when _automationActions[comboAction.SelectedIndex] == AutomationAction.PrintRxInstruction:
                             comboActionObject.Items.Add(sheetDef.Description, sheetDef.SheetDefNum);
                             break;
                     }
@@ -344,7 +335,6 @@ public partial class FormAutomationEdit : FormODBase
             case AutomationAction.PrintReferralLetter:
             case AutomationAction.ShowExamSheet:
             case AutomationAction.ShowConsentForm:
-            case AutomationAction.PrintRxInstruction:
                 if (comboActionObject.SelectedIndex == -1)
                 {
                     ShowError("A sheet definition must be selected.");

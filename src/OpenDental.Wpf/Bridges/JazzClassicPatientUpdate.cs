@@ -1,10 +1,3 @@
-using CodeBase;
-using OpenDentBusiness;
-using System;
-using System.Diagnostics;
-using System.IO;
-using System.Text;
-using System.Xml;
 using Imedisoft.Core.Entities;
 
 namespace OpenDental.Bridges {

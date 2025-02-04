@@ -67,9 +67,9 @@ public static class InsPlanPreferences
             }
 
             var insPlanPreferenceOld = insPlanPreference.Copy();
-            
+
             insPlanPreference.ValueString = valueString;
-            
+
             InsPlanPreferenceCrud.Update(insPlanPreference, insPlanPreferenceOld);
         }
     }
@@ -110,14 +110,14 @@ public static class InsPlanPreferences
         };
     }
 
-    public static bool NoBillIns(ProcedureCode procedureCode, List<InsPlanPreference> listInsPlanPreferences)
+    public static bool NoBillIns(ProcedureCode procedureCode, List<InsPlanPreference> insPlanPreferences)
     {
-        if (listInsPlanPreferences.IsNullOrEmpty())
+        if (insPlanPreferences.IsNullOrEmpty())
         {
             return procedureCode.NoBillIns;
         }
 
-        var insPlanPreference = listInsPlanPreferences.Find(x => x.FKey == procedureCode.CodeNum && x.FKeyType == InsPlanPrefFKeyType.ProcCodeNoBillIns);
+        var insPlanPreference = insPlanPreferences.Find(x => x.FKey == procedureCode.CodeNum && x.FKeyType == InsPlanPrefFKeyType.ProcCodeNoBillIns);
         if (insPlanPreference == null)
         {
             return procedureCode.NoBillIns;

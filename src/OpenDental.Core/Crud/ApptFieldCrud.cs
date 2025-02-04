@@ -26,21 +26,21 @@ public class ApptFieldCrud
     public static List<ApptField> TableToList(DataTable table)
     {
         var retVal = new List<ApptField>();
-        ApptField apptField;
         foreach (DataRow row in table.Rows)
         {
-            apptField = new ApptField();
-            apptField.ApptFieldNum = SIn.Long(row["ApptFieldNum"].ToString());
-            apptField.AptNum = SIn.Long(row["AptNum"].ToString());
-            apptField.FieldName = SIn.String(row["FieldName"].ToString());
-            apptField.FieldValue = SIn.String(row["FieldValue"].ToString());
+            var apptField = new ApptField
+            {
+                AptNum = SIn.Long(row["AptNum"].ToString()),
+                FieldName = SIn.String(row["FieldName"].ToString()),
+                FieldValue = SIn.String(row["FieldValue"].ToString())
+            };
             retVal.Add(apptField);
         }
 
         return retVal;
     }
 
-    public static long Insert(ApptField apptField)
+    public static void Insert(ApptField apptField)
     {
         var command = "INSERT INTO apptfield (";
 
@@ -53,8 +53,7 @@ public class ApptFieldCrud
         if (apptField.FieldValue == null) apptField.FieldValue = "";
         var paramFieldValue = new OdSqlParameter("paramFieldValue", SOut.StringParam(apptField.FieldValue));
         {
-            apptField.ApptFieldNum = Db.NonQ(command, true, "ApptFieldNum", "apptField", paramFieldValue);
+            Db.NonQ(command, true, "ApptFieldNum", "apptField", paramFieldValue);
         }
-        return apptField.ApptFieldNum;
     }
 }

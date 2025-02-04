@@ -8,10 +8,8 @@ using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
 using System.Windows.Forms.Integration;
-using CodeBase;
 using Imedisoft.Core.Entities;
 using OpenDentBusiness;
-using WpfControls.Properties;
 using Help = OpenDentBusiness.Help;
 using Screen = System.Windows.Forms.Screen;
 
@@ -230,7 +228,7 @@ namespace OpenDental
                 }
 
                 _isImageFloatDocked = value;
-                IsImageFloatDockedChanged?.Invoke(this, new EventArgs());
+                IsImageFloatDockedChanged?.Invoke(this, EventArgs.Empty);
             }
         }
 
@@ -927,7 +925,7 @@ namespace OpenDental
                 WindowState = FormWindowState.Maximized;
             }
 
-            OnResizeEnd(new EventArgs());
+            OnResizeEnd(EventArgs.Empty);
         }
 
         private void PanelBorders_EventMouseMoveMax(object sender, EventArgs e)
@@ -1428,7 +1426,7 @@ namespace OpenDental
                     Bounds = new Rectangle(screen.WorkingArea.Left, screen.WorkingArea.Top, screen.WorkingArea.Width / 2, screen.WorkingArea.Height);
                 }
 
-                OnResizeEnd(new EventArgs());
+                OnResizeEnd(EventArgs.Empty);
                 return;
             }
 
@@ -1436,7 +1434,7 @@ namespace OpenDental
             {
                 //an ordinary border drag resize
                 //Mouse up can easily be over a button at this point because of drag to different monitor dpi or minimum size limit.
-                OnResizeEnd(new EventArgs());
+                OnResizeEnd(EventArgs.Empty);
                 return;
             }
 
@@ -1448,31 +1446,6 @@ namespace OpenDental
 
             if (_rectangleButMax.Contains(e.Location) && MaximizeBox)
             {
-                /*This won't happen because of PanelBorders WndProc
-                if(WindowState==FormWindowState.Maximized){ //restore down
-                    WindowState=FormWindowState.Normal;
-                    if(Location==new Point(0,0)){
-                        Location=new Point(screen.WorkingArea.X+screen.WorkingArea.Width/2-Width/2,screen.WorkingArea.Y+screen.WorkingArea.Height/2-Height/2);
-                    }
-                    if(Location.Y<screen.Bounds.Y){
-                        Location=new Point(Location.X,screen.WorkingArea.Y);
-                    }
-                }
-                else{//maximize
-                    if(this.GetType().ToString()=="FormImageFloat" && IsImageFloatLocked){
-                        MsgBox.Show(this,"PDFs cannot be undocked.  Double click to open in PDF viewer.");
-                        return;
-                    }
-                    //Windows will not reliably restore the size after maximize.  It gets bigger each time.  We need to trick it by resizing the window before maximizing.
-                    //This does not cause any flicker
-                    ShrinkWindowBeforeMinMax();
-                    if(this.GetType().ToString()=="FormImageFloat"){
-                        IsImageFloatDocked=false;
-                        IsImageFloatLocked=false;
-                    }
-                    WindowState=FormWindowState.Maximized;
-                }
-                OnResizeEnd(new EventArgs());*/
                 return;
             }
 
@@ -1491,7 +1464,7 @@ namespace OpenDental
                     IsImageFloatLocked = false;
                 }
 
-                OnResizeEnd(new EventArgs());
+                OnResizeEnd(EventArgs.Empty);
                 return;
             }
 
@@ -1790,10 +1763,9 @@ namespace OpenDental
 
         public void ProcessSignals(List<Signalod> listSignals)
         {
-            Logger.LogAction(() => ProcessSignalODs(listSignals));
+            ProcessSignalODs(listSignals);
         }
-
-        ///<summary>Override this if your form cares about signal processing.</summary>
+        
         public virtual void ProcessSignalODs(List<Signalod> listSignals)
         {
         }

@@ -1,17 +1,14 @@
 using System;
-using System.Collections.Generic;
 using System.ComponentModel;
-using System.Data;
 using System.Drawing;
 using System.Drawing.Drawing2D;
-using System.Text;
 using System.Windows.Forms;
 
 namespace OpenDental.UI;
 
 [DefaultEvent("Scroll")]
 public partial class WindowingSlider:Control {
-	public LayoutManagerForms LayoutManager=new LayoutManagerForms();
+	
 	private int _minVal=0;
 	private int _maxVal=255;
 	private float _widthBut=7;//the width of the end sliders.

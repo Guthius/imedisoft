@@ -23,9 +23,9 @@ namespace OpenDentBusiness
         public static PasswordContainer GenerateLoginDetails(string inputPass, HashTypes hashType)
         {
             //Always generate a salt because this should be used for passwords, which shuold always have salt.
-            string salt = GenerateSalt(hashType);
+            var salt = GenerateSalt(hashType);
             //Use salt to generate new hash.
-            string passNew = GetHash(inputPass, salt, hashType);
+            var passNew = GetHash(inputPass, salt, hashType);
             return new PasswordContainer(hashType, salt, passNew);
         }
 
@@ -38,7 +38,7 @@ namespace OpenDentBusiness
         ///If the inputPass is correct, the algorithm used was MD5, and updateIfNeeded is true then the password stored in the database will be updated to SHA3-512</summary>
         public static bool CheckPassword(Userod userod, string inputPass, bool isEcw = false)
         {
-            PasswordContainer passwordContainer = userod.GetPasswordContainer();
+            var passwordContainer = userod.GetPasswordContainer();
             if (passwordContainer.HashType == HashTypes.None)
             {
                 return inputPass == "";
@@ -72,7 +72,7 @@ namespace OpenDentBusiness
                 salt = "";
             }
 
-            string key = GetHash(inputPass, salt, hashType);
+            var key = GetHash(inputPass, salt, hashType);
             return ConstantEquals(key, hash);
         }
 
@@ -105,8 +105,8 @@ namespace OpenDentBusiness
         public static bool UpdatePasswordUserod(Userod user, string inputPass, HashTypes hashType = HashTypes.SHA3_512)
         {
             //Calculate the password strength.
-            bool passStrength = String.IsNullOrEmpty(Userods.IsPasswordStrong(inputPass));
-            PasswordContainer loginDetails = GenerateLoginDetails(inputPass, hashType);
+            var passStrength = string.IsNullOrEmpty(Userods.IsPasswordStrong(inputPass));
+            var loginDetails = GenerateLoginDetails(inputPass, hashType);
             try
             {
                 Userods.UpdatePassword(user, loginDetails, passStrength);
@@ -134,15 +134,15 @@ namespace OpenDentBusiness
 
             if (useEcwAlgorithm)
             {
-                byte[] asciiBytes = Encoding.ASCII.GetBytes(inputPass);
-                byte[] hashbytes = MD5.Hash(asciiBytes);
+                var asciiBytes = Encoding.ASCII.GetBytes(inputPass);
+                var hashbytes = MD5.Hash(asciiBytes);
                 return BitConverter.ToString(hashbytes).Replace("-", "").ToLower();
             }
             else
             {
                 //typical, only difference is encoding and how the result is encoded.
-                byte[] unicodeBytes = Encoding.Unicode.GetBytes(inputPass);
-                byte[] hashbytes2 = MD5.Hash(unicodeBytes);
+                var unicodeBytes = Encoding.Unicode.GetBytes(inputPass);
+                var hashbytes2 = MD5.Hash(unicodeBytes);
                 return Convert.ToBase64String(hashbytes2);
             }
         }
@@ -156,9 +156,9 @@ namespace OpenDentBusiness
         public static PasswordContainer GenerateLoginDetailsSHA512(string inputPass)
         {
             //Always generate a salt because this should be used for passwords, which shuold always have salt.
-            string salt = GenerateSalt(HashTypes.SHA3_512);
+            var salt = GenerateSalt(HashTypes.SHA3_512);
             //Use salt to generate new hash.
-            string passNew = GetHash(inputPass, salt, HashTypes.SHA3_512);
+            var passNew = GetHash(inputPass, salt, HashTypes.SHA3_512);
             return new PasswordContainer(HashTypes.SHA3_512, salt, passNew);
         }
 
@@ -171,8 +171,8 @@ namespace OpenDentBusiness
                 return "";
             }
 
-            byte[] unicodeBytes = Encoding.Unicode.GetBytes(salt + inputPass);
-            byte[] hashBytes = Sha3.Hash(unicodeBytes);
+            var unicodeBytes = Encoding.Unicode.GetBytes(salt + inputPass);
+            var hashBytes = Sha3.Hash(unicodeBytes);
             return Convert.ToBase64String(hashBytes);
         }
 
@@ -225,9 +225,9 @@ namespace OpenDentBusiness
             }
 
             //The '$' character is used as the field separator.
-            string[] passParts = dbPassString.Split('$');
+            var passParts = dbPassString.Split('$');
             HashTypes hashType;
-            bool success = Enum.TryParse(passParts[0], out hashType);
+            var success = Enum.TryParse(passParts[0], out hashType);
             //If a inputPass password uses '$' and is not 24 characters long, this will throw an exception.
             if (!success || passParts.Count() != 3)
             {

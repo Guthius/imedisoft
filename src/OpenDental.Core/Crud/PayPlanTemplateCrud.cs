@@ -17,23 +17,24 @@ public class PayPlanTemplateCrud
     public static List<PayPlanTemplate> TableToList(DataTable table)
     {
         var retVal = new List<PayPlanTemplate>();
-        PayPlanTemplate payPlanTemplate;
         foreach (DataRow row in table.Rows)
         {
-            payPlanTemplate = new PayPlanTemplate();
-            payPlanTemplate.PayPlanTemplateNum = SIn.Long(row["PayPlanTemplateNum"].ToString());
-            payPlanTemplate.PayPlanTemplateName = SIn.String(row["PayPlanTemplateName"].ToString());
-            payPlanTemplate.ClinicNum = SIn.Long(row["ClinicNum"].ToString());
-            payPlanTemplate.APR = SIn.Double(row["APR"].ToString());
-            payPlanTemplate.InterestDelay = SIn.Int(row["InterestDelay"].ToString());
-            payPlanTemplate.PayAmt = SIn.Double(row["PayAmt"].ToString());
-            payPlanTemplate.NumberOfPayments = SIn.Int(row["NumberOfPayments"].ToString());
-            payPlanTemplate.ChargeFrequency = (PayPlanFrequency) SIn.Int(row["ChargeFrequency"].ToString());
-            payPlanTemplate.DownPayment = SIn.Double(row["DownPayment"].ToString());
-            payPlanTemplate.DynamicPayPlanTPOption = (DynamicPayPlanTPOptions) SIn.Int(row["DynamicPayPlanTPOption"].ToString());
-            payPlanTemplate.Note = SIn.String(row["Note"].ToString());
-            payPlanTemplate.IsHidden = SIn.Bool(row["IsHidden"].ToString());
-            payPlanTemplate.SheetDefNum = SIn.Long(row["SheetDefNum"].ToString());
+            var payPlanTemplate = new PayPlanTemplate
+            {
+                PayPlanTemplateNum = SIn.Long(row["PayPlanTemplateNum"].ToString()),
+                PayPlanTemplateName = SIn.String(row["PayPlanTemplateName"].ToString()),
+                ClinicNum = SIn.Long(row["ClinicNum"].ToString()),
+                APR = SIn.Double(row["APR"].ToString()),
+                InterestDelay = SIn.Int(row["InterestDelay"].ToString()),
+                PayAmt = SIn.Double(row["PayAmt"].ToString()),
+                NumberOfPayments = SIn.Int(row["NumberOfPayments"].ToString()),
+                ChargeFrequency = (PayPlanFrequency) SIn.Int(row["ChargeFrequency"].ToString()),
+                DownPayment = SIn.Double(row["DownPayment"].ToString()),
+                DynamicPayPlanTPOption = (DynamicPayPlanTPOptions) SIn.Int(row["DynamicPayPlanTPOption"].ToString()),
+                Note = SIn.String(row["Note"].ToString()),
+                IsHidden = SIn.Bool(row["IsHidden"].ToString()),
+                SheetDefNum = SIn.Long(row["SheetDefNum"].ToString())
+            };
             retVal.Add(payPlanTemplate);
         }
 

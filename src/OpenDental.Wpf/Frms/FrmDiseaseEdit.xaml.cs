@@ -1,17 +1,9 @@
 using System;
-using System.Collections.Generic;
-using System.Data;
-using System.Linq;
-using System.Text;
-using System.Windows;
 using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
 using DataConnectionBase;
 using Imedisoft.Core.Data;
 using Imedisoft.Core.Entities;
 using OpenDentBusiness;
-using WpfControls.UI;
 
 namespace OpenDental {
 	/// <summary></summary>
@@ -121,13 +113,6 @@ namespace OpenDental {
 				IsDialogOK=false;
 				return;
 			}
-			try { 
-				Diseases.VerifyCanDelete(_disease.DiseaseNum);
-			}
-			catch(Exception ex) {
-				MsgBox.Show(ex.Message);
-				return;
-			}
 			if(!MsgBox.Show(this,MsgBoxButtons.OKCancel,"Delete?")) {
 				return;
 			}			
@@ -155,13 +140,6 @@ namespace OpenDental {
 				SecurityLogs.MakeLogEntry(EnumPermType.PatProblemListEdit,_disease.PatNum,DiseaseDefs.GetName(_disease.DiseaseDefNum)+" added");
 			}
 			else{
-				try { 
-					Diseases.VerifyCanUpdate(_disease);
-				}
-				catch(Exception ex) {
-					MsgBox.Show(ex.Message);
-					return;
-				}
 				Diseases.Update(_disease);
 				SecurityLogs.MakeLogEntry(EnumPermType.PatProblemListEdit,_disease.PatNum,DiseaseDefs.GetName(_disease.DiseaseDefNum)+" edited");
 			}

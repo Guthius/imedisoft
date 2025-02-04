@@ -12,7 +12,7 @@ public static class LabTurnarounds
     public static List<LabTurnaround> GetForLab(long laboratoryNum)
     {
         var dataTable = DataCore.GetTable("SELECT * FROM labturnaround WHERE LaboratoryNum=" + laboratoryNum);
-        
+
         var labTurnarounds = new List<LabTurnaround>();
         for (var i = 0; i < dataTable.Rows.Count; i++)
         {
@@ -36,11 +36,11 @@ public static class LabTurnarounds
         foreach (var labTurnaround in labTurnarounds)
         {
             labTurnaround.LaboratoryNum = laboratoryNum;
-            
+
             Insert(labTurnaround);
         }
     }
-    
+
     public static void Insert(LabTurnaround labTurnaround)
     {
         LabTurnaroundCrud.Insert(labTurnaround);
@@ -50,24 +50,25 @@ public static class LabTurnarounds
     {
         var date = dateStart;
         var counter = 0;
-        
+
         while (true)
         {
             if (counter >= days)
             {
                 break;
             }
-            
+
             date = date.AddDays(1);
             if (date.DayOfWeek is DayOfWeek.Saturday or DayOfWeek.Sunday)
             {
                 continue;
             }
-            
+
             if (Schedules.DateIsHoliday(date))
             {
                 continue;
             }
+
             counter++;
         }
 
