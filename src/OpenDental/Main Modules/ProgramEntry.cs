@@ -2,20 +2,32 @@
 using System.Diagnostics;
 using System.Net;
 using System.Windows.Forms;
-using System.Windows.Interop;
-using System.Windows.Media;
 using CodeBase;
+using CommunityToolkit.Mvvm.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection;
+using OpenDental.Core.Services;
 using OpenDentBusiness;
 
 namespace OpenDental;
 
 internal static class ProgramEntry
 {
+    private static void ConfigureServices()
+    {
+        var services = new ServiceCollection();
+
+        services.AddSingleton<IDialogService, DialogService>();
+
+        var serviceProvider = services.BuildServiceProvider();
+
+        Ioc.Default.ConfigureServices(serviceProvider);
+    }
+    
     [STAThread]
     private static void Main(string[] args)
     {
-        RenderOptions.ProcessRenderMode = RenderMode.SoftwareOnly;
-
+        ConfigureServices();
+        
         Application.EnableVisualStyles();
         Application.SetCompatibleTextRenderingDefault(false);
         

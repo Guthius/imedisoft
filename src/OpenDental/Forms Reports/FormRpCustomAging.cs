@@ -10,6 +10,8 @@ using Imedisoft.Core.Caching;
 using Imedisoft.Core.Entities;
 using Imedisoft.Core.Features.Clinics;
 using Imedisoft.Core.Features.Clinics.Dtos;
+using Imedisoft.Core.Features.Providers;
+using Imedisoft.Core.Features.Providers.Dtos;
 using OpenDental.ReportingComplex;
 
 namespace OpenDental;
@@ -226,7 +228,7 @@ public partial class FormRpCustomAging:FormODBase {
 			ExcludeArchive=checkExcludeArchive.Checked,
 			ExcludeBadAddress = checkExcludeBadAddresses.Checked,
 			//pass in null for lists to not limit by them.
-			ListProvs = checkAllProv.Checked ? null : listBoxProvs.GetListSelected<Provider>(),
+			ListProvs = checkAllProv.Checked ? null : listBoxProvs.GetListSelected<ProviderDto>(),
 			ListClins = checkAllClin.Checked ? null : listBoxClins.GetListSelected<ClinicDto>(),
 			ListBillTypes = checkAllBillType.Checked ? null : listBoxBillTypes.GetListSelected<Def>(),
 			AgeCredits = checkAgeCredits.Checked,

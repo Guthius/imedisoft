@@ -9,7 +9,8 @@ using Imedisoft.Core.Data;
 using Imedisoft.Core.Entities;
 using Imedisoft.Core.Features.Clinics;
 using Imedisoft.Core.Features.Clinics.Dtos;
-using Imedisoft.Features.Providers.Dtos;
+using Imedisoft.Core.Features.Providers;
+using Imedisoft.Core.Features.Providers.Dtos;
 
 namespace OpenDental;
 
@@ -323,19 +324,9 @@ public partial class FormUserEdit : FormODBase {
 			UserodCur.EmployeeNum=_listEmployees[listEmployee.SelectedIndex-1].EmployeeNum;
 		}
 		if(listProv.SelectedIndex==0) {
-			var provider=Providers.GetById(UserodCur.ProvNum);
-			if(provider!=null) {
-				Providers.Update(provider);	
-			}
 			UserodCur.ProvNum=0;
 		}
 		else {
-			var provider=Providers.GetById(UserodCur.ProvNum);
-			if(provider!=null) {
-				if(provider.Id!=_listProviders[listProv.SelectedIndex-1].Id) {
-				}
-				Providers.Update(provider);
-			}
 			UserodCur.ProvNum=_listProviders[listProv.SelectedIndex-1].Id;
 		}
 		UserodCur.BadgeId=textBadgeId.Text;

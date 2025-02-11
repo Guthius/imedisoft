@@ -14,6 +14,7 @@ using CodeBase;
 using DataConnectionBase;
 using Imedisoft.Core.Data;
 using Imedisoft.Core.Entities;
+using Imedisoft.Core.Features.Providers;
 using Ionic.Zip;
 
 namespace OpenDentBusiness.Eclaims;

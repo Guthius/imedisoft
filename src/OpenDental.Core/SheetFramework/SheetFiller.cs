@@ -13,7 +13,8 @@ using Imedisoft.Core.Data;
 using Imedisoft.Core.Entities;
 using Imedisoft.Core.Features.Clinics;
 using Imedisoft.Core.Features.Clinics.Dtos;
-using Imedisoft.Features.Providers.Dtos;
+using Imedisoft.Core.Features.Providers;
+using Imedisoft.Core.Features.Providers.Dtos;
 
 namespace OpenDentBusiness;
 
@@ -31,7 +32,6 @@ public class SheetFiller {
 				throw new ApplicationException(Lans.g("Sheet","Parameter not specified for sheet")+": "+param.ParamName);
 			}
 		}
-		Provider provider=null;
 		Referral refer=null;
 		Deposit deposit=null;
 		switch(sheet.SheetType) {

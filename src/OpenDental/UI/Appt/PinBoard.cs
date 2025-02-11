@@ -10,6 +10,7 @@ using System.Windows.Forms;
 using CodeBase;
 using DataConnectionBase;
 using Imedisoft.Core.Entities;
+using Imedisoft.Core.Features.Providers;
 
 namespace OpenDental.UI;
 

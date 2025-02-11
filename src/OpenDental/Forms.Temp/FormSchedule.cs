@@ -10,7 +10,8 @@ using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Data;
 using Imedisoft.Core.Entities;
-using Imedisoft.Features.Providers.Dtos;
+using Imedisoft.Core.Features.Providers;
+using Imedisoft.Core.Features.Providers.Dtos;
 using OpenDental.Logic;
 using OpenDental.UI;
 using OpenDentBusiness;
@@ -104,7 +105,7 @@ public partial class FormSchedule:FormODBase {
 		var listEmpNumsPreviouslySelected=listBoxEmps.GetListSelected<Employee>().Select(x => x.EmployeeNum).ToList();
 		listBoxEmps.Items.Clear();
 		_listEmployees.ForEach(x => listBoxEmps.Items.Add(x.FName,x));
-		var listProvNumsPreviouslySelected=listBoxProvs.GetListSelected<Provider>().Select(x => x.ProvNum).ToList();
+		var listProvNumsPreviouslySelected=listBoxProvs.GetListSelected<ProviderDto>().Select(x => x.Id).ToList();
 		listBoxProvs.Items.Clear();
 		_listProviders.ForEach(x => listBoxProvs.Items.Add(x.Abbr,x));
 		if(_listEmpNumsPreSelected!=null || _listProvNumsPreSelected!=null) {
@@ -156,7 +157,7 @@ public partial class FormSchedule:FormODBase {
 			}
 			if(listProvNumsPreviouslySelected.Count > 0) {
 				for(var i=0; i<listBoxProvs.Items.Count; i++) {
-					if(listProvNumsPreviouslySelected.Contains(((Provider)listBoxProvs.Items.GetObjectAt(i)).ProvNum)) {
+					if(listProvNumsPreviouslySelected.Contains(((ProviderDto)listBoxProvs.Items.GetObjectAt(i)).Id)) {
 						listBoxProvs.SetSelected(i,true);
 					}
 				}
@@ -323,7 +324,7 @@ public partial class FormSchedule:FormODBase {
 		listProvNums= [];
 		//Don't populate listProvNums if 'none' is selected; not allowed to select 'none' and another prov validated above.
 		if(!listBoxProvs.SelectedIndices.Contains(0)) {
-			listProvNums=listBoxProvs.GetListSelected<Provider>().Select(x => x.ProvNum).ToList();
+			listProvNums=listBoxProvs.GetListSelected<ProviderDto>().Select(x => x.Id).ToList();
 		}
 		listEmployeeNums= [];
 		//Don't populate listEmployeeNums if 'none' is selected; not allowed to select 'none' and another emp validated above.
@@ -411,7 +412,7 @@ public partial class FormSchedule:FormODBase {
 		var provAbbr="";
 		var empFName="";
 		//Get all of the selected providers and employees (removing the "none" options).
-		var listProvidersSelected=listBoxProvs.GetListSelected<Provider>().FindAll(x => x.ProvNum > 0);
+		var listProvidersSelected=listBoxProvs.GetListSelected<ProviderDto>().FindAll(x => x.Id > 0);
 		var listEmployeesSelected=listBoxEmps.GetListSelected<Employee>().FindAll(x => x.EmployeeNum > 0);
 		if(listProvidersSelected.Count==1 && listEmployeesSelected.Count==0) {//only 1 provider selected, pass into schedule day filter
 			provAbbr=listProvidersSelected[0].Abbr;
@@ -421,8 +422,8 @@ public partial class FormSchedule:FormODBase {
 		}
 		else if(listProvidersSelected.Count==1 && listEmployeesSelected.Count==1) {//1 provider and 1 employee selected
 			//see if the names match, if we're dealing with the same person it's okay to pass both in, if not then don't pass in either. 
-			if(listProvidersSelected[0].FName==listEmployeesSelected[0].FName 
-			   && listProvidersSelected[0].LName==listEmployeesSelected[0].LName) 
+			if(listProvidersSelected[0].FirstName==listEmployeesSelected[0].FName 
+			   && listProvidersSelected[0].LastName==listEmployeesSelected[0].LName) 
 			{
 				provAbbr=listProvidersSelected[0].Abbr;
 				empFName=listEmployeesSelected[0].FName;

@@ -9,6 +9,7 @@ using System.Text.RegularExpressions;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Data;
 using Imedisoft.Core.Entities;
+using Imedisoft.Core.Features.Providers;
 
 namespace OpenDental;
 

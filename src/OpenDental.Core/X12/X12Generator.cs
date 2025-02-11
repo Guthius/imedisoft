@@ -1,6 +1,6 @@
 ﻿using System.Text.RegularExpressions;
 using Imedisoft.Core.Entities;
-using Imedisoft.Features.Providers.Dtos;
+using Imedisoft.Core.Features.Providers.Dtos;
 
 namespace OpenDentBusiness;
 

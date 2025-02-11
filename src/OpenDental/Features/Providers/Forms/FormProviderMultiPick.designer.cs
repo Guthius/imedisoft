@@ -1,4 +1,4 @@
-namespace OpenDental{
+namespace OpenDental.Features.Providers.Forms{
 	partial class FormProvidersMultiPick {
 		/// <summary>
 		/// Required designer variable.

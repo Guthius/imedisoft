@@ -22,6 +22,7 @@ using Imedisoft.Core.Entities;
 using Imedisoft.Core.Features.Clinics;
 using Imedisoft.Core.Features.Clinics.Dtos;
 using Imedisoft.Features.Core;
+using OpenDental.Features.Providers.Forms;
 using OpenDental.Forms;
 using OpenDental.Logic;
 using OpenDental.Main_Modules;

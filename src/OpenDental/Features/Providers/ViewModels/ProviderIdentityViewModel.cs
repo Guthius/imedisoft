@@ -1,14 +1,14 @@
 ﻿using System.Collections.Generic;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Imedisoft.Core.Features.Providers.Dtos;
 using OpenDental.Core.ViewModels;
-using OpenDental.Features.Providers.Models;
 
 namespace OpenDental.Features.Providers.ViewModels;
 
 public sealed partial class ProviderIdentityViewModel : DialogViewModel
 {
-    private readonly ProviderIdentityModel _providerIdentityModel;
+    private readonly ProviderIdentityDto _providerIdentityDto;
 
     [ObservableProperty]
     private List<string> _types = ["BlueCross", "BlueShield", "SiteNumber", "CommercialNumber"];
@@ -17,21 +17,21 @@ public sealed partial class ProviderIdentityViewModel : DialogViewModel
     [ObservableProperty] private string _type = string.Empty;
     [ObservableProperty] private string _value = string.Empty;
 
-    public ProviderIdentityViewModel(ProviderIdentityModel providerIdentityModel)
+    public ProviderIdentityViewModel(ProviderIdentityDto providerIdentityDto)
     {
-        _providerIdentityModel = providerIdentityModel;
+        _providerIdentityDto = providerIdentityDto;
 
-        PayorId = _providerIdentityModel.PayorId;
-        Type = _providerIdentityModel.Type;
-        Value = _providerIdentityModel.Value;
+        PayorId = _providerIdentityDto.PayorId;
+        Type = _providerIdentityDto.Type;
+        Value = _providerIdentityDto.Value;
     }
 
     [RelayCommand]
     private void Save()
     {
-        _providerIdentityModel.PayorId = PayorId;
-        _providerIdentityModel.Type = Type;
-        _providerIdentityModel.Value = Value;
+        _providerIdentityDto.PayorId = PayorId;
+        _providerIdentityDto.Type = Type;
+        _providerIdentityDto.Value = Value;
 
         Close(true);
     }

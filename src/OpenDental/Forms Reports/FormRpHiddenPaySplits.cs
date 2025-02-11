@@ -8,7 +8,8 @@ using Imedisoft.Core.Caching;
 using Imedisoft.Core.Entities;
 using Imedisoft.Core.Features.Clinics;
 using Imedisoft.Core.Features.Clinics.Dtos;
-using Imedisoft.Features.Providers.Dtos;
+using Imedisoft.Core.Features.Providers;
+using Imedisoft.Core.Features.Providers.Dtos;
 using OpenDental.ReportingComplex;
 using OpenDentBusiness;
 
@@ -115,8 +116,8 @@ public partial class FormRpHiddenPaySplits : FormODBase {
 			listProvNums=_listProviders.Select(x => x.Id).ToList();
 		}
 		else {
-			subtitleProvs=string.Join(", ",listBoxProv.GetListSelected<Provider>().Select(x => x.Abbr));
-			listProvNums=listBoxProv.GetListSelected<Provider>().Select(x => x.ProvNum).ToList();
+			subtitleProvs=string.Join(", ",listBoxProv.GetListSelected<ProviderDto>().Select(x => x.Abbr));
+			listProvNums=listBoxProv.GetListSelected<ProviderDto>().Select(x => x.Id).ToList();
 		}
 		if(checkAllUnearnedTypes.Checked) {
 			subtitleUnearned="All Hidden Unearned";

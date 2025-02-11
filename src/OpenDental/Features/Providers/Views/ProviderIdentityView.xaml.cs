@@ -2,9 +2,9 @@
 
 namespace OpenDental.Features.Providers.Views;
 
-public partial class ProviderWindow : Window
+public partial class ProviderIdentityView : Window
 {
-    public ProviderWindow()
+    public ProviderIdentityView()
     {
         InitializeComponent();
     }

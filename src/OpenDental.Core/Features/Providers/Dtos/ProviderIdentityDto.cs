@@ -1,4 +1,4 @@
-namespace Imedisoft.Features.Providers.Dtos;
+namespace Imedisoft.Core.Features.Providers.Dtos;
 
 public sealed record ProviderIdentityDto
 {

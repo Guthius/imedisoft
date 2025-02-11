@@ -6,13 +6,12 @@ using System.Linq;
 using CodeBase;
 using DataConnectionBase;
 using Imedisoft.Core.Caching;
-using Imedisoft.Core.Crud;
 using Imedisoft.Core.Data;
 using Imedisoft.Core.Entities;
-using Imedisoft.Core.Features.Clinics;
-using Imedisoft.Features.Providers.Dtos;
+using Imedisoft.Core.Features.Providers.Dtos;
+using OpenDentBusiness;
 
-namespace OpenDentBusiness;
+namespace Imedisoft.Core.Features.Providers;
 
 public class Providers
 {
@@ -48,29 +47,19 @@ public class Providers
             message += "hygienist";
         }
 
-        if (invalidProviderIds.Contains(apt.ProvNum) && invalidProviderIds.Contains(apt.ProvHyg)) //used for grammar
-            message = "The " + message + " selected for this appointment have Term Dates prior to the selected day and time. "
-                      + "Please select another " + message + (isSetComplete ? " to set the appointment complete." : ".");
-        else
-            message = "The " + message + " selected for this appointment has a Term Date prior to the selected day and time. "
-                      + "Please select another " + message + (isSetComplete ? " to set the appointment complete." : ".");
+        if (invalidProviderIds.Contains(apt.ProvNum) && invalidProviderIds.Contains(apt.ProvHyg))
+        {
+            return "The " + message + " selected for this appointment have Term Dates prior to the selected day and time. " +
+                   "Please select another " + message + (isSetComplete ? " to set the appointment complete." : ".");
+        }
 
-        return message;
+        return "The " + message + " selected for this appointment has a Term Date prior to the selected day and time. " +
+               "Please select another " + message + (isSetComplete ? " to set the appointment complete." : ".");
     }
 
     public static List<ProviderDto> GetAll()
     {
         return Cache.GetDeepCopy();
-    }
-
-    public static void Update(ProviderDto provider)
-    {
-        throw new NotImplementedException();
-    }
-
-    public static long Insert(ProviderDto provider)
-    {
-        throw new NotImplementedException();
     }
 
     public static ProviderDto GetById(long providerId)
@@ -88,11 +77,11 @@ public class Providers
         return Cache.GetWhere(x => providerIds.Contains(x.Id), shortList);
     }
 
-    public static List<Provider> GetManyByIdNoCache(List<long> providerIds)
+    public static List<ProviderDto> GetManyByIdNoCache(List<long> providerIds)
     {
         throw new NotImplementedException();
     }
-    
+
     public static string GetAbbr(long providerId, bool includeHidden = false)
     {
         var providerDto = GetById(providerId);
@@ -170,7 +159,7 @@ public class Providers
     {
         return GetById(providerId) is {IsSecondary: true};
     }
-    
+
     public static int GetIndex(long providerId)
     {
         return Cache.GetDeepCopy(true).FindIndex(x => x.Id == providerId);
@@ -190,7 +179,7 @@ public class Providers
             return PrefC.GetLong(PrefName.InsBillingProv);
         } //Using clinics, and a clinic was pased in
 
-        var clinicInsBillingProv = Clinics.GetClinic(clinicNum).BillingProviderId ?? 0;
+        var clinicInsBillingProv = Clinics.Clinics.GetClinic(clinicNum).BillingProviderId ?? 0;
         if (clinicInsBillingProv == 0) //default=0
             return PrefC.GetLong(PrefName.PracticeDefaultProv);
 
@@ -235,16 +224,9 @@ public class Providers
         return listProviders.Where(x => !listProvsRestrictedOtherClinics.Contains(x.Id)).ToList();
     }
 
-    public static string GetDuplicateAbbrs()
-    {
-        var command = "SELECT Abbr FROM provider WHERE ProvStatus!=" + SOut.Int((int) ProviderStatus.Deleted);
-        var listDuplicates = Db.GetListString(command).GroupBy(x => x).Where(x => x.Count() > 1).Select(x => x.Key).ToList();
-        return string.Join(",", listDuplicates);
-    }
-
     public static ProviderDto GetDefaultProvider(long clinicId = 0)
     {
-        var clinic = Clinics.GetClinic(clinicId);
+        var clinic = Clinics.Clinics.GetClinic(clinicId);
 
         ProviderDto provider = null;
 
@@ -274,7 +256,7 @@ public class Providers
             var provider = GetById(kvp.Key);
             if (provider is not null)
             {
-                total += (decimal)kvp.Value * provider.HourlyProductionGoal;
+                total += (decimal) kvp.Value * provider.HourlyProductionGoal;
             }
         }
 
@@ -419,7 +401,7 @@ public class Providers
 
         command = "UPDATE provider SET IsHidden=1 WHERE ProvNum=" + provNumFrom;
         Db.NonQ(command);
-        command = "UPDATE provider SET ProvStatus=" + SOut.Int((int) ProviderStatus.Deleted) + " WHERE ProvNum=" + provNumFrom;
+        command = "UPDATE provider SET ProvStatus=" + /*SOut.Int((int) ProviderStatus.Deleted)*/ 1 + " WHERE ProvNum=" + provNumFrom;
         Db.NonQ(command);
         return retVal;
     }
@@ -461,10 +443,7 @@ public class Providers
     {
         protected override List<ProviderDto> GetCacheFromDb()
         {
-            // var command = "SELECT * FROM provider";
-            // if (true) command += " ORDER BY ItemOrder";
-            // return ProviderCrud.SelectMany(command);
-            throw new NotImplementedException();
+            return ProviderService.GetAll();
         }
 
         protected override bool InShortList(ProviderDto item)
@@ -505,11 +484,9 @@ public class Providers
         Cache.Refresh();
     }
 
-    public static DataTable GetTableFromCache(bool doRefreshCache)
+    public static void GetTableFromCache()
     {
         Cache.Refresh();
-
-        return null;
     }
 
     public static void ClearCache()

@@ -7,6 +7,7 @@ using Imedisoft.Core.Caching;
 using Imedisoft.Core.Crud;
 using Imedisoft.Core.Data;
 using Imedisoft.Core.Entities;
+using Imedisoft.Core.Features.Providers;
 
 namespace OpenDentBusiness;
 

@@ -5,6 +5,7 @@ using System.Windows.Forms;
 using CodeBase;
 using Imedisoft.Core.Data;
 using Imedisoft.Core.Entities;
+using Imedisoft.Core.Features.Providers;
 using OpenDental.Logic;
 using OpenDentBusiness;
 

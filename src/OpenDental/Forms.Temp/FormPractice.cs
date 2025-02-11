@@ -4,6 +4,7 @@ using OpenDentBusiness;
 using System.Collections.Generic;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Entities;
+using Imedisoft.Core.Features.Providers;
 
 namespace OpenDental;
 

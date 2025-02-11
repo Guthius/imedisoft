@@ -3,6 +3,7 @@ using System.Text;
 using CodeBase;
 using Imedisoft.Core.Data;
 using Imedisoft.Core.Entities;
+using Imedisoft.Core.Features.Providers;
 
 namespace OpenDentBusiness;
 

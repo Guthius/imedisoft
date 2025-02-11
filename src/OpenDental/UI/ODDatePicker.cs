@@ -245,6 +245,16 @@ public partial class ODDatePicker:UserControl {
 		return SIn.Date(textDate.Text);
 	}
 
+	public DateTime? GetDateTimeNullable()
+	{
+		if (DateTime.TryParse(textDate.Text, out var result))
+		{
+			return result;
+		}
+
+		return null;
+	}
+
 	public void SetDateTime(DateTime dateTime) {//good
 		if(dateTime==DateTime.MinValue) {
 			textDate.Text="";

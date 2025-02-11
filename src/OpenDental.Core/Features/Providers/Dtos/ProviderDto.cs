@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace Imedisoft.Features.Providers.Dtos;
+namespace Imedisoft.Core.Features.Providers.Dtos;
 
 public sealed record ProviderDto
 {
@@ -23,8 +23,8 @@ public sealed record ProviderDto
     public decimal HourlyProductionGoal { get; set; }
     public ProviderNameDto? BillingProvider { get; set; }
     public string? TaxonomyCode { get; set; }
-    public string Color { get; set; } = string.Empty;
-    public string OutlineColor { get; set; } = string.Empty;
+    public string Color { get; set; } = "#B9C6E6";
+    public string OutlineColor { get; set; } = "#4D4D4D";
     public bool IsCdaNet { get; set; }
     public string CanadianOfficeNumber { get; set; } = string.Empty;
     public bool IsSecondary { get; set; }

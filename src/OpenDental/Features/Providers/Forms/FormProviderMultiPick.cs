@@ -2,11 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Windows.Forms;
-using Imedisoft.Features.Providers.Dtos;
+using Imedisoft.Core.Features.Providers.Dtos;
 using OpenDental.UI;
-using OpenDentBusiness;
 
-namespace OpenDental;
+namespace OpenDental.Features.Providers.Forms;
 
 public partial class FormProvidersMultiPick : FormODBase
 {
@@ -32,7 +31,7 @@ public partial class FormProvidersMultiPick : FormODBase
 
         gridMain.ListGridRows.Clear();
 
-        _providers ??= Providers.GetDeepCopy(true);
+        _providers ??= Imedisoft.Core.Features.Providers.Providers.GetDeepCopy(true);
 
         foreach (var provider in _providers)
         {

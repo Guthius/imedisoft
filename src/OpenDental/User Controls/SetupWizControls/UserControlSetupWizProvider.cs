@@ -4,7 +4,9 @@ using System.Linq;
 using System.Windows.Forms;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Entities;
-using Imedisoft.Features.Providers.Dtos;
+using Imedisoft.Core.Features.Providers;
+using Imedisoft.Core.Features.Providers.Dtos;
+using OpenDental.Features.Providers.Forms;
 using OpenDental.UI;
 using OpenDentBusiness;
 
@@ -174,9 +176,7 @@ public partial class UserControlSetupWizProvider : SetupWizControl
         var providerDto = new ProviderDto();
 
         using var formProvEdit = new FormProvEdit(providerDto);
-
-        formProvEdit.IsNew = true;
-
+        
         if (formProvEdit.ShowDialog() != DialogResult.OK)
         {
             return;

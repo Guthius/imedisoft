@@ -6,7 +6,8 @@ using System.Drawing.Drawing2D;
 using System.Linq;
 using System.Windows.Forms;
 using Imedisoft.Core.Entities;
-using Imedisoft.Features.Providers.Dtos;
+using Imedisoft.Core.Features.Providers;
+using Imedisoft.Core.Features.Providers.Dtos;
 using OpenDentBusiness;
 
 namespace OpenDental.UI;
@@ -312,8 +313,8 @@ public partial class ComboBox : Control{
 				}
 			}
 			SetSelected(index);
-			SelectionChangeCommitted?.Invoke(this,new EventArgs());
-			SelectedIndexChanged?.Invoke(this,new EventArgs());
+			SelectionChangeCommitted?.Invoke(this,EventArgs.Empty);
+			SelectedIndexChanged?.Invoke(this,EventArgs.Empty);
 			Invalidate();
 			return;
 		}
@@ -326,8 +327,8 @@ public partial class ComboBox : Control{
 			if(_listSelectedIndices.Count<1) {
 				foundMatch=SetSearchedIndex(0,charKey);
 				if(foundMatch) {
-					SelectedIndexChanged?.Invoke(this,new EventArgs());
-					SelectionChangeCommitted?.Invoke(this,new EventArgs());
+					SelectedIndexChanged?.Invoke(this,EventArgs.Empty);
+					SelectionChangeCommitted?.Invoke(this,EventArgs.Empty);
 				}
 				Invalidate();
 				return;
@@ -338,8 +339,8 @@ public partial class ComboBox : Control{
 			}
 		}
 		if(foundMatch) {
-			SelectedIndexChanged?.Invoke(this,new EventArgs());
-			SelectionChangeCommitted?.Invoke(this,new EventArgs());
+			SelectedIndexChanged?.Invoke(this,EventArgs.Empty);
+			SelectionChangeCommitted?.Invoke(this,EventArgs.Empty);
 		}
 		Invalidate();
 	}
@@ -484,7 +485,7 @@ public partial class ComboBox : Control{
 			if(value!=-1){
 				_listSelectedIndices.Add(value);
 			}
-			SelectedIndexChanged?.Invoke(this,new EventArgs());
+			SelectedIndexChanged?.Invoke(this,EventArgs.Empty);
 			Invalidate();
 		}
 	} 
@@ -508,7 +509,7 @@ public partial class ComboBox : Control{
 				}
 				_listSelectedIndices.Add(value[i]);
 			}
-			SelectedIndexChanged?.Invoke(this,new EventArgs());
+			SelectedIndexChanged?.Invoke(this,EventArgs.Empty);
 			Invalidate();
 		}
 	}
@@ -598,12 +599,12 @@ public partial class ComboBox : Control{
 
 	///<summary>Only for comboBoxes with a list of Providers. This is a specific use of GetSelectedKey. If selected index is -1, it will try to grab the key that was passed in earlier with SetSelectedProvNum.  If there is none, then it will return 0.</summary>
 	public long GetSelectedProvNum(){
-		return GetSelectedKey<Provider>(x=>x.ProvNum);
+		return GetSelectedKey<ProviderDto>(x=>x.Id);
 	}
 
 	///<summary>Only for multi-select comboBoxes with a list of Providers. Usually for reports.</summary>
 	public List<long> GetSelectedProvNums(){
-		return GetListSelected<Provider>().Select(x => x.ProvNum).ToList();
+		return GetListSelected<ProviderDto>().Select(x => x.Id).ToList();
 	}
 
 	///<summary>Gets a string of all selected items, separated by commas.  If "All" is selected, then the default is to simply return "All".  Or set ifAllListOut to true to list them out. useAbbr will string together abbreviations instead of the full display strings for each item.</summary>
@@ -654,7 +655,7 @@ public partial class ComboBox : Control{
 				_listSelectedIndices.Add(i);
 			}
 		}
-		SelectedIndexChanged?.Invoke(this,new EventArgs());
+		SelectedIndexChanged?.Invoke(this,EventArgs.Empty);
 		Invalidate();
 	}
 
@@ -680,7 +681,7 @@ public partial class ComboBox : Control{
 			}
 			_listSelectedIndices.Remove(index);
 		}
-		SelectedIndexChanged?.Invoke(this,new EventArgs());
+		SelectedIndexChanged?.Invoke(this,EventArgs.Empty);
 		Invalidate();
 	}
 
@@ -700,7 +701,7 @@ public partial class ComboBox : Control{
 				}
 				if(((Def)Items.GetObjectAt(i)).DefNum==0) {
 					_listSelectedIndices.Add(i);//found a 0, so select it
-					SelectedIndexChanged?.Invoke(this,new EventArgs());
+					SelectedIndexChanged?.Invoke(this,EventArgs.Empty);
 					Invalidate();
 					return;
 				}
@@ -708,7 +709,7 @@ public partial class ComboBox : Control{
 			//0 is not in list
 			_overrideText=Lan.g("Defs","none");
 			_selectedKey=0;//still, and selectedIndex is -1
-			SelectedIndexChanged?.Invoke(this,new EventArgs());
+			SelectedIndexChanged?.Invoke(this,EventArgs.Empty);
 			Invalidate();
 			return;
 		}
@@ -748,7 +749,7 @@ public partial class ComboBox : Control{
 			}
 			if(funcSelectKey((T)Items.GetObjectAt(i))==key) {
 				_listSelectedIndices.Add(i);
-				SelectedIndexChanged?.Invoke(this,new EventArgs());
+				SelectedIndexChanged?.Invoke(this,EventArgs.Empty);
 				Invalidate();
 				return;
 			}
@@ -767,7 +768,7 @@ public partial class ComboBox : Control{
 			_overrideText=key.ToString();//show the number because we don't want to show nothing
 		}
 		_selectedKey=key;
-		SelectedIndexChanged?.Invoke(this,new EventArgs());
+		SelectedIndexChanged?.Invoke(this,EventArgs.Empty);
 		Invalidate();
 	}
 
@@ -782,12 +783,12 @@ public partial class ComboBox : Control{
 				if(Items.GetObjectAt(i)==null){
 					continue;
 				}
-				if(typeof(Provider)!=Items.GetObjectAt(i).GetType()) {
+				if(typeof(ProviderDto)!=Items.GetObjectAt(i).GetType()) {
 					continue;
 				}
-				if(((Provider)Items.GetObjectAt(i)).ProvNum==0) {
+				if(((ProviderDto)Items.GetObjectAt(i)).Id==0) {
 					_listSelectedIndices.Add(i);//found a 0, so select it
-					SelectedIndexChanged?.Invoke(this,new EventArgs());
+					SelectedIndexChanged?.Invoke(this,EventArgs.Empty);
 					Invalidate();
 					return;
 				}
@@ -795,11 +796,11 @@ public partial class ComboBox : Control{
 			//0 is not in list
 			_overrideText=Lan.g("Providers","none");
 			_selectedKey=0;//still, and selectedIndex is -1
-			SelectedIndexChanged?.Invoke(this,new EventArgs());
+			SelectedIndexChanged?.Invoke(this,EventArgs.Empty);
 			Invalidate();
 			return;
 		}
-		SetSelectedKey<Provider>(provNum,x=>x.ProvNum,x=>Providers.GetAbbr(x,true));//won't use GetAbbr unless it has to
+		SetSelectedKey<ProviderDto>(provNum,x=>x.Id,x=>Providers.GetAbbr(x,true));//won't use GetAbbr unless it has to
 		//In case the provider long descriptions are being used, this method won't know about that, and will just use Abbr,
 		//but it will include (hidden), so that should be more than acceptable.
 	}
@@ -859,7 +860,7 @@ public partial class ComboBox : Control{
 			var index=_listSelectedIndices[0]+1>=Items.Count? _listSelectedIndices[0] : _listSelectedIndices[0]+1;
 			SetSelected(index);
 		}
-		SelectionChangeCommitted?.Invoke(this,new EventArgs());
+		SelectionChangeCommitted?.Invoke(this,EventArgs.Empty);
 		Invalidate();
 	}
 
@@ -898,8 +899,8 @@ public partial class ComboBox : Control{
 				if(Items.GetObjectAt(i) is Def) {
 					SetSelectedDefNum(((Def)Items.GetObjectAt(i)).DefNum);
 				}
-				else if(Items.GetObjectAt(i) is Provider) {
-					SetSelectedProvNum(((Provider)Items.GetObjectAt(i)).ProvNum);
+				else if(Items.GetObjectAt(i) is ProviderDto) {
+					SetSelectedProvNum(((ProviderDto)Items.GetObjectAt(i)).Id);
 				}
 				else {
 					SetSelected(i);
@@ -1009,10 +1010,10 @@ public partial class ComboBox : Control{
 		///<summary>Adds a dummy provider called "None", with a ProvNum of 0.  If you pass in a string to show instead of "None", you should run in through translation first.</summary>
 		public void AddProvNone(string textShowing=null){
 			if(textShowing==null){
-				Add(Lan.g("combo","None"),new Provider {Abbr=Lan.g("combo","None") });
+				Add(Lan.g("combo","None"),new ProviderDto {Abbr=Lan.g("combo","None") });
 			}
 			else{
-				Add(textShowing,new Provider());
+				Add(textShowing,new ProviderDto());
 			}
 		}
 

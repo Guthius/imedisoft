@@ -12,7 +12,8 @@ using Imedisoft.Core.Crud;
 using Imedisoft.Core.Data;
 using Imedisoft.Core.Entities;
 using Imedisoft.Core.Features.Clinics;
-using Imedisoft.Features.Providers.Dtos;
+using Imedisoft.Core.Features.Providers;
+using Imedisoft.Core.Features.Providers.Dtos;
 using OpenDental.Forms;
 using OpenDentBusiness.Eclaims;
 
@@ -829,7 +830,7 @@ public partial class FormClaimProc : FormODBase {
 		}
 		//Set the combo box to the ODBoxItem that contains the provider that was just selected.
 		//If we can't find it, reselect the same item that was already selected.
-		comboProvider.SetSelectedKey<Provider>(frmProviderPick.ProvNumSelected, x => x.ProvNum);
+		comboProvider.SetSelectedKey<ProviderDto>(frmProviderPick.ProvNumSelected, x => x.Id);
 	}
 
 	private void comboStatus_SelectionChangeCommitted(object sender,EventArgs e) {

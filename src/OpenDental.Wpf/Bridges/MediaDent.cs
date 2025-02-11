@@ -4,6 +4,7 @@ using OpenDentBusiness;
 using System.Collections.Generic;
 using CodeBase;
 using Imedisoft.Core.Entities;
+using Imedisoft.Core.Features.Providers;
 
 namespace OpenDental.Bridges {
 	/// <summary></summary>

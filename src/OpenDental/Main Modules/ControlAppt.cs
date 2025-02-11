@@ -13,8 +13,10 @@ using Imedisoft.Core.Caching;
 using Imedisoft.Core.Data;
 using Imedisoft.Core.Entities;
 using Imedisoft.Core.Features.Clinics;
-using Imedisoft.Features.Providers.Dtos;
+using Imedisoft.Core.Features.Providers;
+using Imedisoft.Core.Features.Providers.Dtos;
 using OpenDental.Bridges;
+using OpenDental.Features.Providers.Forms;
 using OpenDental.Forms;
 using OpenDental.Logic;
 using OpenDental.UI;
@@ -3298,10 +3300,10 @@ public partial class ControlAppt : UserControl
         var aptNum = pinBoard.ListPinBoardItems[pinBoard.SelectedIndex].AptNum;
         using var formApptSearchAdvanced = new FormApptSearchAdvanced(aptNum);
         var listProvNumsInBox = new List<long>();
-        var listProviders = _listBoxProviders.Items.GetAll<Provider>();
+        var listProviders = _listBoxProviders.Items.GetAll<ProviderDto>();
         for (var i = 0; i < listProviders.Count; i++)
         {
-            listProvNumsInBox.Add(listProviders[i].ProvNum);
+            listProvNumsInBox.Add(listProviders[i].Id);
         }
 
         formApptSearchAdvanced.SetSearchArgs(listProvNumsInBox, textBefore.Text, textAfter.Text, SIn.Date(dateSearch.Text));

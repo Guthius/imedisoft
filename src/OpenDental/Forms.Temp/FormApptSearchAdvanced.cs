@@ -7,7 +7,9 @@ using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Data;
 using Imedisoft.Core.Entities;
-using Imedisoft.Features.Providers.Dtos;
+using Imedisoft.Core.Features.Providers;
+using Imedisoft.Core.Features.Providers.Dtos;
+using OpenDental.Features.Providers.Forms;
 using OpenDental.UI;
 using OpenDentBusiness;
 
@@ -78,7 +80,7 @@ public partial class FormApptSearchAdvanced : FormODBase
             }
         }
 
-        if (comboBoxMultiProv.GetListSelected<Provider>().Count == 0)
+        if (comboBoxMultiProv.GetListSelected<ProviderDto>().Count == 0)
         {
             comboBoxMultiProv.SetSelected(0, true);
         }

@@ -5,6 +5,7 @@ using System.Linq;
 using DataConnectionBase;
 using Imedisoft.Core.Entities;
 using Imedisoft.Core.Features.Clinics;
+using Imedisoft.Core.Features.Providers;
 
 namespace OpenDentBusiness {
 	public class RpPayPlan {

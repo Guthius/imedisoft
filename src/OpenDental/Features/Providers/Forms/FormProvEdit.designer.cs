@@ -1,11 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Forms;
+﻿using System.Windows.Forms;
 
-namespace OpenDental {
+namespace OpenDental.Features.Providers.Forms {
 	public partial class FormProvEdit {
 		private System.ComponentModel.IContainer components = null;// Required designer variable.
 
@@ -21,7 +16,12 @@ namespace OpenDental {
 
 		#region Windows Form Designer generated code
 
-		private void InitializeComponent(){
+		/// <summary>
+		/// Required method for Designer support - do not modify
+		/// the contents of this method with the code editor.
+		/// </summary>
+		private void InitializeComponent()
+		{
 			System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(FormProvEdit));
 			this.butSave = new OpenDental.UI.Button();
 			this.colorDialog1 = new System.Windows.Forms.ColorDialog();
@@ -36,16 +36,7 @@ namespace OpenDental {
 			this.label25 = new System.Windows.Forms.Label();
 			this.odColorPickerOutline = new OpenDental.UI.ODColorPicker();
 			this.odColorPickerAppt = new OpenDental.UI.ODColorPicker();
-			this.groupClinicOverrides = new OpenDental.UI.GroupBox();
-			this.label15 = new System.Windows.Forms.Label();
 			this.butClinicOverrides = new OpenDental.UI.Button();
-			this.label3 = new System.Windows.Forms.Label();
-			this.label11 = new System.Windows.Forms.Label();
-			this.textStateLicense = new System.Windows.Forms.TextBox();
-			this.textDEANum = new System.Windows.Forms.TextBox();
-			this.label12 = new System.Windows.Forms.Label();
-			this.textStateRxID = new System.Windows.Forms.TextBox();
-			this.textStateWhereLicensed = new System.Windows.Forms.TextBox();
 			this.labelTermDate = new System.Windows.Forms.Label();
 			this.textProdGoalHr = new OpenDental.ValidDouble();
 			this.labelProdGoalHr = new System.Windows.Forms.Label();
@@ -79,8 +70,8 @@ namespace OpenDental {
 			this.radioTIN = new System.Windows.Forms.RadioButton();
 			this.radioSSN = new System.Windows.Forms.RadioButton();
 			this.textSSN = new System.Windows.Forms.TextBox();
-			this.listSpecialty = new OpenDental.UI.ListBox();
-			this.listFeeSched = new OpenDental.UI.ListBox();
+			this.listSpecialty = new System.Windows.Forms.ListBox();
+			this.listFeeSched = new System.Windows.Forms.ListBox();
 			this.checkIsSecondary = new OpenDental.UI.CheckBox();
 			this.label10 = new System.Windows.Forms.Label();
 			this.label9 = new System.Windows.Forms.Label();
@@ -93,23 +84,16 @@ namespace OpenDental {
 			this.labelColor = new System.Windows.Forms.Label();
 			this.dateTerm = new OpenDental.UI.ODDatePicker();
 			this.tabSupplementalIDs = new OpenDental.UI.TabPage();
-			this.tabClinics = new OpenDental.UI.TabPage();
-			this.labelClinicsDesc = new System.Windows.Forms.Label();
-			this.checkAllClinics = new OpenDental.UI.CheckBox();
-			this.listBoxClinics = new OpenDental.UI.ListBox();
-			this.labelClinics = new System.Windows.Forms.Label();
 			this.groupBox2.SuspendLayout();
 			this.tabControlProvider.SuspendLayout();
 			this.tabGeneral.SuspendLayout();
-			this.groupClinicOverrides.SuspendLayout();
 			this.groupBox1.SuspendLayout();
 			this.tabSupplementalIDs.SuspendLayout();
-			this.tabClinics.SuspendLayout();
 			this.SuspendLayout();
 			// 
 			// butSave
 			// 
-			this.butSave.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+			this.butSave.Anchor = ((System.Windows.Forms.AnchorStyles) ((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
 			this.butSave.Location = new System.Drawing.Point(808, 629);
 			this.butSave.Name = "butSave";
 			this.butSave.Size = new System.Drawing.Size(75, 24);
@@ -169,14 +153,12 @@ namespace OpenDental {
 			this.label2.Name = "label2";
 			this.label2.Size = new System.Drawing.Size(481, 32);
 			this.label2.TabIndex = 44;
-			this.label2.Text = "This is where you store provider IDs assigned by individual insurance companies, " +
-    "especially BC/BS.";
+			this.label2.Text = "This is where you store provider IDs assigned by individual insurance companies, " + "especially BC/BS.";
 			// 
 			// tabControlProvider
 			// 
 			this.tabControlProvider.Controls.Add(this.tabGeneral);
 			this.tabControlProvider.Controls.Add(this.tabSupplementalIDs);
-			this.tabControlProvider.Controls.Add(this.tabClinics);
 			this.tabControlProvider.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F);
 			this.tabControlProvider.Location = new System.Drawing.Point(12, 12);
 			this.tabControlProvider.Name = "tabControlProvider";
@@ -185,12 +167,12 @@ namespace OpenDental {
 			// 
 			// tabGeneral
 			// 
-			this.tabGeneral.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(252)))), ((int)(((byte)(253)))), ((int)(((byte)(254)))));
+			this.tabGeneral.BackColor = System.Drawing.Color.FromArgb(((int) (((byte) (252)))), ((int) (((byte) (253)))), ((int) (((byte) (254)))));
 			this.tabGeneral.Controls.Add(this.textPreferredName);
+			this.tabGeneral.Controls.Add(this.butClinicOverrides);
 			this.tabGeneral.Controls.Add(this.label25);
 			this.tabGeneral.Controls.Add(this.odColorPickerOutline);
 			this.tabGeneral.Controls.Add(this.odColorPickerAppt);
-			this.tabGeneral.Controls.Add(this.groupClinicOverrides);
 			this.tabGeneral.Controls.Add(this.labelTermDate);
 			this.tabGeneral.Controls.Add(this.textProdGoalHr);
 			this.tabGeneral.Controls.Add(this.labelProdGoalHr);
@@ -276,101 +258,16 @@ namespace OpenDental {
 			this.odColorPickerAppt.Size = new System.Drawing.Size(74, 21);
 			this.odColorPickerAppt.TabIndex = 342;
 			// 
-			// groupClinicOverrides
-			// 
-			this.groupClinicOverrides.Controls.Add(this.label15);
-			this.groupClinicOverrides.Controls.Add(this.butClinicOverrides);
-			this.groupClinicOverrides.Controls.Add(this.label3);
-			this.groupClinicOverrides.Controls.Add(this.label11);
-			this.groupClinicOverrides.Controls.Add(this.textStateLicense);
-			this.groupClinicOverrides.Controls.Add(this.textDEANum);
-			this.groupClinicOverrides.Controls.Add(this.label12);
-			this.groupClinicOverrides.Controls.Add(this.textStateRxID);
-			this.groupClinicOverrides.Controls.Add(this.textStateWhereLicensed);
-			this.groupClinicOverrides.Location = new System.Drawing.Point(37, 290);
-			this.groupClinicOverrides.Name = "groupClinicOverrides";
-			this.groupClinicOverrides.Size = new System.Drawing.Size(340, 98);
-			this.groupClinicOverrides.TabIndex = 341;
-			this.groupClinicOverrides.Text = "Clinic Overrides";
-			// 
-			// label15
-			// 
-			this.label15.Location = new System.Drawing.Point(24, 36);
-			this.label15.Name = "label15";
-			this.label15.Size = new System.Drawing.Size(139, 14);
-			this.label15.TabIndex = 319;
-			this.label15.Text = "State Where Licensed";
-			this.label15.TextAlign = System.Drawing.ContentAlignment.TopRight;
-			// 
 			// butClinicOverrides
 			// 
-			this.butClinicOverrides.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-			this.butClinicOverrides.Location = new System.Drawing.Point(287, 72);
+			this.butClinicOverrides.Anchor = ((System.Windows.Forms.AnchorStyles) ((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+			this.butClinicOverrides.Location = new System.Drawing.Point(264, 364);
 			this.butClinicOverrides.Name = "butClinicOverrides";
 			this.butClinicOverrides.Size = new System.Drawing.Size(47, 21);
 			this.butClinicOverrides.TabIndex = 329;
 			this.butClinicOverrides.Text = "Edit";
 			this.butClinicOverrides.UseVisualStyleBackColor = true;
 			this.butClinicOverrides.Click += new System.EventHandler(this.ButtonClinicOverrides_Click);
-			// 
-			// label3
-			// 
-			this.label3.Location = new System.Drawing.Point(22, 15);
-			this.label3.Name = "label3";
-			this.label3.Size = new System.Drawing.Size(142, 14);
-			this.label3.TabIndex = 285;
-			this.label3.Text = "State License Number";
-			this.label3.TextAlign = System.Drawing.ContentAlignment.TopRight;
-			// 
-			// label11
-			// 
-			this.label11.Location = new System.Drawing.Point(26, 57);
-			this.label11.Name = "label11";
-			this.label11.Size = new System.Drawing.Size(137, 14);
-			this.label11.TabIndex = 299;
-			this.label11.Text = "DEA Number";
-			this.label11.TextAlign = System.Drawing.ContentAlignment.TopRight;
-			// 
-			// textStateLicense
-			// 
-			this.textStateLicense.Location = new System.Drawing.Point(165, 11);
-			this.textStateLicense.MaxLength = 15;
-			this.textStateLicense.Name = "textStateLicense";
-			this.textStateLicense.Size = new System.Drawing.Size(102, 20);
-			this.textStateLicense.TabIndex = 276;
-			// 
-			// textDEANum
-			// 
-			this.textDEANum.Location = new System.Drawing.Point(165, 53);
-			this.textDEANum.MaxLength = 15;
-			this.textDEANum.Name = "textDEANum";
-			this.textDEANum.Size = new System.Drawing.Size(102, 20);
-			this.textDEANum.TabIndex = 278;
-			// 
-			// label12
-			// 
-			this.label12.Location = new System.Drawing.Point(27, 78);
-			this.label12.Name = "label12";
-			this.label12.Size = new System.Drawing.Size(137, 14);
-			this.label12.TabIndex = 318;
-			this.label12.Text = "State Rx ID";
-			this.label12.TextAlign = System.Drawing.ContentAlignment.TopRight;
-			// 
-			// textStateRxID
-			// 
-			this.textStateRxID.Location = new System.Drawing.Point(165, 74);
-			this.textStateRxID.MaxLength = 15;
-			this.textStateRxID.Name = "textStateRxID";
-			this.textStateRxID.Size = new System.Drawing.Size(102, 20);
-			this.textStateRxID.TabIndex = 279;
-			// 
-			// textStateWhereLicensed
-			// 
-			this.textStateWhereLicensed.Location = new System.Drawing.Point(165, 32);
-			this.textStateWhereLicensed.MaxLength = 15;
-			this.textStateWhereLicensed.Name = "textStateWhereLicensed";
-			this.textStateWhereLicensed.Size = new System.Drawing.Size(34, 20);
-			this.textStateWhereLicensed.TabIndex = 277;
 			// 
 			// labelTermDate
 			// 
@@ -658,21 +555,6 @@ namespace OpenDental {
 			// 
 			// listSpecialty
 			// 
-			this.listSpecialty.ItemStrings = new string[] {
-        "Dental General Practice",
-        "Dental Hygienist",
-        "Endodontics",
-        "Pediatric Dentistry",
-        "Periodontics",
-        "Prosthodontics",
-        "Orthodontics",
-        "Denturist",
-        "Surgery, Oral & Maxillofacial",
-        "Dental Assistant",
-        "Dental Laboratory Technician",
-        "Pathology, Oral & MaxFac",
-        "Public Health",
-        "Radiology"};
 			this.listSpecialty.Location = new System.Drawing.Point(598, 34);
 			this.listSpecialty.Name = "listSpecialty";
 			this.listSpecialty.Size = new System.Drawing.Size(154, 186);
@@ -785,7 +667,7 @@ namespace OpenDental {
 			// 
 			// tabSupplementalIDs
 			// 
-			this.tabSupplementalIDs.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(252)))), ((int)(((byte)(253)))), ((int)(((byte)(254)))));
+			this.tabSupplementalIDs.BackColor = System.Drawing.Color.FromArgb(((int) (((byte) (252)))), ((int) (((byte) (253)))), ((int) (((byte) (254)))));
 			this.tabSupplementalIDs.Controls.Add(this.groupBox2);
 			this.tabSupplementalIDs.Location = new System.Drawing.Point(2, 21);
 			this.tabSupplementalIDs.Name = "tabSupplementalIDs";
@@ -794,63 +676,13 @@ namespace OpenDental {
 			this.tabSupplementalIDs.TabIndex = 1;
 			this.tabSupplementalIDs.Text = "Supplemental IDs";
 			// 
-			// tabClinics
-			// 
-			this.tabClinics.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(252)))), ((int)(((byte)(253)))), ((int)(((byte)(254)))));
-			this.tabClinics.Controls.Add(this.labelClinicsDesc);
-			this.tabClinics.Controls.Add(this.checkAllClinics);
-			this.tabClinics.Controls.Add(this.listBoxClinics);
-			this.tabClinics.Controls.Add(this.labelClinics);
-			this.tabClinics.Location = new System.Drawing.Point(2, 21);
-			this.tabClinics.Name = "tabClinics";
-			this.tabClinics.Padding = new System.Windows.Forms.Padding(3);
-			this.tabClinics.Size = new System.Drawing.Size(866, 588);
-			this.tabClinics.TabIndex = 4;
-			this.tabClinics.Text = "Clinics";
-			// 
-			// labelClinicsDesc
-			// 
-			this.labelClinicsDesc.Location = new System.Drawing.Point(12, 9);
-			this.labelClinicsDesc.Name = "labelClinicsDesc";
-			this.labelClinicsDesc.Size = new System.Drawing.Size(504, 45);
-			this.labelClinicsDesc.TabIndex = 48;
-			this.labelClinicsDesc.Text = resources.GetString("labelClinicsDesc.Text");
-			this.labelClinicsDesc.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
-			// 
-			// checkAllClinics
-			// 
-			this.checkAllClinics.Location = new System.Drawing.Point(12, 72);
-			this.checkAllClinics.Name = "checkAllClinics";
-			this.checkAllClinics.Size = new System.Drawing.Size(154, 16);
-			this.checkAllClinics.TabIndex = 45;
-			this.checkAllClinics.Text = "All";
-			this.checkAllClinics.CheckedChanged += new System.EventHandler(this.CheckBoxAllClinics_CheckedChanged);
-			// 
-			// listBoxClinics
-			// 
-			this.listBoxClinics.Location = new System.Drawing.Point(12, 91);
-			this.listBoxClinics.Name = "listBoxClinics";
-			this.listBoxClinics.SelectionMode = OpenDental.UI.SelectionMode.MultiExtended;
-			this.listBoxClinics.Size = new System.Drawing.Size(154, 186);
-			this.listBoxClinics.TabIndex = 46;
-			this.listBoxClinics.SelectedIndexChanged += new System.EventHandler(this.ListBoxClinics_SelectedIndexChanged);
-			// 
-			// labelClinics
-			// 
-			this.labelClinics.Location = new System.Drawing.Point(12, 54);
-			this.labelClinics.Name = "labelClinics";
-			this.labelClinics.Size = new System.Drawing.Size(154, 16);
-			this.labelClinics.TabIndex = 47;
-			this.labelClinics.Text = "Clinics";
-			this.labelClinics.TextAlign = System.Drawing.ContentAlignment.BottomLeft;
-			// 
 			// FormProvEdit
 			// 
 			this.AcceptButton = this.butSave;
 			this.ClientSize = new System.Drawing.Size(895, 665);
 			this.Controls.Add(this.tabControlProvider);
 			this.Controls.Add(this.butSave);
-			this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
+			this.Icon = ((System.Drawing.Icon) (resources.GetObject("$this.Icon")));
 			this.MaximizeBox = false;
 			this.MinimizeBox = false;
 			this.Name = "FormProvEdit";
@@ -863,14 +695,10 @@ namespace OpenDental {
 			this.tabControlProvider.ResumeLayout(false);
 			this.tabGeneral.ResumeLayout(false);
 			this.tabGeneral.PerformLayout();
-			this.groupClinicOverrides.ResumeLayout(false);
-			this.groupClinicOverrides.PerformLayout();
 			this.groupBox1.ResumeLayout(false);
 			this.groupBox1.PerformLayout();
 			this.tabSupplementalIDs.ResumeLayout(false);
-			this.tabClinics.ResumeLayout(false);
 			this.ResumeLayout(false);
-
 		}
 		#endregion
 
@@ -892,11 +720,7 @@ namespace OpenDental {
 		private TextBox textProviderID;
 		private UI.ComboBox comboProv;
 		private Label label19;
-		private TextBox textStateWhereLicensed;
-		private Label label15;
 		private OpenDental.UI.CheckBox checkIsNotPerson;
-		private TextBox textStateRxID;
-		private Label label12;
 		private OpenDental.UI.CheckBox checkIsCDAnet;
 		private TextBox textTaxonomyOverride;
 		private Label label4;
@@ -906,12 +730,10 @@ namespace OpenDental {
 		private Label labelNPI;
 		private Label label14;
 		private TextBox textMedicaidID;
-		private TextBox textDEANum;
 		private TextBox textLName;
 		private TextBox textFName;
 		private TextBox textMI;
 		private TextBox textSuffix;
-		private TextBox textStateLicense;
 		private TextBox textAbbr;
 		private Label label13;
 		private OpenDental.UI.CheckBox checkSigOnFile;
@@ -919,32 +741,24 @@ namespace OpenDental {
 		private RadioButton radioTIN;
 		private RadioButton radioSSN;
 		private TextBox textSSN;
-		private UI.ListBox listSpecialty;
-		private UI.ListBox listFeeSched;
+		private System.Windows.Forms.ListBox listSpecialty;
+		private System.Windows.Forms.ListBox listFeeSched;
 		private OpenDental.UI.CheckBox checkIsSecondary;
-		private Label label11;
 		private Label label10;
 		private Label label9;
 		private Label label8;
 		private Label label7;
 		private Label label6;
 		private Label label5;
-		private Label label3;
 		private Label label1;
 		private OpenDental.UI.CheckBox checkIsHidden;
 		private Label labelColor;
 		private OpenDental.UI.TabPage tabSupplementalIDs;
-		private OpenDental.UI.TabPage tabClinics;
-		private OpenDental.UI.CheckBox checkAllClinics;
-		private UI.ListBox listBoxClinics;
-		private Label labelClinics;
 		private ValidDouble textProdGoalHr;
 		private Label labelProdGoalHr;
 		private Label labelTermDate;
 		private UI.ODDatePicker dateTerm;
-		private UI.Button butClinicOverrides;
-		private OpenDental.UI.GroupBox groupClinicOverrides;
-		private Label labelClinicsDesc;
+		private OpenDental.UI.Button butClinicOverrides;
 		private UI.ODColorPicker odColorPickerOutline;
 		private UI.ODColorPicker odColorPickerAppt;
 		private TextBox textPreferredName;

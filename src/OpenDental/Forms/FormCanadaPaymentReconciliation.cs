@@ -4,7 +4,8 @@ using System.Windows.Forms;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Entities;
 using Imedisoft.Core.Features.Clinics;
-using Imedisoft.Features.Providers.Dtos;
+using Imedisoft.Core.Features.Providers;
+using Imedisoft.Core.Features.Providers.Dtos;
 using OpenDentBusiness;
 using OpenDentBusiness.Eclaims;
 

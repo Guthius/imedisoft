@@ -7,6 +7,7 @@ using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Entities;
 using Imedisoft.Core.Features.Clinics.Dtos;
+using Imedisoft.Core.Features.Providers.Dtos;
 
 namespace OpenDentBusiness {
 	public class RpCustomAging {
@@ -163,7 +164,7 @@ namespace OpenDentBusiness {
 				command+=" AND patient.BillingType IN ("+string.Join(",",ageOptions.ListBillTypes.Select(x => x.DefNum))+") ";
 			}
 			if(ageOptions.ListProvs != null && ageOptions.ListProvs.Count>0) {
-				command+=@" AND patient.PriProv IN ("+string.Join(",",ageOptions.ListProvs.Select(x => x.ProvNum))+") ";
+				command+=@" AND patient.PriProv IN ("+string.Join(",",ageOptions.ListProvs.Select(x => x.Id))+") ";
 			}
 			if(ageOptions.ListClins != null && ageOptions.ListClins.Count>0) {
 				command+=@" AND patient.ClinicNum IN ("+string.Join(",",ageOptions.ListClins.Select(x => x.Id))+") ";
@@ -491,7 +492,7 @@ namespace OpenDentBusiness {
 		public FamilyGrouping FamGroup;
 		public AgeOfAccount AgeAccount;
 		public NegativeBalAgingOptions NegativeBalOptions;
-		public List<Provider> ListProvs;
+		public List<ProviderDto> ListProvs;
 		public List<ClinicDto> ListClins;
 		public List<Def> ListBillTypes;
 		public bool ExcludeInactive;

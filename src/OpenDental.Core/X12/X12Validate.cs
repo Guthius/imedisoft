@@ -2,7 +2,7 @@
 using System.Text.RegularExpressions;
 using Imedisoft.Core.Entities;
 using Imedisoft.Core.Features.Clinics.Dtos;
-using Imedisoft.Features.Providers.Dtos;
+using Imedisoft.Core.Features.Providers.Dtos;
 
 namespace OpenDentBusiness {
 	public class X12Validate {

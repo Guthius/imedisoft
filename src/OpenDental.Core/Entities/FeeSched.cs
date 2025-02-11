@@ -28,6 +28,11 @@ public class FeeSched : TableBase
     ///updates.  Not user editable with the UI.</summary>
     public DateTime SecDateTEdit;
 
+    public override string ToString()
+    {
+        return Description;
+    }
+
     public FeeSched Copy()
     {
         return (FeeSched) MemberwiseClone();

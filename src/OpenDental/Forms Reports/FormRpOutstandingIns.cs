@@ -11,6 +11,7 @@ using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Entities;
 using Imedisoft.Core.Features.Clinics;
+using Imedisoft.Core.Features.Providers;
 using OpenDental.Logic;
 
 namespace OpenDental;

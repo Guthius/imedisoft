@@ -6,6 +6,7 @@ using OpenDentBusiness;
 using System.ComponentModel;
 using Imedisoft.Core.Data;
 using Imedisoft.Core.Entities;
+using Imedisoft.Core.Features.Providers;
 
 namespace OpenDental;
 

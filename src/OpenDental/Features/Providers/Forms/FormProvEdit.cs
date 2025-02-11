@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.ComponentModel;
 using System.Drawing;
 using System.Globalization;
@@ -7,25 +6,27 @@ using System.Linq;
 using System.Text;
 using System.Windows.Forms;
 using CodeBase;
-using DataConnectionBase;
+using CommunityToolkit.Mvvm.DependencyInjection;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Data;
 using Imedisoft.Core.Entities;
 using Imedisoft.Core.Features.Clinics;
-using Imedisoft.Core.Features.Clinics.Dtos;
-using Imedisoft.Features.Providers.Dtos;
+using Imedisoft.Core.Features.Providers;
+using Imedisoft.Core.Features.Providers.Dtos;
+using LanguageExt;
+using LanguageExt.Common;
+using OpenDental.Core.Services;
+using OpenDental.Extensions;
+using OpenDental.Features.Providers.ViewModels;
 using OpenDental.UI;
 using OpenDentBusiness;
 using OpenDentBusiness.Eclaims;
 
-namespace OpenDental;
+namespace OpenDental.Features.Providers.Forms;
 
 public partial class FormProvEdit : FormODBase
 {
     private readonly ProviderDto _providerDto;
-    private List<ClinicDto> _clinicsForUser = [];
-
-    public bool IsNew;
 
     public FormProvEdit(ProviderDto providerDto)
     {
@@ -70,22 +71,13 @@ public partial class FormProvEdit : FormODBase
             radioSSN.Checked = true;
         }
 
-        _clinicsForUser = Clinics.GetAllForUserod(Security.CurUser);
-
         _providerDto.Clinics = _providerDto.Clinics;
 
-        var defaultProviderClinicDto = _providerDto.Clinics.Find(x => x.ClinicId is null);
-        if (defaultProviderClinicDto is null)
+        if (_providerDto.Clinics.Any(x => x.ClinicId is null))
         {
-            defaultProviderClinicDto = new ProviderClinicDto();
-
-            _providerDto.Clinics.Add(defaultProviderClinicDto);
+            _providerDto.Clinics.Add(new ProviderClinicDto());
         }
 
-        textDEANum.Text = defaultProviderClinicDto.DeaNumber;
-        textStateLicense.Text = defaultProviderClinicDto.StateLicense;
-        textStateWhereLicensed.Text = defaultProviderClinicDto.StateWhereLicensed;
-        textStateRxID.Text = defaultProviderClinicDto.StateRxId;
         textMedicaidID.Text = _providerDto.MedicaidId;
         textNationalProvID.Text = _providerDto.NationalProviderId;
         textCanadianOfficeNum.Text = _providerDto.CanadianOfficeNumber;
@@ -108,12 +100,13 @@ public partial class FormProvEdit : FormODBase
             textBirthdate.Text = _providerDto.DateOfBirth.Value.ToShortDateString();
         }
 
-        listFeeSched.Items.AddList(FeeScheds.GetDeepCopy(true), x => x.Description);
-        for (var i = 0; i < listFeeSched.Items.Count; i++)
+        var feeScheds = FeeScheds.GetDeepCopy(true);
+        foreach (var feeSched in feeScheds)
         {
-            if (((FeeSched) listFeeSched.Items.GetObjectAt(i)).FeeSchedNum == _providerDto.FeeScheduleId)
+            listFeeSched.Items.Add(feeSched);
+            if (feeSched.FeeSchedNum == _providerDto.FeeScheduleId)
             {
-                listFeeSched.SelectedIndex = i;
+                listFeeSched.SelectedItem = feeSched;
             }
         }
 
@@ -124,13 +117,13 @@ public partial class FormProvEdit : FormODBase
 
         listSpecialty.Items.Clear();
 
-        var defArray = Defs.GetDefsForCategory(DefCat.ProviderSpecialties, true).ToArray();
-        for (var i = 0; i < defArray.Length; i++)
+        var providerSpecialtyDtos = ProviderService.GetSpecialties();
+        foreach (var yy in providerSpecialtyDtos)
         {
-            listSpecialty.Items.Add(defArray[i].ItemName);
-            if (i == 0 || _providerDto.Specialty.Id == defArray[i].DefNum)
+            listSpecialty.Items.Add(yy);
+            if (yy.Id == _providerDto.Specialty.Id)
             {
-                listSpecialty.SelectedIndex = i;
+                listSpecialty.SelectedItem = yy;
             }
         }
 
@@ -148,29 +141,13 @@ public partial class FormProvEdit : FormODBase
         checkIsNotPerson.Checked = _providerDto.IsNotPerson;
 
         comboProv.Items.AddProvNone();
-        comboProv.Items.AddProvsFull(Providers.GetDeepCopy(true));
+        comboProv.Items.AddProvsFull(Imedisoft.Core.Features.Providers.Providers.GetDeepCopy(true));
         comboProv.SetSelectedProvNum(_providerDto.BillingProvider?.Id ?? 0);
 
         if (_providerDto.IsDeleted)
         {
             DisableAllExcept();
         }
-
-        var selectAll = _providerDto.Clinics.Count == 0 || _clinicsForUser.All(x => _providerDto.Clinics.Any(y => y.ClinicId == x.Id));
-        var visibleClinics = _clinicsForUser.FindAll(x => !x.IsHidden);
-
-        listBoxClinics.Items.AddList(visibleClinics, x => x.Abbr);
-
-        var clinicIdsForClinicLinks = _providerDto.Clinics.Select(x => x.ClinicId).ToList();
-        for (var i = 0; i < visibleClinics.Count; i++)
-        {
-            if (!selectAll && clinicIdsForClinicLinks.Contains(visibleClinics[i].Id))
-            {
-                listBoxClinics.SetSelected(i);
-            }
-        }
-
-        checkAllClinics.Checked = selectAll;
     }
 
     private void FormProvEdit_Closing(object sender, CancelEventArgs e)
@@ -224,9 +201,11 @@ public partial class FormProvEdit : FormODBase
             return;
         }
 
-        var frmProviderIdentEdit = new FrmProviderIdentEdit(providerIdentityDto);
+        var dialogService = Ioc.Default.GetRequiredService<IDialogService>();
 
-        frmProviderIdentEdit.ShowDialog();
+        var providerIdentityViewModel = new ProviderIdentityViewModel(providerIdentityDto);
+
+        dialogService.Show(providerIdentityViewModel);
 
         FillGridProvIdent();
     }
@@ -235,14 +214,17 @@ public partial class FormProvEdit : FormODBase
     {
         var providerIdentityDto = new ProviderIdentityDto();
 
-        var frmProviderIdentEdit = new FrmProviderIdentEdit(providerIdentityDto);
+        var dialogService = Ioc.Default.GetRequiredService<IDialogService>();
 
-        frmProviderIdentEdit.ShowDialog();
+        var providerIdentityViewModel = new ProviderIdentityViewModel(providerIdentityDto);
 
-        if (frmProviderIdentEdit.IsDialogOK)
+        var result = dialogService.Show(providerIdentityViewModel);
+        if (result is not true)
         {
-            _providerDto.Identities.Add(providerIdentityDto);
+            return;
         }
+
+        _providerDto.Identities.Add(providerIdentityDto);
 
         FillGridProvIdent();
     }
@@ -276,41 +258,6 @@ public partial class FormProvEdit : FormODBase
         }
 
         _providerDto.Clinics = formProvAdditional.ModifiedProviderClinicDtos;
-
-        var defaultProviderClinicDto = _providerDto.Clinics.Find(x => x.ClinicId is null);
-        if (defaultProviderClinicDto is null)
-        {
-            return;
-        }
-
-        textDEANum.Text = defaultProviderClinicDto.DeaNumber;
-        textStateLicense.Text = defaultProviderClinicDto.StateLicense;
-        textStateRxID.Text = defaultProviderClinicDto.StateRxId;
-        textStateWhereLicensed.Text = defaultProviderClinicDto.StateWhereLicensed;
-    }
-
-    private void ListBoxClinics_SelectedIndexChanged(object sender, EventArgs e)
-    {
-        if (!checkAllClinics.Checked)
-        {
-            return;
-        }
-
-        checkAllClinics.CheckedChanged -= CheckBoxAllClinics_CheckedChanged;
-        checkAllClinics.Checked = false;
-        checkAllClinics.CheckedChanged += CheckBoxAllClinics_CheckedChanged;
-    }
-
-    private void CheckBoxAllClinics_CheckedChanged(object sender, EventArgs e)
-    {
-        if (!checkAllClinics.Checked)
-        {
-            return;
-        }
-
-        listBoxClinics.SelectedIndexChanged -= ListBoxClinics_SelectedIndexChanged;
-        listBoxClinics.SelectedIndices.Clear();
-        listBoxClinics.SelectedIndexChanged += ListBoxClinics_SelectedIndexChanged;
     }
 
     private void ButtonSave_Click(object sender, EventArgs e)
@@ -385,7 +332,7 @@ public partial class FormProvEdit : FormODBase
             }
         }
 
-        if (Providers.GetExists(x => x.Id != _providerDto.Id && x.Abbr == textAbbr.Text))
+        if (Imedisoft.Core.Features.Providers.Providers.GetExists(x => x.Id != _providerDto.Id && x.Abbr == textAbbr.Text))
         {
             if (!ConfirmOk("This abbreviation is already in use by another provider.  Continue anyway?"))
             {
@@ -417,7 +364,7 @@ public partial class FormProvEdit : FormODBase
             }
         }
 
-        if (checkIsHidden.Checked && _providerDto.IsHidden == false)
+        if (checkIsHidden.Checked && !_providerDto.IsHidden)
         {
             if (!ConfirmOk(
                     "If there are any future hours on this provider's schedule, they will be removed.  " +
@@ -426,19 +373,19 @@ public partial class FormProvEdit : FormODBase
                 return;
             }
 
-            Providers.RemoveProvFromFutureSchedule(_providerDto.Id);
+            Imedisoft.Core.Features.Providers.Providers.RemoveProvFromFutureSchedule(_providerDto.Id);
         }
 
-        var provNumClaimBillingOverride = comboProv.GetSelectedProvNum();
-        if (provNumClaimBillingOverride != 0)
+        var billingProvider = comboProv.GetSelected<ProviderDto>();
+        if (billingProvider.Id == 0)
         {
-            var providerClaimBillingOverride = comboProv.GetSelected<ProviderDto>() ?? Providers.GetById(provNumClaimBillingOverride);
-
-            if (providerClaimBillingOverride is {IsNotPerson: false})
-            {
-                ShowError("E-claim Billing Prov Override cannot be a person.");
-                return;
-            }
+            billingProvider = null;
+        }
+        
+        if (billingProvider is {Id: > 0, IsNotPerson: false})
+        {
+            ShowError("E-claim Billing Prov Override cannot be a person.");
+            return;
         }
 
         if (_providerDto.Id > 0 && comboProv.GetSelectedProvNum() == _providerDto.Id)
@@ -447,113 +394,147 @@ public partial class FormProvEdit : FormODBase
             return;
         }
 
-        if (textBirthdate.Text != "" && !textBirthdate.IsValid())
+        DateTime? dateOfBirth = null;
+        if (textBirthdate.Text != "")
         {
-            ShowError("Birthdate invalid.");
-            return;
+            if (DateTime.TryParse(textBirthdate.Text, out var dateTime))
+            {
+                ShowError("Birthdate invalid.");
+                return;
+            }
+
+            dateOfBirth = dateTime;
         }
 
-        if (!textProdGoalHr.IsValid())
+        if (!decimal.TryParse(textProdGoalHr.Text, out var hourlyProductionGoal))
         {
             ShowError("Hourly production goal invalid.");
             return;
         }
 
-        var defaultProviderClinicDto = _providerDto.Clinics.Find(x => x.ClinicId is null);
-        if (defaultProviderClinicDto is null)
+        if (listSpecialty.SelectedItem is not ProviderSpecialtyDto providerSpecialtyDto)
         {
-            defaultProviderClinicDto = new ProviderClinicDto();
-
-            _providerDto.Clinics.Add(defaultProviderClinicDto);
+            ShowError("Select an specialty.");
+            return;
         }
 
-        defaultProviderClinicDto.StateLicense = textStateLicense.Text;
-        defaultProviderClinicDto.StateWhereLicensed = textStateWhereLicensed.Text;
-        defaultProviderClinicDto.DeaNumber = textDEANum.Text;
-        defaultProviderClinicDto.StateRxId = textStateRxID.Text;
-
-        _providerDto.Abbr = textAbbr.Text;
-        _providerDto.LastName = textLName.Text;
-        _providerDto.FirstName = textFName.Text;
-        _providerDto.MiddleName = textMI.Text;
-        _providerDto.Suffix = textSuffix.Text;
-        _providerDto.PreferredName = textPreferredName.Text;
-        _providerDto.Ssn = textSSN.Text;
-        _providerDto.MedicaidId = textMedicaidID.Text;
-        _providerDto.NationalProviderId = textNationalProvID.Text;
-        _providerDto.CanadianOfficeNumber = textCanadianOfficeNum.Text;
-        _providerDto.IsSecondary = checkIsSecondary.Checked;
-        _providerDto.IsSignatureOnFile = checkSigOnFile.Checked;
-        _providerDto.IsHidden = checkIsHidden.Checked;
-        _providerDto.IsCdaNet = checkIsCDAnet.Checked;
-        _providerDto.Color = ColorTranslator.ToHtml(odColorPickerAppt.BackgroundColor);
-        _providerDto.OutlineColor = ColorTranslator.ToHtml(odColorPickerOutline.BackgroundColor);
-        _providerDto.IsHiddenFromReports = checkIsHiddenOnReports.Checked;
-        _providerDto.SchedulerNote = textSchedRules.Text;
-        _providerDto.DateOfBirth = SIn.Date(textBirthdate.Text);
-        _providerDto.HourlyProductionGoal = SIn.Decimal(textProdGoalHr.Text);
-        _providerDto.TerminatedOn = dateTerm.GetDateTime();
-
-        if (listFeeSched.SelectedIndex != -1)
+        Either<Error, ProviderDto> result;
+        if (_providerDto.Id == 0)
         {
-            _providerDto.FeeScheduleId = listFeeSched.GetSelected<FeeSched>().FeeSchedNum;
-        }
-
-        // TODO: ProviderCur.Specialty = Defs.GetByExactNameNeverZero(DefCat.ProviderSpecialties, listSpecialty.SelectedItem.ToString());
-        _providerDto.TaxonomyCode = textTaxonomyOverride.Text;
-        _providerDto.IsNotPerson = checkIsNotPerson.Checked;
-        // TODO: ProviderCur.ProvNumBillingOverride = comboProv.GetSelectedProvNum();
-
-        if (IsNew)
-        {
-            var provNum = Providers.Insert(_providerDto);
+            result = ProviderService.Create(new CreateProviderRequest
+            {
+                SpecialtyId = providerSpecialtyDto.Id,
+                Abbr = textAbbr.Text,
+                LastName = textLName.Text,
+                MiddleName = textMI.Text,
+                FirstName = textFName.Text,
+                Suffix = textSuffix.Text,
+                PreferredName = textPreferredName.Text,
+                Ssn = textSSN.Text,
+                UsingTin = radioTIN.Checked,
+                NationalProviderId = textNationalProvID.Text,
+                MedicaidId = textMedicaidID.Text,
+                DateOfBirth = dateOfBirth,
+                SchedulerNote = textSchedRules.Text,
+                FeeScheduleId = listFeeSched.GetSelected<FeeSched>()?.FeeSchedNum,
+                HourlyProductionGoal = hourlyProductionGoal,
+                BillingProviderId = billingProvider?.Id,
+                TaxonomyCode = textTaxonomyOverride.Text,
+                Color = ColorTranslator.ToHtml(odColorPickerAppt.BackgroundColor),
+                OutlineColor = ColorTranslator.ToHtml(odColorPickerOutline.BackgroundColor),
+                IsCdaNet = checkIsCDAnet.Checked,
+                CanadianOfficeNumber = textCanadianOfficeNum.Text,
+                IsSecondary = checkIsSecondary.Checked,
+                IsNotPerson = checkIsNotPerson.Checked,
+                IsSignatureOnFile = checkSigOnFile.Checked,
+                IsHiddenFromReports = checkIsHiddenOnReports.Checked,
+                IsHidden = checkIsHidden.Checked,
+                TerminatedOn = dateTerm.GetDateTimeNullable(),
+                Clinics = _providerDto.Clinics,
+                Identities = _providerDto.Identities
+            });
         }
         else
         {
-            Providers.Update(_providerDto);
-
-            #region Date Term Check
+            result = ProviderService.Update(_providerDto.Id, new UpdateProviderRequest
+            {
+                SpecialtyId = providerSpecialtyDto.Id,
+                Abbr = textAbbr.Text,
+                LastName = textLName.Text,
+                MiddleName = textMI.Text,
+                FirstName = textFName.Text,
+                Suffix = textSuffix.Text,
+                PreferredName = textPreferredName.Text,
+                Ssn = textSSN.Text,
+                UsingTin = radioTIN.Checked,
+                NationalProviderId = textNationalProvID.Text,
+                MedicaidId = textMedicaidID.Text,
+                DateOfBirth = dateOfBirth,
+                SchedulerNote = textSchedRules.Text,
+                FeeScheduleId = listFeeSched.GetSelected<FeeSched>()?.FeeSchedNum,
+                HourlyProductionGoal = hourlyProductionGoal,
+                BillingProviderId = billingProvider?.Id,
+                TaxonomyCode = textTaxonomyOverride.Text,
+                Color = ColorTranslator.ToHtml(odColorPickerAppt.BackgroundColor),
+                OutlineColor = ColorTranslator.ToHtml(odColorPickerOutline.BackgroundColor),
+                IsCdaNet = checkIsCDAnet.Checked,
+                CanadianOfficeNumber = textCanadianOfficeNum.Text,
+                IsSecondary = checkIsSecondary.Checked,
+                IsNotPerson = checkIsNotPerson.Checked,
+                IsSignatureOnFile = checkSigOnFile.Checked,
+                IsHiddenFromReports = checkIsHiddenOnReports.Checked,
+                IsHidden = checkIsHidden.Checked,
+                TerminatedOn = dateTerm.GetDateTimeNullable(),
+                Clinics = _providerDto.Clinics,
+                Identities = _providerDto.Identities
+            });
 
             if (_providerDto.TerminatedOn is not null && _providerDto.TerminatedOn.Value < DateTime.Now)
             {
-                var listClaimPaySplits = Claims.GetOutstandingClaimsByProvider(_providerDto.Id, _providerDto.TerminatedOn.Value);
-                var stringBuilderClaimMessage = new StringBuilder(Lan.g(this, "Clinic\tPatNum\tPatient Name\tDate of Service\tClaim Status\tFee\tCarrier") + "\r\n");
-                for (var i = 0; i < listClaimPaySplits.Count; i++)
+                var claimPaySplits = Claims.GetOutstandingClaimsByProvider(_providerDto.Id, _providerDto.TerminatedOn.Value);
+
+                var stringBuilder = new StringBuilder("Clinic\tPatNum\tPatient Name\tDate of Service\tClaim Status\tFee\tCarrier\r\n");
+                foreach (var claimPaySplit in claimPaySplits)
                 {
-                    stringBuilderClaimMessage.Append(listClaimPaySplits[i].ClinicDesc + "\t"
-                                                                                      + SOut.Long(listClaimPaySplits[i].PatNum) + "\t"
-                                                                                      + listClaimPaySplits[i].PatName + "\t"
-                                                                                      + listClaimPaySplits[i].DateClaim.ToShortDateString() + "\t");
-                    switch (listClaimPaySplits[i].ClaimStatus)
+                    stringBuilder.Append(
+                        claimPaySplit.ClinicDesc + "\t" +
+                        claimPaySplit.PatNum + "\t" +
+                        claimPaySplit.PatName + "\t" +
+                        claimPaySplit.DateClaim.ToShortDateString() + "\t");
+
+                    switch (claimPaySplit.ClaimStatus)
                     {
                         case "W":
-                            stringBuilderClaimMessage.Append("Waiting in Queue\t");
+                            stringBuilder.Append("Waiting in Queue\t");
                             break;
+
                         case "H":
-                            stringBuilderClaimMessage.Append("Hold\t");
+                            stringBuilder.Append("Hold\t");
                             break;
+
                         case "U":
-                            stringBuilderClaimMessage.Append("Unsent\t");
+                            stringBuilder.Append("Unsent\t");
                             break;
+
                         case "S":
-                            stringBuilderClaimMessage.Append("Sent\t");
+                            stringBuilder.Append("Sent\t");
                             break;
                     }
 
-                    stringBuilderClaimMessage.AppendLine(listClaimPaySplits[i].FeeBilled + "\t" + listClaimPaySplits[i].Carrier);
+                    stringBuilder.AppendLine(claimPaySplit.FeeBilled + "\t" + claimPaySplit.Carrier);
                 }
 
-                using var msgBoxCopyPaste = new MsgBoxCopyPaste(stringBuilderClaimMessage.ToString());
-                msgBoxCopyPaste.Text = Lan.g(this, "Outstanding Claims for the Provider Whose Term Has Expired");
-                if (listClaimPaySplits.Count > 0)
+                using var msgBoxCopyPaste = new MsgBoxCopyPaste(stringBuilder.ToString());
+
+                msgBoxCopyPaste.Text = "Outstanding Claims for the Provider Whose Term Has Expired";
+
+                if (claimPaySplits.Count > 0)
                 {
                     msgBoxCopyPaste.ShowDialog();
                 }
             }
-
-            #endregion Date Term Check
         }
 
-        DialogResult = DialogResult.OK;
+        result.Match(_ => DialogResult = DialogResult.OK, error => ShowError(error.Message));
     }
 }

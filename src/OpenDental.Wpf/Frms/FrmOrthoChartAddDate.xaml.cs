@@ -1,6 +1,7 @@
 using System;
 using System.Windows.Input;
 using Imedisoft.Core.Features.Clinics;
+using Imedisoft.Core.Features.Providers;
 using OpenDentBusiness;
 
 namespace OpenDental {

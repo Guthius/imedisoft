@@ -3,6 +3,7 @@ using CodeBase;
 using Imedisoft.Core.Data;
 using Imedisoft.Core.Entities;
 using Imedisoft.Core.Features.Clinics;
+using Imedisoft.Core.Features.Providers;
 
 namespace OpenDentBusiness.Eclaims {
 	///<summary>Handles all 270/270 logic.  Contains UI elements.  Passes off the 270 to the correct clearinghouse.</summary>

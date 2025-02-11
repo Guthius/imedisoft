@@ -1,6 +1,7 @@
 ﻿using System.Text;
 using Imedisoft.Core.Features.Clinics;
 using Imedisoft.Core.Features.Clinics.Dtos;
+using Imedisoft.Core.Features.Providers;
 
 namespace OpenDentBusiness.AutoComm;
 

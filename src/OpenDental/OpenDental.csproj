@@ -80,6 +80,8 @@
 
     <ItemGroup>
         <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0"/>
+        <PackageReference Include="LanguageExt.Core" Version="4.4.9" />
+        <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="9.0.1" />
     </ItemGroup>
 
     <ItemGroup>
@@ -96,6 +98,21 @@
         <SubType>Form</SubType>
       </Compile>
       <Compile Update="Forms\FormClaimResend.cs">
+        <SubType>Form</SubType>
+      </Compile>
+      <Compile Update="Features\Providers\Forms\FormProvAdditional.cs">
+        <SubType>Form</SubType>
+      </Compile>
+      <Compile Update="Features\Providers\Forms\FormProvEdit.cs">
+        <SubType>Form</SubType>
+      </Compile>
+      <Compile Update="Features\Providers\Forms\FormProviderMerge.cs">
+        <SubType>Form</SubType>
+      </Compile>
+      <Compile Update="Features\Providers\Forms\FormProviderMultiPick.cs">
+        <SubType>Form</SubType>
+      </Compile>
+      <Compile Update="Features\Providers\Forms\FormProviderSetup.cs">
         <SubType>Form</SubType>
       </Compile>
     </ItemGroup>

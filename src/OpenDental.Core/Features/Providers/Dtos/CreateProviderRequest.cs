@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace Imedisoft.Core.Features.Providers.Dtos;
 
-public sealed record UpdateProviderRequest
+public sealed record CreateProviderRequest
 {
     public long SpecialtyId { get; set; }
     public string Abbr { get; set; } = string.Empty;

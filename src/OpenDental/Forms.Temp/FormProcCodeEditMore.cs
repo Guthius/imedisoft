@@ -7,6 +7,7 @@ using OpenDental.UI;
 using System.Linq;
 using Imedisoft.Core.Entities;
 using Imedisoft.Core.Features.Clinics;
+using Imedisoft.Core.Features.Providers;
 
 namespace OpenDental;
 

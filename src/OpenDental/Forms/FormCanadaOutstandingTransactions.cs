@@ -2,7 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Windows.Forms;
 using Imedisoft.Core.Entities;
-using Imedisoft.Features.Providers.Dtos;
+using Imedisoft.Core.Features.Providers;
+using Imedisoft.Core.Features.Providers.Dtos;
 using OpenDentBusiness;
 using OpenDentBusiness.Eclaims;
 

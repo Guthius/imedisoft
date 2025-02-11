@@ -5,6 +5,7 @@ using System.Drawing.Printing;
 using System.Linq;
 using System.Windows.Forms;
 using Imedisoft.Core.Entities;
+using Imedisoft.Core.Features.Providers;
 using OpenDental.Logic;
 using OpenDental.UI;
 using OpenDentBusiness;

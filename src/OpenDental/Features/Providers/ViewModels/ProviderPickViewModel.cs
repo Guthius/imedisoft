@@ -2,7 +2,7 @@
 using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
-using Imedisoft.Features.Providers.Dtos;
+using Imedisoft.Core.Features.Providers.Dtos;
 using OpenDental.Core.ViewModels;
 
 namespace OpenDental.Features.Providers.ViewModels;
@@ -24,5 +24,6 @@ public sealed partial class ProviderPickViewModel : DialogViewModel<List<Provide
     [RelayCommand]
     private void Close()
     {
+        Close([]);
     }
 }

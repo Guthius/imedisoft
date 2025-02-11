@@ -2,20 +2,20 @@ using System;
 using System.Collections.Generic;
 using DataConnectionBase;
 using Imedisoft.Core.Entities;
-using Imedisoft.Features.Providers.Dtos;
+using Imedisoft.Core.Features.Providers.Dtos;
 using OpenDentBusiness;
 
-namespace OpenDental;
+namespace OpenDental.Features.Providers.Forms;
 
 public partial class FormProviderMerge : FormODBase
 {
-    private List<ProviderDto> _activeProviders = [];
+    private List<ProviderDto> _activeProviders;
 
     public FormProviderMerge()
     {
         InitializeComponent();
 
-        _activeProviders = Providers.GetWhere(x => !x.IsDeleted, true);
+        _activeProviders = Imedisoft.Core.Features.Providers.Providers.GetWhere(x => !x.IsDeleted, true);
     }
 
     private void butChangeProvInto_Click(object sender, EventArgs e)
@@ -29,7 +29,7 @@ public partial class FormProviderMerge : FormODBase
             return;
         }
 
-        var providerSelected = Providers.GetById(frmProviderPick.ProvNumSelected);
+        var providerSelected = Imedisoft.Core.Features.Providers.Providers.GetById(frmProviderPick.ProvNumSelected);
         
         textAbbrInto.Text = providerSelected.Abbr;
         textProvNumInto.Text = providerSelected.Id.ToString();
@@ -41,7 +41,7 @@ public partial class FormProviderMerge : FormODBase
 
     private void butChangeProvFrom_Click(object sender, EventArgs e)
     {
-        var frmProviderPick = new FrmProviderPick(checkDeletedProvs.Checked ? Providers.GetDeepCopy() : _activeProviders);
+        var frmProviderPick = new FrmProviderPick(checkDeletedProvs.Checked ? Imedisoft.Core.Features.Providers.Providers.GetDeepCopy() : _activeProviders);
         
         frmProviderPick.ShowDialog();
         
@@ -50,7 +50,7 @@ public partial class FormProviderMerge : FormODBase
             return;
         }
 
-        var providerSelected = Providers.GetById(frmProviderPick.ProvNumSelected);
+        var providerSelected = Imedisoft.Core.Features.Providers.Providers.GetById(frmProviderPick.ProvNumSelected);
         
         textAbbrFrom.Text = providerSelected.Abbr;
         textProvNumFrom.Text = providerSelected.Id.ToString();
@@ -84,8 +84,8 @@ public partial class FormProviderMerge : FormODBase
             differentFields += "\r\nFull Name";
         }
 
-        var numPats = Providers.CountPats(SIn.Long(textProvNumFrom.Text));
-        var numClaims = Providers.CountClaims(SIn.Long(textProvNumFrom.Text));
+        var numPats = Imedisoft.Core.Features.Providers.Providers.CountPats(SIn.Long(textProvNumFrom.Text));
+        var numClaims = Imedisoft.Core.Features.Providers.Providers.CountClaims(SIn.Long(textProvNumFrom.Text));
         
         if (!Confirm("Are you sure?  The results are permanent and cannot be undone."))
         {
@@ -108,7 +108,7 @@ public partial class FormProviderMerge : FormODBase
             return;
         }
 
-        var rowsChanged = Providers.Merge(SIn.Long(textProvNumFrom.Text), SIn.Long(textProvNumInto.Text));
+        var rowsChanged = Imedisoft.Core.Features.Providers.Providers.Merge(SIn.Long(textProvNumFrom.Text), SIn.Long(textProvNumInto.Text));
         
         var logText = "Providers merged: " + textAbbrFrom.Text + " merged into " + textAbbrInto.Text + ".\r\nRows changed: " + SOut.Long(rowsChanged);
         
@@ -125,6 +125,6 @@ public partial class FormProviderMerge : FormODBase
         
         DataValid.SetInvalid(InvalidType.Providers);
         
-        _activeProviders = Providers.GetWhere(x => !x.IsDeleted, true);
+        _activeProviders = Imedisoft.Core.Features.Providers.Providers.GetWhere(x => !x.IsDeleted, true);
     }
 }

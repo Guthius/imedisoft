@@ -5,7 +5,7 @@ using System.Linq;
 using DataConnectionBase;
 using Imedisoft.Core.Entities;
 using Imedisoft.Core.Features.Clinics.Dtos;
-using Imedisoft.Features.Providers.Dtos;
+using Imedisoft.Core.Features.Providers.Dtos;
 
 namespace OpenDentBusiness {
 	public class RpProdGoal {

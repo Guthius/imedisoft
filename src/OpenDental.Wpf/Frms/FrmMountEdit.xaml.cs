@@ -5,6 +5,7 @@ using System.Windows.Input;
 using DataConnectionBase;
 using Imedisoft.Core.Data;
 using Imedisoft.Core.Entities;
+using Imedisoft.Core.Features.Providers;
 using OpenDentBusiness;
 using WpfControls.UI;
 

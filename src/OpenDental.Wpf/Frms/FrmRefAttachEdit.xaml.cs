@@ -6,6 +6,8 @@ using System.Windows.Input;
 using DataConnectionBase;
 using Imedisoft.Core.Data;
 using Imedisoft.Core.Entities;
+using Imedisoft.Core.Features.Providers;
+using Imedisoft.Core.Features.Providers.Dtos;
 using OpenDentBusiness;
 
 namespace OpenDental {
@@ -19,7 +21,7 @@ namespace OpenDental {
 		private List<Sheet> _listSheets; 
 		///<summary>Select a referring provider for referals to other providers.</summary>
 		private RefAttach _refAttachOld;
-		private List<Provider> _listProviders;
+		private List<ProviderDto> _listProviders;
 
 		
 		public FrmRefAttachEdit(){

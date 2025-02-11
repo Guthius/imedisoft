@@ -10,7 +10,8 @@ using Imedisoft.Core.Data;
 using Imedisoft.Core.Entities;
 using Imedisoft.Core.Features.Clinics;
 using Imedisoft.Core.Features.Clinics.Dtos;
-using Imedisoft.Features.Providers.Dtos;
+using Imedisoft.Core.Features.Providers;
+using Imedisoft.Core.Features.Providers.Dtos;
 
 namespace OpenDental;
 
@@ -131,7 +132,7 @@ public partial class FormScheduleDayEdit:FormODBase {
 		_listProviders.AddRange(Providers.GetProvsForClinic(comboClinic.ClinicNumSelected));
 		_listEmployees.AddRange(Employees.GetEmpsForClinic(comboClinic.ClinicNumSelected));
 		//Prov Listbox
-		var listProvNumsPreviouslySelected=listProv.GetListSelected<Provider>().Select(x => x.ProvNum).ToList();
+		var listProvNumsPreviouslySelected=listProv.GetListSelected<ProviderDto>().Select(x => x.Id).ToList();
 		listProv.Items.Clear();
 		listProv.Items.AddList(_listProviders,x => x.Abbr);
 		for(var i=0; i<_listProviders.Count;i++) {

@@ -5,6 +5,7 @@ using Microsoft.Win32;
 using OpenDentBusiness;
 using CodeBase;
 using Imedisoft.Core.Entities;
+using Imedisoft.Core.Features.Providers;
 
 namespace OpenDental.Bridges {
 	public class PandaPerioAdvanced {

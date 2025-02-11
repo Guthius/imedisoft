@@ -6,6 +6,7 @@ using System.Windows.Forms;
 using DataConnectionBase;
 using Imedisoft.Core.Entities;
 using Imedisoft.Core.Features.Clinics;
+using Imedisoft.Core.Features.Providers;
 using OpenDental.UI;
 using OpenDentBusiness;
 

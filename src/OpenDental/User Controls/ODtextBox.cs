@@ -359,13 +359,7 @@ public class ODtextBox:RichTextBox {//System.ComponentModel.Component
 	}
 
 	private bool IsUsingSpellCheck(){
-		if(/* ODBuild.IsDebug() */ false && Environment.MachineName.ToLower().In("jordansgalaxybk","jordanhome","jordancryo")){
-			return false;//for testing without a db
-		}
-		if(!SpellCheckIsEnabled){//for this control, as set in the designer
-			return false;
-		}
-		return PrefC.GetBool(PrefName.SpellCheckIsEnabled);
+		return false;
 	}
 
 	private void contextMenu_Popup(object sender,System.EventArgs e) {

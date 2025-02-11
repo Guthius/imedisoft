@@ -8,7 +8,8 @@ using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Entities;
 using Imedisoft.Core.Features.Clinics;
-using Imedisoft.Features.Providers.Dtos;
+using Imedisoft.Core.Features.Providers;
+using Imedisoft.Core.Features.Providers.Dtos;
 using OpenDental.UI;
 using OpenDentBusiness;
 
@@ -505,7 +506,7 @@ public partial class FormAdjMulti : FormODBase
         }
 
         comboProv.SelectedIndex = -1;
-        comboProv.SetSelectedKey<Provider>(frmProviderPick.ProvNumSelected, x => x.ProvNum);
+        comboProv.SetSelectedKey<ProviderDto>(frmProviderPick.ProvNumSelected, x => x.Id);
     }
 
     private void butUpdate_Click(object sender, EventArgs e)

@@ -10,6 +10,8 @@ using Imedisoft.Core.Data;
 using Imedisoft.Core.Entities;
 using Imedisoft.Core.Features.Clinics;
 using Imedisoft.Core.Features.Clinics.Dtos;
+using Imedisoft.Core.Features.Providers;
+using Imedisoft.Core.Features.Providers.Dtos;
 
 namespace OpenDental;
 
@@ -23,7 +25,7 @@ public partial class UserControlSecurityUserGroup:UserControl {
 	/// If this is set to true, ALWAYS set it back to false when you are done.</summary>
 	private bool _isFillingList;
 	///<summary>Used to filter the list of users shown in the "Users" tab.</summary>
-	private Dictionary<long,Provider> _dictProvNumProvs;
+	private Dictionary<long,ProviderDto> _dictProvNumProvs;
 	///<summary>The currently selected user. Should not be used except for in the selected user property.</summary>
 	private Userod _selectedUser;
 	///<summary>This context menu makes it so you can right click a user in the userGrid and select 'Copy User'</summary>
@@ -151,7 +153,7 @@ public partial class UserControlSecurityUserGroup:UserControl {
 	private List<Userod> GetFilteredUsersHelper() {
 		var listUserOds = Userods.GetDeepCopy();
 		if(_dictProvNumProvs == null) { //fill the dictionary if needed
-			_dictProvNumProvs=Providers.GetManyByIdNoCache(Userods.GetDeepCopy().Select(x => x.ProvNum).ToList()).ToDictionary(x => x.ProvNum,x => x);
+			_dictProvNumProvs=Providers.GetManyByIdNoCache(Userods.GetDeepCopy().Select(x => x.ProvNum).ToList()).ToDictionary(x => x.Id,x => x);
 		}
 		if(!checkShowHidden.Checked) {
 			listUserOds.RemoveAll(x => x.IsHidden);
@@ -183,7 +185,7 @@ public partial class UserControlSecurityUserGroup:UserControl {
 					listUserOds.RemoveAll(x => !Employees.GetName(x.EmployeeNum).ToLower().Contains(textPowerSearch.Text.ToLower()));
 					break;
 				case UserFilters.Providers:
-					listUserOds.RemoveAll(x => !_dictProvNumProvs[x.ProvNum].GetLongDesc().ToLower().Contains(textPowerSearch.Text.ToLower()));
+					listUserOds.RemoveAll(x => !_dictProvNumProvs[x.ProvNum].Description.ToLower().Contains(textPowerSearch.Text.ToLower()));
 					break;
 				case UserFilters.AllUsers:
 				case UserFilters.Other:

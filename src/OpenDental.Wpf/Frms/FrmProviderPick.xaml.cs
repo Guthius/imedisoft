@@ -4,7 +4,8 @@ using System.Linq;
 using System.Windows.Input;
 using DataConnectionBase;
 using Imedisoft.Core.Entities;
-using Imedisoft.Features.Providers.Dtos;
+using Imedisoft.Core.Features.Providers;
+using Imedisoft.Core.Features.Providers.Dtos;
 using OpenDentBusiness;
 using WpfControls.UI;
 
@@ -77,7 +78,7 @@ namespace OpenDental {
 		}
 
 		private void FillGrid(object data){
-			List<Provider> listProviders=(List<Provider>)data;
+			List<ProviderDto> listProviders=(List<ProviderDto>)data;
 			gridMain.BeginUpdate();
 			gridMain.Columns.Clear();
 			GridColumn col;
@@ -92,9 +93,9 @@ namespace OpenDental {
 			for(int i=0;i<listProviders.Count;i++) {
 				row=new GridRow();
 				row.Cells.Add(listProviders[i].Abbr);
-				row.Cells.Add(listProviders[i].LName);
-				row.Cells.Add(listProviders[i].FName);
-				row.Tag=listProviders[i].ProvNum;
+				row.Cells.Add(listProviders[i].LastName);
+				row.Cells.Add(listProviders[i].FirstName);
+				row.Tag=listProviders[i].Id;
 				gridMain.ListGridRows.Add(row);
 			}
 			gridMain.EndUpdate();

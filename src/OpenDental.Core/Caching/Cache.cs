@@ -5,6 +5,7 @@ using System.Linq;
 using CodeBase;
 using Imedisoft.Core.Data;
 using Imedisoft.Core.Features.Clinics;
+using Imedisoft.Core.Features.Providers;
 using OpenDentBusiness;
 
 namespace Imedisoft.Core.Caching;
@@ -314,7 +315,7 @@ public class Cache
         if (listITypes.Contains(InvalidType.Providers) || isAll)
         {
             ODEvent.Fire(ODEventType.Cache, prefix + InvalidType.Providers);
-            Providers.GetTableFromCache(doRefreshServerCache);
+            Providers.GetTableFromCache();
             //Refresh the clinics as well because InvalidType.Providers has a comment that says "also includes clinics".  Also, there currently isn't an itype for Clinics.
             Clinics.RefreshCache();
         }

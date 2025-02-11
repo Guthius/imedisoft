@@ -9,7 +9,8 @@ using Imedisoft.Core.Caching;
 using Imedisoft.Core.Entities;
 using Imedisoft.Core.Features.Clinics;
 using Imedisoft.Core.Features.Clinics.Dtos;
-using Imedisoft.Features.Providers.Dtos;
+using Imedisoft.Core.Features.Providers;
+using Imedisoft.Core.Features.Providers.Dtos;
 using OpenDental.Logic;
 
 namespace OpenDental;
@@ -155,7 +156,7 @@ public partial class FormProcEditAll:FormODBase {
 		}
 		_listProvidersForClinic=_listProvidersForClinic.Where(x => !x.IsHidden).ToList();
 		ProviderDto providerSelection=null;
-		if(tryMaintainOldSelection && comboProv.GetSelected<Provider>()!=null){//Only true on manual selection, not on load.
+		if(tryMaintainOldSelection && comboProv.GetSelected<ProviderDto>()!=null){//Only true on manual selection, not on load.
 			providerSelection=_listProvidersForClinic.FirstOrDefault(x => x.Id==comboProv.GetSelectedProvNum());
 		}
 		comboProv.Items.Clear();
@@ -234,7 +235,7 @@ public partial class FormProcEditAll:FormODBase {
 			}
 			#region Provider change validation.
 			var listClaimProcsForProc=ClaimProcs.GetForProc(listClaimProcsForPat,ListProcedures[i].ProcNum);
-			var selectedProvNum=(comboProv.GetSelected<Provider>()?.ProvNum??0);//0 if no selection made
+			var selectedProvNum=(comboProv.GetSelected<ProviderDto>()?.Id??0);//0 if no selection made
 			if(selectedProvNum!=0 && !ProcedureL.ValidateProvider(listClaimProcsForProc,selectedProvNum,ListProcedures[i].ProvNum)) {
 				return false;
 			}
@@ -325,14 +326,14 @@ public partial class FormProcEditAll:FormODBase {
 			listOrthoSchedules=OrthoSchedules.GetMany(listSchedulePlanLinksFKey);
 		}
 		var changeFees=false;
-		var provider=comboProv.GetSelected<Provider>();
+		var provider=comboProv.GetSelected<ProviderDto>();
 		var procFeeHelper=new ProcFeeHelper(patNum);
 		if(provider!=null) {
 			var listProceduresNew=new List<Procedure>();
 			var listProceduresOld=new List<Procedure>();
 			for(var i=0;i<ListProcedures.Count;i++) {
 				var procedure=ListProcedures[i].Copy();
-				procedure.ProvNum=provider.ProvNum;
+				procedure.ProvNum=provider.Id;
 				//Add the procedure to both lists only if the provider number has changed.
 				if(ListProcedures[i].ProvNum!=procedure.ProvNum) {
 					listProceduresOld.Add(ListProcedures[i]);
@@ -343,13 +344,13 @@ public partial class FormProcEditAll:FormODBase {
 			var promptText="";
 			procFeeHelper.FillData();
 			var patient=Patients.GetPat(patNum);
-			var feeSchedNum=FeeScheds.GetFeeSched(patient,procFeeHelper.ListInsPlans,procFeeHelper.ListPatPlans,procFeeHelper.ListInsSubs,provider.ProvNum);
+			var feeSchedNum=FeeScheds.GetFeeSched(patient,procFeeHelper.ListInsPlans,procFeeHelper.ListPatPlans,procFeeHelper.ListInsSubs,provider.Id);
 			var clinic=comboClinic.GetSelected<ClinicDto>();
 			if(clinic==null) {
 				procFeeHelper.ListFees=null;
 			}
 			else {
-				procFeeHelper.ListFees=Fees.GetListExact(feeSchedNum,clinic.Id,provider.ProvNum);
+				procFeeHelper.ListFees=Fees.GetListExact(feeSchedNum,clinic.Id,provider.Id);
 				if(procFeeHelper.ListFees.Count==0) {
 					procFeeHelper.ListFees=null;
 				}
@@ -375,8 +376,8 @@ public partial class FormProcEditAll:FormODBase {
 				hasDateChanged=true;
 				hasChanged=true;
 			}
-			if(provider!=null && provider.ProvNum!=ListProcedures[i].ProvNum) {//Using selection
-				ListProcedures[i].ProvNum=provider.ProvNum;
+			if(provider!=null && provider.Id!=ListProcedures[i].ProvNum) {//Using selection
+				ListProcedures[i].ProvNum=provider.Id;
 				//Mimics FormProcEdit, uses different criteria than Procedures.ComputeEstimates().
 				ClaimProcs.TrySetProvFromProc(ListProcedures[i],listClaimProcsForProc);
 				hasChanged=true;

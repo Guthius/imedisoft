@@ -9,6 +9,8 @@ using Imedisoft.Core.Caching;
 using Imedisoft.Core.Entities;
 using Imedisoft.Core.Features.Clinics;
 using Imedisoft.Core.Features.Clinics.Dtos;
+using Imedisoft.Core.Features.Providers;
+using Imedisoft.Core.Features.Providers.Dtos;
 
 namespace OpenDental;
 
@@ -136,7 +138,7 @@ public partial class FormRpUnearnedIncome:FormODBase {
 		if(checkUnearnedAllocationAllClins.Checked) {//All Clinics selected; add all visible or hidden unrestricted clinics to the list
 			AddHiddenClinicNums(ref listClinicNums);
 		}
-		var listProvNums = listUnearnedAllocationProvs.GetListSelected<Provider>().Select(x => x.ProvNum).ToList();
+		var listProvNums = listUnearnedAllocationProvs.GetListSelected<ProviderDto>().Select(x => x.Id).ToList();
 		var listUnearnedTypeNums = listUnearnedAllocationTypes.GetListSelected<Def>().Select(x => x.DefNum).ToList();
 		var report = new ReportComplex(true,true);
 		var table = RpUnearnedIncome.GetUnearnedAllocationData(listClinicNums,listProvNums,listUnearnedTypeNums,
@@ -173,7 +175,7 @@ public partial class FormRpUnearnedIncome:FormODBase {
 			report.AddSubTitle("Provs",Lan.g(this,"All Providers"));
 		}
 		else {
-			var provNames = string.Join(", ",listUnearnedAllocationProvs.GetListSelected<Provider>().Select(x => x.Abbr));
+			var provNames = string.Join(", ",listUnearnedAllocationProvs.GetListSelected<ProviderDto>().Select(x => x.Abbr));
 			report.AddSubTitle("ProvNames",provNames);
 		}
 		if(true) {//show sub titles if clinics are enabled. 
@@ -254,7 +256,7 @@ public partial class FormRpUnearnedIncome:FormODBase {
 		if(checkNetUnearnedAllClins.Checked) {//All Clinics selected; add all visible or hidden unrestricted clinics to the list
 			AddHiddenClinicNums(ref listClinicNums);
 		}
-		var listProvNums = listNetUnearnedProvs.GetListSelected<Provider>().Select(x => x.ProvNum).ToList();
+		var listProvNums = listNetUnearnedProvs.GetListSelected<ProviderDto>().Select(x => x.Id).ToList();
 		var listUnearnedTypeNums = listNetUnearnedTypes.GetListSelected<Def>().Select(x => x.DefNum).ToList();
 		var report = new ReportComplex(true,false);
 		var table = RpUnearnedIncome.GetNetUnearnedData(listClinicNums,listProvNums,listUnearnedTypeNums,checkNetUnearnedExcludeZero.Checked);
@@ -277,7 +279,7 @@ public partial class FormRpUnearnedIncome:FormODBase {
 			report.AddSubTitle("Provs",Lan.g(this,"All Providers"));
 		}
 		else {
-			var provNames = string.Join(", ",listNetUnearnedProvs.GetListSelected<Provider>().Select(x => x.Abbr).ToList());
+			var provNames = string.Join(", ",listNetUnearnedProvs.GetListSelected<ProviderDto>().Select(x => x.Abbr).ToList());
 			report.AddSubTitle("ProvNames",provNames);
 		}
 		if(true) {//show sub titles if clinics are enabled. 

@@ -16,6 +16,8 @@ using Imedisoft.Core.Data;
 using Imedisoft.Core.Entities;
 using Imedisoft.Core.Features.Clinics;
 using Imedisoft.Core.Features.Clinics.Dtos;
+using Imedisoft.Core.Features.Providers;
+using Imedisoft.Core.Features.Providers.Dtos;
 using MigraDoc.DocumentObjectModel;
 using MigraDoc.Rendering;
 using MigraDoc.Rendering.Printing;
@@ -1524,7 +1526,7 @@ public partial class FormPayment:FormODBase {
 		if(!wasAllSelected && doPreserveValues) {
 			//Reselect providers that were selected before refilling the combo box.
 			for(var i = 0;i<=comboProviderOutstandingFilter.Items.Count;i++) {
-				if(comboProviderOutstandingFilter.Items.GetObjectAt(i) is Provider provider && listProvNumsSelected.Contains(provider.ProvNum)) {
+				if(comboProviderOutstandingFilter.Items.GetObjectAt(i) is ProviderDto provider && listProvNumsSelected.Contains(provider.Id)) {
 					comboProviderOutstandingFilter.SetSelected(i);
 				}
 			}
@@ -1546,7 +1548,7 @@ public partial class FormPayment:FormODBase {
 		if(!wasAllSelected && doPreserveValues) {
 			//Reselect providers that were selected before refilling the combo box.
 			for(var i=0;i<=comboProviderPaySplitsFilter.Items.Count;i++) {
-				if(comboProviderPaySplitsFilter.Items.GetObjectAt(i) is Provider provider && listProvNumSelected.Contains(provider.ProvNum)) {
+				if(comboProviderPaySplitsFilter.Items.GetObjectAt(i) is ProviderDto provider && listProvNumSelected.Contains(provider.Id)) {
 					comboProviderPaySplitsFilter.SetSelected(i);
 				}
 			}

@@ -3,13 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Windows.Forms;
 using DataConnectionBase;
-using Imedisoft.Core.Entities;
 using Imedisoft.Core.Features.Clinics;
-using Imedisoft.Features.Providers.Dtos;
+using Imedisoft.Core.Features.Providers.Dtos;
 using OpenDental.UI;
 using OpenDentBusiness;
 
-namespace OpenDental;
+namespace OpenDental.Features.Providers.Forms;
 
 public partial class FormProvAdditional : FormODBase
 {
@@ -106,13 +105,13 @@ public partial class FormProvAdditional : FormODBase
             return;
         }
 
-        var providerClinic = (ProviderClinic) selectedGridRow.Tag;
+        var providerClinic = (ProviderClinicDto) selectedGridRow.Tag;
         var value = SIn.String(selectedGridRow.Cells[e.Col].Text);
 
         switch (e.Col)
         {
             case 1:
-                providerClinic.DEANum = value;
+                providerClinic.DeaNumber = value;
                 break;
 
             case 2:
@@ -120,7 +119,7 @@ public partial class FormProvAdditional : FormODBase
                 break;
 
             case 3:
-                providerClinic.StateRxID = value;
+                providerClinic.StateRxId = value;
                 break;
 
             case 4:

@@ -5,6 +5,8 @@ using OpenDentBusiness;
 using Imedisoft.Core.Entities;
 using Imedisoft.Core.Features.Clinics;
 using Imedisoft.Core.Features.Clinics.Dtos;
+using Imedisoft.Core.Features.Providers;
+using Imedisoft.Core.Features.Providers.Dtos;
 using OpenDental.ReportingComplex;
 
 namespace OpenDental;
@@ -50,7 +52,7 @@ public partial class FormRpProcCodes : FormODBase {
 		}
 		long provNum=0;
 		if(listBoxProviders.SelectedIndex>0){
-			provNum=listBoxProviders.GetSelected<Provider>().ProvNum;
+			provNum=listBoxProviders.GetSelected<ProviderDto>().Id;
 		}
 		var dataTable=RpProcCodes.GetData(feeSched.FeeSchedNum,clinicNum,provNum,radioCategories.Checked,checkShowBlankFees.Checked);
 		report.ReportName="Procedure Codes - Fee Schedules";

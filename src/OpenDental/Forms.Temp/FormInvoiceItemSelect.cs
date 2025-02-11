@@ -6,6 +6,7 @@ using CodeBase;
 using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Entities;
+using Imedisoft.Core.Features.Providers;
 using OpenDental.UI;
 using OpenDentBusiness;
 

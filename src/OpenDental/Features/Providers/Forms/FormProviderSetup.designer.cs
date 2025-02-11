@@ -1,11 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Forms;
+﻿using System.Windows.Forms;
 
-namespace OpenDental {
+namespace OpenDental.Features.Providers.Forms {
 	public partial class FormProviderSetup {
 		private System.ComponentModel.IContainer components = null;
 
@@ -209,7 +204,7 @@ namespace OpenDental {
 			this.checkShowDeleted.Size = new System.Drawing.Size(134, 14);
 			this.checkShowDeleted.TabIndex = 27;
 			this.checkShowDeleted.Text = "Show Deleted";
-			this.checkShowDeleted.CheckedChanged += new System.EventHandler(this.checkShowDeleted_CheckedChanged);
+			this.checkShowDeleted.CheckedChanged += new System.EventHandler(this.CheckBoxShowDeleted_CheckedChanged);
 			// 
 			// checkShowHidden
 			// 
