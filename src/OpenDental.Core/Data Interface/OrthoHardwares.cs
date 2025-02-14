@@ -110,7 +110,7 @@ public class OrthoHardwares
 
     public static List<OrthoHardware> GetPatientData(long patNum)
     {
-        var command = "SELECT * FROM orthohardware WHERE PatNum = " + (patNum);
+        var command = "SELECT * FROM orthohardware WHERE PatNum = " + patNum;
         var listOrthoHardwares = OrthoHardwareCrud.SelectMany(command);
         listOrthoHardwares = listOrthoHardwares.OrderBy(x => x.DateExam).ThenBy(x => x.OrthoHardwareType).ThenBy(GetToothInt).ToList();
 

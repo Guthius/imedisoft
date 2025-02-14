@@ -9,13 +9,6 @@ namespace Imedisoft.Core.Crud;
 
 public class OIDExternalCrud
 {
-    public static OIDExternal SelectOne(string command)
-    {
-        var list = TableToList(DataCore.GetTable(command));
-        if (list.Count == 0) return null;
-        return list[0];
-    }
-
     public static List<OIDExternal> SelectMany(string command)
     {
         var list = TableToList(DataCore.GetTable(command));
@@ -51,32 +44,5 @@ public class OIDExternalCrud
         }
 
         return retVal;
-    }
-
-    public static void Insert(OIDExternal oIDExternal)
-    {
-        var command = "INSERT INTO oidexternal (";
-
-        command += "IDType,IDInternal,IDExternal,rootExternal) VALUES(";
-
-        command +=
-            "'" + SOut.String(oIDExternal.IDType.ToString()) + "',"
-            + SOut.Long(oIDExternal.IDInternal) + ","
-            + "'" + SOut.String(oIDExternal.IDExternal) + "',"
-            + "'" + SOut.String(oIDExternal.rootExternal) + "')";
-        {
-            oIDExternal.OIDExternalNum = Db.NonQ(command, true, "OIDExternalNum", "oIDExternal");
-        }
-    }
-
-    public static void Update(OIDExternal oIDExternal)
-    {
-        var command = "UPDATE oidexternal SET "
-                      + "IDType        = '" + SOut.String(oIDExternal.IDType.ToString()) + "', "
-                      + "IDInternal    =  " + SOut.Long(oIDExternal.IDInternal) + ", "
-                      + "IDExternal    = '" + SOut.String(oIDExternal.IDExternal) + "', "
-                      + "rootExternal  = '" + SOut.String(oIDExternal.rootExternal) + "' "
-                      + "WHERE OIDExternalNum = " + SOut.Long(oIDExternal.OIDExternalNum);
-        Db.NonQ(command);
     }
 }

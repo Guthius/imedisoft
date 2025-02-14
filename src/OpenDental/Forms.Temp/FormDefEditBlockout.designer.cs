@@ -61,7 +61,7 @@ namespace OpenDental {
 			this.butSave.Size = new System.Drawing.Size(75, 25);
 			this.butSave.TabIndex = 2;
 			this.butSave.Text = "&Save";
-			this.butSave.Click += new System.EventHandler(this.butOK_Click);
+			this.butSave.Click += new System.EventHandler(this.ButtonAccept_Click);
 			// 
 			// checkHidden
 			// 
@@ -105,7 +105,7 @@ namespace OpenDental {
 			this.butColor.Name = "butColor";
 			this.butColor.Size = new System.Drawing.Size(30, 20);
 			this.butColor.TabIndex = 1;
-			this.butColor.Click += new System.EventHandler(this.butColor_Click);
+			this.butColor.Click += new System.EventHandler(this.ButtonColor_Click);
 			// 
 			// labelColor
 			// 

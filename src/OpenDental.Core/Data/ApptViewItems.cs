@@ -89,7 +89,7 @@ public static class ApptViewItems
 
         protected override void FillCacheIfNeeded()
         {
-            ApptViewItems.GetTableFromCache(false);
+            GetTableFromCache(false);
         }
     }
 
@@ -102,12 +102,12 @@ public static class ApptViewItems
 
     public static void RefreshCache()
     {
-        GetTableFromCache(true);
+        Cache.GetTableFromCache(true);
     }
 
-    public static DataTable GetTableFromCache(bool refreshCache)
+    public static void GetTableFromCache(bool refreshCache)
     {
-        return Cache.GetTableFromCache(refreshCache);
+        Cache.GetTableFromCache(refreshCache);
     }
 
     public static void ClearCache()

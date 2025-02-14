@@ -14,15 +14,15 @@ public class ProcTPs
     {
         if (listProcNums.IsNullOrEmpty()) return;
 
-        Db.NonQ($@"UPDATE proctp SET Priority = {(priority)}
-				WHERE TreatPlanNum = {(treatPlanNum)}
-				AND ProcNumOrig IN({string.Join(",", listProcNums.Select(x => (x)))})");
+        Db.NonQ($@"UPDATE proctp SET Priority = {priority}
+				WHERE TreatPlanNum = {treatPlanNum}
+				AND ProcNumOrig IN({string.Join(",", listProcNums.Select(x => x))})");
     }
 
     public static List<ProcTP> Refresh(long patNum)
     {
         var command = "SELECT * FROM proctp "
-                      + "WHERE PatNum=" + (patNum)
+                      + "WHERE PatNum=" + patNum
                       + " ORDER BY ItemOrder";
         return ProcTPCrud.SelectMany(command);
     }
@@ -30,7 +30,7 @@ public class ProcTPs
     public static List<ProcTP> RefreshForTP(long tpNum)
     {
         var command = "SELECT * FROM proctp "
-                      + "WHERE TreatPlanNum=" + (tpNum)
+                      + "WHERE TreatPlanNum=" + tpNum
                       + " ORDER BY ItemOrder";
         var table = DataCore.GetTable(command);
         return ProcTPCrud.SelectMany(command);
@@ -58,14 +58,14 @@ public class ProcTPs
 
     public static void Delete(ProcTP proc)
     {
-        var command = "DELETE from proctp WHERE ProcTPNum = '" + (proc.ProcTPNum) + "'";
+        var command = "DELETE from proctp WHERE ProcTPNum = '" + proc.ProcTPNum + "'";
         Db.NonQ(command);
     }
 
     public static void DeleteForTP(long treatPlanNum)
     {
         var command = "DELETE FROM proctp "
-                      + "WHERE TreatPlanNum=" + (treatPlanNum);
+                      + "WHERE TreatPlanNum=" + treatPlanNum;
         Db.NonQ(command);
     }
 

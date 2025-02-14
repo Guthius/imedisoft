@@ -89,7 +89,7 @@ public static class AllergyDefs
         return AllergyDefCrud.SelectOne(
             "SELECT allergydef.* FROM allergydef " +
             "INNER JOIN medication ON allergydef.MedicationNum = medication.MedicationNum " +
-            "AND medication.RxCui=" + rxCui + " " +
+            "AND medication.RxCui = " + rxCui + " " +
             "WHERE allergydef.SnomedType IN (" + (int) SnomedAllergy.DrugAllergy + ", " + (int) SnomedAllergy.DrugIntolerance + ")");
     }
 

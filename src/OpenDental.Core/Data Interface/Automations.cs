@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Drawing;
+using System.Globalization;
 using System.Linq;
 using CodeBase;
 using Imedisoft.Core.Caching;
@@ -17,17 +18,17 @@ public class Automations
     {
         AutomationCrud.Insert(automation);
     }
-    
+
     public static void Update(Automation automation)
     {
         AutomationCrud.Update(automation);
     }
-    
+
     public static void Delete(Automation automation)
     {
         Db.NonQ("DELETE FROM automation WHERE AutomationNum = " + automation.AutomationNum);
     }
-    
+
     public static bool Trigger<T>(
         EnumAutomationTrigger automationTrigger,
         List<string> listProcCodes,
@@ -41,181 +42,184 @@ public class Automations
         long aptNum = 0,
         T triggerObj = default)
     {
-        if (patNum == 0) //Could happen for OpenPatient trigger
-            return false;
-        var listAutomations = GetDeepCopy();
-        var didAutomationHappen = false;
-        for (var i = 0; i < listAutomations.Count; i++)
+        if (patNum == 0)
         {
-            if (listAutomations[i].Autotrigger != automationTrigger) continue;
-            if (automationTrigger == EnumAutomationTrigger.ProcedureComplete || automationTrigger == EnumAutomationTrigger.ProcSchedule)
+            return false;
+        }
+
+        var automations = GetDeepCopy();
+        var didAutomationHappen = false;
+
+        foreach (var automation in automations)
+        {
+            if (automation.Autotrigger != automationTrigger) continue;
+            if (automationTrigger is EnumAutomationTrigger.ProcedureComplete or EnumAutomationTrigger.ProcSchedule)
             {
-                if (listProcCodes == null || listProcCodes.Count == 0) continue; //fail silently
-                var arrayCodes = listAutomations[i].ProcCodes.Split(',');
-                if (listProcCodes.All(x => !arrayCodes.Contains(x))) continue;
+                if (listProcCodes == null || listProcCodes.Count == 0)
+                {
+                    continue;
+                }
+
+                var arrayCodes = automation.ProcCodes.Split(',');
+                if (listProcCodes.All(x => !arrayCodes.Contains(x)))
+                {
+                    continue;
+                }
             }
 
-            //matching automation item has been found
-            //Get possible list of conditions that exist for this automation item
-            var listAutomationConditions = AutomationConditions.GetListByAutomationNum(listAutomations[i].AutomationNum);
-            if (listAutomationConditions.Count > 0 && !CheckAutomationConditions(listAutomationConditions, patNum, triggerObj)) continue;
+            var listAutomationConditions = AutomationConditions.GetListByAutomationNum(automation.AutomationNum);
+            if (listAutomationConditions.Count > 0 && !CheckAutomationConditions(listAutomationConditions, patNum, triggerObj))
+            {
+                continue;
+            }
+
             SheetDef sheetDef;
             Sheet sheet;
             Appointment appointmentNew;
             Appointment appointmentOld;
-            var isPatApptSchedRestricted = PatRestrictions.IsRestricted(patNum, PatRestrict.ApptSchedule);
-            switch (listAutomations[i].AutoAction)
+
+            bool isPatApptSchedRestricted;
+
+            switch (automation.AutoAction)
             {
                 case AutomationAction.CreateCommlog:
+                    actionShowCommLog.Invoke(new Commlog
+                    {
+                        PatNum = patNum,
+                        CommDateTime = DateTime.Now,
+                        CommType = automation.CommType,
+                        Note = automation.MessageContent,
+                        Mode_ = CommItemMode.None,
+                        UserNum = Security.CurUser.UserNum,
+                        IsNew = true
+                    });
 
-                    #region CreateCommLog
-
-                    var commlog = new Commlog();
-                    commlog.PatNum = patNum;
-                    commlog.CommDateTime = DateTime.Now;
-                    commlog.CommType = listAutomations[i].CommType;
-                    commlog.Note = listAutomations[i].MessageContent;
-                    commlog.Mode_ = CommItemMode.None;
-                    commlog.UserNum = Security.CurUser.UserNum;
-                    commlog.IsNew = true;
-                    actionShowCommLog.Invoke(commlog);
                     didAutomationHappen = true;
-
-                    #endregion CreateCommLog
-
                     continue;
+
                 case AutomationAction.PopUp:
+                    actionShowMsg?.Invoke(automation.MessageContent);
 
-                    #region Popup
-
-                    actionShowMsg?.Invoke(Lans.g(nameof(Automations), listAutomations[i].MessageContent));
                     didAutomationHappen = true;
-
-                    #endregion Popup
-
                     continue;
+
                 case AutomationAction.PopUpThenDisable10Min:
-
-                    #region PopUpThenDisable10Min
-
-                    var automationNum = listAutomations[i].AutomationNum;
+                    var automationNum = automation.AutomationNum;
                     var hasAutomationBlock = dictionaryBlockedAutomations.ContainsKey(automationNum);
-                    if (hasAutomationBlock && dictionaryBlockedAutomations[automationNum].ContainsKey(patNum)) //Automation block exist for current patient.
-                        continue;
-                    if (hasAutomationBlock)
-                        dictionaryBlockedAutomations[automationNum].Add(patNum, DateTime.Now.AddMinutes(10)); //Disable for 10 minutes.
-                    else //Add automationNum to higher level dictionary .
-                        dictionaryBlockedAutomations.Add(automationNum,
-                            new Dictionary<long, DateTime>
-                            {
-                                {patNum, DateTime.Now.AddMinutes(10)} //Disable for 10 minutes.
-                            });
-                    actionShowMsg?.Invoke(listAutomations[i].MessageContent);
+
+                    switch (hasAutomationBlock)
+                    {
+                        case true when dictionaryBlockedAutomations[automationNum].ContainsKey(patNum):
+                            continue;
+
+                        case true:
+                            dictionaryBlockedAutomations[automationNum].Add(patNum, DateTime.Now.AddMinutes(10));
+                            break;
+
+                        default:
+                            dictionaryBlockedAutomations.Add(automationNum,
+                                new Dictionary<long, DateTime>
+                                {
+                                    {patNum, DateTime.Now.AddMinutes(10)}
+                                });
+                            break;
+                    }
+
+                    actionShowMsg?.Invoke(automation.MessageContent);
+
                     didAutomationHappen = true;
-
-                    #endregion PopUpThenDisable10Min
-
                     continue;
+
                 case AutomationAction.PrintPatientLetter:
                 case AutomationAction.ShowExamSheet:
                 case AutomationAction.ShowConsentForm:
-
-                    #region Sheets
-
-                    sheetDef = SheetDefs.GetSheetDef(listAutomations[i].SheetDefNum);
+                    sheetDef = SheetDefs.GetSheetDef(automation.SheetDefNum);
                     sheet = SheetUtil.CreateSheet(sheetDef, patNum);
                     SheetParameter.SetParameter(sheet, "PatNum", patNum);
                     SheetFiller.FillFields(sheet);
                     SheetUtil.CalculateHeights(sheet);
                     actionShowSheetFillEdit.Invoke(sheet);
+
                     didAutomationHappen = true;
-
-                    #endregion Sheets
-
                     continue;
+
                 case AutomationAction.PrintReferralLetter:
-
-                    #region PrintReferralLetter
-
                     var referralNum = RefAttaches.GetReferralNum(patNum);
                     if (referralNum == 0)
                     {
-                        actionShowMsg?.Invoke(Lans.g(nameof(Automations), "This patient has no referral source entered."));
+                        actionShowMsg?.Invoke("This patient has no referral source entered.");
                         didAutomationHappen = true;
                         continue;
                     }
 
-                    sheetDef = SheetDefs.GetSheetDef(listAutomations[i].SheetDefNum);
+                    sheetDef = SheetDefs.GetSheetDef(automation.SheetDefNum);
                     sheet = SheetUtil.CreateSheet(sheetDef, patNum);
                     SheetParameter.SetParameter(sheet, "PatNum", patNum);
                     SheetParameter.SetParameter(sheet, "ReferralNum", referralNum);
-                    //Don't fill these params if the sheet doesn't use them.
-                    if (sheetDef.SheetFieldDefs.Any(x =>
-                            (x.FieldType == SheetFieldType.Grid && x.FieldName == "ReferralLetterProceduresCompleted")
-                            || (x.FieldType == SheetFieldType.Special && x.FieldName == "toothChart")))
+
+                    if (sheetDef.SheetFieldDefs.Any(x => (x.FieldType == SheetFieldType.Grid && x.FieldName == "ReferralLetterProceduresCompleted") || (x.FieldType == SheetFieldType.Special && x.FieldName == "toothChart")))
                     {
-                        var listProcs = Procedures.GetCompletedForDateRange(DateTime.Today, DateTime.Today
-                            , listPatNums: [patNum]
-                            , includeNote: true
-                            , includeGroupNote: true
-                        );
-                        if (sheetDef.SheetFieldDefs.Any(x => x.FieldType == SheetFieldType.Grid && x.FieldName == "ReferralLetterProceduresCompleted")) SheetParameter.SetParameter(sheet, "CompletedProcs", listProcs);
-                        if (sheetDef.SheetFieldDefs.Any(x => x.FieldType == SheetFieldType.Special && x.FieldName == "toothChart")) SheetParameter.SetParameter(sheet, "toothChartImg", funcCreateToothChartImage.Invoke(listProcs));
+                        var procs = Procedures.GetCompletedForDateRange(DateTime.Today, DateTime.Today, listPatNums: [patNum], includeNote: true, includeGroupNote: true);
+                        if (sheetDef.SheetFieldDefs.Any(x => x.FieldType == SheetFieldType.Grid && x.FieldName == "ReferralLetterProceduresCompleted"))
+                        {
+                            SheetParameter.SetParameter(sheet, "CompletedProcs", procs);
+                        }
+
+                        if (sheetDef.SheetFieldDefs.Any(x => x.FieldType == SheetFieldType.Special && x.FieldName == "toothChart"))
+                        {
+                            SheetParameter.SetParameter(sheet, "toothChartImg", funcCreateToothChartImage.Invoke(procs));
+                        }
                     }
 
                     SheetFiller.FillFields(sheet);
                     SheetUtil.CalculateHeights(sheet);
                     actionShowSheetFillEdit.Invoke(sheet);
+
                     didAutomationHappen = true;
-
-                    #endregion PrintReferralLetter
-
                     continue;
+
                 case AutomationAction.SetApptASAP:
-
-                    #region SetApptASAP
-
                     appointmentNew = Appointments.GetOneApt(aptNum);
-                    if (appointmentNew == null)
+                    if (appointmentNew is null)
                     {
-                        actionShowMsg?.Invoke(Lans.g(nameof(Automations), "Invalid appointment for automation."));
+                        actionShowMsg?.Invoke("Invalid appointment for automation.");
                         didAutomationHappen = true;
                         continue;
                     }
 
                     appointmentOld = appointmentNew.Copy();
                     appointmentNew.Priority = ApptPriority.ASAP;
-                    Appointments.Update(appointmentNew, appointmentOld); //Appointments S-Class handles Signalods
+                    Appointments.Update(appointmentNew, appointmentOld);
                     continue;
+
                 case AutomationAction.SetApptType:
                     appointmentNew = Appointments.GetOneApt(aptNum);
-                    if (appointmentNew == null)
+                    if (appointmentNew is null)
                     {
-                        actionShowMsg?.Invoke(Lans.g(nameof(Automations), "Invalid appointment for automation."));
+                        actionShowMsg?.Invoke("Invalid appointment for automation.");
+
                         didAutomationHappen = true;
                         continue;
                     }
 
                     appointmentOld = appointmentNew.Copy();
-                    appointmentNew.AppointmentTypeNum = listAutomations[i].AppointmentTypeNum;
+                    appointmentNew.AppointmentTypeNum = automation.AppointmentTypeNum;
+
                     var appointmentType = AppointmentTypes.GetFirstOrDefault(x => x.AppointmentTypeNum == appointmentNew.AppointmentTypeNum);
                     if (appointmentType != null)
                     {
                         appointmentNew.ColorOverride = appointmentType.AppointmentTypeColor;
                         appointmentNew.Pattern = AppointmentTypes.GetTimePatternForAppointmentType(appointmentType);
-                        var listProcs = Appointments.ApptTypeMissingProcHelper(appointmentNew, appointmentType, []);
-                        Procedures.UpdateAptNums(listProcs.Select(x => x.ProcNum).ToList(), appointmentNew.AptNum, appointmentNew.AptStatus == ApptStatus.Planned);
+
+                        var procs = Appointments.ApptTypeMissingProcHelper(appointmentNew, appointmentType, []);
+
+                        Procedures.UpdateAptNums(procs.Select(x => x.ProcNum).ToList(), appointmentNew.AptNum, appointmentNew.AptStatus == ApptStatus.Planned);
                     }
 
-                    Appointments.Update(appointmentNew, appointmentOld); //Appointments S-Class handles Signalods
-
-                    #endregion SetApptASAP
-
+                    Appointments.Update(appointmentNew, appointmentOld);
                     continue;
+
                 case AutomationAction.PatRestrictApptSchedTrue:
-
-                    #region PatRestrictApptSchedTrue
-
                     if (!Security.IsAuthorized(EnumPermType.PatientApptRestrict, true))
                     {
                         SecurityLogs.MakeLogEntry(EnumPermType.PatientApptRestrict, patNum, "Attempt to restrict patient scheduling was blocked due to lack of user permission.");
@@ -223,10 +227,13 @@ public class Automations
                     }
 
                     isPatApptSchedRestricted = PatRestrictions.IsRestricted(patNum, PatRestrict.ApptSchedule);
+
                     PatRestrictions.Upsert(patNum, PatRestrict.ApptSchedule);
                     PatRestrictions.InsertPatRestrictApptChangeSecurityLog(patNum, isPatApptSchedRestricted, PatRestrictions.IsRestricted(patNum, PatRestrict.ApptSchedule));
+
                     didAutomationHappen = true;
                     continue;
+
                 case AutomationAction.PatRestrictApptSchedFalse:
                     if (!Security.IsAuthorized(EnumPermType.PatientApptRestrict, true))
                     {
@@ -235,54 +242,69 @@ public class Automations
                     }
 
                     isPatApptSchedRestricted = PatRestrictions.IsRestricted(patNum, PatRestrict.ApptSchedule);
+
                     PatRestrictions.RemovePatRestriction(patNum, PatRestrict.ApptSchedule);
                     PatRestrictions.InsertPatRestrictApptChangeSecurityLog(patNum, isPatApptSchedRestricted, PatRestrictions.IsRestricted(patNum, PatRestrict.ApptSchedule));
+
                     didAutomationHappen = true;
-
-                    #endregion PatRestrictApptSchedTrue
-
                     continue;
+
                 case AutomationAction.ChangePatStatus:
-
-                    #region ChangePatStatus
-
                     var pat = Patients.GetPat(patNum);
                     var patOld = pat.Copy();
-                    pat.PatStatus = listAutomations[i].PatStatus;
-                    //Don't allow changing status from Archived if this is a merged patient.
-                    if (patOld.PatStatus != pat.PatStatus
-                        && patOld.PatStatus == PatientStatus.Archived
-                        && PatientLinks.WasPatientMerged(patOld.PatNum))
+
+                    pat.PatStatus = automation.PatStatus;
+
+                    if (patOld.PatStatus != pat.PatStatus && patOld.PatStatus == PatientStatus.Archived && PatientLinks.WasPatientMerged(patOld.PatNum))
                     {
-                        actionShowMsg?.Invoke(Lans.g(nameof(Automations), "Not allowed to change the status of a merged patient."));
+                        actionShowMsg?.Invoke("Not allowed to change the status of a merged patient.");
                         continue;
                     }
 
                     switch (pat.PatStatus)
                     {
                         case PatientStatus.Deceased:
-                            if (patOld.PatStatus == PatientStatus.Deceased) break;
-                            var listFutureAppts = Appointments.GetFutureSchedApts(pat.PatNum);
-                            if (listFutureAppts.Count <= 0) break;
-                            var apptDates = string.Join("\r\n", listFutureAppts.Take(10).Select(x => x.AptDateTime.ToString()));
-                            if (listFutureAppts.Count > 10) apptDates += "(...)";
+                            if (patOld.PatStatus == PatientStatus.Deceased)
+                            {
+                                break;
+                            }
+
+                            var futureAppts = Appointments.GetFutureSchedApts(pat.PatNum);
+                            if (futureAppts.Count <= 0)
+                            {
+                                break;
+                            }
+
+                            var apptDates = string.Join("\r\n", futureAppts.Take(10).Select(x => x.AptDateTime.ToString(CultureInfo.InvariantCulture)));
+                            if (futureAppts.Count > 10)
+                            {
+                                apptDates += "(...)";
+                            }
+
                             if (!funcYesNoMsgPrompt.Invoke(
-                                    Lans.g("FormPatientEdit", "This patient has scheduled appointments in the future") + ":\r\n" + apptDates + "\r\n"
-                                    + Lans.g("FormPatientEdit", "Would you like to delete them and set the patient to Deceased?"),
-                                    Lans.g("FormPatientEdit", "Delete future appointments?")))
+                                    "This patient has scheduled appointments in the future:\r\n" + apptDates + "\r\n" +
+                                    "Would you like to delete them and set the patient to Deceased?",
+                                    "Delete future appointments?"))
+                            {
                                 continue;
-                            for (var j = 0; j < listFutureAppts.Count; j++) Appointments.Delete(listFutureAppts[j].AptNum, true);
+                            }
+
+                            foreach (var appointment in futureAppts)
+                            {
+                                Appointments.Delete(appointment.AptNum, true);
+                            }
+
                             break;
                     }
 
-                    //Re-activate or disable recalls depending on the the status that the patient is changing to.
                     Patients.UpdateRecalls(pat, patOld, "ChangePatStatus automation");
-                    if (Patients.Update(pat, patOld))
-                        SecurityLogs.MakeLogEntry(EnumPermType.PatientEdit, patNum, "Patient status changed from " + patOld.PatStatus.GetDescription() +
-                                                                                    " to " + listAutomations[i].PatStatus.GetDescription() + " through ChangePatStatus automation.");
-                    didAutomationHappen = true;
 
-                    #endregion ChangePatStatus
+                    if (Patients.Update(pat, patOld))
+                    {
+                        SecurityLogs.MakeLogEntry(EnumPermType.PatientEdit, patNum, "Patient status changed from " + patOld.PatStatus.GetDescription() + " to " + automation.PatStatus.GetDescription() + " through ChangePatStatus automation.");
+                    }
+
+                    didAutomationHappen = true;
 
                     continue;
             }
@@ -291,54 +313,102 @@ public class Automations
         return didAutomationHappen;
     }
 
-    private static bool CheckAutomationConditions<T>(List<AutomationCondition> listAutomationConditions, long patNum, T triggerObj = default)
+    private static bool CheckAutomationConditions<T>(List<AutomationCondition> automationConditions, long patNum, T triggerObj = default)
     {
-        //Make sure every condition returns true
-        for (var i = 0; i < listAutomationConditions.Count; i++)
-            switch (listAutomationConditions[i].CompareField)
+        foreach (var automationCondition in automationConditions)
+        {
+            switch (automationCondition.CompareField)
             {
                 case AutoCondField.NeedsSheet:
-                    if (NeedsSheet(listAutomationConditions[i], patNum)) return false;
+                    if (NeedsSheet(automationCondition, patNum))
+                    {
+                        return false;
+                    }
+
                     break;
+
                 case AutoCondField.Problem:
-                    if (!ProblemComparison(listAutomationConditions[i], patNum)) return false;
+                    if (!ProblemComparison(automationCondition, patNum))
+                    {
+                        return false;
+                    }
+
                     break;
+
                 case AutoCondField.Medication:
-                    if (!MedicationComparison(listAutomationConditions[i], patNum)) return false;
+                    if (!MedicationComparison(automationCondition, patNum))
+                    {
+                        return false;
+                    }
+
                     break;
+
                 case AutoCondField.Allergy:
-                    if (!AllergyComparison(listAutomationConditions[i], patNum)) return false;
+                    if (!AllergyComparison(automationCondition, patNum))
+                    {
+                        return false;
+                    }
+
                     break;
+
                 case AutoCondField.Age:
-                    if (!AgeComparison(listAutomationConditions[i], patNum)) return false;
+                    if (!AgeComparison(automationCondition, patNum))
+                    {
+                        return false;
+                    }
+
                     break;
+
                 case AutoCondField.Gender:
-                    if (!GenderComparison(listAutomationConditions[i], patNum)) return false;
+                    if (!GenderComparison(automationCondition, patNum))
+                    {
+                        return false;
+                    }
+
                     break;
+
                 case AutoCondField.InsuranceNotEffective:
-                    if (!InsuranceNotEffectiveComparison(patNum)) return false;
+                    if (!InsuranceNotEffectiveComparison(patNum))
+                    {
+                        return false;
+                    }
+
                     break;
+
                 case AutoCondField.BillingType:
-                    if (!BillingTypeComparison(listAutomationConditions[i], patNum)) return false;
+                    if (!BillingTypeComparison(automationCondition, patNum))
+                    {
+                        return false;
+                    }
+
                     break;
+
                 case AutoCondField.PlanNum:
-                    if (!PlanNumComparison(listAutomationConditions[i], patNum)) return false;
+                    if (!PlanNumComparison(automationCondition, patNum))
+                    {
+                        return false;
+                    }
+
                     break;
+
                 case AutoCondField.ClaimContainsProcCode:
-                    //ONLY TO BE USED FOR CreateClaim AND OpenClaim AUTOMATION TRIGGERS
-                    if (!DoesClaimContainProcCode(listAutomationConditions[i], triggerObj)) return false;
+                    if (!DoesClaimContainProcCode(automationCondition, triggerObj))
+                    {
+                        return false;
+                    }
+
                     break;
             }
+        }
 
         return true;
     }
-    
+
     private class AutomationCache : CacheListAbs<Automation>
     {
         protected override List<Automation> GetCacheFromDb()
         {
-            var command = "SELECT * FROM automation";
-            return AutomationCrud.SelectMany(command);
+            return AutomationCrud.SelectMany("SELECT * FROM automation");
         }
 
         protected override List<Automation> TableToList(DataTable dataTable)
@@ -358,10 +428,10 @@ public class Automations
 
         protected override void FillCacheIfNeeded()
         {
-            Automations.GetTableFromCache(false);
+            GetTableFromCache(false);
         }
     }
-    
+
     private static readonly AutomationCache Cache = new();
 
     public static List<Automation> GetDeepCopy(bool isShort = false)
@@ -376,37 +446,44 @@ public class Automations
 
     public static void RefreshCache()
     {
-        GetTableFromCache(true);
+        Cache.GetTableFromCache(true);
     }
 
-    public static DataTable GetTableFromCache(bool doRefreshCache)
+    public static void GetTableFromCache(bool refreshCache)
     {
-        return Cache.GetTableFromCache(doRefreshCache);
+        Cache.GetTableFromCache(refreshCache);
     }
 
     public static void ClearCache()
     {
         Cache.ClearCache();
     }
-    
+
     private static bool NeedsSheet(AutomationCondition automationCondition, long patNum)
     {
-        var listSheets = Sheets.GetForPatientForToday(patNum);
+        var sheets = Sheets.GetForPatientForToday(patNum);
+
         switch (automationCondition.Comparison)
         {
-            //Find out what operand to use.
             case AutoCondComparison.Equals:
-                //Loop through every sheet to find one that matches the condition.
-                for (var i = 0; i < listSheets.Count; i++)
-                    if (listSheets[i].Description == automationCondition.CompareString)
-                        //Operand based on AutoCondComparison.
+                foreach (var sheet in sheets)
+                {
+                    if (sheet.Description == automationCondition.CompareString)
+                    {
                         return true;
+                    }
+                }
 
                 break;
+
             case AutoCondComparison.Contains:
-                for (var i = 0; i < listSheets.Count; i++)
-                    if (listSheets[i].Description.ToLower().Contains(automationCondition.CompareString.ToLower()))
+                foreach (var sheet in sheets)
+                {
+                    if (sheet.Description.ToLower().Contains(automationCondition.CompareString.ToLower()))
+                    {
                         return true;
+                    }
+                }
 
                 break;
         }
@@ -416,20 +493,29 @@ public class Automations
 
     private static bool ProblemComparison(AutomationCondition automationCondition, long patNum)
     {
-        var listDiseases = Diseases.Refresh(patNum, true);
+        var diseases = Diseases.Refresh(patNum, true);
+
         switch (automationCondition.Comparison)
         {
-            //Find out what operand to use.
             case AutoCondComparison.Equals:
-                for (var i = 0; i < listDiseases.Count; i++) //Includes hidden
-                    if (DiseaseDefs.GetName(listDiseases[i].DiseaseDefNum) == automationCondition.CompareString)
+                foreach (var disease in diseases)
+                {
+                    if (DiseaseDefs.GetName(disease.DiseaseDefNum) == automationCondition.CompareString)
+                    {
                         return true;
+                    }
+                }
 
                 break;
+
             case AutoCondComparison.Contains:
-                for (var i = 0; i < listDiseases.Count; i++)
-                    if (DiseaseDefs.GetName(listDiseases[i].DiseaseDefNum).ToLower().Contains(automationCondition.CompareString.ToLower()))
+                foreach (var disease in diseases)
+                {
+                    if (DiseaseDefs.GetName(disease.DiseaseDefNum).ToLower().Contains(automationCondition.CompareString.ToLower()))
+                    {
                         return true;
+                    }
+                }
 
                 break;
         }
@@ -439,19 +525,29 @@ public class Automations
 
     private static bool MedicationComparison(AutomationCondition automationCondition, long patNum)
     {
-        var listMedication = Medications.GetMedicationsByPat(patNum);
+        var medications = Medications.GetMedicationsByPat(patNum);
+
         switch (automationCondition.Comparison)
         {
             case AutoCondComparison.Equals:
-                for (var i = 0; i < listMedication.Count; i++)
-                    if (listMedication[i].MedName == automationCondition.CompareString)
+                foreach (var medication in medications)
+                {
+                    if (medication.MedName == automationCondition.CompareString)
+                    {
                         return true;
+                    }
+                }
 
                 break;
+
             case AutoCondComparison.Contains:
-                for (var i = 0; i < listMedication.Count; i++)
-                    if (listMedication[i].MedName.ToLower().Contains(automationCondition.CompareString.ToLower()))
+                foreach (var medication in medications)
+                {
+                    if (medication.MedName.ToLower().Contains(automationCondition.CompareString.ToLower()))
+                    {
                         return true;
+                    }
+                }
 
                 break;
         }
@@ -461,106 +557,131 @@ public class Automations
 
     private static bool AllergyComparison(AutomationCondition automationCondition, long patNum)
     {
-        var listAllergyDefs = AllergyDefs.GetAllergyDefs(patNum, false);
-        switch (automationCondition.Comparison)
+        var allergyDefs = AllergyDefs.GetAllergyDefs(patNum, false);
+
+        return automationCondition.Comparison switch
         {
-            case AutoCondComparison.Equals:
-                return listAllergyDefs.Any(x => x.Description == automationCondition.CompareString);
-            case AutoCondComparison.Contains:
-                return listAllergyDefs.Any(x => x.Description.ToLower().Contains(automationCondition.CompareString.ToLower()));
-            default:
-                return false;
-        }
+            AutoCondComparison.Equals =>
+                allergyDefs.Any(x => x.Description == automationCondition.CompareString),
+
+            AutoCondComparison.Contains =>
+                allergyDefs.Any(x => x.Description.ToLower().Contains(automationCondition.CompareString.ToLower())),
+
+            _ => false
+        };
     }
 
     private static bool AgeComparison(AutomationCondition automationCondition, long patNum)
     {
         var pat = Patients.GetPat(patNum);
-        var age = pat.Age;
-        var ageTrigger = 0;
-        if (!int.TryParse(automationCondition.CompareString, out ageTrigger)) return false; //This is only possible due to an old bug that was fixed.
-        switch (automationCondition.Comparison)
+
+        if (!int.TryParse(automationCondition.CompareString, out var ageTrigger))
         {
-            case AutoCondComparison.Equals:
-                return age == ageTrigger;
-            case AutoCondComparison.Contains:
-                return age.ToString().Contains(automationCondition.CompareString);
-            case AutoCondComparison.GreaterThan:
-                return age > ageTrigger;
-            case AutoCondComparison.LessThan:
-                return age < ageTrigger;
-            default:
-                return false;
+            return false;
         }
+
+        return automationCondition.Comparison switch
+        {
+            AutoCondComparison.Equals => pat.Age == ageTrigger,
+            AutoCondComparison.Contains => pat.Age.ToString().Contains(automationCondition.CompareString),
+            AutoCondComparison.GreaterThan => pat.Age > ageTrigger,
+            AutoCondComparison.LessThan => pat.Age < ageTrigger,
+            _ => false
+        };
     }
 
     private static bool GenderComparison(AutomationCondition automationCondition, long patNum)
     {
         var pat = Patients.GetPat(patNum);
-        switch (automationCondition.Comparison)
+
+        return automationCondition.Comparison switch
         {
-            case AutoCondComparison.Equals:
-                return pat.Gender.ToString().Substring(0, 1).ToLower() == automationCondition.CompareString.ToLower();
-            case AutoCondComparison.Contains:
-                return pat.Gender.ToString().Substring(0, 1).ToLower().Contains(automationCondition.CompareString.ToLower());
-            default:
-                return false;
-        }
+            AutoCondComparison.Equals =>
+                string.Equals(pat.Gender.ToString().Substring(0, 1), automationCondition.CompareString, StringComparison.CurrentCultureIgnoreCase),
+
+            AutoCondComparison.Contains =>
+                pat.Gender.ToString().Substring(0, 1).ToLower().Contains(automationCondition.CompareString.ToLower()),
+
+            _ => false
+        };
     }
 
     private static bool InsuranceNotEffectiveComparison(long patNum)
     {
         var patPlan = PatPlans.GetPatPlan(patNum, 1);
-        if (patPlan == null) return false;
+        if (patPlan == null)
+        {
+            return false;
+        }
+
         var insSub = InsSubs.GetOne(patPlan.InsSubNum);
-        if (insSub == null) return false;
-        if (DateTime.Today >= insSub.DateEffective && DateTime.Today <= insSub.DateTerm) return false; //Allen - Not not effective
-        return true;
+        if (insSub == null)
+        {
+            return false;
+        }
+
+        return DateTime.Today < insSub.DateEffective || DateTime.Today > insSub.DateTerm;
     }
 
     private static bool BillingTypeComparison(AutomationCondition automationCondition, long patNum)
     {
-        var patient = Patients.GetPat(patNum);
-        var defBillType = Defs.GetDef(DefCat.BillingTypes, patient.BillingType);
-        if (defBillType == null) return false;
-        switch (automationCondition.Comparison)
+        var pat = Patients.GetPat(patNum);
+
+        var billTypeDef = Defs.GetDef(DefCat.BillingTypes, pat.BillingType);
+        if (billTypeDef is null)
         {
-            case AutoCondComparison.Equals:
-                return defBillType.ItemName.ToLower() == automationCondition.CompareString.ToLower();
-            case AutoCondComparison.Contains:
-                return defBillType.ItemName.ToLower().Contains(automationCondition.CompareString.ToLower());
-            default:
-                return false;
+            return false;
         }
+
+        return automationCondition.Comparison switch
+        {
+            AutoCondComparison.Equals =>
+                string.Equals(billTypeDef.ItemName, automationCondition.CompareString, StringComparison.CurrentCultureIgnoreCase),
+
+            AutoCondComparison.Contains =>
+                billTypeDef.ItemName.ToLower().Contains(automationCondition.CompareString.ToLower()),
+
+            _ => false
+        };
     }
 
     private static bool PlanNumComparison(AutomationCondition automationCondition, long patNum)
     {
-        var listPatPlans = PatPlans.Refresh(patNum);
-        if (listPatPlans.Count == 0) return false;
-        var listInsSubs = InsSubs.GetMany(listPatPlans.Select(x => x.InsSubNum).ToList());
-        switch (automationCondition.Comparison)
+        var patPlans = PatPlans.Refresh(patNum);
+        if (patPlans.Count == 0)
         {
-            case AutoCondComparison.Equals:
-                return listInsSubs.Any(x => x.PlanNum.ToString().ToLower() == automationCondition.CompareString.ToLower());
-            case AutoCondComparison.Contains:
-                return listInsSubs.Any(x => x.PlanNum.ToString().ToLower().Contains(automationCondition.CompareString.ToLower()));
-            default:
-                return false;
+            return false;
         }
+
+        var insSubs = InsSubs.GetMany(patPlans.Select(x => x.InsSubNum).ToList());
+        return automationCondition.Comparison switch
+        {
+            AutoCondComparison.Equals =>
+                insSubs.Any(x => string.Equals(x.PlanNum.ToString(), automationCondition.CompareString, StringComparison.CurrentCultureIgnoreCase)),
+
+            AutoCondComparison.Contains =>
+                insSubs.Any(x => x.PlanNum.ToString().ToLower().Contains(automationCondition.CompareString.ToLower())),
+
+            _ => false
+        };
     }
-    
+
     private static bool DoesClaimContainProcCode<T>(AutomationCondition automationCondition, T triggerObj)
     {
+        if (triggerObj is not List<ClaimProc> claimProcs)
+        {
+            return false;
+        }
+
         try
         {
-            var listClaimProcs = (List<ClaimProc>) (object) triggerObj;
-            var listProcedures = Procedures.GetManyProc(listClaimProcs.Select(x => x.ProcNum).ToList(), false);
-            var listProcedureCodesOnClaim = ProcedureCodes.GetCodesForCodeNums(listProcedures.Select(x => x.CodeNum).ToList());
-            var listProcCodes = listProcedureCodesOnClaim.Select(x => x.ProcCode).ToList();
-            return listProcCodes.Contains(automationCondition.CompareString);
+            var procedures = Procedures.GetManyProc(claimProcs.Select(x => x.ProcNum).ToList(), false);
+            var procedureCodesOnClaim = ProcedureCodes.GetCodesForCodeNums(procedures.Select(x => x.CodeNum).ToList());
+            var procCodes = procedureCodesOnClaim.Select(x => x.ProcCode).ToList();
+
+            return procCodes.Contains(automationCondition.CompareString);
         }
-        catch (Exception e)
+        catch
         {
             return false;
         }

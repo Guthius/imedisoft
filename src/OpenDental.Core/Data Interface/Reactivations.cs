@@ -35,8 +35,8 @@ public class Reactivations
             @"SELECT
 					COUNT(*) AS NumReminders
 					FROM commlog
-					WHERE commlog.CommType=" + (commType) + " " +
-            "AND commlog.PatNum=" + (patNum);
+					WHERE commlog.CommType=" + commType + " " +
+            "AND commlog.PatNum=" + patNum;
         return SIn.Int(DataCore.GetScalar(cmd));
     }
 
@@ -48,8 +48,8 @@ public class Reactivations
             @"SELECT
 					MAX(commlog.CommDateTime) AS DateLastContacted
 					FROM commlog
-					WHERE commlog.CommType=" + (commType) + " " +
-            "AND commlog.PatNum=" + (patNum) + " " +
+					WHERE commlog.CommType=" + commType + " " +
+            "AND commlog.PatNum=" + patNum + " " +
             "GROUP BY commlog.PatNum";
         return SIn.DateTime(DataCore.GetScalar(cmd));
     }
@@ -112,10 +112,10 @@ public class Reactivations
 					LEFT JOIN definition billingtype ON pat.BillingType=billingtype.DefNum
 					INNER JOIN patient guarantor ON pat.Guarantor=guarantor.PatNum
 					WHERE pat.PatStatus IN ({strPatStatuses}) ";
-        cmd += provNum > 0 ? " AND pat.PriProv=" + (provNum) : "";
-        cmd += clinicNum > -1 ? " AND pat.ClinicNum=" + (clinicNum) : ""; //might still want to get the 0 clinic pats
-        cmd += siteNum > 0 ? " AND pat.SiteNum=" + (siteNum) : "";
-        cmd += billingType > 0 ? " AND pat.BillingType=" + (billingType) : "";
+        cmd += provNum > 0 ? " AND pat.PriProv=" + provNum : "";
+        cmd += clinicNum > -1 ? " AND pat.ClinicNum=" + clinicNum : ""; //might still want to get the 0 clinic pats
+        cmd += siteNum > 0 ? " AND pat.SiteNum=" + siteNum : "";
+        cmd += billingType > 0 ? " AND pat.BillingType=" + billingType : "";
         cmd += showDoNotContact ? "" : " AND (react.DoNotContact IS NULL OR react.DoNotContact=0)";
         cmd += contactInterval > -1 ? " AND (comm.DateLastContacted IS NULL OR comm.DateLastContacted <= " + SOut.DateTime(DateTime.Today.AddDays(-contactInterval)) + ") " : "";
         //set number of contact attempts

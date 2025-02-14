@@ -95,6 +95,7 @@ public partial class ValidDate : TextBox
         catch
         {
             _errorProvider.SetError(this, "Invalid date.");
+            
             return;
         }
 

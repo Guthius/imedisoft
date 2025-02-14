@@ -2,6 +2,7 @@ using System;
 using System.Drawing.Printing;
 using System.Windows.Forms;
 using CodeBase;
+using Imedisoft.Core.Data;
 using Imedisoft.Core.Entities;
 using OpenDentBusiness;
 

@@ -17,23 +17,12 @@ public class Security
 
     private static string _curComputerName;
 
-    [ThreadStatic]
-    private static string _curComputerNameT;
-
     public static bool IsUserLoggedIn;
     public static DateTime DateTimeLastActivity;
 
     public static Userod CurUser
     {
-        get
-        {
-            if (_curUserT != null)
-            {
-                return _curUserT;
-            }
-
-            return curUser;
-        }
+        get => _curUserT ?? curUser;
         set
         {
             if (_curUserT == value && curUser == value)
@@ -49,35 +38,8 @@ public class Security
 
     public static string CurComputerName
     {
-        get
-        {
-            if (_curComputerNameT != null)
-            {
-                //Allows an empty string.
-                return _curComputerNameT;
-            }
-
-            if (_curComputerName == null)
-            {
-                _curComputerName = Environment.MachineName;
-            }
-
-            return _curComputerName;
-        }
-        set
-        {
-            if (!false)
-            {
-                _curComputerNameT = value;
-            }
-
-            _curComputerName = value;
-        }
-    }
-
-    public static string PasswordTyped
-    {
-        set { }
+        get { return _curComputerName ??= Environment.MachineName; }
+        set => _curComputerName = value;
     }
 
     public static bool IsAuthorized(EnumPermType perm)
@@ -134,7 +96,7 @@ public class Security
     {
         if (CurUser == null)
         {
-            var msg = Lans.g("Security", "Not authorized for") + "\r\n" + GroupPermissions.GetDesc(perm);
+            var msg = "Not authorized for\r\n" + GroupPermissions.GetDesc(perm);
             if (!suppressMsgBox)
             {
                 MessageBox.Show(msg);
@@ -162,19 +124,14 @@ public class Security
 
     public static bool IsAuthorized(EnumPermType perm, DateTime date, bool suppressException, bool suppressLockDateMessage, Userod curUser, long procCodeNum, double procFee, long sheetDefNum, long fKey, Action<string> actionNotAuthorized = null)
     {
-        date = date.Date; //Remove the time portion of date so we can compare strictly as a date later.
-        //Check eConnector permission first.
-        if (IsValidEServicePermission(perm))
-        {
-            return true;
-        }
+        date = date.Date;
 
         string errorMsg;
         if (!GroupPermissions.HasPermission(curUser, perm, fKey))
         {
-            errorMsg = Lans.g("Security", "Not authorized.") + "\r\n"
-                                                             + Lans.g("Security", "A user with the SecurityAdmin permission must grant you access for") + ":\r\n"
-                                                             + GroupPermissions.GetDesc(perm);
+            errorMsg = "Not authorized.\r\n" +
+                       "A user with the SecurityAdmin permission must grant you access for:\r\n"
+                       + GroupPermissions.GetDesc(perm);
             if (!suppressException)
             {
                 throw new Exception(errorMsg);
@@ -266,57 +223,61 @@ public class Security
 
     public static bool IsGlobalDateLock(EnumPermType perm, DateTime date, bool suppressMsgBox = false, long codeNum = 0, double procFee = -1, long sheetDefNum = 0, Action<string> actionNotAuthorized = null)
     {
-        if (!(new[]
+        if (!new[]
             {
-                EnumPermType.AdjustmentCreate, EnumPermType.AdjustmentEdit, EnumPermType.PaymentCreate, EnumPermType.PaymentEdit, EnumPermType.ProcComplCreate, EnumPermType.ProcCompleteEdit, EnumPermType.ProcCompleteStatusEdit
-                //,Permissions.ProcComplNote (corresponds to obsolete ProcComplEditLimited)
-                //,Permissions.ProcComplAddAdj (corresponds to obsolete ProcComplEditLimited)
-                //,Permissions.ProcComplEditMisc (corresponds to obsolete ProcComplEditLimited)
-                //,Permissions.ProcExistingEdit//per Allen 6/26/2020 this should not be affected by the global date lock
-                //,Permissions.ImageDelete
-                ,
-                EnumPermType.InsPayCreate, EnumPermType.InsPayEdit
-                //,Permissions.InsWriteOffEdit//per Nathan 7/5/2016 this should not be affected by the global date lock
-                ,
-                EnumPermType.SheetEdit, EnumPermType.SheetDelete, EnumPermType.CommlogEdit
-                //,Permissions.ClaimDelete //per Nathan 01/18/2018 this should not be affected by the global date lock
-                ,
+                EnumPermType.AdjustmentCreate,
+                EnumPermType.AdjustmentEdit,
+                EnumPermType.PaymentCreate,
+                EnumPermType.PaymentEdit,
+                EnumPermType.ProcComplCreate,
+                EnumPermType.ProcCompleteEdit,
+                EnumPermType.ProcCompleteStatusEdit,
+                EnumPermType.InsPayCreate,
+                EnumPermType.InsPayEdit,
+                EnumPermType.SheetEdit,
+                EnumPermType.SheetDelete,
+                EnumPermType.CommlogEdit,
                 EnumPermType.PayPlanEdit
-                //,Permissions.ClaimHistoryEdit //per Nathan & Mark 03/01/2018 this should not be affected by the global lock date, not financial data.
-            }).Contains(perm))
+            }.Contains(perm))
         {
-            return false; //permission being checked is not affected by global lock date. (notice the ! 20 lines up)
+            return false;
         }
 
         if (date.Year == 1)
         {
-            return false; //Invalid or MinDate passed in.
+            return false;
         }
 
         if (!PrefC.GetBool(PrefName.SecurityLockIncludesAdmin) && GroupPermissions.HasPermission(CurUser, EnumPermType.SecurityAdmin, 0))
         {
-            return false; //admins are never affected by global date limitation when preference is false.
+            return false;
         }
 
-        var listPermissionsCanBypassLockDate = new List<EnumPermType>()
+        var permissionsCanBypassLockDate = new List<EnumPermType>
         {
-            EnumPermType.ProcCompleteEdit, EnumPermType.ProcCompleteAddAdj, EnumPermType.ProcCompleteEditMisc, EnumPermType.ProcCompleteStatusEdit, EnumPermType.ProcCompleteNote,
-            EnumPermType.ProcComplCreate, EnumPermType.ProcExistingEdit
+            EnumPermType.ProcCompleteEdit,
+            EnumPermType.ProcCompleteAddAdj,
+            EnumPermType.ProcCompleteEditMisc,
+            EnumPermType.ProcCompleteStatusEdit,
+            EnumPermType.ProcCompleteNote,
+            EnumPermType.ProcComplCreate,
+            EnumPermType.ProcExistingEdit
         };
-        if (listPermissionsCanBypassLockDate.Contains(perm) && ProcedureCodes.CanBypassLockDate(codeNum, procFee))
+
+        if (permissionsCanBypassLockDate.Contains(perm) && ProcedureCodes.CanBypassLockDate(codeNum, procFee))
         {
             return false;
         }
 
-        if (perm.In(EnumPermType.SheetEdit, EnumPermType.SheetDelete) && sheetDefNum > 0 && SheetDefs.CanBypassLockDate(sheetDefNum))
+        if (perm is EnumPermType.SheetEdit or EnumPermType.SheetDelete && sheetDefNum > 0 && SheetDefs.CanBypassLockDate(sheetDefNum))
         {
             return false;
         }
 
-        //If global lock is Date based.
+        string msg;
         if (date <= PrefC.GetDate(PrefName.SecurityLockDate))
         {
-            var msg = Lans.g("Security", "Locked by Administrator before ") + PrefC.GetDate(PrefName.SecurityLockDate).ToShortDateString();
+            msg = "Locked by Administrator before " + PrefC.GetDate(PrefName.SecurityLockDate).ToShortDateString();
             if (!suppressMsgBox)
             {
                 MessageBox.Show(msg);
@@ -326,38 +287,25 @@ public class Security
             return true;
         }
 
-        //If global lock is days based.
         var lockDays = PrefC.GetInt(PrefName.SecurityLockDays);
-        if (lockDays > 0 && date <= DateTime.Today.AddDays(-lockDays))
+        if (lockDays <= 0 || date > DateTime.Today.AddDays(-lockDays))
         {
-            var msg = Lans.g("Security", "Locked by Administrator before") + " " + lockDays.ToString() + " days.";
-            if (!suppressMsgBox)
-            {
-                MessageBox.Show(msg);
-            }
-
-            actionNotAuthorized?.Invoke(msg);
-            return true;
+            return false;
         }
 
-        return false;
-    }
-
-    public static string GetComplexComputerName()
-    {
-        //If not RDP return CurComputerName for backwards compatibillity. Mimics ODEnvironment.MachineName
-        if (typeof(SystemInformation).GetProperty("TerminalServerSession").GetValue(null).ToString() != "True")
+        msg = "Locked by Administrator before " + lockDays + " days.";
+        if (!suppressMsgBox)
         {
-            return CurComputerName;
+            MessageBox.Show(msg);
         }
 
-        var arrayComputerNames = new string[] {CurComputerName, Environment.MachineName, Environment.MachineName};
-        return string.Join(", ", arrayComputerNames.Where(x => !string.IsNullOrEmpty(x)).Distinct());
+        actionNotAuthorized?.Invoke(msg);
+        return true;
     }
 
-    private static DateTime GetDateLimit(EnumPermType permType, List<long> listUserGroupNums)
+    private static DateTime GetDateLimit(EnumPermType permType, List<long> userGroupNums)
     {
-        return GroupPermissions.GetDateRestrictedForPermission(permType, listUserGroupNums);
+        return GroupPermissions.GetDateRestrictedForPermission(permType, userGroupNums);
     }
 
     public static int GetModule(int suggestI)
@@ -380,105 +328,31 @@ public class Security
 
     private static EnumPermType PermofModule(int i)
     {
-        switch (i)
+        return i switch
         {
-            case 0:
-                return EnumPermType.AppointmentsModule;
-            case 1:
-                return EnumPermType.FamilyModule;
-            case 2:
-                return EnumPermType.AccountModule;
-            case 3:
-                return EnumPermType.TPModule;
-            case 4:
-                return EnumPermType.ChartModule;
-            case 5:
-                return EnumPermType.ImagingModule;
-            case 6:
-                return EnumPermType.ManageModule;
-        }
-
-        return EnumPermType.None;
+            0 => EnumPermType.AppointmentsModule,
+            1 => EnumPermType.FamilyModule,
+            2 => EnumPermType.AccountModule,
+            3 => EnumPermType.TPModule,
+            4 => EnumPermType.ChartModule,
+            5 => EnumPermType.ImagingModule,
+            6 => EnumPermType.ManageModule,
+            _ => EnumPermType.None
+        };
     }
 
     public static void SyncCurUser()
     {
         if (CurUser == null || CurUser.UserNum == 0)
         {
-            //Usernum will be 0 for users instantiated for web. See InitWebcore.Init.
             return;
         }
 
-        //Update CurUser with the user from the cache synchronizing any fields that could have been updated.  E.g. TaskListInBox
         CurUser = Userods.GetFirstOrDefault(x => x.UserNum == CurUser.UserNum);
-        //The user could have been deleted and/or data loss could have occurred and the CurUser is no longer in the db.
+
         if (CurUser == null)
         {
             throw new ODException("The current user has been removed from the cache.");
-        }
-    }
-
-    public static void SetUserCurT(Userod userT)
-    {
-        if (userT != null)
-        {
-            _curUserT = userT;
-        }
-    }
-
-    private static bool IsValidEServicePermission(EnumPermType perm)
-    {
-        if (CurUser == null)
-        {
-            return false;
-        }
-
-        //Run specific checks against certain types of eServices.
-        switch (CurUser.EServiceType)
-        {
-            case EServiceTypes.Broadcaster:
-            case EServiceTypes.BroadcastMonitor:
-            case EServiceTypes.ServiceMainHQ:
-                return true; //These eServices are at HQ and we trust ourselves to have full permissions for any S class method.
-            case EServiceTypes.EConnector:
-                return IsPermAllowedEConnector(perm);
-            case EServiceTypes.OpenDentalService:
-                return IsPermAllowedOpenDentalService(perm);
-            case EServiceTypes.None:
-            default:
-                return false; //Not an eService, let IsAuthorized handle the permission checking.
-        }
-    }
-
-    private static bool IsPermAllowedEConnector(EnumPermType perm)
-    {
-        //We are typically on the customers eConnector and need to be careful when giving access to certain permission types.
-        //Engineers must EXCPLICITLY add permissions to this switch statement as they need them.
-        //Be very cautious when adding permissions because the flood gates for that permission will be opened once added.
-        //E.g. we should never add a permission like Setup or SecurityAdmin.  If there is a need for such a thing, we need to rethink this paradigm.
-        switch (perm)
-        {
-            //Add additional permissions to this case as needed to grant access.
-            case EnumPermType.EmailSend:
-                return true;
-            default:
-                return false;
-        }
-    }
-
-    private static bool IsPermAllowedOpenDentalService(EnumPermType perm)
-    {
-        //We need to be careful when giving access to certain permission types.
-        //Engineers must EXCPLICITLY add permissions to this switch statement as they need them.
-        //Be very cautious when adding permissions because the flood gates for that permission will be opened once added.
-        //E.g. we should never add a permission like Setup or SecurityAdmin.  If there is a need for such a thing, we need to rethink this paradigm.
-        switch (perm)
-        {
-            //Add additional permissions to this case as needed to grant access.
-            case EnumPermType.EmailSend:
-                return true;
-            default:
-                return false;
         }
     }
 }

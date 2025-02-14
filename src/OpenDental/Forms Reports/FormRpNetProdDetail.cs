@@ -18,17 +18,10 @@ namespace OpenDental;
 public partial class FormRpNetProdDetail : FormODBase {
 	private DateTime dateFrom;
 	private DateTime dateTo;
-	///<summary>Can be set externally when automating.</summary>
-	public string DailyMonthlyAnnual;
-	///<summary>If set externally, then this sets the date on startup.</summary>
-	public DateTime DateStart;
-	///<summary>If set externally, then this sets the date on startup.</summary>
-	public DateTime DateEnd;
 	private List<ClinicDto> _listClinics;
 	private int _selectedPayPeriodIdx=-1;
 	private List<ProviderDto> _listProviders;
 	private List<PayPeriod> _listPayPeriods;
-
 		
 	public FormRpNetProdDetail(bool isTransactionalDaily=false){
 		InitializeComponent();
@@ -106,14 +99,6 @@ public partial class FormRpNetProdDetail : FormODBase {
 	}
 
 	private void dtPickerTo_ValueChanged(object sender,EventArgs e) {
-	}
-
-	private void radioSimpleReport_Click(object sender,EventArgs e) {
-		SetDates();
-	}
-
-	private void radioDetailedReport_Click(object sender,EventArgs e) {
-		SetDates();
 	}
 
 	private void radioTransactionalToday_Click(object sender,EventArgs e) {

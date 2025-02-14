@@ -27,12 +27,12 @@ public partial class DashIndividualDiscount : UserControl, IDashWidgetField
         _discountPlanSub = discountPlanSub;
         _discountPlan = discountPlan;
         _discountAmtUsed = 0;
-        groupBoxIndDiscount.Text = Lan.g(this, "Discount Plan");
-        label11.Text = Lan.g(this, "Annual Max");
+        groupBoxIndDiscount.Text = "Discount Plan";
+        label11.Text = "Annual Max";
         textMaxAdj.Text = "";
-        label12.Text = Lan.g(this, "Adj Used");
+        label12.Text = "Adj Used";
         textUsedAdj.Text = "";
-        label18.Text = Lan.g(this, "Adj Remaining");
+        label18.Text = "Adj Remaining";
         textRemainingAdj.Text = "";
         if (pat == null || _discountPlanSub == null || _discountPlan == null)
         {

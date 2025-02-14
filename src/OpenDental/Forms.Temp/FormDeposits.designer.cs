@@ -53,7 +53,7 @@ namespace OpenDental {
 			this.grid.Title = "Deposit Slips";
 			this.grid.TranslationName = "TableDepositSlips";
 			this.grid.WrapText = false;
-			this.grid.CellDoubleClick += new OpenDental.UI.ODGridClickEventHandler(this.grid_CellDoubleClick);
+			this.grid.CellDoubleClick += new OpenDental.UI.ODGridClickEventHandler(this.Grid_CellDoubleClick);
 			// 
 			// butAdd
 			// 
@@ -65,7 +65,7 @@ namespace OpenDental {
 			this.butAdd.Size = new System.Drawing.Size(77, 26);
 			this.butAdd.TabIndex = 0;
 			this.butAdd.Text = "Add";
-			this.butAdd.Click += new System.EventHandler(this.butAdd_Click);
+			this.butAdd.Click += new System.EventHandler(this.ButtonAdd_Click);
 			// 
 			// butOK
 			// 
@@ -75,7 +75,7 @@ namespace OpenDental {
 			this.butOK.Size = new System.Drawing.Size(75, 26);
 			this.butOK.TabIndex = 2;
 			this.butOK.Text = "&OK";
-			this.butOK.Click += new System.EventHandler(this.butOK_Click);
+			this.butOK.Click += new System.EventHandler(this.ButtonAccept_Click);
 			// 
 			// comboClinics
 			// 
@@ -86,7 +86,7 @@ namespace OpenDental {
 			this.comboClinics.IsMultiSelect = true;
 			this.comboClinics.Size = new System.Drawing.Size(200, 21);
 			this.comboClinics.TabIndex = 131;
-			this.comboClinics.SelectionChangeCommitted += new System.EventHandler(this.ComboClinics_SelectionChangeCommitted);
+			this.comboClinics.SelectionChangeCommitted += new System.EventHandler(this.ComboBoxClinics_SelectionChangeCommitted);
 			// 
 			// FormDeposits
 			// 

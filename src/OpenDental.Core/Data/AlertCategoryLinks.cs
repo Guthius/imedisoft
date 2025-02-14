@@ -62,7 +62,7 @@ public static class AlertCategoryLinks
 
         protected override void FillCacheIfNeeded()
         {
-            AlertCategoryLinks.GetTableFromCache(false);
+            GetTableFromCache(false);
         }
     }
 
@@ -73,9 +73,9 @@ public static class AlertCategoryLinks
         return Cache.GetWhere(predicate, shortList);
     }
 
-    public static DataTable GetTableFromCache(bool refreshCache)
+    public static void GetTableFromCache(bool refreshCache)
     {
-        return Cache.GetTableFromCache(refreshCache);
+        Cache.GetTableFromCache(refreshCache);
     }
 
     public static void ClearCache()

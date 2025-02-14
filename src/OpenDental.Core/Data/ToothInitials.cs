@@ -11,7 +11,7 @@ public static class ToothInitials
 {
     public static List<ToothInitial> GetPatientData(long patNum)
     {
-        return ToothInitialCrud.SelectMany("SELECT * FROM toothinitial" + " WHERE PatNum = " + patNum);
+        return ToothInitialCrud.SelectMany("SELECT * FROM toothinitial WHERE PatNum = " + patNum);
     }
 
     public static void Insert(ToothInitial toothInitial)
@@ -83,12 +83,12 @@ public static class ToothInitials
 
     public static void ClearValue(long patNum, string toothId, ToothInitialType toothInitialType)
     {
-        Db.NonQ("DELETE FROM toothinitial WHERE PatNum=" + patNum + " AND ToothNum='" + SOut.String(toothId) + "' AND InitialType=" + (int) toothInitialType);
+        Db.NonQ("DELETE FROM toothinitial WHERE PatNum = " + patNum + " AND ToothNum = '" + SOut.String(toothId) + "' AND InitialType = " + (int) toothInitialType);
     }
 
     public static void ClearAllValuesForType(long patNum, ToothInitialType toothInitialType)
     {
-        Db.NonQ("DELETE FROM toothinitial WHERE PatNum=" + patNum + " AND InitialType=" + (int) toothInitialType);
+        Db.NonQ("DELETE FROM toothinitial WHERE PatNum = " + patNum + " AND InitialType = " + (int) toothInitialType);
     }
 
     public static List<string> GetMissingOrHiddenTeeth(List<ToothInitial> toothInitials)
@@ -160,12 +160,12 @@ public static class ToothInitials
 
     public static List<string> GetHiddenTeeth(List<ToothInitial> toothInitials)
     {
-        var hiddenTeeth = new List<string>();
-
-        if (toothInitials.IsNullOrEmpty())
+        if (toothInitials is not {Count: > 0})
         {
-            return hiddenTeeth;
+            return [];
         }
+
+        var hiddenTeeth = new List<string>();
 
         foreach (var tooth in toothInitials)
         {

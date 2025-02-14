@@ -33,17 +33,7 @@ public class DefL
             {
                 continue;
             }
-
-            if (listDefCats[i] == DefCat.EClipboardImageCapture)
-            {
-                //This category should not be visible in the main defs window.
-                //We built our own UI windows for it that have a some special logic.
-                //For example, we don't allow hiding, we allow delete, and we validate when deleting.
-                //It's available over in FormEClipboardDefs and FrmEClipboardDefEdit
-                //inside of eServices, eClipboard, Definitions.
-                continue;
-            }
-
+            
             var defCatOptions = new DefCatOptions(listDefCats[i]);
             switch (listDefCats[i])
             {
@@ -183,15 +173,6 @@ public class DefL
                     defCatOptions.ValueText = Lans.g("FormDefinitions", "1 or 2 letter abbreviation");
                     defCatOptions.HelpText = Lans.g("FormDefinitions", "The diagnosis list is shown when entering a procedure.  Ones that are less used should go lower on the list.  The abbreviation is shown in the progress notes.  BE VERY CAREFUL.  Changes affect all patients.");
                     break;
-                case DefCat.EClipboardImageCapture:
-                    defCatOptions.CanEditName = true;
-                    defCatOptions.EnableValue = true;
-                    defCatOptions.EnableColor = false;
-                    defCatOptions.HelpText = Lans.g("FormDefinitions", "Allow patients to capture images in eClipboard");
-                    defCatOptions.IsValueDefNum = false;
-                    defCatOptions.DoShowItemOrderInValue = false;
-                    defCatOptions.DoShowNoColor = false;
-                    break;
                 case DefCat.FeeColors:
                     defCatOptions.CanEditName = false;
                     defCatOptions.CanHide = false;
@@ -212,14 +193,6 @@ public class DefL
                 case DefCat.InsuranceVerificationStatus:
                     defCatOptions.ValueText = Lans.g("FormDefinitions", "Usage");
                     defCatOptions.HelpText = Lans.g("FormDefinitions", "These are statuses for the insurance verification list.");
-                    break;
-                case DefCat.JobPriorities:
-                    defCatOptions.CanDelete = false;
-                    defCatOptions.CanHide = true;
-                    defCatOptions.EnableValue = true;
-                    defCatOptions.EnableColor = true;
-                    defCatOptions.ValueText = Lans.g("FormDefinitions", "Comma-delimited keywords");
-                    defCatOptions.HelpText = Lans.g("FormDefinitions", "These are job priorities that determine how jobs are sorted in the Job Manager System.  Required values are: OnHold, Low, Normal, MediumHigh, High, Urgent, BugDefault, JobDefault, DocumentationDefault.");
                     break;
                 case DefCat.LetterMergeCats:
                     defCatOptions.HelpText = Lans.g("FormDefinitions", "Categories for Letter Merge.  You can safely make any changes you want.");
@@ -301,18 +274,6 @@ public class DefL
                                                              + "modules. They can be simple numbers or descriptive abbreviations 7 letters or less.  Changes affect all procedures where the "
                                                              + "definition is used.  'Internal Priority' does not show, but is used for list order and for automated selection of which procedures "
                                                              + "are next in a planned appointment.");
-                    break;
-                case DefCat.WebSchedExistingApptTypes:
-                    defCatOptions.CanDelete = true;
-                    defCatOptions.CanHide = false;
-                    defCatOptions.ValueText = "Appointment Type";
-                    defCatOptions.HelpText = "Appointment types to be displayed in the Web Sched Existing Patient web application.  These are selectable by patients and will be saved to the appointment note.";
-                    break;
-                case DefCat.WebSchedNewPatApptTypes:
-                    defCatOptions.CanDelete = true;
-                    defCatOptions.CanHide = false;
-                    defCatOptions.ValueText = Lans.g("FormDefinitions", "Appointment Type");
-                    defCatOptions.HelpText = Lans.g("FormDefinitions", "Appointment types to be displayed in the Web Sched New Pat Appt web application.  These are selectable for the new patients and will be saved to the appointment note.");
                     break;
                 case DefCat.CarrierGroupNames:
                     defCatOptions.CanHide = true;
@@ -461,11 +422,6 @@ public class DefL
                 string nameCur;
                 row.Cells.Add(dictAutoNoteDefs.TryGetValue(listDefs[i].ItemValue, out nameCur) ? nameCur : listDefs[i].ItemValue);
             }
-            else if (defCatOptionsSelected.DefCat == DefCat.WebSchedNewPatApptTypes || defCatOptionsSelected.DefCat == DefCat.WebSchedExistingApptTypes)
-            {
-                var appointmentType = AppointmentTypes.GetApptTypeForDef(listDefs[i].DefNum);
-                row.Cells.Add(appointmentType == null ? "" : appointmentType.AppointmentTypeName);
-            }
             else if (defCatOptionsSelected.DoShowItemOrderInValue)
             {
                 row.Cells.Add(listDefs[i].ItemOrder.ToString());
@@ -537,36 +493,6 @@ public class DefL
                 }
 
                 break;
-            case DefCat.WebSchedExistingApptTypes:
-                using (var formDefEditWebSchedApptTypes = new FormDefEditWebSchedApptTypes(defSelected, "Edit Web Sched Existing Patient Appt Type"))
-                {
-                    if (formDefEditWebSchedApptTypes.ShowDialog() == DialogResult.OK)
-                    {
-                        if (formDefEditWebSchedApptTypes.IsDeleted)
-                        {
-                            listDefsAll.Remove(defSelected);
-                        }
-
-                        isDefChanged = true;
-                    }
-                }
-
-                break;
-            case DefCat.WebSchedNewPatApptTypes:
-                using (var formDefEditWebSchedApptTypes = new FormDefEditWebSchedApptTypes(defSelected, "Edit Web Sched New Patient Appt Type"))
-                {
-                    if (formDefEditWebSchedApptTypes.ShowDialog() == DialogResult.OK)
-                    {
-                        if (formDefEditWebSchedApptTypes.IsDeleted)
-                        {
-                            listDefsAll.Remove(defSelected);
-                        }
-
-                        isDefChanged = true;
-                    }
-                }
-
-                break;
             default: //Show the normal FormDefEdit window.
                 using (var FormDefEdit = new FormDefEdit(defSelected, listDefs, defCatOptionsSelected))
                 {
@@ -613,7 +539,6 @@ public class DefL
             case DefCat.BlockoutTypes:
                 using (var formDefEditBlockout = new FormDefEditBlockout(def))
                 {
-                    formDefEditBlockout.IsNew = true;
                     if (formDefEditBlockout.ShowDialog() != DialogResult.OK)
                     {
                         return false;
@@ -627,26 +552,6 @@ public class DefL
                     formDefEditImages.IsNew = true;
                     formDefEditImages.ShowDialog();
                     if (formDefEditImages.DialogResult != DialogResult.OK)
-                    {
-                        return false;
-                    }
-                }
-
-                break;
-            case DefCat.WebSchedExistingApptTypes:
-                using (var formDefEditWebSchedApptTypes = new FormDefEditWebSchedApptTypes(def, "Edit Web Sched Existing Patient Appt Type"))
-                {
-                    if (formDefEditWebSchedApptTypes.ShowDialog() != DialogResult.OK)
-                    {
-                        return false;
-                    }
-                }
-
-                break;
-            case DefCat.WebSchedNewPatApptTypes:
-                using (var formDefEditWebSchedApptTypes = new FormDefEditWebSchedApptTypes(def, "Edit Web Sched New Patient Appt Type"))
-                {
-                    if (formDefEditWebSchedApptTypes.ShowDialog() != DialogResult.OK)
                     {
                         return false;
                     }

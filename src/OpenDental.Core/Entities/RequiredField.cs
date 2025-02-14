@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using Imedisoft.Core.Data;
 using OpenDentBusiness;
 
 namespace Imedisoft.Core.Entities;

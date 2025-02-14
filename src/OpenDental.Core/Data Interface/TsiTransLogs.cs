@@ -18,9 +18,12 @@ public class TsiTransLogs
 {
     public static List<TsiTransLog> SelectMany(List<long> patNums)
     {
-        if (patNums == null || patNums.Count < 1) return [];
+        if (patNums == null || patNums.Count < 1)
+        {
+            return [];
+        }
 
-        return TsiTransLogCrud.SelectMany("SELECT * FROM tsitranslog WHERE PatNum IN (" + string.Join(",", patNums) + ")");
+        return TsiTransLogCrud.SelectMany("SELECT * FROM tsitranslog WHERE PatNum IN (" + string.Join(", ", patNums) + ")");
     }
 
     public static List<TsiTransLog> GetAll()

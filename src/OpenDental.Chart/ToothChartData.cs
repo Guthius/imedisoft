@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
+using Imedisoft.Core.Data;
 using Imedisoft.Core.Entities;
 using OpenDentBusiness;
 using SharpDX;
@@ -610,12 +611,12 @@ public class ToothChartData
                 case PerioSequenceType.GingMargin:
                     gm = surf switch
                     {
-                        PerioSurf.MB => PerioMeasures.AdjustGMVal(perioMeasure.MBvalue),
-                        PerioSurf.B => PerioMeasures.AdjustGMVal(perioMeasure.Bvalue),
-                        PerioSurf.DB => PerioMeasures.AdjustGMVal(perioMeasure.DBvalue),
-                        PerioSurf.ML => PerioMeasures.AdjustGMVal(perioMeasure.MLvalue),
-                        PerioSurf.L => PerioMeasures.AdjustGMVal(perioMeasure.Lvalue),
-                        PerioSurf.DL => PerioMeasures.AdjustGMVal(perioMeasure.DLvalue),
+                        PerioSurf.MB => PerioMeasures.AdjustGingivalMarginValue(perioMeasure.MBvalue),
+                        PerioSurf.B => PerioMeasures.AdjustGingivalMarginValue(perioMeasure.Bvalue),
+                        PerioSurf.DB => PerioMeasures.AdjustGingivalMarginValue(perioMeasure.DBvalue),
+                        PerioSurf.ML => PerioMeasures.AdjustGingivalMarginValue(perioMeasure.MLvalue),
+                        PerioSurf.L => PerioMeasures.AdjustGingivalMarginValue(perioMeasure.Lvalue),
+                        PerioSurf.DL => PerioMeasures.AdjustGingivalMarginValue(perioMeasure.DLvalue),
                         _ => gm
                     };
                     break;
@@ -830,17 +831,17 @@ public class ToothChartData
                         {
                             if (pmGm.DBvalue != -1)
                             {
-                                val1 += PerioMeasures.AdjustGMVal(pmGm.DBvalue);
+                                val1 += PerioMeasures.AdjustGingivalMarginValue(pmGm.DBvalue);
                             }
 
                             if (pmGm.Bvalue != -1)
                             {
-                                val2 += PerioMeasures.AdjustGMVal(pmGm.Bvalue);
+                                val2 += PerioMeasures.AdjustGingivalMarginValue(pmGm.Bvalue);
                             }
 
                             if (pmGm.MBvalue != -1)
                             {
-                                val3 += PerioMeasures.AdjustGMVal(pmGm.MBvalue);
+                                val3 += PerioMeasures.AdjustGingivalMarginValue(pmGm.MBvalue);
                             }
                         }
 
@@ -858,17 +859,17 @@ public class ToothChartData
                         {
                             if (pmGm.MBvalue != -1)
                             {
-                                val1 += PerioMeasures.AdjustGMVal(pmGm.MBvalue);
+                                val1 += PerioMeasures.AdjustGingivalMarginValue(pmGm.MBvalue);
                             }
 
                             if (pmGm.Bvalue != -1)
                             {
-                                val2 += PerioMeasures.AdjustGMVal(pmGm.Bvalue);
+                                val2 += PerioMeasures.AdjustGingivalMarginValue(pmGm.Bvalue);
                             }
 
                             if (pmGm.DBvalue != -1)
                             {
-                                val3 += PerioMeasures.AdjustGMVal(pmGm.DBvalue);
+                                val3 += PerioMeasures.AdjustGingivalMarginValue(pmGm.DBvalue);
                             }
                         }
 
@@ -889,17 +890,17 @@ public class ToothChartData
                         {
                             if (pmGm.DLvalue != -1)
                             {
-                                val1 += PerioMeasures.AdjustGMVal(pmGm.DLvalue);
+                                val1 += PerioMeasures.AdjustGingivalMarginValue(pmGm.DLvalue);
                             }
 
                             if (pmGm.Lvalue != -1)
                             {
-                                val2 += PerioMeasures.AdjustGMVal(pmGm.Lvalue);
+                                val2 += PerioMeasures.AdjustGingivalMarginValue(pmGm.Lvalue);
                             }
 
                             if (pmGm.MLvalue != -1)
                             {
-                                val3 += PerioMeasures.AdjustGMVal(pmGm.MLvalue);
+                                val3 += PerioMeasures.AdjustGingivalMarginValue(pmGm.MLvalue);
                             }
                         }
 
@@ -917,17 +918,17 @@ public class ToothChartData
                         {
                             if (pmGm.MLvalue != -1)
                             {
-                                val1 += PerioMeasures.AdjustGMVal(pmGm.MLvalue);
+                                val1 += PerioMeasures.AdjustGingivalMarginValue(pmGm.MLvalue);
                             }
 
                             if (pmGm.Lvalue != -1)
                             {
-                                val2 += PerioMeasures.AdjustGMVal(pmGm.Lvalue);
+                                val2 += PerioMeasures.AdjustGingivalMarginValue(pmGm.Lvalue);
                             }
 
                             if (pmGm.DLvalue != -1)
                             {
-                                val3 += PerioMeasures.AdjustGMVal(pmGm.DLvalue);
+                                val3 += PerioMeasures.AdjustGingivalMarginValue(pmGm.DLvalue);
                             }
                         }
 
@@ -962,11 +963,11 @@ public class ToothChartData
 
                 if (isMaxillary)
                 {
-                    vertex.Y = PerioMeasures.AdjustGMVal(val1);
+                    vertex.Y = PerioMeasures.AdjustGingivalMarginValue(val1);
                 }
                 else
                 {
-                    vertex.Y = -PerioMeasures.AdjustGMVal(val1);
+                    vertex.Y = -PerioMeasures.AdjustGingivalMarginValue(val1);
                 }
 
                 vertex.X = GetXShiftPerioSite(t, surf1) + ToothGraphic.GetDefaultOrthographicXpos(t);
@@ -995,11 +996,11 @@ public class ToothChartData
                 };
                 if (isMaxillary)
                 {
-                    vertex.Y = PerioMeasures.AdjustGMVal(val2);
+                    vertex.Y = PerioMeasures.AdjustGingivalMarginValue(val2);
                 }
                 else
                 {
-                    vertex.Y = -PerioMeasures.AdjustGMVal(val2);
+                    vertex.Y = -PerioMeasures.AdjustGingivalMarginValue(val2);
                 }
 
                 vertex.X = GetXShiftPerioSite(t, surf2) + ToothGraphic.GetDefaultOrthographicXpos(t);
@@ -1027,11 +1028,11 @@ public class ToothChartData
                 };
                 if (isMaxillary)
                 {
-                    vertex.Y = PerioMeasures.AdjustGMVal(val3);
+                    vertex.Y = PerioMeasures.AdjustGingivalMarginValue(val3);
                 }
                 else
                 {
-                    vertex.Y = -PerioMeasures.AdjustGMVal(val3);
+                    vertex.Y = -PerioMeasures.AdjustGingivalMarginValue(val3);
                 }
 
                 vertex.X = GetXShiftPerioSite(t, surf3) + ToothGraphic.GetDefaultOrthographicXpos(t);

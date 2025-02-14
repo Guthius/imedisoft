@@ -210,7 +210,7 @@ public class Statements
         if (listStmtNumsToUpdate.Count == 0) return;
 
         var command = "UPDATE statement SET SmsSendStatus=" + SOut.Int((int) autoCommStatus)
-                                                            + " WHERE StatementNum IN(" + string.Join(",", listStmtNumsToUpdate.Select(x => (x))) + ")";
+                                                            + " WHERE StatementNum IN(" + string.Join(",", listStmtNumsToUpdate.Select(x => x)) + ")";
         Db.NonQ(command);
     }
 
@@ -222,15 +222,15 @@ public class Statements
     public static void MarkSent(long statementNum, DateTime dateSent)
     {
         var command = "UPDATE statement SET DateSent=" + SOut.Date(dateSent) + ", "
-                      + "IsSent=1 WHERE StatementNum=" + (statementNum);
+                      + "IsSent=1 WHERE StatementNum=" + statementNum;
         Db.NonQ(command);
     }
 
     public static void AttachDoc(long statementNum, Document document, bool doUpdateDoc = true)
     {
         if (doUpdateDoc) Documents.Update(document);
-        var command = "UPDATE statement SET DocNum=" + (document.DocNum)
-                                                     + " WHERE StatementNum=" + (statementNum);
+        var command = "UPDATE statement SET DocNum=" + document.DocNum
+                                                     + " WHERE StatementNum=" + statementNum;
         Db.NonQ(command);
     }
 
@@ -238,7 +238,7 @@ public class Statements
     {
         if (docNum == 0) return; //Avoid MiddleTier.
 
-        Db.NonQ("UPDATE statement SET DocNum=0 WHERE DocNum=" + (docNum));
+        Db.NonQ("UPDATE statement SET DocNum=0 WHERE DocNum=" + docNum);
     }
 
     public static void DeleteStatements(List<Statement> listStatements, bool forceImageDelete = false)
@@ -1022,7 +1022,7 @@ public class StatementData
 					ON statement.PatNum=patient.PatNum
 				INNER JOIN patient guar
 					ON patient.Guarantor=guar.PatNum 
-					AND guar.BillingType IN({string.Join(",", listBillingTypes.Select(x => (x)).ToList())}) ";
+					AND guar.BillingType IN({string.Join(",", listBillingTypes.Select(x => x).ToList())}) ";
         if (isExcludeAccountNoTil) command += "AND guar.HasSignedTil=1 ";
         command += @"
 				LEFT JOIN document

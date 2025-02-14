@@ -89,7 +89,7 @@ namespace OpenDental{
 			this.butMoveTo.Size = new System.Drawing.Size(120, 26);
 			this.butMoveTo.TabIndex = 40;
 			this.butMoveTo.Text = "Move To Patient";
-			this.butMoveTo.Click += new System.EventHandler(this.butMoveTo_Click);
+			this.butMoveTo.Click += new System.EventHandler(this.ButtonMoveTo_Click);
 			// 
 			// gridMain
 			// 

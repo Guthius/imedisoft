@@ -5,6 +5,7 @@ using System.Linq;
 using System.ServiceProcess;
 using System.Windows.Forms;
 using CodeBase;
+using Imedisoft.Core.Data;
 using Imedisoft.Core.Entities;
 using OpenDental.UI;
 using OpenDentBusiness;

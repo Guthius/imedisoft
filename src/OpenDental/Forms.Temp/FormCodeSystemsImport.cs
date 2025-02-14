@@ -1020,9 +1020,6 @@ If the master term dictionary or software program containing the UCUM table, UCU
                     case "CDCREC":
                         CodeSystems.ImportCdcrec(_localFilePath, ImportProgress, ref _quit, ref numCodesImported, ref numCodesUpdated, _updateExisting);
                         break;
-                    case "HCPCS":
-                        CodeSystems.ImportHcpcs(_localFilePath, ImportProgress, ref _quit, ref numCodesImported, ref numCodesUpdated, _updateExisting);
-                        break;
                     case "ICD10CM":
                         CodeSystems.ImportIcd10(_localFilePath, ImportProgress, ref _quit, ref numCodesImported, ref numCodesUpdated, _updateExisting);
                         break;

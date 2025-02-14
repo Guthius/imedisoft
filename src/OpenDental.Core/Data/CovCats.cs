@@ -441,7 +441,7 @@ public static class CovCats
 
         protected override void FillCacheIfNeeded()
         {
-            CovCats.GetTableFromCache(false);
+            GetTableFromCache(false);
         }
 
         protected override bool IsInListShort(CovCat item)
@@ -489,12 +489,12 @@ public static class CovCats
 
     public static void RefreshCache()
     {
-        GetTableFromCache(true);
+        Cache.GetTableFromCache(true);
     }
 
-    public static DataTable GetTableFromCache(bool refreshCache)
+    public static void GetTableFromCache(bool refreshCache)
     {
-        return Cache.GetTableFromCache(refreshCache);
+        Cache.GetTableFromCache(refreshCache);
     }
 
     public static void ClearCache()

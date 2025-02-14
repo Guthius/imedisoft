@@ -14,11 +14,11 @@ public class InsEditPatLogs
     public static List<InsEditPatLog> GetLogsForPatPlan(long patPlanNum, long insSubNum)
     {
         var listWhereOrs = new List<string>();
-        if (patPlanNum > 0) listWhereOrs.Add($"(LogType={SOut.Int((int) InsEditPatLogType.PatPlan)} AND FKey = {(patPlanNum)})");
+        if (patPlanNum > 0) listWhereOrs.Add($"(LogType={SOut.Int((int) InsEditPatLogType.PatPlan)} AND FKey = {patPlanNum})");
         if (insSubNum > 0)
         {
-            listWhereOrs.Add($"(LogType={SOut.Int((int) InsEditPatLogType.Subscriber)} AND FKey = " + (insSubNum) + ")");
-            listWhereOrs.Add($"(LogType={SOut.Int((int) InsEditPatLogType.Adjustment)} AND ParentKey={(insSubNum)})");
+            listWhereOrs.Add($"(LogType={SOut.Int((int) InsEditPatLogType.Subscriber)} AND FKey = " + insSubNum + ")");
+            listWhereOrs.Add($"(LogType={SOut.Int((int) InsEditPatLogType.Adjustment)} AND ParentKey={insSubNum})");
         }
 
         var command = @"SELECT * FROM inseditpatlog

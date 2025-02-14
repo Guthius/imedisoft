@@ -8,6 +8,7 @@ using CodeBase;
 using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Crud;
+using Imedisoft.Core.Data;
 using Imedisoft.Core.Entities;
 using ODCrypt;
 using OpenDentBusiness.Misc;
@@ -22,7 +23,7 @@ public class PayPlans
         if (plan.PlanNum == 0 || plan.IsDynamic)
         {
             //Patient payment plan
-            command = "SELECT COUNT(*) FROM paysplit WHERE PayPlanNum=" + (plan.PayPlanNum);
+            command = "SELECT COUNT(*) FROM paysplit WHERE PayPlanNum=" + plan.PayPlanNum;
             if (Db.GetCount(command) != "0")
                 throw new ApplicationException
                     (Lans.g("PayPlans", "You cannot delete a payment plan with patient payments attached.  Unattach the payments first."));
@@ -30,7 +31,7 @@ public class PayPlans
         else
         {
             //Insurance payment plan
-            command = "SELECT COUNT(*) FROM claimproc WHERE PayPlanNum=" + (plan.PayPlanNum) + " AND claimproc.Status IN ("
+            command = "SELECT COUNT(*) FROM claimproc WHERE PayPlanNum=" + plan.PayPlanNum + " AND claimproc.Status IN ("
                       + SOut.Int((int) ClaimProcStatus.Received) + "," + SOut.Int((int) ClaimProcStatus.Supplemental) + ")";
             if (Db.GetCount(command) != "0")
                 throw new ApplicationException
@@ -44,13 +45,13 @@ public class PayPlans
             }
         }
 
-        command = "DELETE FROM payplancharge WHERE PayPlanNum=" + (plan.PayPlanNum);
+        command = "DELETE FROM payplancharge WHERE PayPlanNum=" + plan.PayPlanNum;
         Db.NonQ(command);
-        command = $"DELETE FROM payplanlink WHERE PayPlanNum={(plan.PayPlanNum)}";
+        command = $"DELETE FROM payplanlink WHERE PayPlanNum={plan.PayPlanNum}";
         Db.NonQ(command);
-        command = "DELETE FROM payplan WHERE PayPlanNum =" + (plan.PayPlanNum);
+        command = "DELETE FROM payplan WHERE PayPlanNum =" + plan.PayPlanNum;
         Db.NonQ(command);
-        command = $"DELETE FROM orthoplanlink WHERE orthoplanlink.FKey={(plan.PayPlanNum)} " +
+        command = $"DELETE FROM orthoplanlink WHERE orthoplanlink.FKey={plan.PayPlanNum} " +
                   $"AND orthoplanlink.LinkType IN ({SOut.Enum(OrthoPlanLinkType.PatPayPlan)}," +
                   $"{SOut.Enum(OrthoPlanLinkType.InsPayPlan)})";
         Db.NonQ(command);
@@ -60,8 +61,8 @@ public class PayPlans
     public static int GetDependencyCount(long patNum)
     {
         var command = "SELECT COUNT(*) FROM payplan"
-                      + " WHERE PatNum = " + (patNum)
-                      + " OR Guarantor = " + (patNum);
+                      + " WHERE PatNum = " + patNum
+                      + " OR Guarantor = " + patNum;
         return SIn.Int(DataCore.GetScalar(command));
     }
 
@@ -74,14 +75,14 @@ public class PayPlans
     {
         if (arrayPayPlanNums.IsNullOrEmpty()) return [];
 
-        var command = $"SELECT * FROM payplan WHERE PayPlanNum IN ({string.Join(",", arrayPayPlanNums.Select(x => (x)))})";
+        var command = $"SELECT * FROM payplan WHERE PayPlanNum IN ({string.Join(",", arrayPayPlanNums.Select(x => x))})";
         return PayPlanCrud.SelectMany(command);
     }
 
     public static List<PayPlan> GetForPats(List<long> listPatNums, long guarantor)
     {
         //We have to check for guarantor separately in case the payment plan belongs to a patient in another family.
-        var command = "SELECT * FROM payplan WHERE Guarantor=" + (guarantor);
+        var command = "SELECT * FROM payplan WHERE Guarantor=" + guarantor;
         if (!listPatNums.IsNullOrEmpty()) command += " OR PatNum IN(" + string.Join(",", listPatNums) + ")";
         return PayPlanCrud.SelectMany(command);
     }
@@ -97,8 +98,8 @@ public class PayPlans
     public static List<PayPlan> GetForPatNum(long patNum)
     {
         var command = "SELECT * FROM payplan "
-                      + "WHERE PatNum = " + (patNum) + " "
-                      + "OR Guarantor = " + (patNum);
+                      + "WHERE PatNum = " + patNum + " "
+                      + "OR Guarantor = " + patNum;
         return PayPlanCrud.SelectMany(command);
     }
 
@@ -205,7 +206,7 @@ public class PayPlans
     public static List<PayPlan> GetValidPlansNoIns(long guarNum)
     {
         var command = "SELECT * FROM payplan"
-                      + " WHERE Guarantor = " + (guarNum)
+                      + " WHERE Guarantor = " + guarNum
                       + " AND PlanNum = 0"
                       + " AND IsClosed = 0"
                       + " ORDER BY payplandate";
@@ -227,9 +228,9 @@ public class PayPlans
                       //Only ins payplans
                       + "WHERE payplan.PlanNum!=0 "
                       //Only ones for patients from the list of claims.
-                      + $"AND payplan.PatNum IN ({string.Join(",", listClaims.Select(x => (x.PatNum)))}) "
+                      + $"AND payplan.PatNum IN ({string.Join(",", listClaims.Select(x => x.PatNum))}) "
                       //Only ones with no claimprocs attached or only claimprocs from the list of claims.
-                      + $"AND (claimproc.ClaimNum IS NULL OR claimproc.ClaimNum IN ({string.Join(",", listClaims.Select(x => (x.ClaimNum)))})) "
+                      + $"AND (claimproc.ClaimNum IS NULL OR claimproc.ClaimNum IN ({string.Join(",", listClaims.Select(x => x.ClaimNum))})) "
                       + "GROUP BY payplan.PayPlanNum "
                       //Only ones that are not fully paid off.
                       + "HAVING payplan.CompletedAmt>SUM(COALESCE(claimproc.InsPayAmt,0)) "
@@ -243,10 +244,10 @@ public class PayPlans
         command += "SELECT payplan.*,MAX(claimproc.ClaimNum) ClaimNum";
         command += " FROM payplan"
                    + " LEFT JOIN claimproc ON claimproc.PayPlanNum=payplan.PayPlanNum"
-                   + " WHERE payplan.PatNum=" + (patNum)
-                   + " AND payplan.PlanNum=" + (planNum)
-                   + " AND payplan.InsSubNum=" + (insSubNum);
-        if (claimNum > 0) command += " AND (claimproc.ClaimNum IS NULL OR claimproc.ClaimNum=" + (claimNum) + ")"; //payplans with no claimprocs attached or only claimprocs from the same claim
+                   + " WHERE payplan.PatNum=" + patNum
+                   + " AND payplan.PlanNum=" + planNum
+                   + " AND payplan.InsSubNum=" + insSubNum;
+        if (claimNum > 0) command += " AND (claimproc.ClaimNum IS NULL OR claimproc.ClaimNum=" + claimNum + ")"; //payplans with no claimprocs attached or only claimprocs from the same claim
         command += " GROUP BY payplan.PayPlanNum";
         command += " HAVING payplan.CompletedAmt>SUM(COALESCE(claimproc.InsPayAmt,0))"; //has not been paid in full yet
         if (claimNum == 0) //if current claimproc is not attached to a claim, do not return payplans with claimprocs from existing claims already attached
@@ -293,14 +294,14 @@ public class PayPlans
         string command;
         if (payPlan.PlanNum == 0) //Patient payment plan
             command = "SELECT SUM(paysplit.SplitAmt) FROM paysplit "
-                      + "WHERE paysplit.PayPlanNum = " + (payPlan.PayPlanNum) + " "
+                      + "WHERE paysplit.PayPlanNum = " + payPlan.PayPlanNum + " "
                       + "GROUP BY paysplit.PayPlanNum";
         else //Insurance payment plan
             command = "SELECT SUM(claimproc.InsPayAmt) "
                       + "FROM claimproc "
                       + "WHERE claimproc.Status IN(" + SOut.Int((int) ClaimProcStatus.Received) + "," + SOut.Int((int) ClaimProcStatus.Supplemental) + ","
                       + SOut.Int((int) ClaimProcStatus.CapClaim) + ") "
-                      + "AND claimproc.PayPlanNum=" + (payPlan.PayPlanNum);
+                      + "AND claimproc.PayPlanNum=" + payPlan.PayPlanNum;
         var table = DataCore.GetTable(command);
         if (table.Rows.Count == 0) return 0;
         return SIn.Double(table.Rows[0][0].ToString());

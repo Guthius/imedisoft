@@ -8,11 +8,6 @@ namespace Imedisoft.Core.Data;
 
 public static class EFormDefs
 {
-    public static void Insert(EFormDef eFormDef)
-    {
-        EFormDefCrud.Insert(eFormDef);
-    }
-
     private class EFormDefCache : CacheListAbs<EFormDef>
     {
         protected override List<EFormDef> GetCacheFromDb()
@@ -37,7 +32,7 @@ public static class EFormDefs
 
         protected override void FillCacheIfNeeded()
         {
-            EFormDefs.GetTableFromCache(false);
+            GetTableFromCache(false);
         }
     }
 
@@ -53,8 +48,8 @@ public static class EFormDefs
         return Cache.GetDeepCopy(shortList);
     }
 
-    public static DataTable GetTableFromCache(bool refreshCache)
+    public static void GetTableFromCache(bool refreshCache)
     {
-        return Cache.GetTableFromCache(refreshCache);
+        Cache.GetTableFromCache(refreshCache);
     }
 }

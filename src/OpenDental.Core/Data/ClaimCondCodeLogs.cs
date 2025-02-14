@@ -7,7 +7,7 @@ public static class ClaimCondCodeLogs
 {
     public static ClaimCondCodeLog GetByClaimNum(long claimNum)
     {
-        return ClaimCondCodeLogCrud.SelectOne("SELECT * FROM claimcondcodelog WHERE ClaimNum=" + claimNum);
+        return ClaimCondCodeLogCrud.SelectOne("SELECT * FROM claimcondcodelog WHERE ClaimNum = " + claimNum);
     }
 
     public static void Update(ClaimCondCodeLog claimCondCodeLog)

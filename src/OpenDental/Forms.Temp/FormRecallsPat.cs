@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.Windows.Forms;
 using Imedisoft.Core.Caching;
+using Imedisoft.Core.Data;
 using Imedisoft.Core.Entities;
 using OpenDental.UI;
 using OpenDentBusiness;

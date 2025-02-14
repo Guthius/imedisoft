@@ -39,24 +39,21 @@ public class DiscountPlanSubs
 
     public static DateTime GetDateEffectiveForAnnualDateRangeSegment(DateTime dateRefPoint, DateTime dateEffective, DateTime dateTerm)
     {
-        if (dateRefPoint < dateEffective || dateRefPoint > dateTerm)
+        if (dateRefPoint < dateEffective || dateRefPoint > dateTerm || dateEffective.AddYears(1) > dateRefPoint)
         {
             return dateEffective;
         }
 
-        if (dateEffective.AddYears(1) <= dateRefPoint)
+        var numYearsLimit = dateRefPoint.Year - dateEffective.Year;
+        for (var numYears = 0; numYears < numYearsLimit; numYears++)
         {
-            var numYearsLimit = dateRefPoint.Year - dateEffective.Year;
-            for (var numYears = 0; numYears < numYearsLimit; numYears++)
+            if (dateEffective > dateRefPoint)
             {
-                if (dateEffective > dateRefPoint)
-                {
-                    dateEffective = dateEffective.AddYears(-1);
-                    break;
-                }
-
-                dateEffective = dateEffective.AddYears(1);
+                dateEffective = dateEffective.AddYears(-1);
+                break;
             }
+
+            dateEffective = dateEffective.AddYears(1);
         }
 
         return dateEffective;

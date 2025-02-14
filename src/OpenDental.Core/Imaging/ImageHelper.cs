@@ -6,6 +6,7 @@ using System.Drawing.Imaging;
 using System.IO;
 using System.Linq;
 using CodeBase;
+using Imedisoft.Core.Data;
 using Imedisoft.Core.Entities;
 using PdfSharp.Drawing;
 using PdfSharp.Pdf;

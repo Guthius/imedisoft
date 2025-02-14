@@ -79,7 +79,7 @@ public class Appointments
         command = @"SELECT emailmessage.MsgDateTime,emailmessage.Subject,emailmessage.EmailMessageNum,emailmessage.HideIn
 				FROM emailmessage
 				WHERE emailmessage.PatNum=" + SOut.String(patNum) + @"
-				AND emailmessage.AptNum=" + (aptNum);
+				AND emailmessage.AptNum=" + aptNum;
         tableRawComm.Clear();
         tableRawComm = DataCore.GetTable(command);
         for (var i = 0; i < tableRawComm.Rows.Count; i++)
@@ -121,7 +121,7 @@ public class Appointments
     {
         if (patNumArray.IsNullOrEmpty()) return [];
 
-        var command = "SELECT * FROM appointment WHERE PatNum IN(" + string.Join(",", patNumArray.Select(x => (x))) + ") ORDER BY AptDateTime";
+        var command = "SELECT * FROM appointment WHERE PatNum IN(" + string.Join(",", patNumArray.Select(x => x)) + ") ORDER BY AptDateTime";
         return AppointmentCrud.TableToList(DataCore.GetTable(command));
     }
 
@@ -196,33 +196,6 @@ public class Appointments
         return AppointmentCrud.SelectMany(command);
     }
 
-    public static Dictionary<DateTime, List<ApptSearchProviderSchedule>> GetApptSearchProviderScheduleForProvidersAndDate(List<long> listProvNums, DateTime dateScheduleStart, DateTime dateScheduleStop, List<Schedule> listSchedules, List<Appointment> listAppointments)
-    {
-        //Not working properly when scheduled but no ops are set.
-        //==Jordan Dicts are not allowed. I do want to fix this one, but it has a lot of tentacles and will require test environment.
-        //Strategy for refactor is to return a flat list of ApptSearchProviderSchedules, and use linq at the last minute to get a group by date.
-        var dictProviderSchedulesByDate = new Dictionary<DateTime, List<ApptSearchProviderSchedule>>();
-        var listApptSearchProviderSchedules = new List<ApptSearchProviderSchedule>();
-        if (dateScheduleStart.Date >= dateScheduleStop.Date)
-        {
-            listApptSearchProviderSchedules = GetProviderScheduleForProvidersAndDate(listProvNums, dateScheduleStart.Date, listSchedules, listAppointments);
-            dictProviderSchedulesByDate.Add(dateScheduleStart.Date, listApptSearchProviderSchedules);
-            return dictProviderSchedulesByDate;
-        }
-
-        //Loop through all the days between the start and stop date and return the ApptSearchProviderSchedule's for all days.
-        for (var i = 0; i <= (dateScheduleStop.Date - dateScheduleStart.Date).Days; i++)
-        {
-            listApptSearchProviderSchedules = GetProviderScheduleForProvidersAndDate(listProvNums, dateScheduleStart.Date.AddDays(i), listSchedules, listAppointments);
-            if (dictProviderSchedulesByDate.ContainsKey(dateScheduleStart.Date.AddDays(i))) //Just in case.
-                dictProviderSchedulesByDate[dateScheduleStart.Date.AddDays(i)] = listApptSearchProviderSchedules;
-            else
-                dictProviderSchedulesByDate.Add(dateScheduleStart.Date.AddDays(i), listApptSearchProviderSchedules);
-        }
-
-        return dictProviderSchedulesByDate;
-    }
-    
     public static List<ApptSearchProviderSchedule> GetProviderScheduleForProvidersAndDate(List<long> listProvNums, DateTime dateForSchedule, List<Schedule> listSchedules, List<Appointment> listAppointments)
     {
         var listApptSearchProviderSchedules = new List<ApptSearchProviderSchedule>();
@@ -306,7 +279,7 @@ public class Appointments
     {
         var command = "SELECT ProvNum FROM appointment WHERE AptStatus IN (" + (int) ApptStatus.Complete + "," + (int) ApptStatus.Scheduled + ")"
                       + " AND AptDateTime<=" + SOut.DateTime(DateTime.Now)
-                      + " AND PatNum=" + (patNum)
+                      + " AND PatNum=" + patNum
                       + " ORDER BY AptDateTime DESC LIMIT 1";
         var result = DataCore.GetScalar(command);
         if (string.IsNullOrWhiteSpace(result)) return 0;
@@ -315,7 +288,7 @@ public class Appointments
 
     public static long GetApptConfirmationStatus(long aptNum)
     {
-        var command = "SELECT Confirmed FROM appointment WHERE AptNum=" + (aptNum);
+        var command = "SELECT Confirmed FROM appointment WHERE AptNum=" + aptNum;
         return SIn.Long(DataCore.GetScalar(command));
     }
 
@@ -453,7 +426,7 @@ public class Appointments
         if (aptNum > 0)
         {
             //Only get information regarding this one appointment passed in.
-            command += "WHERE appointment.AptNum=" + (aptNum);
+            command += "WHERE appointment.AptNum=" + aptNum;
         }
         else
         {
@@ -527,7 +500,7 @@ public class Appointments
                     command += tableRaw.Rows[a]["apptAptNum"].ToString();
                 }
             else
-                command += (aptNum);
+                command += aptNum;
 
             command += ") GROUP BY procedurelog.ProcNum";
             tableRawProc = dcon.GetTable(command);
@@ -695,7 +668,7 @@ public class Appointments
                     command += tableRaw.Rows[i]["apptAptNum"].ToString();
                 }
             else
-                command += (aptNum);
+                command += aptNum;
 
             command += ")";
             listLabCases = LabCaseCrud.SelectMany(command);
@@ -774,19 +747,19 @@ public class Appointments
             dataRow["contactMethods"] = "";
             if (tableRaw.Rows[d]["patPreferConfirmMethod"].ToString() != "0")
                 dataRow["contactMethods"] += Lans.g("Appointments", "Confirm Method: ")
-                                             + ((ContactMethod) SIn.Long(tableRaw.Rows[d]["patPreferConfirmMethod"].ToString()));
+                                             + (ContactMethod) SIn.Long(tableRaw.Rows[d]["patPreferConfirmMethod"].ToString());
             if (tableRaw.Rows[d]["patPreferContactMethod"].ToString() != "0")
             {
                 if (dataRow["contactMethods"].ToString() != "") dataRow["contactMethods"] += "\r\n";
                 dataRow["contactMethods"] += Lans.g("Appointments", "Contact Method: ")
-                                             + ((ContactMethod) SIn.Long(tableRaw.Rows[d]["patPreferContactMethod"].ToString()));
+                                             + (ContactMethod) SIn.Long(tableRaw.Rows[d]["patPreferContactMethod"].ToString());
             }
 
             if (tableRaw.Rows[d]["patPreferRecallMethod"].ToString() != "0")
             {
                 if (dataRow["contactMethods"].ToString() != "") dataRow["contactMethods"] += "\r\n";
                 dataRow["contactMethods"] += Lans.g("Appointments", "Recall Method: ")
-                                             + ((ContactMethod) SIn.Long(tableRaw.Rows[d]["patPreferRecallMethod"].ToString()));
+                                             + (ContactMethod) SIn.Long(tableRaw.Rows[d]["patPreferRecallMethod"].ToString());
             }
 
             var hasInsToSend = false;
@@ -1142,23 +1115,6 @@ public class Appointments
 
         return table;
     }
-    
-    public static DataTable GetPeriodApptsTableMini(DateTime dateTimeAppointmentStart, long provNum)
-    {
-        var dcon = new DataConnection();
-        var command = @"SELECT 
-				appt.AptDateTime,
-				appt.AptNum,
-				appt.AptStatus,
-				appt.IsHygiene,
-				appt.Pattern,
-				appt.ProvHyg,
-				appt.ProvNum
-				FROM appointment appt
-				WHERE (appt.ProvNum=" + (provNum) + " OR appt.ProvHyg=" + (provNum) + ")" +
-                      " AND appt.AptDateTime BETWEEN " + SOut.DateTime(dateTimeAppointmentStart.Date) + " AND " + SOut.DateTime(dateTimeAppointmentStart.AddDays(1).Date);
-        return dcon.GetTable(command);
-    }
 
     public static DataTable GetApptFields(DataTable tableAppts)
     {
@@ -1178,7 +1134,7 @@ public class Appointments
             for (var i = 0; i < listAptNums.Count; i++)
             {
                 if (i > 0) command += ",";
-                command += (listAptNums[i]);
+                command += listAptNums[i];
             }
 
         command += ")";
@@ -1210,7 +1166,7 @@ public class Appointments
                       + "LEFT JOIN ("
                       + "SELECT apptfield.ApptFieldNum,apptfield.FieldName,apptfield.FieldValue "
                       + "FROM apptfield "
-                      + "WHERE AptNum = " + (aptNum) + " "
+                      + "WHERE AptNum = " + aptNum + " "
                       + "GROUP BY apptfield.FieldName "
                       + ") appointmentfield ON apptfielddef.FieldName=appointmentfield.FieldName "
                       + "WHERE fielddeflink.FieldDefLinkNum IS NULL "
@@ -1447,12 +1403,12 @@ public class Appointments
                    //Example: AptDateTime="2014-11-26 13:00".  Filter is 11-26, giving "2014-11-27 00:00" to compare against.  This captures all times.
                    + "AND AptDateTime < " + SOut.Date(dateTo.AddDays(1)) + " "
                    + "AND AptStatus IN(" + SOut.Int((int) ApptStatus.Scheduled) + "," + SOut.Int((int) ApptStatus.ASAP) + ") ";
-        if (defNumConfirmStatus > 0) command += " AND appointment.Confirmed=" + (defNumConfirmStatus) + " ";
+        if (defNumConfirmStatus > 0) command += " AND appointment.Confirmed=" + defNumConfirmStatus + " ";
         if (provNum > 0)
-            command += "AND ((appointment.ProvNum=" + (provNum) + " AND appointment.IsHygiene=0) " //only include doc if it's not a hyg appt
-                       + " OR (appointment.ProvHyg=" + (provNum) + " AND appointment.IsHygiene=1)) "; //only include hygienists if it's a hygiene appt
+            command += "AND ((appointment.ProvNum=" + provNum + " AND appointment.IsHygiene=0) " //only include doc if it's not a hyg appt
+                       + " OR (appointment.ProvHyg=" + provNum + " AND appointment.IsHygiene=1)) "; //only include hygienists if it's a hygiene appt
         if (clinicNum >= 0) //Only include appointments that belong to HQ clinic when clinics are enabled and no ClinicNum is specified.
-            command += "AND appointment.ClinicNum=" + (clinicNum) + " ";
+            command += "AND appointment.ClinicNum=" + clinicNum + " ";
         if (showRecall && !showNonRecall && !showHygPresched)
         {
             //Show recall only (the All option was not selected)
@@ -1594,7 +1550,7 @@ public class Appointments
                       + "FROM appointment "
                       + "INNER JOIN patient ON patient.PatNum=appointment.PatNum "
                       + "INNER JOIN patient guar ON patient.Guarantor=guar.PatNum "
-                      + "WHERE appointment.AptNum IN (" + string.Join(",", aptNums.Select(x => (x))) + ") "
+                      + "WHERE appointment.AptNum IN (" + string.Join(",", aptNums.Select(x => x)) + ") "
                       + "ORDER BY " + (groupByFamily ? "Guarantor," : "") + "appointment.AptDateTime";
         var strFamilyAptList = "";
         var patNumStr = "";
@@ -1777,7 +1733,7 @@ public class Appointments
     {
         var command =
             "SELECT * FROM appointment "
-            + "WHERE PatNum = '" + (patNum) + "' "
+            + "WHERE PatNum = '" + patNum + "' "
             + "AND NOT (AptDateTime < " + SOut.Date(new DateTime(1880, 1, 1)) + " AND AptStatus=" + SOut.Int((int) ApptStatus.UnschedList) + ") "
             + "ORDER BY AptDateTime";
         return AppointmentCrud.SelectMany(command).ToArray();
@@ -1787,7 +1743,7 @@ public class Appointments
     {
         var command =
             "SELECT * FROM appointment "
-            + "WHERE PatNum = '" + (patNum) + "' "
+            + "WHERE PatNum = '" + patNum + "' "
             + "AND NOT (AptDateTime < " + SOut.Date(new DateTime(1880, 1, 1)) + " AND AptStatus=" + SOut.Int((int) ApptStatus.UnschedList) + ") "
             //The above line is for a very rare edge case where a new appointment can be on the pinboard.
             //The above line does not exclude Unsched appts.
@@ -1800,7 +1756,7 @@ public class Appointments
         if (aptNum == 0) return null;
 
         var command = "SELECT * FROM appointment "
-                      + "WHERE AptNum = " + (aptNum);
+                      + "WHERE AptNum = " + aptNum;
         return AppointmentCrud.SelectOne(command);
     }
 
@@ -1808,7 +1764,7 @@ public class Appointments
     {
         if (nextAptNum == 0) return null;
         var command = "SELECT * FROM appointment "
-                      + "WHERE NextAptNum = '" + (nextAptNum) + "'";
+                      + "WHERE NextAptNum = '" + nextAptNum + "'";
         return AppointmentCrud.SelectOne(command);
     }
 
@@ -1822,7 +1778,7 @@ public class Appointments
         if (listPatNums.Count == 0) return [];
 
         var command = "SELECT * FROM appointment "
-                      + "WHERE PatNum IN (" + string.Join(",", listPatNums.Select(x => (x))) + ") "
+                      + "WHERE PatNum IN (" + string.Join(",", listPatNums.Select(x => x)) + ") "
                       + "AND AptDateTime > " + "NOW()" + " "
                       + "AND AptStatus = " + (int) ApptStatus.Scheduled + " "
                       + "ORDER BY AptDateTime";
@@ -1845,7 +1801,7 @@ public class Appointments
             + "WHERE AptDateTime BETWEEN " + SOut.Date(dateTStart) + " AND " + SOut.Date(dateTEnd.AddDays(1)) + " "
             + "AND AptStatus != '" + (int) ApptStatus.UnschedList + "' "
             + "AND AptStatus != '" + (int) ApptStatus.Planned + "' "
-            + (clinicNum > 0 ? "AND ClinicNum=" + (clinicNum) : "");
+            + (clinicNum > 0 ? "AND ClinicNum=" + clinicNum : "");
         return AppointmentCrud.SelectMany(command);
     }
 
@@ -1864,16 +1820,6 @@ public class Appointments
         return AppointmentCrud.SelectMany(command);
     }
 
-    public static List<Appointment> GetTodaysApptsForPat(long patNum)
-    {
-        var listAppointments = new List<Appointment>();
-        var command = $"SELECT * FROM appointment WHERE PatNum={(patNum)} " +
-                      $"AND {DbHelper.BetweenDates("AptDateTime", DateTime.Today, DateTime.Today)} " +
-                      $"AND AptStatus NOT IN({SOut.Int((int) ApptStatus.UnschedList)},{SOut.Int((int) ApptStatus.Broken)})";
-        listAppointments = AppointmentCrud.SelectMany(command);
-        return listAppointments;
-    }
-
     public static List<Appointment> RefreshASAP(long provNum, long siteNum, long clinicNum, List<ApptStatus> listApptStatuses, string codeRangeStart = "", string codeRangeEnd = "")
     {
         var listCodeNums = new List<long>();
@@ -1890,10 +1836,10 @@ public class Appointments
         var command = "SELECT appointment.* FROM appointment ";
         if (siteNum > 0) command += "LEFT JOIN patient ON patient.PatNum=appointment.PatNum ";
         command += "WHERE appointment.Priority=" + SOut.Int((int) ApptPriority.ASAP) + " ";
-        if (provNum > 0) command += "AND (appointment.ProvNum=" + (provNum) + " OR appointment.ProvHyg=" + (provNum) + ") ";
-        if (siteNum > 0) command += "AND patient.SiteNum=" + (siteNum) + " ";
+        if (provNum > 0) command += "AND (appointment.ProvNum=" + provNum + " OR appointment.ProvHyg=" + provNum + ") ";
+        if (siteNum > 0) command += "AND patient.SiteNum=" + siteNum + " ";
         if (clinicNum >= 0) //Only include appointments that belong to HQ clinic when clinics are enabled and no ClinicNum is specified.
-            command += "AND appointment.ClinicNum=" + (clinicNum) + " ";
+            command += "AND appointment.ClinicNum=" + clinicNum + " ";
         if (listApptStatuses.Count > 0)
             command += "AND appointment.AptStatus IN (" + string.Join(",", listApptStatuses.Select(x => SOut.Int((int) x))) + ") ";
         else
@@ -1913,8 +1859,8 @@ public class Appointments
             //Get every procedure's CodeNum and it's corresponding AptNum/PlannedAptNum for all appointments in listAppts.
             command = "SELECT procedurelog.AptNum,procedurelog.PlannedAptNum,procedurelog.CodeNum "
                       + "FROM procedurelog "
-                      + "WHERE procedurelog.AptNum IN(" + string.Join(",", listAppointments.Select(x => (x.AptNum))) + ") "
-                      + "OR procedurelog.PlannedAptNum IN(" + string.Join(",", listAppointments.Select(x => (x.AptNum))) + ") "
+                      + "WHERE procedurelog.AptNum IN(" + string.Join(",", listAppointments.Select(x => x.AptNum)) + ") "
+                      + "OR procedurelog.PlannedAptNum IN(" + string.Join(",", listAppointments.Select(x => x.AptNum)) + ") "
                       + "GROUP BY procedurelog.AptNum,procedurelog.PlannedAptNum,procedurelog.CodeNum";
             //Sam and Saul tried to speed this up many different ways. This was the best way to make sure we always use indexes on procedurelog.
             var listFilteredAptNum = DataCore.GetTable(command).AsEnumerable()
@@ -1964,12 +1910,12 @@ public class Appointments
                        + "GROUP BY procedurelog.PlannedAptNum "
                        + ")ProcCheck ON ProcCheck.PlannedAptNum=a.AptNum ";
         if (orderBy == "status") command += "LEFT JOIN definition d ON d.DefNum=a.UnschedStatus ";
-        command += "WHERE a.AptStatus=" + ((int) ApptStatus.Planned)
-                                        + " AND p.PatStatus=" + ((int) PatientStatus.Patient) + " ";
-        if (provNum > 0) command += "AND (a.ProvNum=" + (provNum) + " OR a.ProvHyg=" + (provNum) + ") ";
-        if (siteNum > 0) command += "AND p.SiteNum=" + (siteNum) + " ";
+        command += "WHERE a.AptStatus=" + (int) ApptStatus.Planned
+                                        + " AND p.PatStatus=" + (int) PatientStatus.Patient + " ";
+        if (provNum > 0) command += "AND (a.ProvNum=" + provNum + " OR a.ProvHyg=" + provNum + ") ";
+        if (siteNum > 0) command += "AND p.SiteNum=" + siteNum + " ";
         if (clinicNum >= 0) //Only include appointments that belong to HQ clinic when clinics are enabled and no ClinicNum is specified.
-            command += "AND a.ClinicNum=" + (clinicNum) + " ";
+            command += "AND a.ClinicNum=" + clinicNum + " ";
         command += "AND DATE(a.AptDateTime) BETWEEN " + SOut.Date(dateStart) + " AND " + SOut.Date(dateEnd) + " "
                    + "AND tregular.NextAptNum IS NULL ";
         if (orderBy == "status")
@@ -1999,18 +1945,18 @@ public class Appointments
                        + ")ProcCheck ON ProcCheck.AptNum=appointment.AptNum ";
         command += "WHERE ";
         if (includeBrokenAppts)
-            command += "(AptStatus = " + ((int) ApptStatus.UnschedList) + " OR AptStatus = " + ((int) ApptStatus.Broken) + ") ";
+            command += "(AptStatus = " + (int) ApptStatus.UnschedList + " OR AptStatus = " + (int) ApptStatus.Broken + ") ";
         else
-            command += "AptStatus = " + ((int) ApptStatus.UnschedList) + " ";
-        if (provNum > 0) command += "AND (appointment.ProvNum=" + (provNum) + " OR appointment.ProvHyg=" + (provNum) + ") ";
-        if (siteNum > 0) command += "AND patient.SiteNum=" + (siteNum) + " ";
+            command += "AptStatus = " + (int) ApptStatus.UnschedList + " ";
+        if (provNum > 0) command += "AND (appointment.ProvNum=" + provNum + " OR appointment.ProvHyg=" + provNum + ") ";
+        if (siteNum > 0) command += "AND patient.SiteNum=" + siteNum + " ";
         if (clinicNum >= 0) //Only include appointments that belong to HQ clinic when clinics are enabled and no ClinicNum is specified.
-            command += "AND appointment.ClinicNum=" + (clinicNum) + " ";
+            command += "AND appointment.ClinicNum=" + clinicNum + " ";
         if (dateEnd.Year < 1880)
             command += $"AND appointment.AptDateTime>={SOut.Date(dateStart)} ";
         else
             command += $"AND {DbHelper.BetweenDates("appointment.AptDateTime", dateStart, dateEnd)} ";
-        command += "AND patient.PatStatus IN(" + ((int) PatientStatus.Patient) + "," + ((int) PatientStatus.Prospective) + ") ";
+        command += "AND patient.PatStatus IN(" + (int) PatientStatus.Patient + "," + (int) PatientStatus.Prospective + ") ";
         if (orderBy == "status")
             command += "ORDER BY UnschedStatus,AptDateTime";
         else if (orderBy == "alph")
@@ -2022,7 +1968,7 @@ public class Appointments
 
     public static List<Appointment> GetUnschedApptsForPat(long patNum)
     {
-        var command = $"SELECT * FROM appointment WHERE AptStatus={SOut.Int((int) ApptStatus.UnschedList)} AND PatNum={(patNum)} ORDER BY AptDateTime";
+        var command = $"SELECT * FROM appointment WHERE AptStatus={SOut.Int((int) ApptStatus.UnschedList)} AND PatNum={patNum} ORDER BY AptDateTime";
         return AppointmentCrud.SelectMany(command);
     }
 
@@ -2105,7 +2051,7 @@ public class Appointments
         if (listApptNums.IsNullOrEmpty()) return [];
 
         //Select taskNums where the task contains one of the aptNums as an FK.
-        var command = "SELECT KeyNum FROM task WHERE ObjectType=" + SOut.Int((int) TaskObjectType.Appointment) + " and KeyNum IN(" + string.Join(",", listApptNums.Select(x => (x))) + ")";
+        var command = "SELECT KeyNum FROM task WHERE ObjectType=" + SOut.Int((int) TaskObjectType.Appointment) + " and KeyNum IN(" + string.Join(",", listApptNums.Select(x => x)) + ")";
         return Db.GetListLong(command, false);
     }
 
@@ -2187,10 +2133,10 @@ public class Appointments
     {
         appointment.AptStatus = apptStatusNew;
         appointment.SecurityHash = HashFields(appointment);
-        var command = "UPDATE appointment SET AptStatus=" + ((int) apptStatusNew);
+        var command = "UPDATE appointment SET AptStatus=" + (int) apptStatusNew;
         command += ",SecurityHash='" + SOut.String(appointment.SecurityHash) + "'";
         if (apptStatusNew == ApptStatus.UnschedList) command += ",Op=0"; //We do this so that this appointment does not stop an operatory from being hidden.
-        command += " WHERE AptNum=" + (appointment.AptNum);
+        command += " WHERE AptNum=" + appointment.AptNum;
         Db.NonQ(command);
         if (apptStatusNew != ApptStatus.Scheduled) AlertItems.DeleteFor(AlertType.CallbackRequested, [appointment.AptNum]);
         Signalods.SetInvalidAppt(appointment);
@@ -2209,11 +2155,11 @@ public class Appointments
         appointment.AptStatus = ApptStatus.Complete;
         appointment.SecurityHash = HashFields(appointment);
         var command = "UPDATE appointment SET "
-                      + "AptStatus=" + ((int) ApptStatus.Complete) + ", "
-                      + "InsPlan1=" + (planNum1) + ", "
-                      + "InsPlan2=" + (planNum2) + ", "
+                      + "AptStatus=" + (int) ApptStatus.Complete + ", "
+                      + "InsPlan1=" + planNum1 + ", "
+                      + "InsPlan2=" + planNum2 + ", "
                       + "SecurityHash='" + SOut.String(appointment.SecurityHash) + "' "
-                      + "WHERE AptNum=" + (appointment.AptNum);
+                      + "WHERE AptNum=" + appointment.AptNum;
         Db.NonQ(command);
         AlertItems.DeleteFor(AlertType.CallbackRequested, [appointment.AptNum]);
         Signalods.SetInvalidAppt(appointment);
@@ -2223,7 +2169,7 @@ public class Appointments
     public static void SetPriority(Appointment appointment, ApptPriority apptPriority)
     {
         var command = "UPDATE appointment SET Priority=" + SOut.Int((int) apptPriority)
-                                                         + " WHERE AptNum=" + (appointment.AptNum);
+                                                         + " WHERE AptNum=" + appointment.AptNum;
         Db.NonQ(command);
         Signalods.SetInvalidAppt(appointment);
         HistAppointments.CreateHistoryEntry(appointment.AptNum, HistAppointmentAction.Changed);
@@ -2240,7 +2186,7 @@ public class Appointments
     {
         appointment.Confirmed = defNumApptConfirmed;
         appointment.SecurityHash = HashFields(appointment);
-        var command = "UPDATE appointment SET Confirmed=" + (defNumApptConfirmed);
+        var command = "UPDATE appointment SET Confirmed=" + defNumApptConfirmed;
         command += ",SecurityHash='" + SOut.String(appointment.SecurityHash) + "'";
         if (PrefC.GetLong(PrefName.AppointmentTimeArrivedTrigger) == defNumApptConfirmed)
         {
@@ -2255,7 +2201,7 @@ public class Appointments
             command += ",DateTimeDismissed=" + SOut.DateTime(DateTime.Now);
         }
 
-        command += " WHERE AptNum=" + (appointment.AptNum);
+        command += " WHERE AptNum=" + appointment.AptNum;
         Db.NonQ(command);
         if (defNumApptConfirmed != PrefC.GetLong(PrefName.ApptEConfirmStatusDeclined)) //now the status is not 'Callback'
             AlertItems.DeleteFor(AlertType.CallbackRequested, [appointment.AptNum]);
@@ -2265,7 +2211,7 @@ public class Appointments
 
     public static void SetPattern(Appointment appointment, string newPattern)
     {
-        var command = "UPDATE appointment SET Pattern='" + SOut.String(newPattern) + "' WHERE AptNum=" + (appointment.AptNum);
+        var command = "UPDATE appointment SET Pattern='" + SOut.String(newPattern) + "' WHERE AptNum=" + appointment.AptNum;
         Db.NonQ(command);
         Signalods.SetInvalidAppt(appointment);
         HistAppointments.CreateHistoryEntry(appointment.AptNum, HistAppointmentAction.Changed);
@@ -2356,7 +2302,7 @@ public class Appointments
     {
         var command = "SELECT * FROM appointment "
                       + "WHERE AptDateTime >= " + SOut.Date(DateTime.Today)
-                      + "AND AppointmentTypeNum = " + (appointmentType.AppointmentTypeNum);
+                      + "AND AppointmentTypeNum = " + appointmentType.AppointmentTypeNum;
         var listAppointments = AppointmentCrud.SelectMany(command);
         for (var i = 0; i < listAppointments.Count; i++)
         {
@@ -2572,7 +2518,7 @@ public class Appointments
     public static void Delete(long aptNum, bool hasSignal = false)
     {
         string command;
-        command = "SELECT PatNum,IsNewPatient,AptStatus FROM appointment WHERE AptNum=" + (aptNum);
+        command = "SELECT PatNum,IsNewPatient,AptStatus FROM appointment WHERE AptNum=" + aptNum;
         var table = DataCore.GetTable(command);
         if (table.Rows.Count < 1) return; //Already deleted or did not exist.
         if (table.Rows[0]["IsNewPatient"].ToString() == "1")
@@ -2584,43 +2530,43 @@ public class Appointments
         //procs
         command = "UPDATE procedurelog SET ProcDate=" + "CURDATE()"
                                                       + " WHERE ProcDate<" + SOut.Date(new DateTime(1880, 1, 1))
-                                                      + " AND PlannedAptNum=" + (aptNum)
+                                                      + " AND PlannedAptNum=" + aptNum
                                                       + " AND procedurelog.ProcStatus=" + SOut.Int((int) ProcStat.TP); //Only change procdate for TP procedures
         Db.NonQ(command);
         command = "UPDATE procedurelog SET ProcDate=" + "CURDATE()"
                                                       + " WHERE ProcDate<" + SOut.Date(new DateTime(1880, 1, 1))
-                                                      + " AND AptNum=" + (aptNum)
+                                                      + " AND AptNum=" + aptNum
                                                       + " AND procedurelog.ProcStatus=" + SOut.Int((int) ProcStat.TP); //Only change procdate for TP procedures
         Db.NonQ(command);
         if (table.Rows[0]["AptStatus"].ToString() == "6") //planned
-            command = "UPDATE procedurelog SET PlannedAptNum =0 WHERE PlannedAptNum = " + (aptNum);
+            command = "UPDATE procedurelog SET PlannedAptNum =0 WHERE PlannedAptNum = " + aptNum;
         else
-            command = "UPDATE procedurelog SET AptNum =0 WHERE AptNum = " + (aptNum);
+            command = "UPDATE procedurelog SET AptNum =0 WHERE AptNum = " + aptNum;
         Db.NonQ(command);
         //labcases
         if (table.Rows[0]["AptStatus"].ToString() == "6") //planned
-            command = "UPDATE labcase SET PlannedAptNum =0 WHERE PlannedAptNum = " + (aptNum);
+            command = "UPDATE labcase SET PlannedAptNum =0 WHERE PlannedAptNum = " + aptNum;
         else
-            command = "UPDATE labcase SET AptNum =0 WHERE AptNum = " + (aptNum);
+            command = "UPDATE labcase SET AptNum =0 WHERE AptNum = " + aptNum;
         Db.NonQ(command);
         //if deleting a planned appt, make sure there are no appts with NextAptNum (which should be named PlannedAptNum) pointing to this appt
         if (table.Rows[0]["AptStatus"].ToString() == "6")
         {
             //planned
-            command = "UPDATE appointment SET NextAptNum=0 WHERE NextAptNum=" + (aptNum);
+            command = "UPDATE appointment SET NextAptNum=0 WHERE NextAptNum=" + aptNum;
             Db.NonQ(command);
         }
 
         //apptfield
-        command = "DELETE FROM apptfield WHERE AptNum = " + (aptNum);
+        command = "DELETE FROM apptfield WHERE AptNum = " + aptNum;
         Db.NonQ(command);
-        command = "SELECT * FROM appointment WHERE AptNum = " + (aptNum);
+        command = "SELECT * FROM appointment WHERE AptNum = " + aptNum;
         var appointment = AppointmentCrud.SelectOne(command);
         HistAppointments.CreateHistoryEntry(appointment, HistAppointmentAction.Deleted);
         AlertItems.DeleteFor(AlertType.CallbackRequested, [aptNum]);
         ClearFkey(aptNum); //Zero securitylog FKey column for row to be deleted.
         //we will not reset item orders here
-        command = "DELETE FROM appointment WHERE AptNum = " + (aptNum);
+        command = "DELETE FROM appointment WHERE AptNum = " + aptNum;
         //ApptComms.DeleteForAppt(aptNum);
         Db.NonQ(command);
         if (hasSignal) Signalods.SetInvalidAppt(null, appointment); //pass in the old appointment that we are deleting
@@ -3554,14 +3500,14 @@ public class Appointments
     public static bool HasOutstandingAppts(long patNum, bool excludePlannedAppts = false)
     {
         var command = "SELECT COUNT(*) FROM appointment "
-                      + "WHERE PatNum='" + (patNum) + "' "
-                      + "AND (AptStatus='" + ((int) ApptStatus.Broken) + "' "
-                      + "OR AptStatus='" + ((int) ApptStatus.UnschedList) + "' "
-                      + "OR (AptStatus='" + ((int) ApptStatus.Scheduled) + "' AND AptDateTime > " + "CURDATE()" + " ) "; //future scheduled
+                      + "WHERE PatNum='" + patNum + "' "
+                      + "AND (AptStatus='" + (int) ApptStatus.Broken + "' "
+                      + "OR AptStatus='" + (int) ApptStatus.UnschedList + "' "
+                      + "OR (AptStatus='" + (int) ApptStatus.Scheduled + "' AND AptDateTime > " + "CURDATE()" + " ) "; //future scheduled
         //planned appts that are already scheduled will also show because they are caught on the line above rather then on the next line
         if (!excludePlannedAppts)
-            command += "OR (AptStatus='" + ((int) ApptStatus.Planned) + "' " //planned, not sched
-                       + "AND NOT EXISTS(SELECT * FROM appointment a2 WHERE a2.PatNum='" + (patNum) + "' AND a2.NextAptNum=appointment.AptNum)) ";
+            command += "OR (AptStatus='" + (int) ApptStatus.Planned + "' " //planned, not sched
+                       + "AND NOT EXISTS(SELECT * FROM appointment a2 WHERE a2.PatNum='" + patNum + "' AND a2.NextAptNum=appointment.AptNum)) ";
         command += ")";
         if (DataCore.GetScalar(command) == "0") return false;
         return true;
@@ -3572,7 +3518,7 @@ public class Appointments
         if (listProceduresAttachToApt != null) return listProceduresAttachToApt.Any(x => x.AptNum == aptNum && x.ProcStatus == ProcStat.C);
 
         var command = $"SELECT COUNT(*) FROM procedurelog " +
-                      $"WHERE AptNum={(aptNum)} AND ProcStatus={SOut.Int((int) ProcStat.C)}";
+                      $"WHERE AptNum={aptNum} AND ProcStatus={SOut.Int((int) ProcStat.C)}";
         return DataCore.GetScalar(command) != "0";
     }
 
@@ -4082,7 +4028,7 @@ public class Appointments
     {
         var command = @$"SELECT a.* FROM appointment a
 				LEFT JOIN appointment ON a.AptNum=appointment.NextAptNum
-				WHERE a.AptStatus={SOut.Int((int) ApptStatus.Planned)} AND a.PatNum={(patNum)}
+				WHERE a.AptStatus={SOut.Int((int) ApptStatus.Planned)} AND a.PatNum={patNum}
 				AND (appointment.AptStatus IS NULL OR appointment.AptStatus!={SOut.Enum(ApptStatus.Complete)})
 				ORDER BY a.ItemOrderPlanned";
         command = DbHelper.LimitOrderBy(command, 1);
@@ -4091,7 +4037,7 @@ public class Appointments
 
     public static List<Appointment> GetRefreshedPlannedAppts(long patNum)
     {
-        var command = @$"SELECT * FROM appointment WHERE appointment.AptStatus={SOut.Int((int) ApptStatus.Planned)} AND appointment.PatNum={(patNum)}";
+        var command = @$"SELECT * FROM appointment WHERE appointment.AptStatus={SOut.Int((int) ApptStatus.Planned)} AND appointment.PatNum={patNum}";
         return AppointmentCrud.SelectMany(command);
     }
 }

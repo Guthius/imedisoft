@@ -174,11 +174,6 @@ public static class ClinicPrefs
         Db.NonQ("DELETE FROM clinicpref WHERE ClinicPrefNum IN(" + string.Join(",", clinicPrefs.Select(x => x.ClinicPrefNum)) + ")");
     }
 
-    public static bool IsOdTouchAllowed(long clinicNum)
-    {
-        return GetBoolHandleHasClinics(PrefName.IsODTouchEnabled, clinicNum);
-    }
-
     private class ClinicPrefCache : CacheListAbs<ClinicPref>
     {
         protected override List<ClinicPref> GetCacheFromDb()
@@ -203,7 +198,7 @@ public static class ClinicPrefs
 
         protected override void FillCacheIfNeeded()
         {
-            ClinicPrefs.GetTableFromCache(false);
+            GetTableFromCache(false);
         }
     }
 
@@ -221,12 +216,12 @@ public static class ClinicPrefs
 
     public static void RefreshCache()
     {
-        GetTableFromCache(true);
+        Cache.GetTableFromCache(true);
     }
 
-    public static DataTable GetTableFromCache(bool refreshCache)
+    public static void GetTableFromCache(bool refreshCache)
     {
-        return Cache.GetTableFromCache(refreshCache);
+        Cache.GetTableFromCache(refreshCache);
     }
 
     public static void ClearCache()

@@ -84,7 +84,7 @@ public static class HL7DefSegments
 
         protected override void FillCacheIfNeeded()
         {
-            HL7DefSegments.GetTableFromCache(false);
+            GetTableFromCache(false);
         }
     }
 
@@ -95,9 +95,9 @@ public static class HL7DefSegments
         return Cache.GetDeepCopy(shortList);
     }
 
-    public static DataTable GetTableFromCache(bool refreshCache)
+    public static void GetTableFromCache(bool refreshCache)
     {
-        return Cache.GetTableFromCache(refreshCache);
+        Cache.GetTableFromCache(refreshCache);
     }
 
     public static void ClearCache()

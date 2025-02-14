@@ -14,29 +14,12 @@ public static class Diseases
         return DiseaseCrud.SelectOne("SELECT * FROM disease WHERE PatNum = " + patNum + " AND DiseaseDefNum = " + diseaseDefNum);
     }
 
-    public static List<Disease> GetDiseasesForPatient(long patNum, long diseaseDefNum, bool activeOnly)
-    {
-        var commandText = "SELECT * FROM disease WHERE PatNum = " + patNum + " AND DiseaseDefNum = " + diseaseDefNum;
-
-        if (activeOnly)
-        {
-            commandText += " AND ProbStatus = " + (int) ProblemStatus.Active;
-        }
-
-        return DiseaseCrud.SelectMany(commandText);
-    }
-
     public static List<long> GetPatientsWithDisease(List<long> patNums)
     {
         return patNums.Count == 0
             ? []
             : Db.GetListLong(
                 "SELECT DISTINCT PatNum FROM disease WHERE PatNum IN (" + string.Join(",", patNums) + ") AND disease.DiseaseDefNum != " + PrefC.GetLong(PrefName.ProblemsIndicateNone));
-    }
-
-    public static Disease GetOne(long diseaseNum)
-    {
-        return DiseaseCrud.SelectOne(diseaseNum);
     }
 
     public static List<Disease> Refresh(long patNum, bool activeOnly = false)
@@ -75,14 +58,9 @@ public static class Diseases
         DiseaseCrud.Update(disease);
     }
 
-    public static void Update(Disease disease, Disease diseaseOld)
+    public static void Insert(Disease disease)
     {
-        DiseaseCrud.Update(disease, diseaseOld);
-    }
-
-    public static long Insert(Disease disease)
-    {
-        return DiseaseCrud.Insert(disease);
+        DiseaseCrud.Insert(disease);
     }
 
     public static void Delete(Disease disease)

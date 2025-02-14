@@ -663,7 +663,7 @@ public partial class FormPayment:FormODBase {
 			return;
 		}
 		//Have the user decide what month to apply the recurring charge towards.
-		using var formCreditRecurringDateChoose=new FormCreditRecurringDateChoose(_listCreditCards[comboCreditCards.SelectedIndex],_patient);
+		using var formCreditRecurringDateChoose=new FormCreditRecurringDateChoose(_listCreditCards[comboCreditCards.SelectedIndex]);
 		formCreditRecurringDateChoose.ShowDialog();
 		if(formCreditRecurringDateChoose.DialogResult!=DialogResult.OK) {
 			checkRecurring.Checked=false;

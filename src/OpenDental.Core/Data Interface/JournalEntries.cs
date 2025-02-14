@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using DataConnectionBase;
 using Imedisoft.Core.Crud;
+using Imedisoft.Core.Data;
 using Imedisoft.Core.Entities;
 
 namespace OpenDentBusiness;

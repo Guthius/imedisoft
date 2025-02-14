@@ -62,10 +62,10 @@ public class Documents
         return dataTable is null ? [] : DocumentCrud.TableToList(dataTable).ToArray();
     }
 
-    public static long Insert(Document document, Patient patient)
+    public static void Insert(Document document, Patient patient)
     {
         document.DocNum = DocumentCrud.Insert(document);
-        if (document.FileName != Path.GetExtension(document.FileName)) return document.DocNum;
+        if (document.FileName != Path.GetExtension(document.FileName)) return;
         //If the current filename is just an extension, then assign it a unique name.
         document.FileName = GenerateUniqueFileName(document.FileName, patient, document.DocNum.ToString());
         //there is still a slight chance that someone manually added a file with this name, so quick fix:
@@ -92,7 +92,6 @@ public class Documents
             document.FileName="x"+document.FileName;
         }*/
         Update(document);
-        return document.DocNum;
     }
 
     public static string GenerateUniqueFileName(string extension, Patient patient, string uniqueIdentifier = null)

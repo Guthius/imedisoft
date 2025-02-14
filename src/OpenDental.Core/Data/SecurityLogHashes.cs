@@ -43,17 +43,6 @@ public static class SecurityLogHashes
         });
     }
 
-    public static void InsertSecurityLogHashNoCache(long securityLogNum)
-    {
-        var securityLog = SecurityLogCrud.SelectOne(securityLogNum);
-
-        InsertNoCache(new SecurityLogHash
-        {
-            SecurityLogNum = securityLog.SecurityLogNum,
-            LogHash = GetHashString(securityLog)
-        });
-    }
-
     public static void InsertMany(List<SecurityLogHash> securityLogHashes)
     {
         SecurityLogHashCrud.InsertMany(securityLogHashes);

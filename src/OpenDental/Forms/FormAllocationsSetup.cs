@@ -206,8 +206,8 @@ public partial class FormAllocationsSetup : FormODBase
         _changed |= Prefs.UpdateBool(PrefName.PaymentWindowDefaultHideSplits, checkHidePaysplits.Checked);
         _changed |= Prefs.UpdateBool(PrefName.ShowIncomeTransferManager, checkShowIncomeTransferManager.Checked);
         _changed |= Prefs.UpdateBool(PrefName.ClaimPayByTotalSplitsAuto, checkClaimPayByTotalSplitsAuto.Checked);
-        _changed |= Prefs.UpdateYN(PrefName.PrePayAllowedForTpProcs, _prePayAllowedForTpProcs);
-        _changed |= Prefs.UpdateYN(PrefName.IncomeTransfersMadeUponClaimReceived, checkIncomeTransfersMadeUponClaimReceived.CheckState);
+        _changed |= Prefs.UpdateYn(PrefName.PrePayAllowedForTpProcs, _prePayAllowedForTpProcs);
+        _changed |= Prefs.UpdateYn(PrefName.IncomeTransfersMadeUponClaimReceived, checkIncomeTransfersMadeUponClaimReceived.CheckState);
         _changed |= Prefs.UpdateLong(PrefName.TpUnearnedType, comboTpUnearnedType.GetSelectedDefNum());
         _changed |= Prefs.UpdateBool(PrefName.TpPrePayIsNonRefundable, checkIsRefundable.Checked);
         _changed |= Prefs.UpdateBool(PrefName.AdjustmentsOffsetEachOther, checkAdjustmentsOffset.Checked);

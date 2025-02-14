@@ -15,8 +15,7 @@ public class InsBlueBooks
 {
     private static long[] FilterArrayPrimaryKeysHelper(long[] primaryKeyArray)
     {
-        if (primaryKeyArray == null) return null;
-        return primaryKeyArray.Where(x => x != 0).Distinct().ToArray();
+        return primaryKeyArray?.Where(x => x != 0).Distinct().ToArray();
     }
 
     public static List<InsBlueBook> GetAllForCarrierGroupLimitByDateAndClaimType(long carrierGroupName, DateTime dateLimit, string claimType, List<long> listProcCodeNums)
@@ -33,8 +32,8 @@ public class InsBlueBooks
 				AND insbluebook.AllowedOverride!=-1
 				INNER JOIN procedurecode
 				ON insbluebook.ProcCodeNum=procedurecode.CodeNum
-				AND procedurecode.CodeNum IN({string.Join(",", listProcCodeNums.Select(x => (x)))})
-				WHERE carrier.CarrierGroupName={(carrierGroupName)}";
+				AND procedurecode.CodeNum IN({string.Join(",", listProcCodeNums.Select(x => x))})
+				WHERE carrier.CarrierGroupName={carrierGroupName}";
         return InsBlueBookCrud.SelectMany(command);
     }
 
@@ -47,8 +46,8 @@ public class InsBlueBooks
 				FROM insbluebook
 				INNER JOIN procedurecode
 				ON insbluebook.ProcCodeNum=procedurecode.CodeNum
-				AND procedurecode.CodeNum IN({string.Join(",", listProcCodeNums.Select(x => (x)))})
-				WHERE insbluebook.CarrierNum={(carrierNum)}
+				AND procedurecode.CodeNum IN({string.Join(",", listProcCodeNums.Select(x => x))})
+				WHERE insbluebook.CarrierNum={carrierNum}
 				AND insbluebook.ProcDate >= {SOut.Date(dateLimit)}
 				AND insbluebook.ClaimType='{SOut.String(claimType)}'
 				AND insbluebook.AllowedOverride!=-1";
@@ -87,7 +86,7 @@ public class InsBlueBooks
 					LEFT JOIN claimproc claimproc2
 						ON claimproc1.ClaimProcNum=claimproc2.ClaimProcNum
 							AND claimproc1.Status={SOut.Int((int) ClaimProcStatus.Received)}
-					WHERE claim.ClaimNum IN ({string.Join(",", claimNumArray.Select(x => (x)))})
+					WHERE claim.ClaimNum IN ({string.Join(",", claimNumArray.Select(x => x))})
 						AND claim.ClaimType IN ('P','S')
 					GROUP BY claim.ClaimNum,procedurelog.ProcNum
 				) _result
@@ -98,7 +97,7 @@ public class InsBlueBooks
 					AND _result.InsPayAmt >= 0";
         var listInsBlueBooksNew = InsBlueBookCrud.SelectMany(command);
         //Get a list of the insbluebooks that are currently in the DB for the array of ClaimNums.
-        command = $"SELECT insbluebook.* FROM insbluebook WHERE insbluebook.ClaimNum IN ({string.Join(",", claimNumArray.Select(x => (x)))})";
+        command = $"SELECT insbluebook.* FROM insbluebook WHERE insbluebook.ClaimNum IN ({string.Join(",", claimNumArray.Select(x => x))})";
         var listInsBlueBooksOld = InsBlueBookCrud.SelectMany(command);
         InsBlueBookCrud.Sync(listInsBlueBooksNew, listInsBlueBooksOld);
     }
@@ -108,7 +107,7 @@ public class InsBlueBooks
         claimNumArray = FilterArrayPrimaryKeysHelper(claimNumArray);
         if (claimNumArray.IsNullOrEmpty()) return;
 
-        var command = $"DELETE FROM insbluebook WHERE insbluebook.ClaimNum IN ({string.Join(",", claimNumArray.Select(x => (x)))})";
+        var command = $"DELETE FROM insbluebook WHERE insbluebook.ClaimNum IN ({string.Join(",", claimNumArray.Select(x => x))})";
         Db.NonQ(command);
     }
 
@@ -117,15 +116,15 @@ public class InsBlueBooks
         planNumArray = FilterArrayPrimaryKeysHelper(planNumArray);
         if (planNumArray.IsNullOrEmpty()) return;
 
-        var command = $"DELETE FROM insbluebook WHERE insbluebook.PlanNum IN ({string.Join(",", planNumArray.Select(x => (x)))})";
+        var command = $"DELETE FROM insbluebook WHERE insbluebook.PlanNum IN ({string.Join(",", planNumArray.Select(x => x))})";
         Db.NonQ(command);
     }
 
     public static void UpdateByInsPlan(InsPlan insPlan)
     {
         var command = $@"UPDATE insbluebook
-				SET insbluebook.GroupNum='{SOut.String(insPlan.GroupNum)}',insbluebook.CarrierNum={(insPlan.CarrierNum)}
-				WHERE insbluebook.PlanNum={(insPlan.PlanNum)}";
+				SET insbluebook.GroupNum='{SOut.String(insPlan.GroupNum)}',insbluebook.CarrierNum={insPlan.CarrierNum}
+				WHERE insbluebook.PlanNum={insPlan.PlanNum}";
         Db.NonQ(command);
     }
 }

@@ -23,7 +23,7 @@
 		/// the contents of this method with the code editor.
 		/// </summary>
 		private void InitializeComponent() {
-			this.contextMenuUsers = new System.Windows.Forms.ContextMenu();
+			this._contextMenuUsers = new System.Windows.Forms.ContextMenu();
 			this.tabControlMain = new OpenDental.UI.TabControl();
 			this.tabPageUsers = new OpenDental.UI.TabPage();
 			this.panelUserGroups = new OpenDental.UI.PanelOD();
@@ -94,7 +94,6 @@
 			this.tabPageUsers.Size = new System.Drawing.Size(965, 461);
 			this.tabPageUsers.TabIndex = 1;
 			this.tabPageUsers.Text = "Users";
-			this.tabPageUsers.SizeChanged += new System.EventHandler(this.tabPageUsers_SizeChanged);
 			// 
 			// panelUserGroups
 			// 
@@ -120,7 +119,7 @@
 			this.butCopyUser.Text = "Copy User";
 			this.butCopyUser.UseVisualStyleBackColor = true;
 			this.butCopyUser.Visible = false;
-			this.butCopyUser.Click += new System.EventHandler(this.butCopyUser_Click);
+			this.butCopyUser.Click += new System.EventHandler(this.ButtonCopyUser_Click);
 			// 
 			// labelUserCurr
 			// 
@@ -151,7 +150,7 @@
 			this.butAddUser.Size = new System.Drawing.Size(79, 24);
 			this.butAddUser.TabIndex = 255;
 			this.butAddUser.Text = "Add User";
-			this.butAddUser.Click += new System.EventHandler(this.butAddUser_Click);
+			this.butAddUser.Click += new System.EventHandler(this.ButtonAddUser_Click);
 			// 
 			// labelUserTabUserGroups
 			// 
@@ -364,7 +363,7 @@
 			this.butEditGroup.Size = new System.Drawing.Size(87, 24);
 			this.butEditGroup.TabIndex = 25;
 			this.butEditGroup.Text = "Edit Group";
-			this.butEditGroup.Click += new System.EventHandler(this.butEditGroup_Click);
+			this.butEditGroup.Click += new System.EventHandler(this.ButtonEditGroup_Click);
 			// 
 			// butSetAll
 			// 
@@ -386,7 +385,7 @@
 			this.butAddGroup.Size = new System.Drawing.Size(87, 24);
 			this.butAddGroup.TabIndex = 18;
 			this.butAddGroup.Text = "Add Group";
-			this.butAddGroup.Click += new System.EventHandler(this.butAddGroup_Click);
+			this.butAddGroup.Click += new System.EventHandler(this.ButtonAddGroup_Click);
 			// 
 			// label3
 			// 

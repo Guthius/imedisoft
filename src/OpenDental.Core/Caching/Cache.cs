@@ -397,13 +397,6 @@ public class Cache
             StateAbbrs.GetTableFromCache(doRefreshServerCache);
         }
 
-        //InvalidTypes.Tasks not handled here.
-        if (listITypes.Contains(InvalidType.TimeCardRules) || isAll)
-        {
-            ODEvent.Fire(ODEventType.Cache, prefix + InvalidType.TimeCardRules);
-            TimeCardRules.GetTableFromCache(doRefreshServerCache);
-        }
-
         if (listITypes.Contains(InvalidType.ToolButsAndMounts) || isAll)
         {
             ODEvent.Fire(ODEventType.Cache, prefix + InvalidType.ToolButsAndMounts);
@@ -822,14 +815,7 @@ public class Cache
             ODEvent.Fire(ODEventType.Cache, prefix + InvalidType.StateAbbrs);
             StateAbbrs.ClearCache();
         }
-
-        //InvalidTypes.Tasks not handled here.
-        if (listITypes.Contains(InvalidType.TimeCardRules) || isAll)
-        {
-            ODEvent.Fire(ODEventType.Cache, prefix + InvalidType.TimeCardRules);
-            TimeCardRules.ClearCache();
-        }
-
+        
         if (listITypes.Contains(InvalidType.ToolButsAndMounts) || isAll)
         {
             ODEvent.Fire(ODEventType.Cache, prefix + InvalidType.ToolButsAndMounts);

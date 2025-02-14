@@ -24,11 +24,11 @@ public static class CustRefEntries
 
     public static List<CustRefEntry> GetEntryListForCustomer(long patNumCust)
     {
-        return CustRefEntryCrud.SelectMany("SELECT * FROM custrefentry WHERE PatNumCust=" + patNumCust + " OR PatNumRef=" + patNumCust);
+        return CustRefEntryCrud.SelectMany("SELECT * FROM custrefentry WHERE PatNumCust = " + patNumCust + " OR PatNumRef = " + patNumCust);
     }
 
     public static List<CustRefEntry> GetEntryListForReference(long patNumRef)
     {
-        return CustRefEntryCrud.SelectMany("SELECT * FROM custrefentry WHERE PatNumRef=" + patNumRef);
+        return CustRefEntryCrud.SelectMany("SELECT * FROM custrefentry WHERE PatNumRef = " + patNumRef);
     }
 }

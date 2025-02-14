@@ -22,7 +22,7 @@ public static class ApptFields
 
     public static void DeleteFieldForAppt(string fieldName, long aptNum)
     {
-        Db.NonQ($"DELETE FROM apptfield WHERE AptNum = {aptNum} AND FieldName ='{SOut.String(fieldName)}'");
+        Db.NonQ($"DELETE FROM apptfield WHERE AptNum = {aptNum} AND FieldName = '{SOut.String(fieldName)}'");
     }
 
     public static ApptField GetOne(long apptFieldNum)

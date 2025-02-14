@@ -13,7 +13,7 @@ public static class Sops
     {
         SopCrud.Insert(sop);
     }
-    
+
     public static void Update(Sop sop)
     {
         SopCrud.Update(sop);
@@ -22,6 +22,7 @@ public static class Sops
     public static string GetDescriptionFromCode(string sopCode)
     {
         var sop = GetFirstOrDefault(x => x.SopCode == sopCode);
+
         return sop == null ? "" : sop.Description;
     }
 
@@ -49,7 +50,7 @@ public static class Sops
 
         protected override void FillCacheIfNeeded()
         {
-            Sops.GetTableFromCache(false);
+            GetTableFromCache(false);
         }
     }
 
@@ -65,9 +66,9 @@ public static class Sops
         return Cache.GetFirstOrDefault(predicate, shortList);
     }
 
-    public static DataTable GetTableFromCache(bool refreshCache)
+    public static void GetTableFromCache(bool refreshCache)
     {
-        return Cache.GetTableFromCache(refreshCache);
+        Cache.GetTableFromCache(refreshCache);
     }
 
     public static void ClearCache()

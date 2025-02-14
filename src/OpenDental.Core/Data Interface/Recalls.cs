@@ -266,9 +266,9 @@ public class Recalls
             if (!listRecallTypes.IsNullOrEmpty())
             {
                 if (!listRecallTypesCur.IsNullOrEmpty())
-                    listRecallTypesCur = listRecallTypesCur.Intersect(listRecallTypes.Select(x => (x.RecallTypeNum.ToString()))).ToList();
+                    listRecallTypesCur = listRecallTypesCur.Intersect(listRecallTypes.Select(x => x.RecallTypeNum.ToString())).ToList();
                 else
-                    listRecallTypesCur = listRecallTypes.Select(x => (x.RecallTypeNum.ToString())).ToList();
+                    listRecallTypesCur = listRecallTypes.Select(x => x.RecallTypeNum.ToString()).ToList();
             }
 
             if (!listRecallTypesCur.IsNullOrEmpty()) command += $"AND recall.RecallTypeNum IN({string.Join(",", listRecallTypesCur)}) ";
@@ -286,10 +286,10 @@ public class Recalls
         #region Patient Filter
 
         command += "AND patient.PatStatus=" + SOut.Int((int) PatientStatus.Patient) + " ";
-        if (provNum > 0) command += "AND (patient.PriProv=" + (provNum) + " OR patient.SecProv=" + (provNum) + ") ";
+        if (provNum > 0) command += "AND (patient.PriProv=" + provNum + " OR patient.SecProv=" + provNum + ") ";
         if (clinicNum >= 0) //Only include appointments that belong to HQ clinic when clinics are enabled and no ClinicNum is specified.
-            command += "AND patient.ClinicNum=" + (clinicNum) + " ";
-        if (siteNum > 0) command += "AND patient.SiteNum=" + (siteNum) + " ";
+            command += "AND patient.ClinicNum=" + clinicNum + " ";
+        if (siteNum > 0) command += "AND patient.SiteNum=" + siteNum + " ";
         command += "GROUP BY recall.RecallNum";
 
         #endregion
@@ -374,7 +374,7 @@ public class Recalls
         //Check the commlog table to find any reminders have been sent to these patients.
         command = "SELECT PatNum,CommDateTime,CommSource "
                   + "FROM commlog "
-                  + "WHERE CommType=" + (Commlogs.GetTypeAuto(CommItemTypeAuto.RECALL)) + " "
+                  + "WHERE CommType=" + Commlogs.GetTypeAuto(CommItemTypeAuto.RECALL) + " "
                   + "AND PatNum IN (" + string.Join(",", dictPatientRows.Keys) + ")";
         sw.Restart();
         //Create dictionary of key=PatNum, value=List of CommDateTime.Date for that patient
@@ -641,7 +641,7 @@ public class Recalls
     
     public static void Delete(Recall recall)
     {
-        var command = "DELETE from recall WHERE RecallNum = " + (recall.RecallNum);
+        var command = "DELETE from recall WHERE RecallNum = " + recall.RecallNum;
         Db.NonQ(command);
     }
 
@@ -1040,7 +1040,7 @@ public class Recalls
             return;
         var typeListActive = RecallTypes.GetActive();
         var typeList = new List<RecallType>(typeListActive);
-        var command = "SELECT * FROM recall WHERE PatNum=" + (patNum);
+        var command = "SELECT * FROM recall WHERE PatNum=" + patNum;
         var recallList = RecallCrud.SelectMany(command);
         //determine if this patient is a perio patient.
         var isPerio = false;
@@ -1074,21 +1074,21 @@ public class Recalls
         //Because of the inner join, this will not include recall types with no trigger.
         command = "SELECT RecallTypeNum,MAX(ProcDate) procDate_ "
                   + "FROM procedurelog,recalltrigger "
-                  + "WHERE PatNum=" + (patNum)
+                  + "WHERE PatNum=" + patNum
                   + " AND procedurelog.CodeNum=recalltrigger.CodeNum "
                   + "AND (";
         if (typeListActive.Count > 0) //This will include both prophy and perio, regardless of whether this is a prophy or perio patient.
             for (var i = 0; i < typeListActive.Count; i++)
             {
                 if (i > 0) command += " OR";
-                command += " RecallTypeNum=" + (typeListActive[i].RecallTypeNum);
+                command += " RecallTypeNum=" + typeListActive[i].RecallTypeNum;
             }
         else
             command += " RecallTypeNum=0"; //Effectively forces an empty result set, without changing the returned table structure.
 
-        command += ") AND (ProcStatus = " + ((int) ProcStat.C) + " "
-                   + "OR ProcStatus = " + ((int) ProcStat.EC) + " "
-                   + "OR ProcStatus = " + ((int) ProcStat.EO) + ") "
+        command += ") AND (ProcStatus = " + (int) ProcStat.C + " "
+                   + "OR ProcStatus = " + (int) ProcStat.EC + " "
+                   + "OR ProcStatus = " + (int) ProcStat.EO + ") "
                    + "GROUP BY RecallTypeNum";
         var tableDates = DataCore.GetTable(command);
         if (tableDates.Rows.Count == 0) //This patient has no trigger procedures, so do not add/update their recalls.
@@ -1262,19 +1262,19 @@ public class Recalls
         //Clear out DateScheduled column for this pat before changing
         var command = "UPDATE recall "
                       + "SET recall.DateScheduled=" + SOut.Date(DateTime.MinValue) + " "
-                      + "WHERE recall.PatNum=" + (patNum);
+                      + "WHERE recall.PatNum=" + patNum;
         Db.NonQ(command);
         //Get table of future appointments dates with recall type for this patient, where a procedure is attached that is a recall trigger procedure
         command = "SELECT recalltrigger.RecallTypeNum,MIN(DATE(appointment.AptDateTime)) AS AptDateTime "
                   + "FROM procedurelog "
                   + "INNER JOIN recalltrigger ON procedurelog.CodeNum=recalltrigger.CodeNum "
                   + "INNER JOIN recall ON recalltrigger.RecallTypeNum=recall.RecallTypeNum "
-                  + "AND recall.PatNum=" + (patNum) + " "
+                  + "AND recall.PatNum=" + patNum + " "
                   + "INNER JOIN appointment ON appointment.AptNum=procedurelog.AptNum "
-                  + "AND appointment.PatNum=" + (patNum) + " "
+                  + "AND appointment.PatNum=" + patNum + " "
                   + "AND appointment.AptStatus=" + SOut.Int((int) ApptStatus.Scheduled) + " "
                   + "AND appointment.AptDateTime > CURDATE() " //early this morning
-                  + "WHERE procedurelog.PatNum=" + (patNum) + " "
+                  + "WHERE procedurelog.PatNum=" + patNum + " "
                   + "GROUP BY recalltrigger.RecallTypeNum";
         var table = DataCore.GetTable(command);
         //Update the recalls for this patient with DATE(AptDateTime) where there is a future appointment with recall proc on it
@@ -1282,15 +1282,15 @@ public class Recalls
         {
             if (table.Rows[i]["RecallTypeNum"].ToString() == "") continue;
             command = @"UPDATE recall	SET recall.DateScheduled=" + SOut.Date(SIn.Date(table.Rows[i]["AptDateTime"].ToString())) + " "
-                      + "WHERE recall.RecallTypeNum=" + (SIn.Long(table.Rows[i]["RecallTypeNum"].ToString())) + " "
-                      + "AND recall.PatNum=" + (patNum) + " ";
+                      + "WHERE recall.RecallTypeNum=" + SIn.Long(table.Rows[i]["RecallTypeNum"].ToString()) + " "
+                      + "AND recall.PatNum=" + patNum + " ";
             Db.NonQ(command);
         }
     }
 
     public static void UpdateDefaultIntervalForPatients(long recallTypeNum, Interval defaultIntervalOld, Interval defaultIntervalNew)
     {
-        var command = "SELECT * FROM recall WHERE IsDisabled=0 AND RecallTypeNum=" + (recallTypeNum) + " AND RecallInterval=" + SOut.Int(defaultIntervalOld.ToInt());
+        var command = "SELECT * FROM recall WHERE IsDisabled=0 AND RecallTypeNum=" + recallTypeNum + " AND RecallInterval=" + SOut.Int(defaultIntervalOld.ToInt());
         var recallList = RecallCrud.SelectMany(command);
         for (var i = 0; i < recallList.Count; i++)
         {
@@ -1313,7 +1313,7 @@ public class Recalls
 
     public static void DeleteAllOfType(long recallTypeNum)
     {
-        var command = "DELETE FROM recall WHERE RecallTypeNum= " + (recallTypeNum);
+        var command = "DELETE FROM recall WHERE RecallTypeNum= " + recallTypeNum;
         Db.NonQ(command);
     }
 
@@ -1495,16 +1495,16 @@ public class Recalls
 				LEFT JOIN definition ON definition.DefNum=patient.BillingType
 					AND definition.Category={SOut.Int((int) DefCat.BillingTypes)}
 				LEFT JOIN commlog ON commlog.PatNum=recall.PatNum
-					AND commlog.CommType={(Commlogs.GetTypeAuto(CommItemTypeAuto.RECALL))}
+					AND commlog.CommType={Commlogs.GetTypeAuto(CommItemTypeAuto.RECALL)}
 					AND commlog.CommDateTime > recall.DatePrevious
 				LEFT JOIN (
 					SELECT patient.Guarantor,MAX(recall.DateDue) maxDateDue
 					FROM patient
 					INNER JOIN recall ON patient.PatNum=recall.PatNum
-					WHERE recall.RecallNum IN ({string.Join(",", recallNums.Select(x => (x)))})
+					WHERE recall.RecallNum IN ({string.Join(",", recallNums.Select(x => x))})
 					GROUP BY patient.Guarantor
 				) t ON t.Guarantor=patient.Guarantor
-				WHERE recall.RecallNum IN ({string.Join(",", recallNums.Select(x => (x)))})
+				WHERE recall.RecallNum IN ({string.Join(",", recallNums.Select(x => x))})
 				GROUP BY recall.RecallNum";
         return DataCore.GetTable(command);
     }
@@ -1539,7 +1539,7 @@ public class Recalls
     {
         var command = "SELECT COUNT(*) FROM recall "
                       + "JOIN recalltype ON recall.RecallTypeNum=recalltype.RecallTypeNum "
-                      + "WHERE recalltype.recallTypeNum=" + (recallTypeNum);
+                      + "WHERE recalltype.recallTypeNum=" + recallTypeNum;
         return SIn.Int(Db.GetCount(command));
     }
 
@@ -1562,21 +1562,21 @@ public class Recalls
 				FROM (
 					SELECT webschedrecall.DateTimeSent DateSent,webschedrecall.PatNum,webschedrecall.RecallNum,
 					(CASE WHEN webschedrecall.Source=1 THEN -1 ELSE -2 END) CommMode,webschedrecall.ClinicNum,"
-                      + @$"'{((long) CommItemSource.WebSched)}'as CommSource 
+                      + @$"'{(long) CommItemSource.WebSched}'as CommSource 
 					FROM webschedrecall
 					WHERE " + DbHelper.BetweenDates("webschedrecall.DateTimeSent", dateTimeFrom, dateTimeTo) + @"
 					UNION ALL
 					SELECT commlog.CommDateTime DateSent,commlog.PatNum,0 RecallNum,commlog.Mode_ CommMode,-1 ClinicNum,commlog.CommSource
 					FROM commlog
 					WHERE " + DbHelper.BetweenDates("commlog.CommDateTime", dateTimeFrom, dateTimeTo) + @"
-					AND commlog.CommType=" + (Commlogs.GetTypeAuto(CommItemTypeAuto.RECALL)) + @"
+					AND commlog.CommType=" + Commlogs.GetTypeAuto(CommItemTypeAuto.RECALL) + @"
 				) recallreminder
 				INNER JOIN patient ON patient.PatNum=recallreminder.PatNum
 				LEFT JOIN recall ON recall.RecallNum=recallreminder.RecallNum
 				LEFT JOIN recalltype ON recalltype.RecallTypeNum=recall.RecallTypeNum
 				LEFT JOIN definition ON definition.DefNum=recall.RecallStatus
 				";
-        if (listClinicNums.Count > 0) command += "HAVING ClinicNum IN(" + string.Join(",", listClinicNums.Select(x => (x))) + " )";
+        if (listClinicNums.Count > 0) command += "HAVING ClinicNum IN(" + string.Join(",", listClinicNums.Select(x => x)) + " )";
         var table = DataCore.GetTable(command);
         var listRecent = new List<RecallRecent>();
         foreach (DataRow row in table.Rows)

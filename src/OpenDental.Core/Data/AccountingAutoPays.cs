@@ -73,7 +73,7 @@ public static class AccountingAutoPays
 
         protected override void FillCacheIfNeeded()
         {
-            AccountingAutoPays.GetTableFromCache(false);
+            GetTableFromCache(false);
         }
 
         protected override List<AccountingAutoPay> GetCacheFromDb()
@@ -94,24 +94,24 @@ public static class AccountingAutoPays
 
     private static readonly AccountingAutoPayCache Cache = new();
 
-    public static List<AccountingAutoPay> GetDeepCopy(bool isShort = false)
+    public static List<AccountingAutoPay> GetDeepCopy(bool shortList = false)
     {
-        return Cache.GetDeepCopy(isShort);
+        return Cache.GetDeepCopy(shortList);
     }
 
-    public static AccountingAutoPay GetFirstOrDefault(Func<AccountingAutoPay, bool> funcMatch, bool isShort = false)
+    public static AccountingAutoPay GetFirstOrDefault(Func<AccountingAutoPay, bool> predicate, bool shortList = false)
     {
-        return Cache.GetFirstOrDefault(funcMatch, isShort);
+        return Cache.GetFirstOrDefault(predicate, shortList);
     }
 
-    public static int GetCount(bool isShort = false)
+    public static int GetCount(bool shortList = false)
     {
-        return Cache.GetCount(isShort);
+        return Cache.GetCount(shortList);
     }
 
-    public static DataTable GetTableFromCache(bool doRefreshCache)
+    public static void GetTableFromCache(bool refreshCache)
     {
-        return Cache.GetTableFromCache(doRefreshCache);
+        Cache.GetTableFromCache(refreshCache);
     }
 
     public static void ClearCache()

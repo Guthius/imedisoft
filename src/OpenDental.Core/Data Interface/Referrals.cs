@@ -30,7 +30,7 @@ public class Referrals
         if (Claims.IsReferralAttached(refer.ReferralNum)) throw new ApplicationException(Lans.g("FormReferralEdit", "Cannot delete Referral because it is attached to claims"));
         if (Procedures.IsReferralAttached(refer.ReferralNum)) throw new ApplicationException(Lans.g("FormReferralEdit", "Cannot delete Referral because it is attached to procedures"));
         var command = "DELETE FROM referral "
-                      + "WHERE ReferralNum = '" + (refer.ReferralNum) + "'";
+                      + "WHERE ReferralNum = '" + refer.ReferralNum + "'";
         Db.NonQ(command);
     }
 
@@ -215,15 +215,15 @@ public class Referrals
             //Do not merge the same referral onto itself.
             return false;
         var command = "UPDATE claim "
-                      + "SET ReferringProv=" + (refNumInto) + " "
-                      + "WHERE ReferringProv=" + (refNumFrom);
+                      + "SET ReferringProv=" + refNumInto + " "
+                      + "WHERE ReferringProv=" + refNumFrom;
         Db.NonQ(command);
         command = "UPDATE refattach "
-                  + "SET ReferralNum=" + (refNumInto) + " "
-                  + "WHERE ReferralNum=" + (refNumFrom);
+                  + "SET ReferralNum=" + refNumInto + " "
+                  + "WHERE ReferralNum=" + refNumFrom;
         Db.NonQ(command);
         command = "DELETE FROM referralcliniclink "
-                  + "WHERE ReferralNum=" + (refNumFrom);
+                  + "WHERE ReferralNum=" + refNumFrom;
         Db.NonQ(command);
         ReferralCrud.Delete(refNumFrom);
         return true;
@@ -232,13 +232,13 @@ public class Referrals
     public static int CountReferralAttach(long referralNum)
     {
         var command = "SELECT COUNT(*) FROM refattach "
-                      + "WHERE ReferralNum=" + (referralNum);
+                      + "WHERE ReferralNum=" + referralNum;
         return SIn.Int(Db.GetCount(command));
     }
 
     public static bool IsSpecialtyInUse(long defNum)
     {
-        var command = "SELECT COUNT(*) FROM referral WHERE Specialty=" + (defNum);
+        var command = "SELECT COUNT(*) FROM referral WHERE Specialty=" + defNum;
         if (Db.GetCount(command) == "0") return false;
         return true;
     }

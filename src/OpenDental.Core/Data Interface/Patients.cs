@@ -226,7 +226,7 @@ public class Patients
         var command = @"SELECT DISTINCT f.*,CASE WHEN f.Guarantor != f.PatNum THEN 1 ELSE 0 END AS IsNotGuar 
 				FROM patient p
 				INNER JOIN patient f ON f.Guarantor=p.Guarantor
-				WHERE p.PatNum IN (" + string.Join(",", listPatNums.Select(x => (x))) + @")
+				WHERE p.PatNum IN (" + string.Join(",", listPatNums.Select(x => x)) + @")
 				ORDER BY IsNotGuar, f.Birthdate";
         var listFamilies = new List<Family>();
         var listPatients = PatientCrud.SelectMany(command);
@@ -248,7 +248,7 @@ public class Patients
         var command = @"SELECT DISTINCT f.*,CASE WHEN f.Guarantor != f.PatNum THEN 1 ELSE 0 END AS IsNotGuar 
 				FROM patient p
 				INNER JOIN patient f ON f.Guarantor=p.Guarantor
-				WHERE p.PatNum =" + (patNum)
+				WHERE p.PatNum =" + patNum
                                   + " ORDER BY IsNotGuar, f.Birthdate";
         var listPatients = PatientCrud.SelectMany(command);
         for (var i = 0; i < listPatients.Count; i++) listPatients[i].Age = DateToAge(listPatients[i].Birthdate);
@@ -257,7 +257,7 @@ public class Patients
 
     public static List<Patient> GetForFeeSched(long feeSchedNum)
     {
-        var command = "SELECT * FROM patient WHERE FeeSched=" + (feeSchedNum);
+        var command = "SELECT * FROM patient WHERE FeeSched=" + feeSchedNum;
         return PatientCrud.SelectMany(command);
     }
 
@@ -309,7 +309,7 @@ public class Patients
 
     public static List<Patient> GetAllPatientsForGuarantor(long guarantorNum)
     {
-        var command = "SELECT * FROM patient WHERE Guarantor=" + (guarantorNum);
+        var command = "SELECT * FROM patient WHERE Guarantor=" + guarantorNum;
         return PatientCrud.SelectMany(command);
     }
 
@@ -348,7 +348,7 @@ public class Patients
 
     public static void Delete(Patient pat)
     {
-        var command = "UPDATE patient SET PatStatus=" + ((int) PatientStatus.Deleted) + ", "
+        var command = "UPDATE patient SET PatStatus=" + (int) PatientStatus.Deleted + ", "
                       + "Guarantor=PatNum "
                       + "WHERE PatNum =" + pat.PatNum;
         Db.NonQ(command);
@@ -531,7 +531,7 @@ public class Patients
                       + (ptSearchArgs.BillingType == 0
                           ? ""
                           : $@"
-				AND patient.BillingType={(ptSearchArgs.BillingType)}")
+				AND patient.BillingType={ptSearchArgs.BillingType}")
                       + (!ptSearchArgs.GuarOnly
                           ? ""
                           : @"
@@ -913,7 +913,7 @@ public class Patients
 						FROM procedurelog,patient
 						WHERE patient.PatNum=procedurelog.PatNum
 						AND procedurelog.ProcStatus=" + SOut.Int((int) ProcStat.C) + @"
-						AND patient.Guarantor=" + (guarNum) + @"
+						AND patient.Guarantor=" + guarNum + @"
 						GROUP BY patient.PatNum,procedurelog.ProvNum,procedurelog.ClinicNum)
 					UNION ALL			
 						/*Received insurance payments*/
@@ -924,7 +924,7 @@ public class Patients
 							OR claimproc.Status=" + SOut.Int((int) ClaimProcStatus.Supplemental) + @" 
 							OR claimproc.Status=" + SOut.Int((int) ClaimProcStatus.CapClaim) + @" 
 							OR claimproc.Status=" + SOut.Int((int) ClaimProcStatus.CapComplete) + @")
-						AND patient.Guarantor=" + (guarNum) + @"
+						AND patient.Guarantor=" + guarNum + @"
 						AND claimproc.PayPlanNum = 0
 						GROUP BY patient.PatNum,claimproc.ProvNum,claimproc.ClinicNum)
 					UNION ALL
@@ -933,22 +933,22 @@ public class Patients
 						FROM claimproc,patient
 						WHERE patient.PatNum=claimproc.PatNum
 						AND claimproc.Status=" + SOut.Int((int) ClaimProcStatus.NotReceived) + @"
-						AND patient.Guarantor=" + (guarNum) + @"
+						AND patient.Guarantor=" + guarNum + @"
 						GROUP BY patient.PatNum,claimproc.ProvNum,claimproc.ClinicNum)
 					UNION ALL
 						/*Adjustments*/
 						(SELECT patient.PatNum,adjustment.ProvNum,adjustment.ClinicNum,SUM(adjustment.AdjAmt) AmtBal,0 InsEst,0 UnearnedType
 						FROM adjustment,patient
 						WHERE patient.PatNum=adjustment.PatNum
-						AND patient.Guarantor=" + (guarNum) + @"
+						AND patient.Guarantor=" + guarNum + @"
 						GROUP BY patient.PatNum,adjustment.ProvNum,adjustment.ClinicNum)
 					UNION ALL
 						/*Patient payments*/
 						(SELECT patient.PatNum,paysplit.ProvNum,paysplit.ClinicNum,-SUM(SplitAmt) AmtBal,0 InsEst,paysplit.UnearnedType
 						FROM paysplit,patient
 						WHERE patient.PatNum=paysplit.PatNum
-						AND paysplit.PayNum!=" + (excludePayNum) + @"
-						AND patient.Guarantor=" + (guarNum);
+						AND paysplit.PayNum!=" + excludePayNum + @"
+						AND patient.Guarantor=" + guarNum;
         if (PrefC.GetInt(PrefName.PayPlansVersion) == 1) //for payplans v1, exclude paysplits attached to payplans
             command += @"
 						AND paysplit.PayPlanNum=0 ";
@@ -962,7 +962,7 @@ public class Patients
         command += @"AmtBal,0 InsEst,0 UnearnedType
 						FROM payplancharge
 						INNER JOIN payplan ON payplan.PayPlanNum=payplancharge.PayPlanNum
-						INNER JOIN patient ON patient.PatNum=payplancharge.PatNum AND patient.Guarantor=" + (guarNum) + @"
+						INNER JOIN patient ON patient.PatNum=payplancharge.PatNum AND patient.Guarantor=" + guarNum + @"
 						GROUP BY payplan.PayPlanNum,payplan.CompletedAmt,patient.PatNum,payplancharge.ProvNum,payplancharge.ClinicNum)
 					) tempfambal,patient
 					WHERE tempfambal.PatNum=patient.PatNum 
@@ -989,18 +989,18 @@ public class Patients
         Update(patientGuarantor, patientGuarantorOld);
         //Move family financial note to current patient:
         var command = "SELECT FamFinancial FROM patientnote "
-                      + "WHERE PatNum = " + (patient.Guarantor);
+                      + "WHERE PatNum = " + patient.Guarantor;
         var table = DataCore.GetTable(command);
         if (table.Rows.Count == 1)
         {
             command = "UPDATE patientnote SET "
                       + "FamFinancial = '" + SOut.String(table.Rows[0][0].ToString()) + "' "
-                      + "WHERE PatNum = " + (patient.PatNum);
+                      + "WHERE PatNum = " + patient.PatNum;
             Db.NonQ(command);
         }
 
         command = "UPDATE patientnote SET FamFinancial = '' "
-                  + "WHERE PatNum = " + (patient.Guarantor);
+                  + "WHERE PatNum = " + patient.Guarantor;
         Db.NonQ(command);
         //change guarantor of all family members:
         var listPatients = GetAllPatientsForGuarantor(patientOld.Guarantor);
@@ -1036,7 +1036,7 @@ public class Patients
         var strGuar = PatientNoteCur.FamFinancial;
         command =
             "SELECT famfinancial "
-            + "FROM patientnote WHERE patnum ='" + (Pat.PatNum) + "'";
+            + "FROM patientnote WHERE patnum ='" + Pat.PatNum + "'";
         //MessageBox.Show(string command);
         var table = DataCore.GetTable(command);
         var strCur = SIn.String(table.Rows[0][0].ToString());
@@ -1103,7 +1103,7 @@ public class Patients
 
     public static bool SuperFamHasSameAddrPhone(Patient pat, bool isArchivedIncluded)
     {
-        var command = "SELECT COUNT(*) FROM patient WHERE SuperFamily=" + (pat.SuperFamily) + " "
+        var command = "SELECT COUNT(*) FROM patient WHERE SuperFamily=" + pat.SuperFamily + " "
                       + "AND (HmPhone!='" + SOut.String(pat.HmPhone) + "' "
                       + "OR Address!='" + SOut.String(pat.Address) + "' "
                       + "OR Address2!='" + SOut.String(pat.Address2) + "' "
@@ -1121,9 +1121,9 @@ public class Patients
     {
         var strWhere = "";
         if (isSuperFam)
-            strWhere += " WHERE SuperFamily = " + (pat.SuperFamily);
+            strWhere += " WHERE SuperFamily = " + pat.SuperFamily;
         else
-            strWhere += " WHERE Guarantor = " + (pat.Guarantor);
+            strWhere += " WHERE Guarantor = " + pat.Guarantor;
         if (!isAuthArchivedEdit) strWhere += " AND patient.PatStatus!=" + SOut.Int((int) PatientStatus.Archived);
         //Get the list of patients before the changes.
         var strSelect = "SELECT * FROM patient " + strWhere;
@@ -1198,17 +1198,17 @@ public class Patients
 
     public static void UpdateBillingProviderForFam(Patient pat, bool isAuthPriProvEdit, bool isAuthArchivedEdit)
     {
-        var strWhere = " WHERE Guarantor = " + (pat.Guarantor);
+        var strWhere = " WHERE Guarantor = " + pat.Guarantor;
         //Get the list of patients before the changes.
         var strSelect = "SELECT * FROM patient " + strWhere;
         var listPatsOld = PatientCrud.SelectMany(strSelect);
         var command = "UPDATE patient SET "
                       + "credittype      = '" + SOut.String(pat.CreditType) + "',";
-        if (isAuthPriProvEdit) command += "priprov = " + (pat.PriProv) + ",";
+        if (isAuthPriProvEdit) command += "priprov = " + pat.PriProv + ",";
         command +=
-            "secprov         = " + (pat.SecProv) + ","
-            + "feesched        = " + (pat.FeeSched) + ","
-            + "billingtype     = " + (pat.BillingType) + " "
+            "secprov         = " + pat.SecProv + ","
+            + "feesched        = " + pat.FeeSched + ","
+            + "billingtype     = " + pat.BillingType + " "
             + strWhere;
         if (!isAuthArchivedEdit) command += " AND patient.PatStatus!=" + SOut.Int((int) PatientStatus.Archived);
         Db.NonQ(command);
@@ -1227,7 +1227,7 @@ public class Patients
     {
         var command = "UPDATE patient SET "
                       + "AskToArriveEarly = '" + SOut.Int(pat.AskToArriveEarly) + "'"
-                      + " WHERE guarantor = '" + (pat.Guarantor) + "'";
+                      + " WHERE guarantor = '" + pat.Guarantor + "'";
         if (!isAuthArchivedEdit) command += " AND patient.PatStatus!=" + SOut.Int((int) PatientStatus.Archived);
         var table = DataCore.GetTable(command);
     }
@@ -1236,14 +1236,14 @@ public class Patients
     {
         var command = "UPDATE patient SET "
                       + "addrnote = '" + SOut.String(pat.AddrNote) + "'"
-                      + " WHERE guarantor = '" + (pat.Guarantor) + "'";
+                      + " WHERE guarantor = '" + pat.Guarantor + "'";
         if (!isAuthArchivedEdit) command += " AND patient.PatStatus!=" + SOut.Int((int) PatientStatus.Archived);
         Db.NonQ(command);
     }
 
     public static void UpdateEmailPhoneForFam(Patient pat, bool isAuthArchivedEdit)
     {
-        var strWhere = " WHERE Guarantor = " + (pat.Guarantor);
+        var strWhere = " WHERE Guarantor = " + pat.Guarantor;
         //Get the list of patients before the changes.
         var strSelect = "SELECT * FROM patient " + strWhere;
         var listPatsOld = PatientCrud.SelectMany(strSelect);
@@ -1339,10 +1339,10 @@ public class Patients
             listWhereAnds.Add("(guar.Bal_0_30 + guar.Bal_31_60 + guar.Bal_61_90 + guar.BalOver90 - guar.InsEst > '0.005')");
 
         if (billingNums.Count > 0) //if billingNums.Count==0, then we'll include all billing types
-            listWhereAnds.Add("guar.BillingType IN (" + string.Join(",", billingNums.Select(x => (x))) + ")");
+            listWhereAnds.Add("guar.BillingType IN (" + string.Join(",", billingNums.Select(x => x)) + ")");
         if (excludeAddr) listWhereAnds.Add("guar.Zip!=''");
         if (excludeNoTil) listWhereAnds.Add("guar.HasSignedTil");
-        if (clinicNums.Count > 0) listWhereAnds.Add("guar.ClinicNum IN (" + string.Join(",", clinicNums.Select(x => (x))) + ")");
+        if (clinicNums.Count > 0) listWhereAnds.Add("guar.ClinicNum IN (" + string.Join(",", clinicNums.Select(x => x)) + ")");
         listWhereAnds.Add("(guar.PatStatus!=" + SOut.Int((int) PatientStatus.Archived) + " OR ROUND(guar.BalTotal,3) != 0)"); //Hide archived patients with PatBal=0.
         if (!listPatNumsToExclude.IsNullOrEmpty()) listWhereAnds.Add("pat.PatNum NOT IN (" + string.Join(",", listPatNumsToExclude) + ")");
         var command = "";
@@ -1378,7 +1378,7 @@ public class Patients
                           + "COALESCE(MAX(statement.DateSent),'0001-01-01') AS lastStatement "
                           + "FROM patient guar "
                           + "LEFT JOIN statement ON " + guarOrPat + ".PatNum=statement.PatNum "
-                          + "WHERE " + guarOrPat + ".PatNum IN(" + string.Join(",", listSuperFamilyNumsNeeded.Select(x => (x))) + ") "
+                          + "WHERE " + guarOrPat + ".PatNum IN(" + string.Join(",", listSuperFamilyNumsNeeded.Select(x => x)) + ") "
                           + "GROUP BY " + guarOrPat + ".PatNum "
                           + "ORDER BY " + guarOrPat + ".LName," + guarOrPat + ".FName ";
                 var superHeadTable = DataCore.GetTable(command);
@@ -1546,7 +1546,7 @@ public class Patients
         if (listGuarNums.Count < 1) return [];
         var command = "SELECT PatNum,Guarantor,LName,FName,MiddleI,PriProv,BillingType,ClinicNum,Bal_0_30,Bal_31_60,Bal_61_90,BalOver90,BalTotal,InsEst "
                       + "FROM patient "
-                      + "WHERE patient.PatNum IN (" + string.Join(",", listGuarNums.Select(x => (x))) + ") "
+                      + "WHERE patient.PatNum IN (" + string.Join(",", listGuarNums.Select(x => x)) + ") "
                       + "AND patient.Guarantor=patient.PatNum";
         var listPatAgings = DataCore.GetTable(command).Select().Select(x => new PatAging
         {
@@ -1620,7 +1620,7 @@ public class Patients
     {
         var command = "SELECT patient.HasIns,COUNT(patplan.PatNum) FROM patient "
                       + "LEFT JOIN patplan ON patplan.PatNum=patient.PatNum"
-                      + " WHERE patient.PatNum=" + (patNum)
+                      + " WHERE patient.PatNum=" + patNum
                       + " GROUP BY patplan.PatNum,patient.HasIns";
         var table = DataCore.GetTable(command);
         var newVal = "";
@@ -1628,7 +1628,7 @@ public class Patients
         if (newVal != table.Rows[0][0].ToString())
         {
             command = "UPDATE patient SET HasIns='" + SOut.String(newVal)
-                                                    + "' WHERE PatNum=" + (patNum);
+                                                    + "' WHERE PatNum=" + patNum;
             Db.NonQ(command);
         }
     }
@@ -1776,21 +1776,10 @@ public class Patients
         return DataCore.GetTable(command);
     }
 
-    public static long GetPatNumByNameAndBirthday(string lName, string fName, DateTime birthdate)
-    {
-        var command = "SELECT PatNum FROM patient WHERE "
-                      + "LName='" + SOut.String(lName) + "' "
-                      + "AND FName='" + SOut.String(fName) + "' "
-                      + "AND Birthdate=" + SOut.Date(birthdate) + " "
-                      + "AND PatStatus!=" + SOut.Int((int) PatientStatus.Archived) + " " //Not Archived
-                      + "AND PatStatus!=" + SOut.Int((int) PatientStatus.Deleted); //Not Deleted
-        return SIn.Long(DataCore.GetScalar(command));
-    }
-
     public static List<Patient> GetListByName(string lName, string fName, long PatNum)
     {
         var command = $@"SELECT * FROM patient
-				WHERE PatNum!={(PatNum)}
+				WHERE PatNum!={PatNum}
 				AND PatStatus!={SOut.Int((int) PatientStatus.Deleted)}
 				AND FName='{SOut.String(fName)}'
 				AND LName='{SOut.String(lName)}'";
@@ -1799,23 +1788,15 @@ public class Patients
 
     public static void UpdateFamilyBillingType(long billingType, long Guarantor)
     {
-        var command = "UPDATE patient SET BillingType=" + (billingType) +
-                      " WHERE Guarantor=" + (Guarantor);
-        Db.NonQ(command);
-    }
-
-    public static void UpdateAllFamilyBillingTypes(long billingType, List<long> listGuarNums)
-    {
-        if (listGuarNums.Count < 1) return;
-        var command = "UPDATE patient SET BillingType=" + (billingType) + " "
-                      + "WHERE Guarantor IN (" + string.Join(",", listGuarNums.Select(x => (x))) + ")";
+        var command = "UPDATE patient SET BillingType=" + billingType +
+                      " WHERE Guarantor=" + Guarantor;
         Db.NonQ(command);
     }
 
     public static string GetEligibilityDisplayName(long patId)
     {
         var command = @"SELECT FName,LName," + DbHelper.DateFormatColumn("birthdate", "%m/%d/%Y") + " BirthDate,Gender "
-                      + "FROM patient WHERE patient.PatNum=" + (patId);
+                      + "FROM patient WHERE patient.PatNum=" + patId;
         var table = DataCore.GetTable(command);
         if (table.Rows.Count == 0) return "Patient(???) is Eligible";
         return SIn.String(table.Rows[0][1].ToString()) + ", " + SIn.String(table.Rows[0][0].ToString()) + " is Eligible";
@@ -1830,9 +1811,9 @@ public class Patients
 
     public static bool IsBillingTypeInUse(long defNum)
     {
-        var command = "SELECT COUNT(*) FROM patient WHERE BillingType=" + (defNum) + " AND PatStatus!=" + SOut.Int((int) PatientStatus.Deleted);
+        var command = "SELECT COUNT(*) FROM patient WHERE BillingType=" + defNum + " AND PatStatus!=" + SOut.Int((int) PatientStatus.Deleted);
         if (Db.GetCount(command) != "0") return true;
-        command = "SELECT COUNT(*) FROM insplan WHERE BillingType=" + (defNum);
+        command = "SELECT COUNT(*) FROM insplan WHERE BillingType=" + defNum;
         if (Db.GetCount(command) != "0") return true;
         //check any prefs that are FK's to the definition.DefNum column and warn if a pref is using the def
         if (new[]
@@ -1962,8 +1943,8 @@ public class Patients
         
         //If the 'patFrom' had any ties to guardians, they should be deleted to prevent duplicate entries.
         command = "DELETE FROM guardian"
-                  + " WHERE PatNumChild=" + (patFrom)
-                  + " OR PatNumGuardian=" + (patFrom);
+                  + " WHERE PatNumChild=" + patFrom
+                  + " OR PatNumGuardian=" + patFrom;
         Db.NonQ(command);
         //Merge patient notes prior to updating the patient table, otherwise the wrong notes might bet set.
         PatientNotes.Merge(patientFrom, patientTo);
@@ -1988,8 +1969,8 @@ public class Patients
         for (var i = 0; i < listGuarantorToGuarantor.Length; i++)
         {
             command = "UPDATE " + SOut.String(listGuarantorToGuarantor[i]) + " "
-                      + "SET PatNum=" + (newGuarantor) + " "
-                      + "WHERE PatNum=" + (patFrom);
+                      + "SET PatNum=" + newGuarantor + " "
+                      + "WHERE PatNum=" + patFrom;
             Db.NonQ(command);
         }
 
@@ -2000,8 +1981,8 @@ public class Patients
         {
             var tableAndKeyName = StringArrayPatNumForeignKeys[i].Split('.');
             command = "UPDATE " + tableAndKeyName[0]
-                                + " SET " + tableAndKeyName[1] + "=" + (patTo)
-                                + " WHERE " + tableAndKeyName[1] + "=" + (patFrom);
+                                + " SET " + tableAndKeyName[1] + "=" + patTo
+                                + " WHERE " + tableAndKeyName[1] + "=" + patFrom;
             Db.NonQ(command);
         }
 
@@ -2025,7 +2006,7 @@ public class Patients
             //Set HasIns to true
             command = "UPDATE patient "
                       + "SET HasIns='I' "
-                      + "WHERE PatNum=" + (patTo);
+                      + "WHERE PatNum=" + patTo;
             Db.NonQ(command);
             //Remove discount plans if necessary
             if (DiscountPlanSubs.HasDiscountPlan(patTo)) DiscountPlanSubs.DeleteForPatient(patTo);
@@ -2035,8 +2016,8 @@ public class Patients
             //If patTo has no discount plan or insurance
             //Set the discount plan if there isn't one already
             command = "UPDATE discountplansub "
-                      + "SET PatNum=" + (patTo) + " "
-                      + "WHERE PatNum=" + (patFrom);
+                      + "SET PatNum=" + patTo + " "
+                      + "WHERE PatNum=" + patFrom;
             Db.NonQ(command);
         }
 
@@ -2046,14 +2027,14 @@ public class Patients
         //the KeyNum field of the task table might be a foreign key to something other than a patnum,
         //including possibly an appointment number.
         command = "UPDATE task "
-                  + "SET KeyNum=" + (patTo) + " "
-                  + "WHERE KeyNum=" + (patFrom) + " AND ObjectType=" + (int) TaskObjectType.Patient;
+                  + "SET KeyNum=" + patTo + " "
+                  + "WHERE KeyNum=" + patFrom + " AND ObjectType=" + (int) TaskObjectType.Patient;
         Db.NonQ(command);
         //We have to move over the tasks belonging to the 'patFrom' patient in a seperate step because the KeyNum field of the taskhist table might be 
         //  a foreign key to something other than a patnum, including possibly an appointment number.
         command = "UPDATE taskhist "
-                  + "SET KeyNum=" + (patTo) + " "
-                  + "WHERE KeyNum=" + (patFrom) + " AND ObjectType=" + (int) TaskObjectType.Patient;
+                  + "SET KeyNum=" + patTo + " "
+                  + "WHERE KeyNum=" + patFrom + " AND ObjectType=" + (int) TaskObjectType.Patient;
         Db.NonQ(command);
         //Mark the patient where data was pulled from as archived unless the patient is already marked as deceased.
         //We need to have the patient marked either archived or deceased so that it is hidden by default, and
@@ -2062,13 +2043,13 @@ public class Patients
         //data after a bug fix is released. 
         command = "UPDATE patient "
                   + "SET PatStatus=" + (int) PatientStatus.Archived + " "
-                  + "WHERE PatNum=" + (patFrom) + " "
+                  + "WHERE PatNum=" + patFrom + " "
                   + "AND PatStatus!=" + (int) PatientStatus.Deceased;
         Db.NonQ(command);
         //Set remove PatFrom from the superfamily if they currently belong in one by setting patient.SuperFamily to 0.
         if (patientFrom.SuperFamily != 0)
         {
-            command = "UPDATE patient SET patient.SuperFamily=0 WHERE patient.PatNum=" + (patFrom) + ";";
+            command = "UPDATE patient SET patient.SuperFamily=0 WHERE patient.PatNum=" + patFrom + ";";
             Db.NonQ(command);
         }
 
@@ -2315,7 +2296,7 @@ public class Patients
 
     public static void ChangePrimaryProviders(long provNumFrom, long provNumTo)
     {
-        var command = "UPDATE patient SET PriProv=" + (provNumTo) + " WHERE PriProv=" + (provNumFrom);
+        var command = "UPDATE patient SET PriProv=" + provNumTo + " WHERE PriProv=" + provNumFrom;
         Db.NonQ(command);
     }
 
@@ -2336,7 +2317,7 @@ public class Patients
 
     public static List<long> GetPatNumsByClinic(long clinicNum, bool getAllStatuses = false)
     {
-        var command = "SELECT PatNum FROM patient WHERE ClinicNum=" + (clinicNum);
+        var command = "SELECT PatNum FROM patient WHERE ClinicNum=" + clinicNum;
         if (!getAllStatuses)
             command += " AND PatStatus NOT IN (" + SOut.Int((int) PatientStatus.Deleted) + "," + SOut.Int((int) PatientStatus.Archived) + ","
                        + SOut.Int((int) PatientStatus.Deceased) + "," + SOut.Int((int) PatientStatus.NonPatient) + ") ";
@@ -2345,13 +2326,13 @@ public class Patients
 
     public static void ChangeClinicsForAll(long clinicNumFrom, long clinicNumTo)
     {
-        var command = "UPDATE patient SET ClinicNum=" + (clinicNumTo) + " WHERE ClinicNum=" + (clinicNumFrom);
+        var command = "UPDATE patient SET ClinicNum=" + clinicNumTo + " WHERE ClinicNum=" + clinicNumFrom;
         Db.NonQ(command);
     }
 
     public static void UpdateProv(long patNum, long provNumNew)
     {
-        var command = "UPDATE patient SET PriProv =" + (provNumNew) + " WHERE PatNum = " + (patNum);
+        var command = "UPDATE patient SET PriProv =" + provNumNew + " WHERE PatNum = " + patNum;
         Db.NonQ(command);
     }
 
@@ -2398,7 +2379,7 @@ public class Patients
     {
         if (SuperFamilyNum == 0) return []; //return empty list
 
-        var command = "SELECT * FROM patient WHERE SuperFamily=" + (SuperFamilyNum)
+        var command = "SELECT * FROM patient WHERE SuperFamily=" + SuperFamilyNum
                                                                  + " AND patient.PatStatus!=" + SOut.Int((int) PatientStatus.Deleted);
         return PatientCrud.SelectMany(command);
     }
@@ -2411,14 +2392,14 @@ public class Patients
         //string command = "SELECT DISTINCT * FROM patient WHERE PatNum IN (SELECT Guarantor FROM patient WHERE SuperFamily="+POut.Long(SuperFamilyNum)+") "
         //	+"AND PatStatus!="+POut.Int((int)PatientStatus.Deleted);
         //optimized to 0.001 second runtime on same db
-        var command = "SELECT DISTINCT * FROM patient WHERE SuperFamily=" + (SuperFamilyNum)
+        var command = "SELECT DISTINCT * FROM patient WHERE SuperFamily=" + SuperFamilyNum
                                                                           + " AND PatStatus!=" + SOut.Int((int) PatientStatus.Deleted) + " AND PatNum=Guarantor";
         return PatientCrud.TableToList(DataCore.GetTable(command));
     }
 
     public static void AssignToSuperfamily(long guarantor, long superFamilyNum)
     {
-        var command = "UPDATE patient SET SuperFamily=" + (superFamilyNum) + ", HasSuperBilling=1 WHERE Guarantor=" + (guarantor);
+        var command = "UPDATE patient SET SuperFamily=" + superFamilyNum + ", HasSuperBilling=1 WHERE Guarantor=" + guarantor;
         Db.NonQ(command);
     }
 
@@ -2432,7 +2413,7 @@ public class Patients
     public static void DisbandSuperFamily(long SuperFamilyNum)
     {
         if (SuperFamilyNum == 0) return;
-        var command = "UPDATE patient SET SuperFamily=0 WHERE SuperFamily=" + (SuperFamilyNum);
+        var command = "UPDATE patient SET SuperFamily=0 WHERE SuperFamily=" + SuperFamilyNum;
         Db.NonQ(command);
     }
 
@@ -2456,18 +2437,18 @@ public class Patients
         {
             //Include guarantor's family if pref is set.
             //Include any patient where this PatNum is the Guarantor.
-            command = "SELECT PatNum FROM patient WHERE Guarantor = " + (patNum);
+            command = "SELECT PatNum FROM patient WHERE Guarantor = " + patNum;
             var tablePatientsG = DataCore.GetTable(command);
             for (var i = 0; i < tablePatientsG.Rows.Count; i++) listPatNums.Add(SIn.Long(tablePatientsG.Rows[i]["PatNum"].ToString()));
         }
 
         //Include any patient where the given patient is the responsible party.
-        command = "SELECT PatNum FROM patient WHERE ResponsParty = " + (patNum);
+        command = "SELECT PatNum FROM patient WHERE ResponsParty = " + patNum;
         var tablePatientsR = DataCore.GetTable(command);
         for (var i = 0; i < tablePatientsR.Rows.Count; i++) listPatNums.Add(SIn.Long(tablePatientsR.Rows[i]["PatNum"].ToString()));
         //Include any patient where this patient is the guardian.
         command = "SELECT PatNum FROM patient "
-                  + "WHERE PatNum IN (SELECT guardian.PatNumChild FROM guardian WHERE guardian.IsGuardian = 1 AND guardian.PatNumGuardian=" + (patNum) + ") ";
+                  + "WHERE PatNum IN (SELECT guardian.PatNumChild FROM guardian WHERE guardian.IsGuardian = 1 AND guardian.PatNumGuardian=" + patNum + ") ";
         var tablePatientsD = DataCore.GetTable(command);
         for (var i = 0; i < tablePatientsD.Rows.Count; i++) listPatNums.Add(SIn.Long(tablePatientsD.Rows[i]["PatNum"].ToString()));
         return listPatNums.Distinct().ToList();
@@ -2488,7 +2469,7 @@ public class Patients
                       + "LEFT JOIN patient fam ON fam.Guarantor = pat.Guarantor "
                       + "LEFT JOIN payplan ON payplan.Guarantor = fam.PatNum "
                       + "LEFT JOIN patient pplans ON pplans.PatNum = payplan.PatNum "
-                      + "WHERE pat.PatNum = " + (patNum) + " "
+                      + "WHERE pat.PatNum = " + patNum + " "
                       + "AND payplan.IsClosed = 0 "
                       + "GROUP BY pplans.PatNum,pplans.LName,pplans.FName,pplans.MiddleI,pplans.Preferred,pplans.CreditType,pplans.Guarantor,pplans.HasIns,pplans.SSN ";
         var table = DataCore.GetTable(command);
@@ -2610,7 +2591,7 @@ public class Patients
     {
         var whereClause = "WHERE PatStatus=" + SOut.Int((int) patStatus) + " AND (";
         //A selectedClinicNum of -2 corresponds to clincs not enabled or all clinics
-        if (!listClinicNums.IsNullOrEmpty()) whereClause += "ClinicNum IN (" + string.Join(",", listClinicNums.Select(x => (x))) + ") ) AND (";
+        if (!listClinicNums.IsNullOrEmpty()) whereClause += "ClinicNum IN (" + string.Join(",", listClinicNums.Select(x => x)) + ") ) AND (";
         if (doIncludeTPProc || doIncludeCompletedProc)
         {
             //TP or completed proc in date range.
@@ -3101,7 +3082,7 @@ public class Patients
 
     public static Def GetPatientSpecialtyDef(long patNum)
     {
-        var command = "SELECT DefNum FROM deflink WHERE LinkType=" + SOut.Int((int) DefLinkType.Patient) + " AND FKey=" + (patNum);
+        var command = "SELECT DefNum FROM deflink WHERE LinkType=" + SOut.Int((int) DefLinkType.Patient) + " AND FKey=" + patNum;
         var defNum = Db.GetLong(command);
         return Defs.GetDef(DefCat.ClinicSpecialty, defNum);
     }
@@ -3208,140 +3189,6 @@ public class Patients
         return retVal;
     }
 
-    public static List<PatAging> GetAgingList(long clinicNum = 0)
-    {
-        var collectionBillType = Defs.GetDefsForCategory(DefCat.BillingTypes, true).FirstOrDefault(x => x.ItemValue.ToLower() == "c")?.DefNum ?? 0;
-        var guarAndClinicNum = "";
-        var guarClinicJoin = "";
-        var guarGroupBy = "GROUP BY p.Guarantor";
-        if (true)
-        {
-            guarAndClinicNum = $@"
-					AND guar.ClinicNum={(clinicNum)}";
-            guarClinicJoin = $@"
-				INNER JOIN patient guar ON p.Guarantor=guar.PatNum{guarAndClinicNum}";
-            guarGroupBy = "GROUP BY guar.PatNum";
-        }
-
-        var command = $@"SELECT guar.PatNum,guar.Bal_0_30,guar.Bal_31_60,guar.Bal_61_90,guar.BalOver90,guar.BalTotal,guar.InsEst,
-				guar.BalTotal-guar.InsEst AS $pat,guar.PayPlanDue,guar.LName,guar.FName,guar.Preferred,guar.MiddleI,guar.PriProv,guar.BillingType,
-				guar.ClinicNum,guar.Address,guar.City,guar.State,guar.Zip,guar.Birthdate
-				FROM patient guar
-				WHERE guar.PatNum=guar.Guarantor{guarAndClinicNum}
-				AND guar.PatStatus!={SOut.Int((int) PatientStatus.Deleted)}
-				AND (
-					guar.PatStatus!={SOut.Int((int) PatientStatus.Archived)}
-					OR ABS(guar.BalTotal)>0.005{(collectionBillType == 0 ? "" : $@"
-					OR guar.BillingType={(collectionBillType)}")}
-				)";
-        var dictAll = new Dictionary<long, PatAging>();
-        using var table = DataCore.GetTable(command);
-        if (table.Rows.Count == 0) return [];
-        foreach (DataRow row in table.Rows)
-        {
-            var patNum = SIn.Long(row["PatNum"].ToString());
-            dictAll[patNum] = new PatAging
-            {
-                PatNum = patNum,
-                Guarantor = patNum,
-                Bal_0_30 = SIn.Double(row["Bal_0_30"].ToString()),
-                Bal_31_60 = SIn.Double(row["Bal_31_60"].ToString()),
-                Bal_61_90 = SIn.Double(row["Bal_61_90"].ToString()),
-                BalOver90 = SIn.Double(row["BalOver90"].ToString()),
-                BalTotal = SIn.Double(row["BalTotal"].ToString()),
-                InsEst = SIn.Double(row["InsEst"].ToString()),
-                AmountDue = SIn.Double(row["$pat"].ToString()),
-                PayPlanDue = SIn.Double(row["PayPlanDue"].ToString()),
-                PatName = GetNameLF(SIn.String(row["LName"].ToString()), SIn.String(row["FName"].ToString()),
-                    SIn.String(row["Preferred"].ToString()), SIn.String(row["MiddleI"].ToString())),
-                PriProv = SIn.Long(row["PriProv"].ToString()),
-                BillingType = SIn.Long(row["BillingType"].ToString()),
-                ClinicNum = SIn.Long(row["ClinicNum"].ToString()),
-                Address = SIn.String(row["Address"].ToString()),
-                City = SIn.String(row["City"].ToString()),
-                State = SIn.String(row["State"].ToString()),
-                Zip = SIn.String(row["Zip"].ToString()),
-                Birthdate = SIn.Date(row["Birthdate"].ToString()),
-                //the following values will be set below, if applicable
-                ListTsiLogs = [],
-                DateLastPay = DateTime.MinValue,
-                HasInsPending = false,
-                DateLastProc = DateTime.MinValue,
-                HasUnsentProcs = false,
-                DateBalBegan = DateTime.MinValue
-            };
-        }
-
-        TsiTransLogs.SelectMany(dictAll.Keys.ToList())
-            .GroupBy(x => x.PatNum)
-            .ForEach(x => dictAll[x.Key].ListTsiLogs = x.OrderByDescending(y => y.TransDateTime).ToList());
-        command = $@"SELECT p.Guarantor,MAX(p.DatePay) DateLastPay
-				FROM (
-					SELECT patient.Guarantor,MAX(paysplit.DatePay) DatePay
-					FROM paysplit
-					INNER JOIN payment ON payment.PayNum=paysplit.PayNum
-					INNER JOIN patient ON paysplit.PatNum=patient.PatNum
-					WHERE payment.PayType!=0
-					GROUP BY paysplit.PayNum,patient.Guarantor
-					HAVING SUM(paysplit.SplitAmt)!=0
-					ORDER BY NULL
-				) p{guarClinicJoin}
-				{guarGroupBy}
-				ORDER BY NULL";
-        using var tableDateLastPay = DataCore.GetTable(command);
-        foreach (DataRow row in tableDateLastPay.Rows)
-        {
-            var guarNum = SIn.Long(row["Guarantor"].ToString());
-            if (!dictAll.ContainsKey(guarNum)) continue;
-            dictAll[guarNum].DateLastPay = SIn.Date(row["DateLastPay"].ToString());
-        }
-
-        command = $@"SELECT DISTINCT p.Guarantor
-				FROM patient p{guarClinicJoin}
-				INNER JOIN claim ON p.PatNum=claim.PatNum
-					AND claim.ClaimStatus IN ('U','H','I','W','S')
-					AND claim.ClaimType IN ('P','S','Other')";
-        Db.GetListLong(command).FindAll(x => dictAll.ContainsKey(x)).ForEach(x => dictAll[x].HasInsPending = true);
-        command = $@"SELECT p.Guarantor,MAX(procedurelog.ProcDate) MaxProcDate
-				FROM patient p{guarClinicJoin}
-				INNER JOIN procedurelog ON procedurelog.PatNum=p.PatNum
-				WHERE procedurelog.ProcFee>0
-				AND procedurelog.ProcStatus=2
-				{guarGroupBy}
-				ORDER BY NULL";
-        using var tableMaxProcDate = DataCore.GetTable(command);
-        foreach (DataRow row in tableMaxProcDate.Rows)
-        {
-            var guarNum = SIn.Long(row["Guarantor"].ToString());
-            if (!dictAll.ContainsKey(guarNum)) continue;
-            dictAll[guarNum].DateLastProc = SIn.Date(row["MaxProcDate"].ToString());
-        }
-
-        command = $@"SELECT DISTINCT p.Guarantor
-				FROM patient p{guarClinicJoin}
-				INNER JOIN procedurelog ON procedurelog.PatNum=p.PatNum
-				INNER JOIN claimproc ON claimproc.ProcNum=procedurelog.ProcNum
-				WHERE procedurelog.ProcFee>0
-				AND procedurelog.ProcStatus=2
-				AND procedurelog.ProcDate>CURDATE()-INTERVAL 6 MONTH
-				AND claimproc.NoBillIns=0
-				AND claimproc.Status=6";
-        Db.GetListLong(command).FindAll(x => dictAll.ContainsKey(x)).ForEach(x => dictAll[x].HasUnsentProcs = true);
-        return dictAll.Values.ToList();
-    }
-
-    public static void SetDateBalBegan(long clinicNum, ref List<PatAging> listPatAgingAll, ref List<ClinicBalBegans> listClinicBalBegans)
-    {
-        var dictAll = listPatAgingAll.ToDictionary(x => x.PatNum);
-        if (!listClinicBalBegans.Any(x => x.ClinicNum == clinicNum)) listClinicBalBegans.Add(new ClinicBalBegans(clinicNum, Ledgers.GetDateBalanceBegan(clinicNum))); //uses today's date, doesn't consider super families
-        var dictDateBals = listClinicBalBegans.First(x => x.ClinicNum == clinicNum).DictGuarDateBals; //guaranteed to contain clinicNum from above
-        foreach (var patNum in dictAll.Keys)
-        {
-            if (!dictDateBals.ContainsKey(patNum)) continue;
-            dictAll[patNum].DateBalBegan = dictDateBals[patNum];
-        }
-    }
-
     public static List<long> GetListCollectionGuarNums(bool doIncludeSuspended = true)
     {
         var listBillTypes = Defs.GetDefsForCategory(DefCat.BillingTypes, true).FindAll(x => x.ItemValue.ToLower() == "c");
@@ -3351,7 +3198,7 @@ public class Patients
         var command = "SELECT patient.Guarantor "
                       + "FROM patient "
                       + "WHERE patient.PatNum=patient.Guarantor "
-                      + "AND patient.BillingType IN (" + string.Join(",", listBillTypes.Select(x => (x.DefNum))) + ")";
+                      + "AND patient.BillingType IN (" + string.Join(",", listBillTypes.Select(x => x.DefNum)) + ")";
         return Db.GetListLong(command).Union(listSuspendedGuarNums).ToList();
     }
 
@@ -3362,9 +3209,9 @@ public class Patients
         if (billTypeColl == null) return false; //if not suspended and no billing type marked as collection billing type, return false, guar not a collection guar
         var command = "SELECT 1 isGuarCollection "
                       + "FROM patient "
-                      + "WHERE PatNum=" + (guarNum) + " "
+                      + "WHERE PatNum=" + guarNum + " "
                       + "AND PatNum=Guarantor "
-                      + "AND BillingType=" + (billTypeColl.DefNum) + " "
+                      + "AND BillingType=" + billTypeColl.DefNum + " "
                       + DbHelper.LimitAnd(1);
         return SIn.Bool(DataCore.GetScalar(command));
     }
@@ -3374,7 +3221,7 @@ public class Patients
         if (listPatNums.IsNullOrEmpty()) return [];
 
         //If two patients in the same family are passed in, it will still only return that families guarantor once.
-        var command = "SELECT DISTINCT Guarantor FROM patient WHERE PatNum IN (" + string.Join(",", listPatNums.Select(x => (x))) + ") ";
+        var command = "SELECT DISTINCT Guarantor FROM patient WHERE PatNum IN (" + string.Join(",", listPatNums.Select(x => x)) + ") ";
         return Db.GetListLong(command);
     }
 
@@ -3409,7 +3256,7 @@ public class Patients
         if (patNum == 0) return null;
 
         var command = $@"SELECT * FROM patient guar
-				WHERE guar.PatNum=(SELECT patient.Guarantor FROM patient WHERE patient.PatNum={(patNum)})";
+				WHERE guar.PatNum=(SELECT patient.Guarantor FROM patient WHERE patient.PatNum={patNum})";
         return PatientCrud.SelectOne(command);
     }
 
@@ -4213,12 +4060,10 @@ public class PatComm : WebBase
     public bool IsSmsAnOption;
     public bool IsSmsPhoneFormatOk;
     public bool IsTextingEnabledForClinic;
-    public string Language;
     public string LName;
     public long PatNum;
     public PatientStatus PatStatus;
     public string PreferredName;
-    public bool Premed;
     public string SmsPhone;
     public YN TxtMsgOk;
     public string WirelessPhone;
@@ -4235,8 +4080,6 @@ public class PatComm : WebBase
         PreferredName = pat.Preferred;
         Guarantor = pat.Guarantor;
         ClinicNum = pat.ClinicNum;
-        Language = pat.Language;
-        Premed = pat.Premed;
         SetSmsEmailFields(isEmailValidForClinic, isTextingEnabledForClinic, isUnknownNo, curCulture, smsPhoneCountryCode);
     }
 
@@ -4254,9 +4097,9 @@ public class PatComm : WebBase
         LName = SIn.String(dataRow["LName"].ToString());
         Guarantor = SIn.Long(dataRow["Guarantor"].ToString());
         ClinicNum = SIn.Long(dataRow["ClinicNum"].ToString());
-        Language = SIn.String(dataRow["Language"].ToString());
+        SIn.String(dataRow["Language"].ToString());
         SIn.Date(dataRow["Birthdate"].ToString());
-        Premed = SIn.Bool(dataRow["Premed"].ToString());
+        SIn.Bool(dataRow["Premed"].ToString());
         SetSmsEmailFields(isEmailValidForClinic, isTextingEnabledForClinic, isUnknownNo, curCulture, smsPhoneCountryCode);
     }
 
@@ -4407,12 +4250,6 @@ public class PatAging
     public string State;
     public long SuperFamily;
     public string Zip;
-}
-
-public class ClinicBalBegans(long clinicNum, Dictionary<long, DateTime> dictGuarDateBals)
-{
-    public long ClinicNum = clinicNum;
-    public Dictionary<long, DateTime> DictGuarDateBals = dictGuarDateBals;
 }
 
 [Serializable]

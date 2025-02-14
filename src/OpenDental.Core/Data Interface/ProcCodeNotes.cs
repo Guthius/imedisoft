@@ -11,58 +11,61 @@ public class ProcCodeNotes
 {
     public static List<ProcCodeNote> GetList(long codeNum)
     {
-        var command = "SELECT * FROM proccodenote WHERE CodeNum=" + (codeNum);
-        return ProcCodeNoteCrud.SelectMany(command);
+        return ProcCodeNoteCrud.SelectMany("SELECT * FROM proccodenote WHERE CodeNum = " + codeNum);
     }
 
-    public static void Insert(ProcCodeNote note)
+    public static void Insert(ProcCodeNote procCodeNote)
     {
-        ProcCodeNoteCrud.Insert(note);
+        ProcCodeNoteCrud.Insert(procCodeNote);
     }
 
-    public static void Update(ProcCodeNote note)
+    public static void Update(ProcCodeNote procCodeNote)
     {
-        ProcCodeNoteCrud.Update(note);
+        ProcCodeNoteCrud.Update(procCodeNote);
     }
 
     public static void Delete(long procCodeNoteNum)
     {
-        var command = "DELETE FROM proccodenote WHERE ProcCodeNoteNum = " + (procCodeNoteNum);
-        Db.NonQ(command);
+        Db.NonQ("DELETE FROM proccodenote WHERE ProcCodeNoteNum = " + procCodeNoteNum);
     }
 
     public static string GetNote(long provNum, long codeNum, ProcStat procStatus, bool isGroupNote = false)
     {
-        var listProcCodeNotes = GetDeepCopy();
-        for (var i = 0; i < listProcCodeNotes.Count; i++)
+        var procCodeNotes = GetDeepCopy();
+
+        foreach (var procCodeNote in procCodeNotes)
         {
-            if (listProcCodeNotes[i].ProvNum != provNum) continue;
-            if (listProcCodeNotes[i].CodeNum != codeNum) continue;
-            //Skip provider specific notes if this is a group note and the procedure is not complete
-            // OR if this is NOT a group note and the procedure does not have the desired status.
-            if ((isGroupNote && listProcCodeNotes[i].ProcStatus != ProcStat.C)
-                || (!isGroupNote && listProcCodeNotes[i].ProcStatus != procStatus))
+            if (procCodeNote.ProvNum != provNum ||
+                procCodeNote.CodeNum != codeNum)
+            {
                 continue;
-            return listProcCodeNotes[i].Note;
+            }
+
+            if ((isGroupNote && procCodeNote.ProcStatus != ProcStat.C) || (!isGroupNote && procCodeNote.ProcStatus != procStatus))
+            {
+                continue;
+            }
+
+            return procCodeNote.Note;
         }
 
-        //A provider specific procedure code note could not be found, use the default for the procedure code.
-        if (procStatus == ProcStat.TP) return ProcedureCodes.GetProcCode(codeNum).DefaultTPNote;
-        return ProcedureCodes.GetProcCode(codeNum).DefaultNote;
+        return procStatus == ProcStat.TP
+            ? ProcedureCodes.GetProcCode(codeNum).DefaultTPNote
+            : ProcedureCodes.GetProcCode(codeNum).DefaultNote;
     }
 
     public static string GetTimePattern(long provNum, long codeNum)
     {
         var procCodeNote = GetFirstOrDefault(x => x.ProvNum == provNum && x.CodeNum == codeNum);
+        
         return procCodeNote == null ? ProcedureCodes.GetProcCode(codeNum).ProcTime : procCodeNote.ProcTime;
     }
-    
+
     private class ProcCodeNoteCache : CacheListAbs<ProcCodeNote>
     {
         protected override List<ProcCodeNote> GetCacheFromDb()
         {
-            var command = "SELECT * FROM proccodenote";
-            return ProcCodeNoteCrud.SelectMany(command);
+            return ProcCodeNoteCrud.SelectMany("SELECT * FROM proccodenote");
         }
 
         protected override List<ProcCodeNote> TableToList(DataTable dataTable)
@@ -82,10 +85,10 @@ public class ProcCodeNotes
 
         protected override void FillCacheIfNeeded()
         {
-            ProcCodeNotes.GetTableFromCache(false);
+            GetTableFromCache(false);
         }
     }
-    
+
     private static readonly ProcCodeNoteCache Cache = new();
 
     public static List<ProcCodeNote> GetDeepCopy(bool isShort = false)

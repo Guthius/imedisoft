@@ -145,7 +145,6 @@ partial class FormOpenDental
         menuItemSetup.Add("Schedules", menuItemSched_Click);
         menuItemSetup.Add("Security", menuItemSecurity_Click);
         menuItemSetup.Add("Security Add User", menuItemSecurityAddUser_Click);
-        menuItemSetup.Add("Security Badges", menuItemSecurityBadges_Click);
         menuItemSetup.Add("Sheets", (_, _) => Open<FormSheetDefs>(EnumPermType.Setup, "Sheets"));
         menuItemSetup.Add("Spell Check", (_, _) => Open<FormSpellCheck>());
         menuItemSetup.Add("Tasks", MenuItemTask_Click);
@@ -200,7 +199,6 @@ partial class FormOpenDental
     private void LayoutSubMenuManage(MenuItemOD menuItemManage)
     {
         menuItemManage.Add("E-mail", (_, _) => Open<FormEmailAddresses>(EnumPermType.Setup, "Email"));
-        menuItemManage.Add("Time Cards", (_, _) => Open<FormTimeCardSetup>(EnumPermType.Setup, "Time Card Setup"));
     }
 
     private void LayoutSubMenuAdvSetup(MenuItemOD menuItemAdvSetup)
@@ -312,7 +310,6 @@ partial class FormOpenDental
         menuItemMiscTools.Add(_menuItemProcLockTool);
         menuItemMiscTools.Add("Shutdown All Workstations", menuItemShutdown_Click);
         menuItemMiscTools.Add("Telephone Numbers", menuTelephone_Click);
-        menuItemMiscTools.Add("Test Latency", menuItemTestLatency_Click);
     }
 
     private void LayoutMenuHelp(MenuItemOD menuItemHelp)

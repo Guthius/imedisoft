@@ -20,19 +20,6 @@ public static class Counties
         return counties;
     }
 
-    public static List<string> GetListNames()
-    {
-        var dataTable = DataCore.GetTable("SELECT CountyName from county ORDER BY CountyName");
-
-        var countyNames = new List<string>();
-        for (var i = 0; i < dataTable.Rows.Count; i++)
-        {
-            countyNames.Add(SIn.String(dataTable.Rows[i]["CountyName"].ToString()));
-        }
-
-        return countyNames;
-    }
-
     public static void Insert(County county)
     {
         CountyCrud.Insert(county);
@@ -51,7 +38,7 @@ public static class Counties
 
     public static string UsedBy(string countyName)
     {
-        var dataTable = DataCore.GetTable("SELECT LName,FName FROM patient WHERE County = '" + SOut.String(countyName) + "'");
+        var dataTable = DataCore.GetTable("SELECT LName, FName FROM patient WHERE County = '" + SOut.String(countyName) + "'");
         if (dataTable.Rows.Count == 0)
         {
             return string.Empty;

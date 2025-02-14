@@ -11,14 +11,17 @@ public static class TreatPlanAttaches
 {
     public static void SetPriorityForTreatPlanProcs(long priority, long treatPlanNum, List<long> procNums)
     {
-        if (procNums.IsNullOrEmpty()) return;
+        if (procNums is not {Count: > 0})
+        {
+            return;
+        }
 
         Db.NonQ(
             $"""
              UPDATE treatplanattach 
              SET Priority = {priority} 
              WHERE TreatPlanNum = {treatPlanNum} 
-             AND ProcNum IN({string.Join(",", procNums)})
+             AND ProcNum IN ({string.Join(",", procNums)})
              """);
     }
 
@@ -36,12 +39,12 @@ public static class TreatPlanAttaches
 
     public static List<TreatPlanAttach> GetAllForTPs(List<long> treatPlanNums)
     {
-        return treatPlanNums.Count == 0 ? [] : TreatPlanAttachCrud.SelectMany("SELECT * FROM treatplanattach WHERE TreatPlanNum IN (" + string.Join(",", treatPlanNums) + ")");
+        return treatPlanNums.Count == 0 ? [] : TreatPlanAttachCrud.SelectMany("SELECT * FROM treatplanattach WHERE TreatPlanNum IN (" + string.Join(", ", treatPlanNums) + ")");
     }
 
     public static List<TreatPlanAttach> GetAllForTreatPlan(long treatPlanNum)
     {
-        return TreatPlanAttachCrud.SelectMany("SELECT * FROM treatplanattach WHERE TreatPlanNum=" + treatPlanNum);
+        return TreatPlanAttachCrud.SelectMany("SELECT * FROM treatplanattach WHERE TreatPlanNum = " + treatPlanNum);
     }
 
     public static void Sync(List<TreatPlanAttach> treatPlanAttachesNew, long treatPlanNum)

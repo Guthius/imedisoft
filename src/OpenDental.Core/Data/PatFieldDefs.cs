@@ -25,20 +25,20 @@ public class PatFieldDefs
     {
         var dataTable = DataCore.GetTable(
             "SELECT LName,FName FROM patient,patfield " +
-            "WHERE patient.PatNum=patfield.PatNum " + 
+            "WHERE patient.PatNum=patfield.PatNum " +
             "AND FieldName='" + SOut.String(patFieldDef.FieldName) + "'");
-        
+
         if (dataTable.Rows.Count > 0)
         {
             var message = "Not allowed to delete. Already in use by " + dataTable.Rows.Count + " patients, including\r\n";
-            
+
             for (var i = 0; i < dataTable.Rows.Count; i++)
             {
                 if (i > 5)
                 {
                     break;
                 }
-                
+
                 message += dataTable.Rows[i][0] + ", " + dataTable.Rows[i][1] + "\r\n";
             }
 
@@ -47,7 +47,7 @@ public class PatFieldDefs
 
         Db.NonQ("DELETE FROM patfielddef WHERE PatFieldDefNum = " + patFieldDef.PatFieldDefNum);
     }
-    
+
     public static PatFieldDef GetFieldDefByFieldName(string fieldName)
     {
         return GetFirstOrDefault(x => x.FieldName == fieldName);
@@ -56,7 +56,7 @@ public class PatFieldDefs
     public static string GetFieldName(long patFieldDefNum)
     {
         var patFieldDef = GetFirstOrDefault(x => x.PatFieldDefNum == patFieldDefNum, true);
-        
+
         return patFieldDef == null ? "" : patFieldDef.FieldName;
     }
 
@@ -112,12 +112,12 @@ public class PatFieldDefs
 
     public static void RefreshCache()
     {
-        GetTableFromCache(true);
+        Cache.GetTableFromCache(true);
     }
 
-    public static DataTable GetTableFromCache(bool refreshCache)
+    public static void GetTableFromCache(bool refreshCache)
     {
-        return Cache.GetTableFromCache(refreshCache);
+        Cache.GetTableFromCache(refreshCache);
     }
 
     public static void ClearCache()

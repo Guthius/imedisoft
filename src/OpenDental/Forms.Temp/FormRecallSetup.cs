@@ -8,6 +8,7 @@ using CodeBase;
 using System.Globalization;
 using DataConnectionBase;
 using Imedisoft.Core.Caching;
+using Imedisoft.Core.Data;
 using Imedisoft.Core.Entities;
 
 namespace OpenDental;

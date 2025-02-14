@@ -17,32 +17,26 @@ public class TreatPlans
 {
     public static List<TreatPlan> Refresh(long patNum)
     {
-        var command = "SELECT * FROM treatplan "
-                      + "WHERE PatNum=" + (patNum) + " "
-                      + "AND TPStatus=0 " //Saved
-                      + "ORDER BY DateTP";
-        return TreatPlanCrud.SelectMany(command);
+        return TreatPlanCrud.SelectMany("SELECT * FROM treatplan WHERE PatNum = " + patNum + " AND TPStatus = 0 ORDER BY DateTP");
     }
 
     public static List<TreatPlan> GetAllForPat(long patNum)
     {
-        var command = "SELECT * FROM treatplan "
-                      + "WHERE PatNum=" + (patNum) + " ";
-        return TreatPlanCrud.SelectMany(command);
+        return TreatPlanCrud.SelectMany("SELECT * FROM treatplan WHERE PatNum = " + patNum);
     }
 
     public static List<TreatPlan> GetAllCurrentForPat(long patNum)
     {
-        var listTreatPlans = GetAllForPat(patNum).Where(x => x.TPStatus != TreatPlanStatus.Saved)
+        return GetAllForPat(patNum)
+            .Where(x => x.TPStatus != TreatPlanStatus.Saved)
             .OrderBy(x => x.TPStatus != TreatPlanStatus.Active)
-            .ThenBy(x => x.DateTP).ToList();
-        return listTreatPlans;
+            .ThenBy(x => x.DateTP)
+            .ToList();
     }
 
     public static TreatPlan GetActiveForPat(long patNum)
     {
-        var command = "SELECT * FROM treatplan WHERE PatNum=" + (patNum) + " AND TPStatus=" + SOut.Int((int) TreatPlanStatus.Active);
-        return TreatPlanCrud.SelectOne(command);
+        return TreatPlanCrud.SelectOne("SELECT * FROM treatplan WHERE PatNum = " + patNum + " AND TPStatus = " + (int) TreatPlanStatus.Active);
     }
 
     public static void Update(TreatPlan treatPlan)
@@ -58,107 +52,77 @@ public class TreatPlans
     public static long Insert(TreatPlan treatPlan)
     {
         treatPlan.SecUserNumEntry = Security.CurUser.UserNum;
+
         return TreatPlanCrud.Insert(treatPlan);
     }
 
     public static void Delete(TreatPlan treatPlan)
     {
-        //check proctp for dependencies
-        var command = "SELECT * FROM proctp WHERE TreatPlanNum =" + (treatPlan.TreatPlanNum);
-        var table = DataCore.GetTable(command);
-        if (table.Rows.Count > 0)
-            //this should never happen
-            throw new ApplicationException(Lans.g("TreatPlans", "Cannot delete treatment plan because it has ProcTP's attached"));
+        var dataTable = DataCore.GetTable("SELECT * FROM proctp WHERE TreatPlanNum = " + treatPlan.TreatPlanNum);
 
-        command = "DELETE from treatplan WHERE TreatPlanNum = '" + (treatPlan.TreatPlanNum) + "'";
-        Db.NonQ(command);
-        if (!treatPlan.TPStatus.In(TreatPlanStatus.Saved)) return;
+        if (dataTable.Rows.Count > 0)
+        {
+            throw new ApplicationException("Cannot delete treatment plan because it has ProcTP's attached");
+        }
+
+        Db.NonQ("DELETE from treatplan WHERE TreatPlanNum = " + treatPlan.TreatPlanNum);
     }
 
-    public static long CreateArchivedTreatPlan(TreatPlan treatPlan, Patient patient, List<ProcTP> listProcTPsSelected, List<TreatPlanAttach> listTreatPlanAttaches)
+    public static long CreateArchivedTreatPlan(TreatPlan treatPlan, Patient patient, List<ProcTP> selectedProcTps, List<TreatPlanAttach> listTreatPlanAttaches)
     {
         var retVal = Insert(treatPlan);
-        ProcTP procTP;
+        
         Procedure procedure;
+        
         var itemNo = 0;
-        for (var i = 0; i < listProcTPsSelected.Count; i++)
+        
+        foreach (var procTp in selectedProcTps)
         {
-            if (listProcTPsSelected[i] == null)
-                //user must have highlighted a subtotal row.
+            if (procTp is null)
+            {
                 continue;
-
-            procedure = Procedures.GetOneProc(listProcTPsSelected[i].ProcNumOrig, true);
-            procTP = new ProcTP();
-            procTP.TreatPlanNum = treatPlan.TreatPlanNum;
-            procTP.PatNum = patient.PatNum;
-            procTP.ProcNumOrig = procedure.ProcNum;
-            procTP.ItemOrder = itemNo;
+            }
+            
+            procedure = Procedures.GetOneProc(procTp.ProcNumOrig, true);
+            
             var treatPlanAttach = listTreatPlanAttaches.FirstOrDefault(x => x.ProcNum == procedure.ProcNum);
-            if (treatPlanAttach == null)
-                //This could happen if another workstation completed this procedure just now.
-                procTP.Priority = 0;
-            else
-                procTP.Priority = treatPlanAttach.Priority;
-
-            procTP.ToothNumTP = Tooth.Display(procedure.ToothNum);
             var procedureCode = ProcedureCodes.GetProcCode(procedure.CodeNum);
-            if (procedureCode.TreatArea == TreatmentArea.Surf)
-                procTP.Surf = Tooth.SurfTidyFromDbToDisplay(procedure.Surf, procedure.ToothNum);
-            else if (procedureCode.TreatArea == TreatmentArea.Sextant)
-                procTP.Surf = Tooth.GetSextant(procedure.Surf, (ToothNumberingNomenclature) PrefC.GetInt(PrefName.UseInternationalToothNumbers));
-            else
-                procTP.Surf = procedure.Surf; //for UR, L, etc.
-
-            procTP.ProcCode = ProcedureCodes.GetStringProcCode(procedure.CodeNum);
-            procTP.Descript = listProcTPsSelected[i].Descript;
-            procTP.FeeAmt = listProcTPsSelected[i].FeeAmt;
-            procTP.PriInsAmt = listProcTPsSelected[i].PriInsAmt;
-            procTP.SecInsAmt = listProcTPsSelected[i].SecInsAmt;
-            procTP.Discount = listProcTPsSelected[i].Discount;
-            procTP.PatAmt = listProcTPsSelected[i].PatAmt;
-            procTP.Prognosis = listProcTPsSelected[i].Prognosis;
-            procTP.Dx = listProcTPsSelected[i].Dx;
-            procTP.ProcAbbr = listProcTPsSelected[i].ProcAbbr;
-            procTP.FeeAllowed = listProcTPsSelected[i].FeeAllowed;
-            procTP.TaxAmt = listProcTPsSelected[i].TaxAmt;
-            procTP.ProvNum = listProcTPsSelected[i].ProvNum;
-            procTP.DateTP = listProcTPsSelected[i].DateTP;
-            procTP.ClinicNum = listProcTPsSelected[i].ClinicNum;
-            procTP.CatPercUCR = listProcTPsSelected[i].CatPercUCR;
-            ProcTPs.InsertOrUpdate(procTP, true);
+            
+            var proc = new ProcTP
+            {
+                TreatPlanNum = treatPlan.TreatPlanNum,
+                PatNum = patient.PatNum,
+                ProcNumOrig = procedure.ProcNum,
+                ItemOrder = itemNo,
+                Priority = treatPlanAttach?.Priority ?? 0,
+                ToothNumTP = Tooth.Display(procedure.ToothNum),
+                Surf = procedureCode.TreatArea switch
+                {
+                    TreatmentArea.Surf => Tooth.SurfTidyFromDbToDisplay(procedure.Surf, procedure.ToothNum),
+                    TreatmentArea.Sextant => Tooth.GetSextant(procedure.Surf, (ToothNumberingNomenclature) PrefC.GetInt(PrefName.UseInternationalToothNumbers)),
+                    _ => procedure.Surf
+                },
+                ProcCode = ProcedureCodes.GetStringProcCode(procedure.CodeNum),
+                Descript = procTp.Descript,
+                FeeAmt = procTp.FeeAmt,
+                PriInsAmt = procTp.PriInsAmt,
+                SecInsAmt = procTp.SecInsAmt,
+                Discount = procTp.Discount,
+                PatAmt = procTp.PatAmt,
+                Prognosis = procTp.Prognosis,
+                Dx = procTp.Dx,
+                ProcAbbr = procTp.ProcAbbr,
+                FeeAllowed = procTp.FeeAllowed,
+                TaxAmt = procTp.TaxAmt,
+                ProvNum = procTp.ProvNum,
+                DateTP = procTp.DateTP,
+                ClinicNum = procTp.ClinicNum,
+                CatPercUCR = procTp.CatPercUCR
+            };
+            
+            ProcTPs.InsertOrUpdate(proc, true);
+            
             itemNo++;
-
-            #region Canadian Lab Fees
-
-            /*
-            proc=(Procedure)gridMain.Rows[gridMain.SelectedIndices[i]].Tag;
-            procTP=new ProcTP();
-            procTP.TreatPlanNum=tp.TreatPlanNum;
-            procTP.PatNum=PatCur.PatNum;
-            procTP.ProcNumOrig=proc.ProcNum;
-            procTP.ItemOrder=itemNo;
-            procTP.Priority=proc.Priority;
-            procTP.ToothNumTP="";
-            procTP.Surf="";
-            procTP.Code=proc.LabProcCode;
-            procTP.Descript=gridMain.Rows[gridMain.SelectedIndices[i]]
-                .Cells[gridMain.Columns.GetIndex(Lan.g("TableTP","Description"))].Text;
-            if(checkShowFees.Checked) {
-                procTP.FeeAmt=PIn.PDouble(gridMain.Rows[gridMain.SelectedIndices[i]]
-                    .Cells[gridMain.Columns.GetIndex(Lan.g("TableTP","Fee"))].Text);
-            }
-            if(checkShowIns.Checked) {
-                procTP.PriInsAmt=PIn.PDouble(gridMain.Rows[gridMain.SelectedIndices[i]]
-                    .Cells[gridMain.Columns.GetIndex(Lan.g("TableTP","Pri Ins"))].Text);
-                procTP.SecInsAmt=PIn.PDouble(gridMain.Rows[gridMain.SelectedIndices[i]]
-                    .Cells[gridMain.Columns.GetIndex(Lan.g("TableTP","Sec Ins"))].Text);
-                procTP.PatAmt=PIn.PDouble(gridMain.Rows[gridMain.SelectedIndices[i]]
-                    .Cells[gridMain.Columns.GetIndex(Lan.g("TableTP","Pat"))].Text);
-            }
-            ProcTPs.InsertOrUpdate(procTP,true);
-            itemNo++;*/
-
-            #endregion Canadian Lab Fees
         }
 
         return retVal;
@@ -167,24 +131,23 @@ public class TreatPlans
     public static string GetKeyDataForSignatureSaving(TreatPlan treatPlan, List<ProcTP> listProcTPs)
     {
         var keyData = GetKeyDataForSignatureHash(treatPlan, listProcTPs);
+        
         return GetHashStringForSignature(keyData);
     }
 
-    public static string GetKeyDataForSignatureHash(TreatPlan treatPlan, List<ProcTP> listProcTPs)
+    public static string GetKeyDataForSignatureHash(TreatPlan treatPlan, List<ProcTP> procTps)
     {
-        //the key data is a concatenation of the following:
-        //tp: Note, DateTP, SignatureText, SignaturePracticeText
-        //each proctp: Descript,PatAmt
-        //The procedures MUST be in the correct order, and we'll use ItemOrder to order them.
         var stringBuilder = new StringBuilder();
+        
         stringBuilder.Append(treatPlan.Note);
         stringBuilder.Append(treatPlan.DateTP.ToString("yyyyMMdd"));
         stringBuilder.Append(treatPlan.SignatureText);
         stringBuilder.Append(treatPlan.SignaturePracticeText);
-        for (var i = 0; i < listProcTPs.Count; i++)
+        
+        foreach (var procTp in procTps)
         {
-            stringBuilder.Append(listProcTPs[i].Descript);
-            stringBuilder.Append(listProcTPs[i].PatAmt.ToString("F2"));
+            stringBuilder.Append(procTp.Descript);
+            stringBuilder.Append(procTp.PatAmt.ToString("F2"));
         }
 
         return stringBuilder.ToString();
@@ -441,122 +404,138 @@ public class TreatPlans
         for (var i = 0; i < listTreatPlanAttachesInactive.Count; i++) ProcMultiVisits.UpdateGroupForProc(listTreatPlanAttachesInactive[i].ProcNum, ProcStat.TPi);
     }
 
-    public static void SetPriorityForProcs(TreatPlan treatPlan, long priorityDefNum, List<long> listProcNums, int treatPlanCount, bool suppressSecMessage = false)
+    public static void SetPriorityForProcs(TreatPlan treatPlan, long priorityDefNum, List<long> procNums, int treatPlanCount, bool suppressSecurityMessage = false)
     {
-        if (treatPlanCount > 0
-            && (treatPlan.TPStatus == TreatPlanStatus.Active || treatPlan.TPStatus == TreatPlanStatus.Inactive))
+        if (treatPlanCount > 0 && treatPlan.TPStatus is TreatPlanStatus.Active or TreatPlanStatus.Inactive)
         {
-            TreatPlanAttaches.SetPriorityForTreatPlanProcs(priorityDefNum, treatPlan.TreatPlanNum, listProcNums);
+            TreatPlanAttaches.SetPriorityForTreatPlanProcs(priorityDefNum, treatPlan.TreatPlanNum, procNums);
             return;
         }
 
-        //any Saved TP
-        if (!Security.IsAuthorized(EnumPermType.TreatPlanEdit, treatPlan.DateTP, suppressSecMessage)) return;
+        if (!Security.IsAuthorized(EnumPermType.TreatPlanEdit, treatPlan.DateTP, suppressSecurityMessage))
+        {
+            return;
+        }
 
-        ProcTPs.SetPriorityForTreatPlanProcs(priorityDefNum, treatPlan.TreatPlanNum, listProcNums);
+        ProcTPs.SetPriorityForTreatPlanProcs(priorityDefNum, treatPlan.TreatPlanNum, procNums);
     }
 
     public static TreatPlan GetUnassigned(long patNum)
     {
-        var command = "SELECT * FROM treatplan "
-                      + "WHERE PatNum=" + (patNum) + " "
-                      + "AND TPStatus=" + SOut.Int((int) TreatPlanStatus.Inactive) + " "
-                      + "AND Heading='" + SOut.String(Lans.g("TreatPlans", "Unassigned")) + "'";
-        return TreatPlanCrud.SelectOne(command) ?? new TreatPlan();
+        var commandText =
+            "SELECT * FROM treatplan " +
+            "WHERE PatNum = " + patNum + " " +
+            "AND TPStatus = " + (int) TreatPlanStatus.Inactive + " " +
+            "AND Heading = '" + SOut.String("Unassigned") + "'";
+
+        return TreatPlanCrud.SelectOne(commandText) ?? new TreatPlan();
     }
 
     public static void SetOtherActiveTPsToInactive(TreatPlan treatPlan)
     {
-        var command = "SELECT * FROM treatplan "
-                      + "WHERE PatNum=" + (treatPlan.PatNum) + " "
-                      + "AND TPStatus=" + SOut.Int((int) TreatPlanStatus.Active) + " "
-                      + "AND TreatPlanNum!=" + (treatPlan.TreatPlanNum);
-        //Make Active TP's inactive. Rename if TP's still have default name.
-        var listTreatPlansActive = TreatPlanCrud.SelectMany(command);
-        for (var i = 0; i < listTreatPlansActive.Count; i++)
-        {
-            //should only ever be one, but just in case there are multiple this will rectify the problem.
-            if (listTreatPlansActive[i].Heading == Lans.g("TreatPlans", "Active Treatment Plan")) listTreatPlansActive[i].Heading = Lans.g("TreatPlans", "Inactive Treatment Plan");
+        var activeTreatPlans = TreatPlanCrud.SelectMany(
+            "SELECT * FROM treatplan " +
+            "WHERE PatNum = " + treatPlan.PatNum + " " +
+            "AND TPStatus = " + (int) TreatPlanStatus.Active + " " +
+            "AND TreatPlanNum != " + treatPlan.TreatPlanNum);
 
-            listTreatPlansActive[i].TPStatus = TreatPlanStatus.Inactive;
-            Update(listTreatPlansActive[i]);
+        foreach (var otherTreatPlan in activeTreatPlans)
+        {
+            if (otherTreatPlan.Heading == "Active Treatment Plan")
+            {
+                otherTreatPlan.Heading = "Inactive Treatment Plan";
+            }
+
+            otherTreatPlan.TPStatus = TreatPlanStatus.Inactive;
+
+            Update(otherTreatPlan);
         }
-        //Heading is changed from within the form, if they have changed it back to Inactive Treatment Plan it was deliberate.
-        //if(treatPlanCur.Heading==Lans.g("TreatPlans","Inactive Treatment Plan")) {
-        //	treatPlanCur.Heading=Lans.g("TreatPlans","Active Treatment Plan");
-        //}
-        //Not necessary, treatPlanCur should be set to Active prior to calling this function.
-        //treatPlanCur.TPStatus=TreatPlanStatus.Active;
-        //TreatPlans.Update(treatPlanCur);
     }
 
     public static List<long> GetNumsByNote(string noteOld)
     {
         noteOld = noteOld.Replace("\r", "");
-        //oldNote=oldNote.Replace("\r","").Replace("\n","\r\n");
-        //oldNote=oldNote.Replace("\r","").Replace("\n","*?");
-        var command = "SELECT TreatPlanNum FROM treatplan WHERE REPLACE(Note,'\\r','')='" + SOut.String(noteOld) + "' " +
-                      "AND TPStatus IN (" + SOut.Int((int) TreatPlanStatus.Active) + "," + SOut.Int((int) TreatPlanStatus.Inactive) + ")";
-        //string command="SELECT TreatPlanNum FROM treatplan WHERE Note='"+POut.String(oldNote)+"' "+
-        //	"AND TPStatus IN ("+POut.Int((int)TreatPlanStatus.Active)+","+POut.Int((int)TreatPlanStatus.Inactive)+")";
-        return Db.GetListLong(command);
+
+        return Db.GetListLong(
+            "SELECT TreatPlanNum FROM treatplan " +
+            "WHERE REPLACE(Note, '\\r', '') = '" + SOut.String(noteOld) + "' " +
+            "AND TPStatus IN (" + (int) TreatPlanStatus.Active + ", " + (int) TreatPlanStatus.Inactive + ")");
     }
 
     public static void UpdateNotes(string noteNew, List<long> listTreatPlanNums)
     {
         if (listTreatPlanNums == null || listTreatPlanNums.Count == 0) return;
 
-        var command = "UPDATE treatplan SET Note='" + SOut.String(noteNew) + "' "
-                      + "WHERE TreatPlanNum IN (" + string.Join(",", listTreatPlanNums) + ")";
-        Db.NonQ(command);
+        Db.NonQ("UPDATE treatplan SET Note = '" + SOut.String(noteNew) + "' WHERE TreatPlanNum IN (" + string.Join(", ", listTreatPlanNums) + ")");
     }
 
-    public static List<TreatPlan> GetFromProcTPs(List<ProcTP> listProcTPs)
+    public static List<TreatPlan> GetFromProcTPs(List<ProcTP> procTps)
     {
-        var listTreatPlans = new List<TreatPlan>();
-        if (listProcTPs.Count == 0) return listTreatPlans;
+        if (procTps.Count == 0)
+        {
+            return [];
+        }
 
-        var command = "SELECT * FROM treatplan WHERE treatplan.TreatPlanNum IN (" + string.Join(",", listProcTPs.Select(x => x.TreatPlanNum)) + ")";
-        listTreatPlans = TreatPlanCrud.SelectMany(command);
-        for (var i = 0; i < listTreatPlans.Count; i++) listTreatPlans[i].ListProcTPs = listProcTPs.Where(x => x.TreatPlanNum == listTreatPlans[i].TreatPlanNum).ToList();
+        var treatPlans = TreatPlanCrud.SelectMany(
+            "SELECT * FROM treatplan " +
+            "WHERE TreatPlanNum IN (" + string.Join(", ", procTps.Select(x => x.TreatPlanNum)) + ")");
 
-        return listTreatPlans;
+        foreach (var treatPlan in treatPlans)
+        {
+            treatPlan.ListProcTPs = procTps.Where(x => x.TreatPlanNum == treatPlan.TreatPlanNum).ToList();
+        }
+
+        return treatPlans;
     }
 
     public static List<TreatPlan> GetAllSavedLim(DateTime dateStart, DateTime dateEnd)
     {
-        var command = "SELECT TreatPlanNum, PatNum, DateTP, SecUserNumEntry, UserNumPresenter "
-                      + " FROM treatplan WHERE treatplan.TPStatus=" + SOut.Int((int) TreatPlanStatus.Saved) + " "
-                      + "AND DateTP>=" + SOut.Date(dateStart) + " "
-                      + "AND DateTP<=" + SOut.Date(dateEnd) + " ";
-        var table = DataCore.GetTable(command);
-        var listTreatPlansSavedLim = new List<TreatPlan>();
-        for (var i = 0; i < table.Rows.Count; i++)
+        var dataTable = DataCore.GetTable(
+            "SELECT TreatPlanNum, PatNum, DateTP, SecUserNumEntry, UserNumPresenter " +
+            "FROM treatplan " +
+            "WHERE treatplan.TPStatus = " + (int) TreatPlanStatus.Saved + " " +
+            "AND DateTP >= " + SOut.Date(dateStart) + " " +
+            "AND DateTP <= " + SOut.Date(dateEnd));
+
+        var treatPlans = new List<TreatPlan>();
+
+        for (var i = 0; i < dataTable.Rows.Count; i++)
         {
-            var treatPlan = new TreatPlan();
-            treatPlan.TreatPlanNum = SIn.Long(table.Rows[i]["TreatPlanNum"].ToString());
-            treatPlan.PatNum = SIn.Long(table.Rows[i]["PatNum"].ToString());
-            treatPlan.DateTP = SIn.Date(table.Rows[i]["DateTP"].ToString());
-            treatPlan.SecUserNumEntry = SIn.Long(table.Rows[i]["SecUserNumEntry"].ToString());
-            treatPlan.UserNumPresenter = SIn.Long(table.Rows[i]["UserNumPresenter"].ToString());
-            listTreatPlansSavedLim.Add(treatPlan);
+            treatPlans.Add(new TreatPlan
+            {
+                TreatPlanNum = SIn.Long(dataTable.Rows[i]["TreatPlanNum"].ToString()),
+                PatNum = SIn.Long(dataTable.Rows[i]["PatNum"].ToString()),
+                DateTP = SIn.Date(dataTable.Rows[i]["DateTP"].ToString()),
+                SecUserNumEntry = SIn.Long(dataTable.Rows[i]["SecUserNumEntry"].ToString()),
+                UserNumPresenter = SIn.Long(dataTable.Rows[i]["UserNumPresenter"].ToString())
+            });
         }
 
-        return listTreatPlansSavedLim;
+        return treatPlans;
     }
 
     public static void UpdateTreatmentPlanType(Patient patient)
     {
-        var listTreatPlans = GetAllForPat(patient.PatNum);
-        listTreatPlans.RemoveAll(x => x.TPStatus == TreatPlanStatus.Saved); //keep active and inactive tp's, not saved ones.
-        var treatPlanType = TreatPlanType.Insurance;
-        if (DiscountPlanSubs.HasDiscountPlan(patient.PatNum)) treatPlanType = TreatPlanType.Discount;
+        var treatPlans = GetAllForPat(patient.PatNum);
 
-        for (var i = 0; i < listTreatPlans.Count; i++)
-            if (listTreatPlans[i].TPType != treatPlanType)
+        treatPlans.RemoveAll(x => x.TPStatus == TreatPlanStatus.Saved);
+
+        var treatPlanType = TreatPlanType.Insurance;
+        if (DiscountPlanSubs.HasDiscountPlan(patient.PatNum))
+        {
+            treatPlanType = TreatPlanType.Discount;
+        }
+
+        foreach (var treatPlan in treatPlans)
+        {
+            if (treatPlan.TPType == treatPlanType)
             {
-                listTreatPlans[i].TPType = treatPlanType;
-                Update(listTreatPlans[i]);
+                continue;
             }
+
+            treatPlan.TPType = treatPlanType;
+
+            Update(treatPlan);
+        }
     }
 }

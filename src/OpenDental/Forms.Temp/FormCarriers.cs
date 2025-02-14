@@ -323,7 +323,7 @@ public partial class FormCarriers : FormODBase {
 			pickedCarrierNums.Add(SIn.Long(_table.Rows[gridMain.SelectedIndices[i]]["CarrierNum"].ToString()));
 		}
 		using var formCarrierCombine=new FormCarrierCombine();
-		formCarrierCombine.ListCarrierNums=pickedCarrierNums;
+		formCarrierCombine.CarrierNums=pickedCarrierNums;
 		formCarrierCombine.ShowDialog();
 		if(formCarrierCombine.DialogResult!=DialogResult.OK){
 			return;

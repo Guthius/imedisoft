@@ -163,7 +163,7 @@ public partial class UserControlApptAppearance:UserControl {
 		Changed|=Prefs.UpdateInt(PrefName.AppointmentTimeLineColor,butApptLineColor.BackColor.ToArgb());
 		Changed|=Prefs.UpdateBool(PrefName.ApptModuleDefaultToWeek,checkApptModuleDefaultToWeek.Checked);
 		Changed|=Prefs.UpdateInt(PrefName.ApptWeekViewStartDay,comboWeekViewStartDay.SelectedIndex);
-		Changed|=Prefs.UpdateDouble(PrefName.FormClickDelay,comboDelay.GetSelected<double>(),doUseEnUSFormat:true);
+		Changed|=Prefs.UpdateDouble(PrefName.FormClickDelay,comboDelay.GetSelected<double>(),useEnUsFormat:true);
 		Changed|=Prefs.UpdateString(PrefName.ApptFontSize,apptFontSize.ToString());
 		Changed|=Prefs.UpdateInt(PrefName.ApptProvbarWidth,SIn.Int(textApptProvbarWidth.Text));
 		Changed|=Prefs.UpdateBool(PrefName.WaitingRoomFilterByView,checkWaitingRoomFilterByView.Checked);

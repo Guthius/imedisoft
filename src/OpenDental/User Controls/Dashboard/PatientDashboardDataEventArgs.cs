@@ -47,11 +47,13 @@ public class PatientDashboardDataEventArgs : IDisposable
         for (var i = 0; i < tablePlannedAppts.Rows.Count; i++)
         {
             var row = tablePlannedAppts.Rows[i];
-            var plannedAppt = new Appointment();
-            plannedAppt.PatNum = pat.PatNum; 
-            plannedAppt.AptNum = SIn.Long(row["AptNum"].ToString());
-            plannedAppt.ItemOrderPlanned = SIn.Int(row["ItemOrder"].ToString());
-            listPlannedAppts.Add(plannedAppt);
+
+            listPlannedAppts.Add(new Appointment
+            {
+                PatNum = pat.PatNum,
+                AptNum = SIn.Long(row["AptNum"].ToString()),
+                ItemOrderPlanned = SIn.Int(row["ItemOrder"].ToString())
+            });
         }
 
         return listPlannedAppts.OrderBy(x => x.ItemOrderPlanned).ToList();

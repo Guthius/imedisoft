@@ -27,14 +27,14 @@ public class Payments
     {
         if (listPayNums.IsNullOrEmpty()) return [];
 
-        var command = $"SELECT * FROM payment WHERE PayNum IN({string.Join(",", listPayNums.Select(x => (x)))})";
+        var command = $"SELECT * FROM payment WHERE PayNum IN({string.Join(",", listPayNums.Select(x => x))})";
         return PaymentCrud.SelectMany(command);
     }
 
     public static List<Payment> GetTransfers(List<long> listPatNums)
     {
         var command = "SELECT * FROM payment WHERE PayType=0";
-        if (!listPatNums.IsNullOrEmpty()) command += $" AND PatNum IN({string.Join(",", listPatNums.Select(x => (x)))})";
+        if (!listPatNums.IsNullOrEmpty()) command += $" AND PatNum IN({string.Join(",", listPatNums.Select(x => x))})";
         return PaymentCrud.SelectMany(command);
     }
     
@@ -48,7 +48,7 @@ public class Payments
             //Only consider payments that have the "None (Income Transfer)" payment type check box checked as income transfers.
             command += "WHERE payment.PayType=0 ";
         //Conditionally filter the list of payments by the array of PatNums passed in.
-        if (!arrayPatNums.IsNullOrEmpty()) command += $"AND payment.PatNum IN({string.Join(",", arrayPatNums.Select(x => (x)))}) ";
+        if (!arrayPatNums.IsNullOrEmpty()) command += $"AND payment.PatNum IN({string.Join(",", arrayPatNums.Select(x => x))}) ";
         if (isPayTypeIgnored)
             //Treat all payments that have payment splits that sum up to $0 as a income transfers.
             command += "GROUP BY payment.PayNum "
@@ -60,7 +60,7 @@ public class Payments
     {
         var command =
             "SELECT * FROM payment "
-            + "WHERE DepositNum = " + (depositNum) + " "
+            + "WHERE DepositNum = " + depositNum + " "
             //Order by the date on the payment, and then the incremental order of the creation of each payment (doesn't affect random primary keys).
             //It was an internal complaint that checks on the same date show up in a 'random' order.
             //The real fix for this issue would be to add a time column and order by it by that instead of the PK.
@@ -74,14 +74,14 @@ public class Payments
             "SELECT * FROM payment "
             + "WHERE DepositNum = 0 "
             + "AND PayDate >= " + SOut.Date(dateStart) + " ";
-        if (clinicNum != 0) command += "AND ClinicNum=" + (clinicNum);
+        if (clinicNum != 0) command += "AND ClinicNum=" + clinicNum;
         for (var i = 0; i < payTypes.Count; i++)
         {
             if (i == 0)
                 command += " AND (";
             else
                 command += " OR ";
-            command += "PayType=" + (payTypes[i]);
+            command += "PayType=" + payTypes[i];
             if (i == payTypes.Count - 1) command += ")";
         }
 
@@ -117,7 +117,7 @@ public class Payments
         if (listPayNums.Count == 0) return 0;
         var command = "";
         command = "SELECT COUNT(*) FROM payment WHERE PayNum IN(" + string.Join(",", listPayNums) + ") AND DepositNum!=0";
-        if (ignoreDepositNum != 0) command += " AND DepositNum!=" + (ignoreDepositNum);
+        if (ignoreDepositNum != 0) command += " AND DepositNum!=" + ignoreDepositNum;
         return SIn.Int(Db.GetCount(command));
     }
 
@@ -126,13 +126,6 @@ public class Payments
         //Security.CurUser.UserNum gets set on MT by the DtoProcessor so it matches the user from the client WS.
         pay.SecUserNumEntry = Security.CurUser.UserNum;
         return PaymentCrud.Insert(pay);
-    }
-
-    public static void Insert(Payment pay, bool useExistingPK)
-    {
-        //Security.CurUser.UserNum gets set on MT by the DtoProcessor so it matches the user from the client WS.
-        pay.SecUserNumEntry = Security.CurUser.UserNum;
-        PaymentCrud.Insert(pay);
     }
 
     public static long Insert(Payment pay, List<PaySplit> listPaySplits)
@@ -303,7 +296,7 @@ public class Payments
         PaymentCrud.Update(pay);
         if (!excludeDepositNum)
         {
-            var command = "UPDATE payment SET DepositNum=" + (pay.DepositNum) + " WHERE PayNum = " + (pay.PayNum);
+            var command = "UPDATE payment SET DepositNum=" + pay.DepositNum + " WHERE PayNum = " + pay.PayNum;
             Db.NonQ(command);
         }
     }
@@ -320,25 +313,25 @@ public class Payments
     
     public static void Delete(long payNum)
     {
-        var command = "SELECT DepositNum,PayAmt FROM payment WHERE PayNum=" + (payNum);
+        var command = "SELECT DepositNum,PayAmt FROM payment WHERE PayNum=" + payNum;
         var table = DataCore.GetTable(command);
         if (table.Rows.Count == 0) return;
         if (table.Rows[0]["DepositNum"].ToString() != "0" //if payment is already attached to a deposit
             && SIn.Double(table.Rows[0]["PayAmt"].ToString()) != 0) //and it's not new
             throw new ApplicationException(Lans.g("Payments", "Not allowed to delete a payment attached to a deposit."));
-        command = "DELETE from payment WHERE PayNum = " + (payNum);
+        command = "DELETE from payment WHERE PayNum = " + payNum;
         Db.NonQ(command);
         //this needs to be improved to handle EstBal
-        command = "DELETE from paysplit WHERE PayNum = " + (payNum);
+        command = "DELETE from paysplit WHERE PayNum = " + payNum;
         Db.NonQ(command);
-        command = "UPDATE recurringcharge SET PayNum=0 WHERE PayNum=" + (payNum);
+        command = "UPDATE recurringcharge SET PayNum=0 WHERE PayNum=" + payNum;
         Db.NonQ(command);
     }
     
     public static bool AllocationRequired(double payAmt, long patNum)
     {
         var command = "SELECT EstBalance FROM patient "
-                      + "WHERE PatNum = " + (patNum);
+                      + "WHERE PatNum = " + patNum;
         var table = DataCore.GetTable(command);
         double estBal = 0;
         if (table.Rows.Count > 0) estBal = SIn.Double(table.Rows[0][0].ToString());
@@ -346,7 +339,7 @@ public class Payments
         {
             command = @"SELECT SUM(InsPayEst)+SUM(Writeoff) 
 					FROM claimproc
-					WHERE PatNum=" + (patNum) + " "
+					WHERE PatNum=" + patNum + " "
                       + "AND Status=0"; //NotReceived
             table = DataCore.GetTable(command);
             if (table.Rows.Count > 0) estBal -= SIn.Double(table.Rows[0][0].ToString());
@@ -362,7 +355,7 @@ public class Payments
 
         var command =
             "SELECT Guarantor FROM patient "
-            + "WHERE PatNum = " + (pay.PatNum);
+            + "WHERE PatNum = " + pay.PatNum;
         var table = DataCore.GetTable(command);
         if (table.Rows.Count == 0) return [];
         command =

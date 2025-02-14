@@ -22,8 +22,9 @@ public static class InsFilingCodeSubtypes
 
     public static void Delete(long insFilingCodeSubtypeNum)
     {
-        var command = "SELECT COUNT(*) FROM insplan WHERE FilingCodeSubtype=" + insFilingCodeSubtypeNum;
-        if (DataCore.GetScalar(command) != "0")
+        var commandText = "SELECT COUNT(*) FROM insplan WHERE FilingCodeSubtype = " + insFilingCodeSubtypeNum;
+
+        if (DataCore.GetScalar(commandText) != "0")
         {
             throw new ApplicationException("Already in use by insplans.");
         }
@@ -38,8 +39,7 @@ public static class InsFilingCodeSubtypes
 
     public static void DeleteForInsFilingCode(long insFilingCodeNum)
     {
-        var command = "DELETE FROM insfilingcodesubtype WHERE InsFilingCodeNum=" + insFilingCodeNum;
-        Db.NonQ(command);
+        Db.NonQ("DELETE FROM insfilingcodesubtype WHERE InsFilingCodeNum = " + insFilingCodeNum);
     }
 
     private class InsFilingCodeSubtypeCache : CacheListAbs<InsFilingCodeSubtype>
@@ -66,7 +66,7 @@ public static class InsFilingCodeSubtypes
 
         protected override void FillCacheIfNeeded()
         {
-            InsFilingCodeSubtypes.GetTableFromCache(false);
+            GetTableFromCache(false);
         }
     }
 
@@ -79,12 +79,12 @@ public static class InsFilingCodeSubtypes
 
     public static void RefreshCache()
     {
-        GetTableFromCache(true);
+        Cache.GetTableFromCache(true);
     }
 
-    public static DataTable GetTableFromCache(bool refreshCache)
+    public static void GetTableFromCache(bool refreshCache)
     {
-        return Cache.GetTableFromCache(refreshCache);
+        Cache.GetTableFromCache(refreshCache);
     }
 
     public static void ClearCache()

@@ -30,11 +30,10 @@ public class OrthoCases
         if (orthoSchedule != null && orthoSchedule.OrthoScheduleNum != orthoPlanLinkSchedule.FKey) throw new ApplicationException(Lans.g("OrthoCases", $"{errorText} an ortho schedule that does not belong to the ortho case."));
         for (var i = 0; i < listOrthoProcLinks.Count; i++)
             if (listOrthoProcLinks[i].OrthoCaseNum != orthoCaseNum)
-                throw new ApplicationException(Lans.g("OrthoCases", $"{errorText} an ortho procedure link that does not belong to the ortho case."));
+                throw new ApplicationException($"{errorText} an ortho procedure link that does not belong to the ortho case.");
 
         if (orthoPlanLinkPatPayPlan != null && orthoPlanLinkPatPayPlan.OrthoCaseNum != orthoCaseNum)
-            throw new ApplicationException(Lans.g(
-                "Orthocases", $"{errorText} an ortho plan link for a patient payment plan that does not belong to the ortho case."));
+            throw new ApplicationException($"{errorText} an ortho plan link for a patient payment plan that does not belong to the ortho case.");
         //Delete objects
         OrthoCaseCrud.Delete(orthoCaseNum);
         OrthoScheduleCrud.Delete(orthoSchedule.OrthoScheduleNum);
@@ -55,7 +54,7 @@ public class OrthoCases
 
     public static List<OrthoCase> Refresh(long patNum)
     {
-        var command = "SELECT * FROM orthocase WHERE orthocase.PatNum = " + (patNum);
+        var command = "SELECT * FROM orthocase WHERE orthocase.PatNum = " + patNum;
         return OrthoCaseCrud.SelectMany(command);
     }
 

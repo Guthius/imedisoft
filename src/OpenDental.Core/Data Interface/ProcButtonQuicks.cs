@@ -9,22 +9,19 @@ public class ProcButtonQuicks
 {
     public static List<ProcButtonQuick> GetAll()
     {
-        var command = "SELECT * FROM procbuttonquick";
-        return ProcButtonQuickCrud.SelectMany(command);
+        return ProcButtonQuickCrud.SelectMany("SELECT * FROM procbuttonquick");
     }
 
-    public static int sortYX(ProcButtonQuick p1, ProcButtonQuick p2)
+    public static int SortYx(ProcButtonQuick p1, ProcButtonQuick p2)
     {
-        //#error Move this to the S class once it is generated.
-        if (p1.YPos != p2.YPos) return p1.YPos.CompareTo(p2.YPos);
-        return p1.ItemOrder.CompareTo(p2.ItemOrder);
+        return p1.YPos != p2.YPos ? p1.YPos.CompareTo(p2.YPos) : p1.ItemOrder.CompareTo(p2.ItemOrder);
     }
-    
+
     public static void Insert(ProcButtonQuick procButtonQuick)
     {
         ProcButtonQuickCrud.Insert(procButtonQuick);
     }
-    
+
     public static void Update(ProcButtonQuick procButtonQuick)
     {
         ProcButtonQuickCrud.Update(procButtonQuick);
@@ -32,22 +29,27 @@ public class ProcButtonQuicks
 
     public static void SetToDefault()
     {
-        var command = "DELETE FROM procbuttonquick";
-        Db.NonQ(command);
-        if (CultureInfo.CurrentCulture.Name.EndsWith("CA")) SetToDefaultMySQLCanada();
+        Db.NonQ("DELETE FROM procbuttonquick");
+
+        if (CultureInfo.CurrentCulture.Name.EndsWith("CA"))
+        {
+            SetToDefaultMySQLCanada();
+        }
+
         SetToDefaultMySQL();
     }
 
     public static void InsertNewProcQuickButton(string description, string codeValue, string surf, int yPos, int itemOrder, bool isLabel)
     {
-        var quickButton = new ProcButtonQuick();
-        quickButton.Description = description;
-        quickButton.CodeValue = codeValue;
-        quickButton.Surf = surf;
-        quickButton.YPos = yPos;
-        quickButton.ItemOrder = itemOrder;
-        quickButton.IsLabel = isLabel;
-        Insert(quickButton);
+        Insert(new ProcButtonQuick
+        {
+            Description = description,
+            CodeValue = codeValue,
+            Surf = surf,
+            YPos = yPos,
+            ItemOrder = itemOrder,
+            IsLabel = isLabel
+        });
     }
 
     public static void SetToDefaultMySQL()
@@ -82,8 +84,7 @@ public class ProcButtonQuicks
     {
         string command;
         //1 - Molar Composites
-        if (ProcedureCodes.IsValidCode("23321") || ProcedureCodes.IsValidCode("23322") || ProcedureCodes.IsValidCode("23323")
-            || ProcedureCodes.IsValidCode("23324") || ProcedureCodes.IsValidCode("23325"))
+        if (ProcedureCodes.IsValidCode("23321") || ProcedureCodes.IsValidCode("23322") || ProcedureCodes.IsValidCode("23323") || ProcedureCodes.IsValidCode("23324") || ProcedureCodes.IsValidCode("23325"))
         {
             command = "INSERT INTO procbuttonquick (Description, YPos, ItemOrder, IsLabel) VALUES ('Molar Composite',0,0,1)";
             Db.NonQ(command);
@@ -119,8 +120,7 @@ public class ProcButtonQuicks
         }
 
         //2 - Bicuspid Composite
-        if (ProcedureCodes.IsValidCode("23311") || ProcedureCodes.IsValidCode("23312") || ProcedureCodes.IsValidCode("23313")
-            || ProcedureCodes.IsValidCode("23314") || ProcedureCodes.IsValidCode("23315"))
+        if (ProcedureCodes.IsValidCode("23311") || ProcedureCodes.IsValidCode("23312") || ProcedureCodes.IsValidCode("23313") || ProcedureCodes.IsValidCode("23314") || ProcedureCodes.IsValidCode("23315"))
         {
             command = "INSERT INTO procbuttonquick (Description, YPos, ItemOrder, IsLabel) VALUES ('Biscuspid Composite',2,0,1)";
             Db.NonQ(command);
@@ -305,13 +305,8 @@ public class ProcButtonQuicks
         Db.NonQ(command);
     }
 
-    public static void ValidateAll()
-    {
-    }
-    
     public static void Delete(long procButtonQuickNum)
     {
-        var command = "DELETE FROM procbuttonquick WHERE ProcButtonQuickNum = " + (procButtonQuickNum);
-        Db.NonQ(command);
+        Db.NonQ("DELETE FROM procbuttonquick WHERE ProcButtonQuickNum = " + procButtonQuickNum);
     }
 }

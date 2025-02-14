@@ -48,7 +48,7 @@ public static class ImagingDevices
 
         protected override void FillCacheIfNeeded()
         {
-            ImagingDevices.GetTableFromCache(false);
+            GetTableFromCache(false);
         }
 
         protected override bool IsInListShort(ImagingDevice item)
@@ -66,12 +66,12 @@ public static class ImagingDevices
 
     public static void RefreshCache()
     {
-        GetTableFromCache(true);
+        Cache.GetTableFromCache(true);
     }
 
-    public static DataTable GetTableFromCache(bool refreshCache)
+    public static void GetTableFromCache(bool refreshCache)
     {
-        return Cache.GetTableFromCache(refreshCache);
+        Cache.GetTableFromCache(refreshCache);
     }
 
     public static void ClearCache()

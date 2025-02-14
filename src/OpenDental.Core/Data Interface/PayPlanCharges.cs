@@ -4,6 +4,7 @@ using System.Linq;
 using CodeBase;
 using DataConnectionBase;
 using Imedisoft.Core.Crud;
+using Imedisoft.Core.Data;
 using Imedisoft.Core.Entities;
 
 namespace OpenDentBusiness;
@@ -40,7 +41,7 @@ public class PayPlanCharges
     {
         var command =
             "SELECT * FROM payplancharge "
-            + "WHERE PayPlanNum=" + (payPlanNum)
+            + "WHERE PayPlanNum=" + payPlanNum
             + " ORDER BY ChargeDate";
         return PayPlanChargeCrud.SelectMany(command);
     }
@@ -73,7 +74,7 @@ public class PayPlanCharges
         if (listPayPlanNums.IsNullOrEmpty()) return [];
 
         var command = "SELECT * FROM payplancharge "
-                      + "WHERE PayPlanNum IN(" + string.Join(",", listPayPlanNums.Select(x => (x))) + ") "
+                      + "WHERE PayPlanNum IN(" + string.Join(",", listPayPlanNums.Select(x => x)) + ") "
                       + "AND ChargeType=" + SOut.Int((int) chargeType);
         return PayPlanChargeCrud.SelectMany(command);
     }
@@ -89,8 +90,8 @@ public class PayPlanCharges
 
     public static List<PayPlanCharge> GetFromProc(long procNum)
     {
-        var command = $"SELECT * FROM payplancharge WHERE payplancharge.ProcNum={(procNum)} OR (payplancharge.LinkType=" +
-                      $"{SOut.Int((int) PayPlanLinkType.Procedure)} AND payplancharge.FKey={(procNum)})";
+        var command = $"SELECT * FROM payplancharge WHERE payplancharge.ProcNum={procNum} OR (payplancharge.LinkType=" +
+                      $"{SOut.Int((int) PayPlanLinkType.Procedure)} AND payplancharge.FKey={procNum})";
         return PayPlanChargeCrud.SelectMany(command);
     }
 
@@ -98,7 +99,7 @@ public class PayPlanCharges
     {
         if (listProcNums.Count == 0) return [];
 
-        var command = $"SELECT * FROM payplancharge WHERE payplancharge.ProcNum IN({string.Join(",", listProcNums.Select(x => (x)))})" +
+        var command = $"SELECT * FROM payplancharge WHERE payplancharge.ProcNum IN({string.Join(",", listProcNums.Select(x => x))})" +
                       $" AND payplancharge.ChargeType={SOut.Int((int) PayPlanChargeType.Credit)}";
         return PayPlanChargeCrud.SelectMany(command);
     }
@@ -107,7 +108,7 @@ public class PayPlanCharges
     {
         var command =
             "SELECT * FROM payplancharge "
-            + "WHERE PayPlanChargeNum=" + (payPlanChargeNum);
+            + "WHERE PayPlanChargeNum=" + payPlanChargeNum;
         return PayPlanChargeCrud.SelectOne(command);
     }
 
@@ -117,7 +118,7 @@ public class PayPlanCharges
 
         var command =
             "SELECT * FROM payplancharge "
-            + "WHERE PayPlanChargeNum IN (" + string.Join(",", listPayPlanChargeNums.Select(x => (x))) + ")";
+            + "WHERE PayPlanChargeNum IN (" + string.Join(",", listPayPlanChargeNums.Select(x => x)) + ")";
         return PayPlanChargeCrud.SelectMany(command);
     }
 
@@ -126,7 +127,7 @@ public class PayPlanCharges
         if (arrayFKeys.IsNullOrEmpty()) return [];
 
         var command = $"SELECT * FROM payplancharge " +
-                      $"WHERE payplancharge.FKey IN({string.Join(",", arrayFKeys.Select(x => (x)))}) " +
+                      $"WHERE payplancharge.FKey IN({string.Join(",", arrayFKeys.Select(x => x))}) " +
                       $"AND payplancharge.LinkType={SOut.Int((int) linkType)}";
         return PayPlanChargeCrud.SelectMany(command);
     }
@@ -188,7 +189,7 @@ public class PayPlanCharges
         if (payplan == null || payplan.PayPlanNum == 0 || payplan.InsSubNum == 0) return;
 
         var command = $"UPDATE payplancharge SET Principal={SOut.Double(payplan.CompletedAmt)} " +
-                      $"WHERE PayPlanNum={(payplan.PayPlanNum)} AND ChargeType={SOut.Enum(PayPlanChargeType.Credit)}";
+                      $"WHERE PayPlanNum={payplan.PayPlanNum} AND ChargeType={SOut.Enum(PayPlanChargeType.Credit)}";
         Db.NonQ(command);
     }
 
@@ -212,7 +213,7 @@ public class PayPlanCharges
     {
         if (procNum == 0) return;
         var listPayPlans = PayPlans.GetAllForCharges(GetFromProc(procNum));
-        var command = "DELETE FROM payplancharge WHERE ProcNum=" + (procNum);
+        var command = "DELETE FROM payplancharge WHERE ProcNum=" + procNum;
         Db.NonQ(command);
         PayPlans.UpdateTreatmentCompletedAmt(listPayPlans);
     }
@@ -245,7 +246,7 @@ public class PayPlanCharges
     public static void Delete(PayPlanCharge charge)
     {
         var command = "DELETE from payplancharge WHERE PayPlanChargeNum = '"
-                      + (charge.PayPlanChargeNum) + "'";
+                      + charge.PayPlanChargeNum + "'";
         Db.NonQ(command);
     }
 
@@ -253,7 +254,7 @@ public class PayPlanCharges
     {
         if (listCharges.IsNullOrEmpty()) return;
 
-        var command = $"DELETE from payplancharge WHERE PayPlanChargeNum IN ({string.Join(",", listCharges.Select(x => (x)))})";
+        var command = $"DELETE from payplancharge WHERE PayPlanChargeNum IN ({string.Join(",", listCharges.Select(x => x))})";
         Db.NonQ(command);
     }
 }

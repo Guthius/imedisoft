@@ -14,7 +14,7 @@ public static class StatementProds
 {
     public static List<StatementProd> GetManyForStatements(List<long> statementNums)
     {
-        return statementNums is not {Count: > 0} ? [] : StatementProdCrud.SelectMany($"SELECT * FROM statementprod WHERE StatementNum IN ({string.Join(",", statementNums)})");
+        return statementNums is not {Count: > 0} ? [] : StatementProdCrud.SelectMany($"SELECT * FROM statementprod WHERE StatementNum IN ({string.Join(", ", statementNums)})");
     }
 
     public static void Sync(List<StatementProd> statementProdsNew, List<StatementProd> statementProdsInDb)

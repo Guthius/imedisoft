@@ -34,7 +34,7 @@ public static class CodeGroups
 
         protected override void FillCacheIfNeeded()
         {
-            CodeGroups.GetTableFromCache(false);
+            GetTableFromCache(false);
         }
 
         protected override bool IsInListShort(CodeGroup item)
@@ -65,9 +65,9 @@ public static class CodeGroups
         return Cache.GetFirstOrDefault(predicate, shortList);
     }
 
-    public static DataTable GetTableFromCache(bool refreshCache)
+    public static void GetTableFromCache(bool refreshCache)
     {
-        return Cache.GetTableFromCache(refreshCache);
+        Cache.GetTableFromCache(refreshCache);
     }
 
     public static bool IsProcInCodeGroup(string procCodeString, long codeGroupNum)

@@ -23,12 +23,12 @@ public class SecurityLogs
                       + "AND DateTPrevious <= " + SOut.Date(datePreviousTo.AddDays(1));
         if (patNum != 0)
             command += " AND securitylog.PatNum IN (" + string.Join(",",
-                PatientLinks.GetPatNumsLinkedToRecursive(patNum, PatientLinkType.Merge).Select(x => (x))) + ")";
-        if (permType != EnumPermType.None) command += " AND PermType=" + ((int) permType);
+                PatientLinks.GetPatNumsLinkedToRecursive(patNum, PatientLinkType.Merge).Select(x => x)) + ")";
+        if (permType != EnumPermType.None) command += " AND PermType=" + (int) permType;
         if (userNum >= 0) //Greater than or equal to 0, since 0 is no/unknown user, and we want to be able to filter by that option in some cases.
-            command += " AND UserNum=" + (userNum);
+            command += " AND UserNum=" + userNum;
         if (logSource >= 0) //Greater than or equal to 0, since 0 is Automation/unknown, and we want to be able to filter by that option in some cases.
-            command += " AND LogSource=" + (logSource);
+            command += " AND LogSource=" + logSource;
         command += " ORDER BY LogDateTime DESC"; //Using DESC so that the most recent ones appear in the list
         if (limit > 0) command = DbHelper.LimitOrderBy(command, limit);
         var table = DataCore.GetTable(command);
@@ -65,7 +65,7 @@ public class SecurityLogs
         for (var i = 0; i < listPermissionsEnums.Count; i++)
         {
             if (i > 0) types += " OR";
-            types += " PermType=" + ((int) listPermissionsEnums[i]);
+            types += " PermType=" + (int) listPermissionsEnums[i];
         }
 
         var command = "SELECT * FROM securitylog "
@@ -73,19 +73,10 @@ public class SecurityLogs
         if (listFKeys != null && listFKeys.Count > 0) command += "AND FKey IN (" + string.Join(",", listFKeys) + ") ";
         if (patNum != 0) //appointments
             command += " AND PatNum IN (" + string.Join(",",
-                PatientLinks.GetPatNumsLinkedToRecursive(patNum, PatientLinkType.Merge).Select(x => (x))) + ")";
+                PatientLinks.GetPatNumsLinkedToRecursive(patNum, PatientLinkType.Merge).Select(x => x)) + ")";
         command += "ORDER BY LogDateTime";
         var listSecurityLogs = SecurityLogCrud.SelectMany(command);
         return listSecurityLogs.OrderBy(x => x.LogDateTime).ToArray();
-    }
-
-    public static List<SecurityLog> GetFromFKeysAndType(List<long> listFKeys, List<EnumPermType> listPermissionsEnums)
-    {
-        if (listFKeys == null || listFKeys.FindAll(x => x != 0).Count == 0) return [];
-
-        var command = "SELECT * FROM securitylog WHERE FKey IN(" + string.Join(",", listFKeys.FindAll(x => x != 0)) + ") AND PermType IN" +
-                      "(" + string.Join(",", listPermissionsEnums.Select(x => SOut.Int((int) x))) + ")";
-        return SecurityLogCrud.SelectMany(command);
     }
 
     public static void MakeLogEntries(EnumPermType permType, long patNum, List<string> listLogTexts)
@@ -127,57 +118,61 @@ public class SecurityLogs
         MakeLogEntry(securityLog);
     }
 
-    public static SecurityLog MakeLogEntryNoInsert(EnumPermType permType, long patNum, string logText, long fKey, LogSources logSource, string deviceName, long defNum = 0, long defNumError = 0, DateTime DateTPrevious = default)
-    {
-        var securityLog = MakeLogEntryNoInsert(permType, patNum, logText, fKey, logSource, defNum, defNumError, DateTPrevious);
-        securityLog.CompName = deviceName;
-        return securityLog;
-    }
-
     public static void MakeLogEntry(SecurityLog securityLog)
     {
         securityLog.SecurityLogNum = Insert(securityLog);
-        SecurityLogHashes.InsertSecurityLogHash(securityLog.SecurityLogNum); //uses db date/time
+        
+        SecurityLogHashes.InsertSecurityLogHash(securityLog.SecurityLogNum);
+        
         if (securityLog.PermType == EnumPermType.AppointmentCreate)
         {
-            var entryLog = new EntryLog();
-            entryLog.UserNum = securityLog.UserNum;
-            entryLog.FKeyType = EntryLogFKeyType.Appointment;
-            entryLog.FKey = securityLog.FKey;
-            entryLog.LogSource = securityLog.LogSource;
-            EntryLogs.Insert(entryLog);
+            EntryLogs.Insert(new EntryLog
+            {
+                UserNum = securityLog.UserNum,
+                FKeyType = EntryLogFKeyType.Appointment,
+                FKey = securityLog.FKey,
+                LogSource = securityLog.LogSource
+            });
         }
     }
 
-    public static void MakeLogEntry(EnumPermType permType, List<long> listPatNums, string logText)
+    public static void MakeLogEntry(EnumPermType permType, List<long> patNums, string logText)
     {
-        var listSecurityLogs = new List<SecurityLog>();
-        for (var i = 0; i < listPatNums.Count; i++)
+        var securityLogs = new List<SecurityLog>();
+        
+        foreach (var patNum in patNums)
         {
-            var securityLog = MakeLogEntryNoInsert(permType, listPatNums[i], logText, 0, LogSource);
+            var securityLog = MakeLogEntryNoInsert(permType, patNum, logText, 0, LogSource);
+            
             Insert(securityLog);
-            listSecurityLogs.Add(securityLog);
+            
+            securityLogs.Add(securityLog);
         }
 
         var listSecurityLogHashes = new List<SecurityLogHash>();
         var listEntryLogs = new List<EntryLog>();
-        var listSecurityLogNums = listSecurityLogs.Select(x => x.SecurityLogNum).ToList();
+        var listSecurityLogNums = securityLogs.Select(x => x.SecurityLogNum).ToList();
         var sQLWhere = SQLWhere.CreateIn(nameof(SecurityLog.SecurityLogNum), listSecurityLogNums);
-        listSecurityLogs = GetMany(sQLWhere);
-        for (var i = 0; i < listSecurityLogs.Count; i++)
+        securityLogs = GetMany(sQLWhere);
+        foreach (var securityLog in securityLogs)
         {
-            var securityLogHash = new SecurityLogHash();
-            securityLogHash.SecurityLogNum = listSecurityLogs[i].SecurityLogNum;
-            securityLogHash.LogHash = SecurityLogHashes.GetHashString(listSecurityLogs[i]);
-            listSecurityLogHashes.Add(securityLogHash);
-            if (listSecurityLogs[i].PermType == EnumPermType.AppointmentCreate)
+            var securityLogHash = new SecurityLogHash
             {
-                var entryLog = new EntryLog();
-                entryLog.UserNum = listSecurityLogs[i].UserNum;
-                entryLog.FKeyType = EntryLogFKeyType.Appointment;
-                entryLog.FKey = listSecurityLogs[i].FKey;
-                entryLog.LogSource = listSecurityLogs[i].LogSource;
-                listEntryLogs.Add(entryLog);
+                SecurityLogNum = securityLog.SecurityLogNum,
+                LogHash = SecurityLogHashes.GetHashString(securityLog)
+            };
+            
+            listSecurityLogHashes.Add(securityLogHash);
+            
+            if (securityLog.PermType == EnumPermType.AppointmentCreate)
+            {
+                listEntryLogs.Add(new EntryLog
+                {
+                    UserNum = securityLog.UserNum,
+                    FKeyType = EntryLogFKeyType.Appointment,
+                    FKey = securityLog.FKey,
+                    LogSource = securityLog.LogSource
+                });
             }
         }
 
@@ -187,18 +182,25 @@ public class SecurityLogs
 
     public static SecurityLog MakeLogEntryNoInsert(EnumPermType permType, long patNum, string logText, long fKey, LogSources logSource, long defNum = 0, long defNumError = 0, DateTime DateTPrevious = default, long userNum = 0)
     {
-        var securityLog = new SecurityLog();
-        securityLog.PermType = permType;
-        securityLog.UserNum = userNum; //need to be able to pass in UserNum from mobile app user
-        if (userNum == 0) securityLog.UserNum = Security.CurUser.UserNum;
-        securityLog.LogText = logText;
-        securityLog.CompName = Security.GetComplexComputerName();
-        securityLog.PatNum = patNum;
-        securityLog.FKey = fKey;
-        securityLog.LogSource = logSource;
-        securityLog.DefNum = defNum;
-        securityLog.DefNumError = defNumError;
-        securityLog.DateTPrevious = DateTPrevious;
+        var securityLog = new SecurityLog
+        {
+            PermType = permType,
+            UserNum = userNum,
+            LogText = logText,
+            CompName = Environment.MachineName,
+            PatNum = patNum,
+            FKey = fKey,
+            LogSource = logSource,
+            DefNum = defNum,
+            DefNumError = defNumError,
+            DateTPrevious = DateTPrevious
+        };
+
+        if (userNum == 0)
+        {
+            securityLog.UserNum = Security.CurUser.UserNum;
+        }
+        
         return securityLog;
     }
 
@@ -210,21 +212,20 @@ public class SecurityLogs
         {
             var oldProcCode = ProcedureCodes.GetStringProcCode(procOld.CodeNum, doThrowIfMissing: false);
             var newProcCode = ProcedureCodes.GetStringProcCode(procNew.CodeNum, doThrowIfMissing: false);
-            logText += Lans.g("Procedures", "\nCode ") + oldProcCode + Lans.g("Procedures", " with fee of ") + procOld.ProcFee.ToString("F")
-                       + Lans.g("Procedures", " changed to code ") + newProcCode + Lans.g("Procedures", " with fee of ") + procNew.ProcFee.ToString("F");
+            logText += "\nCode " + oldProcCode + " with fee of " + procOld.ProcFee.ToString("F") + " changed to code " + newProcCode + " with fee of " + procNew.ProcFee.ToString("F");
         }
 
-        if (procNew.ProcDate != procOld.ProcDate) logText += Lans.g("Procedures", "\nProcDate changed from ") + procOld.ProcDate.ToShortDateString() + Lans.g("Procedures", " to ") + procNew.ProcDate.ToShortDateString();
+        if (procNew.ProcDate != procOld.ProcDate) logText += "\nProcDate changed from " + procOld.ProcDate.ToShortDateString() + " to " + procNew.ProcDate.ToShortDateString();
         if (procNew.Surf != procOld.Surf)
         {
             //because Surf could be changed to or from blank, print "none" instead
-            logText += Lans.g("Procedures", "\nSurf changed from ");
+            logText += "\nSurf changed from ";
             if (procOld.Surf == null)
-                logText += Lans.g("Procedures", "none to ");
+                logText += "none to ";
             else
                 logText += procOld.Surf + " to ";
             if (procNew.Surf == null)
-                logText += Lans.g("Procedures", "none");
+                logText += "none";
             else
                 logText += procNew.Surf;
         }

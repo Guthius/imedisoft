@@ -117,6 +117,7 @@ public static class AutoNotes
     {
         var transferableAutoNotes = new TransferableAutoNotes(serializableAutoNotes, serializableAutoNoteControls);
         var json = JsonConvert.SerializeObject(transferableAutoNotes);
+        
         File.WriteAllText(path, json);
     }
 
@@ -144,7 +145,7 @@ public static class AutoNotes
 
         protected override void FillCacheIfNeeded()
         {
-            AutoNotes.GetTableFromCache(false);
+            GetTableFromCache(false);
         }
     }
 
@@ -172,12 +173,12 @@ public static class AutoNotes
 
     public static void RefreshCache()
     {
-        GetTableFromCache(true);
+        Cache.GetTableFromCache(true);
     }
 
-    public static DataTable GetTableFromCache(bool refreshCache)
+    public static void GetTableFromCache(bool refreshCache)
     {
-        return Cache.GetTableFromCache(refreshCache);
+        Cache.GetTableFromCache(refreshCache);
     }
 
     public static void ClearCache()

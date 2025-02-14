@@ -39,228 +39,212 @@ public enum DefCat
 {
     ///<summary>0- Colors to display in Account module.</summary>
     [Description("Account Colors")]
-    AccountColors,
+    AccountColors = 0,
 
     ///<summary>1- Adjustment types.</summary>
     [Description("Adj Types")]
-    AdjTypes,
+    AdjTypes = 1,
 
     ///<summary>2- Appointment confirmed types.</summary>
     [Description("Appt Confirmed")]
-    ApptConfirmed,
+    ApptConfirmed = 2,
 
     ///<summary>3- Procedure quick add list for appointments. Example: D1023,D1024. Single tooth numbers are allowed, example D1151#8,D0220#15. This is really only useful for PAs. Tooth number is stored in user's nomenclature, not American numbering.</summary>
     [Description("Appt Procs Quick Add")]
-    ApptProcsQuickAdd,
+    ApptProcsQuickAdd = 3,
 
     ///<summary>4- Billing types.</summary>
     [Description("Billing Types")]
-    BillingTypes,
+    BillingTypes = 4,
 
     ///<summary>5- Not used.</summary>
     [Description("NotUsed")]
-    ClaimFormats,
+    ClaimFormats = 5,
 
     ///<summary>6- Not used.</summary>
     [Description("NotUsed")]
-    DunningMessages,
+    DunningMessages = 6,
 
     ///<summary>7- Not used.</summary>
     [Description("NotUsed")]
-    FeeSchedNamesOld,
+    FeeSchedNamesOld = 7,
 
     ///<summary>8- Not used.</summary>
     [Description("NotUsed")]
-    MedicalNotes,
+    MedicalNotes = 8,
 
     ///<summary>9- Not used.</summary>
     [Description("NotUsed")]
-    OperatoriesOld,
+    OperatoriesOld = 9,
 
     ///<summary>10- Payment types.</summary>
     [Description("Payment Types")]
-    PaymentTypes,
+    PaymentTypes = 10,
 
     ///<summary>11- Procedure code categories.</summary>
     [Description("Proc Code Categories")]
-    ProcCodeCats,
+    ProcCodeCats = 11,
 
     ///<summary>12- Progress note colors.</summary>
     [Description("Prog Notes Colors")]
-    ProgNoteColors,
+    ProgNoteColors = 12,
 
     ///<summary>13- Statuses for recall, reactivation, unscheduled, and next appointments.</summary>
     [Description("Recall/Unsched Status")]
-    RecallUnschedStatus,
+    RecallUnschedStatus = 13,
 
     ///<summary>14- Not used.</summary>
     [Description("NotUsed")]
-    ServiceNotes,
+    ServiceNotes = 14,
 
     ///<summary>15- Not used.</summary>
     [Description("NotUsed")]
-    DiscountTypes,
+    DiscountTypes = 15,
 
     ///<summary>16- Diagnosis types.</summary>
     [Description("Diagnosis Types")]
-    Diagnosis,
+    Diagnosis = 16,
 
     ///<summary>17- Colors to display in the Appointments module.</summary>
     [Description("Appointment Colors")]
-    AppointmentColors,
+    AppointmentColors = 17,
 
     ///<summary>18- Image categories. ItemValue can be one or more of the following, no delimiters. X = Show in Chart Module, M=Show Thumbnails, F = Show in Patient Forms, L = Show in Patient Portal, P = Show in Patient Pictures, S = Statements, T = Graphical Tooth Charts, R = Treatment Plans, E = Expanded, A = Payment Plans, C = Claim Attachments, B = Lab Cases, U = Autosave Forms, Y = Task Attachments, N = Claim Responses.</summary>
     [Description("Image Categories")]
-    ImageCats,
+    ImageCats = 18,
 
     ///<summary>19- Not used.</summary>
     [Description("NotUsed")]
-    ApptPhoneNotes,
+    ApptPhoneNotes = 19,
 
     ///<summary>20- Treatment plan priority names.</summary>
     [Description("Treat' Plan Priorities")]
-    TxPriorities,
+    TxPriorities = 20,
 
     ///<summary>21- Miscellaneous color options. See enum DefCatMisColors.</summary>
     [Description("Misc Colors")]
-    MiscColors,
+    MiscColors = 21,
 
     ///<summary>22- Colors for the graphical tooth chart.</summary>
     [Description("Chart Graphic Colors")]
-    ChartGraphicColors,
+    ChartGraphicColors = 22,
 
     ///<summary>23- Categories for the Contact list.</summary>
     [Description("Contact Categories")]
-    ContactCategories,
+    ContactCategories = 23,
 
     ///<summary>24- Categories for Letter Merge.</summary>
     [Description("Letter Merge Cats")]
-    LetterMergeCats,
+    LetterMergeCats = 24,
 
     ///<summary>25- Types of Schedule Blockouts.</summary>
     [Description("Blockout Types")]
-    BlockoutTypes,
+    BlockoutTypes = 25,
 
     ///<summary>26- Categories of procedure buttons in Chart module</summary>
     [Description("Proc Button Categories")]
-    ProcButtonCats,
+    ProcButtonCats = 26,
 
     ///<Summary>27- Types of commlog entries.</Summary>
     [Description("Commlog Types")]
-    CommLogTypes,
+    CommLogTypes = 27,
 
     ///<summary>28- Categories of Supplies</summary>
     [Description("Supply Categories")]
-    SupplyCats,
+    SupplyCats = 28,
 
     ///<summary>29- Types of unearned income used in accrual accounting.</summary>
     [Description("PaySplit Unearned Types")]
-    PaySplitUnearnedType,
+    PaySplitUnearnedType = 29,
 
     ///<summary>30- Prognosis types.</summary>
     [Description("Prognosis")]
-    Prognosis,
+    Prognosis = 30,
 
     ///<summary>31- Custom Tracking, statuses such as 'review', 'hold', 'riskmanage', etc.</summary>
     [Description("Claim Custom Tracking")]
-    ClaimCustomTracking,
+    ClaimCustomTracking = 31,
 
     ///<summary>32- PayType for claims such as 'Check', 'EFT', etc.</summary>
     [Description("Insurance Payment Types")]
-    InsurancePaymentType,
+    InsurancePaymentType = 32,
 
     ///<summary>33- Categories of priorities for tasks.</summary>
     [Description("Task Priorities")]
-    TaskPriorities,
+    TaskPriorities = 33,
 
     ///<summary>34- Categories for fee override colors.</summary>
     [Description("Fee Colors")]
-    FeeColors,
+    FeeColors = 34,
 
     ///<summary>35- Provider specialties.  General, Hygienist, Pediatric, Primary Care Physician, etc.</summary>
     [Description("Provider Specialties")]
-    ProviderSpecialties,
+    ProviderSpecialties = 35,
 
     ///<summary>36- Reason why a claim proc was rejected. This must be set on each individual claim proc.</summary>
     [Description("Claim Payment Tracking")]
-    ClaimPaymentTracking,
+    ClaimPaymentTracking = 36,
 
     ///<summary>37- Procedure quick charge list for patient accounts.</summary>
     [Description("Account Procs Quick Add")]
-    AccountQuickCharge,
+    AccountQuickCharge = 37,
 
     ///<summary>38- Insurance verification status such as 'Verified', 'Unverified', 'Pending Verification'.</summary>
     [Description("Insurance Verification Status")]
-    InsuranceVerificationStatus,
+    InsuranceVerificationStatus = 38,
 
     ///<summary>39- Regions that clinics can be assigned to.</summary>
     [Description("Regions")]
-    Regions,
+    Regions = 39,
 
     ///<summary>40- ClaimPayment Payment Groups.</summary>
     [Description("Claim Payment Groups")]
-    ClaimPaymentGroups,
+    ClaimPaymentGroups = 40,
 
     ///<summary>41 - Auto Note Categories.  Used to categorize autonotes into custom categories.</summary>
     [Description("Auto Note Categories")]
-    AutoNoteCats,
-
-    ///<summary>42 - Web Sched New Patient Appointment Types. Displays in Web Sched. Each appointment can be assigned one appointment.AppointmentTypeNum. Multiple AppointmentTypes are linked to this definition through the DefLink table, where deflink.DefNum=definition.DefNum,  deflink.LinkType=2, and deflink.FKey=appointmenttype.AppointmentTypeNum.</summary>
-    [Description("Web Sched New Pat Appt Types")]
-    WebSchedNewPatApptTypes,
-
+    AutoNoteCats = 41,
+    
     ///<summary>43 - Custom Claim Status Error Code.</summary>
     [Description("Claim Error Code")]
-    ClaimErrorCode,
+    ClaimErrorCode = 43,
 
     ///<summary>44 - Specialties that clinics perform.  Useful for separating patient clones across clinics.</summary>
     [Description("Clinic Specialties")]
-    ClinicSpecialty,
-
-    ///<summary>45 - HQ Only job priorities.</summary>
-    [Description("Job Priorities HqOnly")]
-    JobPriorities,
-
+    ClinicSpecialty = 44,
+    
     ///<summary>46 - Carrier Group Name.</summary>
     [Description("Carrier Group Names")]
-    CarrierGroupNames,
+    CarrierGroupNames = 46,
 
     ///<summary>47 - PayPlanCategory</summary>
     [Description("Payment Plan Categories")]
-    PayPlanCategories,
+    PayPlanCategories = 47,
 
     ///<summary>48 - Associates an insurance payment to an account number.  Currently only used with "Auto Deposits".</summary>
     [Description("Auto Deposit Account")]
-    AutoDeposit,
+    AutoDeposit = 48,
 
     ///<summary>49 - Code Group used for insurance filing.</summary>
     [Description("Insurance Filing Code Group")]
-    InsuranceFilingCodeGroup,
+    InsuranceFilingCodeGroup = 49,
 
     ///<summary>50 - Time card adjustment types.
     ///Currently for PTO, but in future could be used for other types as well if we implement the Usage def field.</summary>
     [Description("Time Card Adj Types")]
-    TimeCardAdjTypes,
-
-    ///<summary>51 - Web Sched Existing Appt Types. Each appointment can be assigned one appointment.AppointmentTypeNum. Multiple AppointmentTypes are linked to this definition through the DefLink table, where deflink.DefNum=definition.DefNum,  deflink.LinkType=2, and deflink.FKey=appointmenttype.AppointmentTypeNum.</summary>
-    [Description("Web Sched Existing Appt Types")]
-    WebSchedExistingApptTypes,
-
+    TimeCardAdjTypes = 50,
+    
     ///<summary>52 - Categories for the Certifications feature.</summary>
     [Description("Certification Categories")]
-    CertificationCategories,
-
-    ///<summary>53 - Images the office prompts the patient to submit when checking in via eClipboard</summary>
-    [Description("eClipboard Images")]
-    EClipboardImageCapture,
-
+    CertificationCategories = 52,
+    
     ///<summary>54 - HQ Only task categories.</summary>
     [Description("Task Categories HqOnly")]
-    TaskCategories,
+    TaskCategories = 54,
 
     ///<summary>55 - Operatory Types. This field is only informational. The value isn't used for functionality.</summary>
     [Description("Operatory Types")]
-    OperatoryTypes
+    OperatoryTypes = 55
 }
 
 public enum DefCatMiscColors

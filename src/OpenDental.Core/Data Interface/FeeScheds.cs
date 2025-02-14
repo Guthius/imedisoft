@@ -102,7 +102,7 @@ public class FeeScheds
         var listFeeSchedNums = Db.GetListLong(command);
         if (listFeeSchedNums.Count == 0) return 0;
         ODEvent.Fire(ODEventType.HideUnusedFeeSchedules, Lans.g("FormFeeScheds", "Hiding unused fee schedules..."));
-        command = "UPDATE feesched SET IsHidden=1 WHERE FeeSchedNum IN(" + string.Join(",", listFeeSchedNums.Select(x => (x))) + ")";
+        command = "UPDATE feesched SET IsHidden=1 WHERE FeeSchedNum IN(" + string.Join(",", listFeeSchedNums.Select(x => x)) + ")";
         var rowsChanged = Db.NonQ(command);
         return rowsChanged;
     }
@@ -348,15 +348,15 @@ public class FeeScheds
     {
         string command;
         //change specific row in question.
-        command = "UPDATE feesched SET ItemOrder=" + SOut.Int(newItemOrder) + " WHERE FeeSchedNum=" + (feeSched.FeeSchedNum);
+        command = "UPDATE feesched SET ItemOrder=" + SOut.Int(newItemOrder) + " WHERE FeeSchedNum=" + feeSched.FeeSchedNum;
         Db.NonQ(command);
         //decrement items below old pos to close the gap, except the one we're moving
         command = "UPDATE feesched SET ItemOrder=ItemOrder-1 WHERE ItemOrder >" + SOut.Int(feeSched.ItemOrder)
-                                                                                + " AND FeeSchedNum !=" + (feeSched.FeeSchedNum);
+                                                                                + " AND FeeSchedNum !=" + feeSched.FeeSchedNum;
         Db.NonQ(command);
         //increment items (move down) at or below new pos, except the one we're moving
         command = "UPDATE feesched SET ItemOrder=ItemOrder+1 WHERE ItemOrder >= " + SOut.Int(newItemOrder)
-                                                                                  + " AND FeeSchedNum !=" + (feeSched.FeeSchedNum);
+                                                                                  + " AND FeeSchedNum !=" + feeSched.FeeSchedNum;
         Db.NonQ(command);
     }
 
@@ -566,7 +566,7 @@ public class FeeScheds
                     //if this is the last clinic in the list, clear the last clinic pref so the next time it will run for all clinics
                     Prefs.UpdateString(PrefName.GlobalUpdateWriteOffLastClinicCompleted, "");
                 else
-                    Prefs.UpdateString(PrefName.GlobalUpdateWriteOffLastClinicCompleted, (listClinicNumsWriteoff[i].ToString()));
+                    Prefs.UpdateString(PrefName.GlobalUpdateWriteOffLastClinicCompleted, listClinicNumsWriteoff[i].ToString());
                 Signalods.SetInvalid(InvalidType.Prefs);
             }
 
@@ -628,11 +628,6 @@ public class FeeScheds
         return Cache.GetDeepCopy(isShort);
     }
 
-    public static FeeSched GetFirst(bool isShort = true)
-    {
-        return Cache.GetFirst(isShort);
-    }
-
     public static FeeSched GetFirst(Func<FeeSched, bool> match, bool isShort = true)
     {
         return Cache.GetFirst(match, isShort);
@@ -653,9 +648,9 @@ public class FeeScheds
         GetTableFromCache(true);
     }
 
-    public static DataTable GetTableFromCache(bool doRefreshCache)
+    public static void GetTableFromCache(bool doRefreshCache)
     {
-        return Cache.GetTableFromCache(doRefreshCache);
+        Cache.GetTableFromCache(doRefreshCache);
     }
 
     public static void ClearCache()

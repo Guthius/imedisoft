@@ -61,7 +61,7 @@ public static class EFormFieldDefs
 
         protected override void FillCacheIfNeeded()
         {
-            EFormFieldDefs.GetTableFromCache(false);
+            GetTableFromCache(false);
         }
     }
 
@@ -77,8 +77,8 @@ public static class EFormFieldDefs
         return Cache.GetDeepCopy(shortList);
     }
 
-    public static DataTable GetTableFromCache(bool refreshCache)
+    public static void GetTableFromCache(bool refreshCache)
     {
-        return Cache.GetTableFromCache(refreshCache);
+        Cache.GetTableFromCache(refreshCache);
     }
 }

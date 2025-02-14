@@ -43,8 +43,9 @@ public class Commlogs
 
     public static void Delete(Commlog commlog)
     {
-        var command = "SELECT COUNT(*) FROM smsfrommobile WHERE CommlogNum=" + commlog.CommlogNum;
-        if (Db.GetCount(command) != "0")
+        var commandText = "SELECT COUNT(*) FROM smsfrommobile WHERE CommlogNum = " + commlog.CommlogNum;
+        
+        if (Db.GetCount(commandText) != "0")
         {
             throw new Exception("Not allowed to delete a commlog attached to a text message.");
         }
@@ -121,10 +122,10 @@ public class Commlogs
             .SelectMany(
                 "SELECT * FROM commlog " +
                 "WHERE DATE(CommDateTime) = CURDATE() " +
-                "AND PatNum=" + patNum + " " +
-                "AND CommType=" + commType + " " +
-                "AND Mode_=" + (int) commItemMode + " " +
-                "AND SentOrReceived=1")
+                "AND PatNum = " + patNum + " " +
+                "AND CommType = " + commType + " " +
+                "AND Mode_ = " + (int) commItemMode + " " +
+                "AND SentOrReceived = 1")
             .OrderByDescending(x => x.CommDateTime)
             .FirstOrDefault();
     }

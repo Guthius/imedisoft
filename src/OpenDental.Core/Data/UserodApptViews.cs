@@ -24,11 +24,11 @@ public static class UserodApptViews
         {
             Insert(userodApptView);
         }
-        
+
         else if (existingUserodApptView.ApptViewNum != userodApptView.ApptViewNum)
         {
             existingUserodApptView.ApptViewNum = userodApptView.ApptViewNum;
-            
+
             Update(existingUserodApptView);
         }
     }

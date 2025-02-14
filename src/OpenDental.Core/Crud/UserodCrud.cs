@@ -31,27 +31,18 @@ public class UserodCrud
                 UserNum = SIn.Long(row["UserNum"].ToString()),
                 UserName = SIn.String(row["UserName"].ToString()),
                 Password = SIn.String(row["Password"].ToString()),
-                UserGroupNum = SIn.Long(row["UserGroupNum"].ToString()),
                 EmployeeNum = SIn.Long(row["EmployeeNum"].ToString()),
                 ClinicNum = SIn.Long(row["ClinicNum"].ToString()),
                 ProvNum = SIn.Long(row["ProvNum"].ToString()),
                 IsHidden = SIn.Bool(row["IsHidden"].ToString()),
                 TaskListInBox = SIn.Long(row["TaskListInBox"].ToString()),
-                AnesthProvType = SIn.Int(row["AnesthProvType"].ToString()),
                 DefaultHidePopups = SIn.Bool(row["DefaultHidePopups"].ToString()),
                 PasswordIsStrong = SIn.Bool(row["PasswordIsStrong"].ToString()),
                 ClinicIsRestricted = SIn.Bool(row["ClinicIsRestricted"].ToString()),
-                InboxHidePopups = SIn.Bool(row["InboxHidePopups"].ToString()),
-                UserNumCEMT = SIn.Long(row["UserNumCEMT"].ToString()),
                 DateTFail = SIn.DateTime(row["DateTFail"].ToString()),
                 FailedAttempts = SIn.Byte(row["FailedAttempts"].ToString()),
-                DomainUser = SIn.String(row["DomainUser"].ToString()),
                 IsPasswordResetRequired = SIn.Bool(row["IsPasswordResetRequired"].ToString()),
-                MobileWebPin = SIn.String(row["MobileWebPin"].ToString()),
-                MobileWebPinFailedAttempts = SIn.Byte(row["MobileWebPinFailedAttempts"].ToString()),
-                DateTLastLogin = SIn.DateTime(row["DateTLastLogin"].ToString()),
-                EClipboardClinicalPin = SIn.String(row["EClipboardClinicalPin"].ToString()),
-                BadgeId = SIn.String(row["BadgeId"].ToString())
+                DateTLastLogin = SIn.DateTime(row["DateTLastLogin"].ToString())
             };
             retVal.Add(userod);
         }
@@ -88,7 +79,7 @@ public class UserodCrud
         table.Columns.Add("EClipboardClinicalPin");
         table.Columns.Add("BadgeId");
         foreach (var userod in listUserods)
-            table.Rows.Add(SOut.Long(userod.UserNum), userod.UserName, userod.Password, SOut.Long(userod.UserGroupNum), SOut.Long(userod.EmployeeNum), SOut.Long(userod.ClinicNum), SOut.Long(userod.ProvNum), SOut.Bool(userod.IsHidden), SOut.Long(userod.TaskListInBox), SOut.Int(userod.AnesthProvType), SOut.Bool(userod.DefaultHidePopups), SOut.Bool(userod.PasswordIsStrong), SOut.Bool(userod.ClinicIsRestricted), SOut.Bool(userod.InboxHidePopups), SOut.Long(userod.UserNumCEMT), SOut.DateTime(userod.DateTFail, false), SOut.Byte(userod.FailedAttempts), userod.DomainUser, SOut.Bool(userod.IsPasswordResetRequired), userod.MobileWebPin, SOut.Byte(userod.MobileWebPinFailedAttempts), SOut.DateTime(userod.DateTLastLogin, false), userod.EClipboardClinicalPin, userod.BadgeId);
+            table.Rows.Add(SOut.Long(userod.UserNum), userod.UserName, userod.Password, SOut.Long(userod.EmployeeNum), SOut.Long(userod.ClinicNum), SOut.Long(userod.ProvNum), SOut.Bool(userod.IsHidden), SOut.Long(userod.TaskListInBox), SOut.Bool(userod.DefaultHidePopups), SOut.Bool(userod.PasswordIsStrong), SOut.Bool(userod.ClinicIsRestricted), SOut.DateTime(userod.DateTFail, false), SOut.Byte(userod.FailedAttempts), SOut.Bool(userod.IsPasswordResetRequired), SOut.DateTime(userod.DateTLastLogin, false));
         return table;
     }
 
@@ -101,27 +92,18 @@ public class UserodCrud
         command +=
             "'" + SOut.String(userod.UserName) + "',"
             + "'" + SOut.String(userod.Password) + "',"
-            + SOut.Long(userod.UserGroupNum) + ","
             + SOut.Long(userod.EmployeeNum) + ","
             + SOut.Long(userod.ClinicNum) + ","
             + SOut.Long(userod.ProvNum) + ","
             + SOut.Bool(userod.IsHidden) + ","
             + SOut.Long(userod.TaskListInBox) + ","
-            + SOut.Int(userod.AnesthProvType) + ","
             + SOut.Bool(userod.DefaultHidePopups) + ","
             + SOut.Bool(userod.PasswordIsStrong) + ","
             + SOut.Bool(userod.ClinicIsRestricted) + ","
-            + SOut.Bool(userod.InboxHidePopups) + ","
-            + SOut.Long(userod.UserNumCEMT) + ","
             + SOut.DateTime(userod.DateTFail) + ","
             + SOut.Byte(userod.FailedAttempts) + ","
-            + "'" + SOut.String(userod.DomainUser) + "',"
             + SOut.Bool(userod.IsPasswordResetRequired) + ","
-            + "'" + SOut.String(userod.MobileWebPin) + "',"
-            + SOut.Byte(userod.MobileWebPinFailedAttempts) + ","
-            + SOut.DateTime(userod.DateTLastLogin) + ","
-            + "'" + SOut.String(userod.EClipboardClinicalPin) + "',"
-            + "'" + SOut.String(userod.BadgeId) + "')";
+            + SOut.DateTime(userod.DateTLastLogin) + ",";
         {
             userod.UserNum = Db.NonQ(command, true, "UserNum", "userod");
         }
@@ -133,27 +115,18 @@ public class UserodCrud
         var command = "UPDATE userod SET "
                       + "UserName                  = '" + SOut.String(userod.UserName) + "', "
                       + "Password                  = '" + SOut.String(userod.Password) + "', "
-                      + "UserGroupNum              =  " + SOut.Long(userod.UserGroupNum) + ", "
                       + "EmployeeNum               =  " + SOut.Long(userod.EmployeeNum) + ", "
                       + "ClinicNum                 =  " + SOut.Long(userod.ClinicNum) + ", "
                       + "ProvNum                   =  " + SOut.Long(userod.ProvNum) + ", "
                       + "IsHidden                  =  " + SOut.Bool(userod.IsHidden) + ", "
                       + "TaskListInBox             =  " + SOut.Long(userod.TaskListInBox) + ", "
-                      + "AnesthProvType            =  " + SOut.Int(userod.AnesthProvType) + ", "
                       + "DefaultHidePopups         =  " + SOut.Bool(userod.DefaultHidePopups) + ", "
                       + "PasswordIsStrong          =  " + SOut.Bool(userod.PasswordIsStrong) + ", "
                       + "ClinicIsRestricted        =  " + SOut.Bool(userod.ClinicIsRestricted) + ", "
-                      + "InboxHidePopups           =  " + SOut.Bool(userod.InboxHidePopups) + ", "
-                      + "UserNumCEMT               =  " + SOut.Long(userod.UserNumCEMT) + ", "
                       + "DateTFail                 =  " + SOut.DateTime(userod.DateTFail) + ", "
                       + "FailedAttempts            =  " + SOut.Byte(userod.FailedAttempts) + ", "
-                      + "DomainUser                = '" + SOut.String(userod.DomainUser) + "', "
                       + "IsPasswordResetRequired   =  " + SOut.Bool(userod.IsPasswordResetRequired) + ", "
-                      + "MobileWebPin              = '" + SOut.String(userod.MobileWebPin) + "', "
-                      + "MobileWebPinFailedAttempts=  " + SOut.Byte(userod.MobileWebPinFailedAttempts) + ", "
                       + "DateTLastLogin            =  " + SOut.DateTime(userod.DateTLastLogin) + ", "
-                      + "EClipboardClinicalPin     = '" + SOut.String(userod.EClipboardClinicalPin) + "', "
-                      + "BadgeId                   = '" + SOut.String(userod.BadgeId) + "' "
                       + "WHERE UserNum = " + SOut.Long(userod.UserNum);
         Db.NonQ(command);
     }
@@ -172,13 +145,7 @@ public class UserodCrud
             if (command != "") command += ",";
             command += "Password = '" + SOut.String(userod.Password) + "'";
         }
-
-        if (userod.UserGroupNum != oldUserod.UserGroupNum)
-        {
-            if (command != "") command += ",";
-            command += "UserGroupNum = " + SOut.Long(userod.UserGroupNum) + "";
-        }
-
+        
         if (userod.EmployeeNum != oldUserod.EmployeeNum)
         {
             if (command != "") command += ",";
@@ -208,13 +175,7 @@ public class UserodCrud
             if (command != "") command += ",";
             command += "TaskListInBox = " + SOut.Long(userod.TaskListInBox) + "";
         }
-
-        if (userod.AnesthProvType != oldUserod.AnesthProvType)
-        {
-            if (command != "") command += ",";
-            command += "AnesthProvType = " + SOut.Int(userod.AnesthProvType) + "";
-        }
-
+        
         if (userod.DefaultHidePopups != oldUserod.DefaultHidePopups)
         {
             if (command != "") command += ",";
@@ -232,19 +193,7 @@ public class UserodCrud
             if (command != "") command += ",";
             command += "ClinicIsRestricted = " + SOut.Bool(userod.ClinicIsRestricted) + "";
         }
-
-        if (userod.InboxHidePopups != oldUserod.InboxHidePopups)
-        {
-            if (command != "") command += ",";
-            command += "InboxHidePopups = " + SOut.Bool(userod.InboxHidePopups) + "";
-        }
-
-        if (userod.UserNumCEMT != oldUserod.UserNumCEMT)
-        {
-            if (command != "") command += ",";
-            command += "UserNumCEMT = " + SOut.Long(userod.UserNumCEMT) + "";
-        }
-
+        
         if (userod.DateTFail != oldUserod.DateTFail)
         {
             if (command != "") command += ",";
@@ -256,47 +205,17 @@ public class UserodCrud
             if (command != "") command += ",";
             command += "FailedAttempts = " + SOut.Byte(userod.FailedAttempts) + "";
         }
-
-        if (userod.DomainUser != oldUserod.DomainUser)
-        {
-            if (command != "") command += ",";
-            command += "DomainUser = '" + SOut.String(userod.DomainUser) + "'";
-        }
-
+        
         if (userod.IsPasswordResetRequired != oldUserod.IsPasswordResetRequired)
         {
             if (command != "") command += ",";
             command += "IsPasswordResetRequired = " + SOut.Bool(userod.IsPasswordResetRequired) + "";
         }
-
-        if (userod.MobileWebPin != oldUserod.MobileWebPin)
-        {
-            if (command != "") command += ",";
-            command += "MobileWebPin = '" + SOut.String(userod.MobileWebPin) + "'";
-        }
-
-        if (userod.MobileWebPinFailedAttempts != oldUserod.MobileWebPinFailedAttempts)
-        {
-            if (command != "") command += ",";
-            command += "MobileWebPinFailedAttempts = " + SOut.Byte(userod.MobileWebPinFailedAttempts) + "";
-        }
-
+        
         if (userod.DateTLastLogin != oldUserod.DateTLastLogin)
         {
             if (command != "") command += ",";
             command += "DateTLastLogin = " + SOut.DateTime(userod.DateTLastLogin) + "";
-        }
-
-        if (userod.EClipboardClinicalPin != oldUserod.EClipboardClinicalPin)
-        {
-            if (command != "") command += ",";
-            command += "EClipboardClinicalPin = '" + SOut.String(userod.EClipboardClinicalPin) + "'";
-        }
-
-        if (userod.BadgeId != oldUserod.BadgeId)
-        {
-            if (command != "") command += ",";
-            command += "BadgeId = '" + SOut.String(userod.BadgeId) + "'";
         }
 
         if (command == "") return;

@@ -31,7 +31,7 @@ public static class ReplicationServers
     {
         return GetFirstOrDefault(x => x.ServerId == GetServerId());
     }
-    
+
     private class ReplicationServerCache : CacheListAbs<ReplicationServer>
     {
         protected override List<ReplicationServer> GetCacheFromDb()
@@ -56,19 +56,14 @@ public static class ReplicationServers
 
         protected override void FillCacheIfNeeded()
         {
-            ReplicationServers.GetTableFromCache(false);
+            GetTableFromCache(false);
         }
     }
-    
+
     private static readonly ReplicationServerCache Cache = new();
 
     public static ReplicationServer GetFirstOrDefault(Func<ReplicationServer, bool> predicate, bool shortList = false)
     {
         return Cache.GetFirstOrDefault(predicate, shortList);
-    }
-
-    public static void GetTableFromCache(bool refreshCache)
-    {
-        Cache.GetTableFromCache(refreshCache);
     }
 }

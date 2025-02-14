@@ -54,7 +54,7 @@ public class DiseaseDefCrud
         return table;
     }
 
-    public static long Insert(DiseaseDef diseaseDef)
+    public static void Insert(DiseaseDef diseaseDef)
     {
         var command = "INSERT INTO diseasedef (";
 
@@ -71,7 +71,6 @@ public class DiseaseDefCrud
         {
             diseaseDef.DiseaseDefNum = Db.NonQ(command, true, "DiseaseDefNum", "diseaseDef");
         }
-        return diseaseDef.DiseaseDefNum;
     }
 
     public static void Update(DiseaseDef diseaseDef)

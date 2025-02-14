@@ -1,5 +1,3 @@
 ﻿namespace OpenDental;
 
-internal interface IDashWidgetField
-{
-}
+internal interface IDashWidgetField;

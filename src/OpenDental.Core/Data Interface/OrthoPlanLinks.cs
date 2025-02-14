@@ -19,7 +19,7 @@ public class OrthoPlanLinks
 
     public static OrthoPlanLink GetOneForOrthoCaseByType(long orthoCaseNum, OrthoPlanLinkType orthoPlanLinkType)
     {
-        var command = $@"SELECT * FROM orthoplanlink WHERE orthoplanlink.OrthoCaseNum={(orthoCaseNum)}
+        var command = $@"SELECT * FROM orthoplanlink WHERE orthoplanlink.OrthoCaseNum={orthoCaseNum}
 				AND orthoplanlink.LinkType={SOut.Int((int) orthoPlanLinkType)}";
         return OrthoPlanLinkCrud.SelectOne(command);
     }
@@ -43,7 +43,7 @@ public class OrthoPlanLinks
 
     public static OrthoPlanLink GetOrthoPlanLinkOfType(OrthoPlanLinkType orthoPlanLinkType, long payPlanNum)
     {
-        var command = $"SELECT * FROM orthoplanlink WHERE LinkType={SOut.Enum(orthoPlanLinkType)} AND FKey={(payPlanNum)}";
+        var command = $"SELECT * FROM orthoplanlink WHERE LinkType={SOut.Enum(orthoPlanLinkType)} AND FKey={payPlanNum}";
         return OrthoPlanLinkCrud.SelectOne(command);
     }
 }

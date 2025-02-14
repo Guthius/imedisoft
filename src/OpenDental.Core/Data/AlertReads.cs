@@ -14,7 +14,7 @@ public static class AlertReads
             return [];
         }
         
-        return AlertReadCrud.SelectMany("SELECT * FROM alertread WHERE UserNum = " + patNum + " AND  AlertItemNum IN (" + string.Join(",", alertItemNums) + ")");
+        return AlertReadCrud.SelectMany("SELECT * FROM alertread WHERE UserNum = " + patNum + " AND  AlertItemNum IN (" + string.Join(", ", alertItemNums) + ")");
     }
 
     public static void Insert(AlertRead alertRead)
@@ -29,6 +29,6 @@ public static class AlertReads
             return;
         }
         
-        Db.NonQ("DELETE FROM alertread WHERE AlertItemNum IN (" + string.Join(",", alertItemNums) + ")");
+        Db.NonQ("DELETE FROM alertread WHERE AlertItemNum IN (" + string.Join(", ", alertItemNums) + ")");
     }
 }

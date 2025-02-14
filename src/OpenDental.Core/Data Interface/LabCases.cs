@@ -45,11 +45,11 @@ public class LabCases
                       + "BETWEEN DATE(" + SOut.Date(dateApptStart) + ") AND DATE(" + SOut.Date(dateApptEnd.AddDays(1)) + ") ";
         if (!showCompleted)
             command += " AND COALESCE(appointment.AptStatus,ap1.AptStatus) IN " +
-                       "(" + ((int) ApptStatus.Broken)
-                       + "," + ((int) ApptStatus.Planned)
-                       + "," + ((int) ApptStatus.None)
-                       + "," + ((int) ApptStatus.Scheduled)
-                       + "," + ((int) ApptStatus.UnschedList) + ") ";
+                       "(" + (int) ApptStatus.Broken
+                       + "," + (int) ApptStatus.Planned
+                       + "," + (int) ApptStatus.None
+                       + "," + (int) ApptStatus.Scheduled
+                       + "," + (int) ApptStatus.UnschedList + ") ";
         var tableRaw = DataCore.GetTable(command);
         DateTime dateTimeAppt;
         DateTime dateStatus;
@@ -174,19 +174,19 @@ public class LabCases
     public static List<LabCase> GetForPlanned(long aptNum)
     {
         var command = "SELECT * FROM labcase "
-                      + "WHERE labcase.PlannedAptNum=" + (aptNum);
+                      + "WHERE labcase.PlannedAptNum=" + aptNum;
         return LabCaseCrud.SelectMany(command);
     }
 
     public static LabCase GetOne(long labCaseNum)
     {
-        var command = "SELECT * FROM labcase WHERE LabCaseNum=" + (labCaseNum);
+        var command = "SELECT * FROM labcase WHERE LabCaseNum=" + labCaseNum;
         return LabCaseCrud.SelectOne(command);
     }
 
     public static List<LabCase> GetForPat(long patNum, bool isPlanned)
     {
-        var command = "SELECT * FROM labcase WHERE PatNum=" + (patNum) + " AND ";
+        var command = "SELECT * FROM labcase WHERE PatNum=" + patNum + " AND ";
         if (isPlanned)
             command += "PlannedAptNum=0 AND AptNum=0"; //We only show lab cases that have not been attached to any kind of appt.
         else
@@ -209,15 +209,15 @@ public class LabCases
         //check for dependencies
         var command = "SELECT count(*) FROM sheet,sheetfield "
                       + "WHERE sheet.SheetNum=sheetfield.SheetNum"
-                      + " AND sheet.PatNum= (SELECT PatNum FROM labcase WHERE labcase.LabCaseNum=" + (labCaseNum) + ")"
-                      + " AND sheet.SheetType=" + ((int) SheetTypeEnum.LabSlip)
+                      + " AND sheet.PatNum= (SELECT PatNum FROM labcase WHERE labcase.LabCaseNum=" + labCaseNum + ")"
+                      + " AND sheet.SheetType=" + (int) SheetTypeEnum.LabSlip
                       + " AND sheet.IsDeleted=0 "
-                      + " AND sheetfield.FieldType=" + ((int) SheetFieldType.Parameter)
+                      + " AND sheetfield.FieldType=" + (int) SheetFieldType.Parameter
                       + " AND sheetfield.FieldName='LabCaseNum' "
-                      + "AND sheetfield.FieldValue='" + (labCaseNum) + "'";
+                      + "AND sheetfield.FieldValue='" + labCaseNum + "'";
         if (SIn.Int(Db.GetCount(command)) != 0) throw new Exception(Lans.g("LabCases", "Cannot delete LabCase because lab slip is still attached."));
         //delete
-        command = "DELETE FROM labcase WHERE LabCaseNum = " + (labCaseNum);
+        command = "DELETE FROM labcase WHERE LabCaseNum = " + labCaseNum;
         Db.NonQ(command);
     }
 
@@ -225,8 +225,8 @@ public class LabCases
     {
         if (listLabCaseNums.IsNullOrEmpty()) return;
 
-        var command = "UPDATE labcase SET AptNum=" + (aptNum) + " "
-                      + "WHERE LabCaseNum IN (" + string.Join(",", listLabCaseNums.Select(x => (x)).ToArray()) + ")";
+        var command = "UPDATE labcase SET AptNum=" + aptNum + " "
+                      + "WHERE LabCaseNum IN (" + string.Join(",", listLabCaseNums.Select(x => x).ToArray()) + ")";
         Db.NonQ(command);
     }
 
@@ -234,15 +234,15 @@ public class LabCases
     {
         if (listLabCaseNums.IsNullOrEmpty()) return;
 
-        var command = "UPDATE labcase SET PlannedAptNum=" + (plannedAptNum) + " "
-                      + "WHERE LabCaseNum IN (" + string.Join(",", listLabCaseNums.Select(x => (x)).ToArray()) + ")";
+        var command = "UPDATE labcase SET PlannedAptNum=" + plannedAptNum + " "
+                      + "WHERE LabCaseNum IN (" + string.Join(",", listLabCaseNums.Select(x => x).ToArray()) + ")";
         Db.NonQ(command);
     }
 
     public static List<LabCase> GetForApt(long aptNum)
     {
         var command = "SELECT * FROM labcase "
-                      + "WHERE AptNum=" + (aptNum);
+                      + "WHERE AptNum=" + aptNum;
         return LabCaseCrud.SelectMany(command);
     }
 
@@ -254,9 +254,9 @@ public class LabCases
 
         var command = "SELECT * FROM labcase ";
         if (appointment.AptStatus == ApptStatus.Planned)
-            command += "WHERE PlannedAptNum=" + (appointment.AptNum);
+            command += "WHERE PlannedAptNum=" + appointment.AptNum;
         else
-            command += "WHERE AptNum=" + (appointment.AptNum);
+            command += "WHERE AptNum=" + appointment.AptNum;
         return LabCaseCrud.SelectMany(command);
     }
 }

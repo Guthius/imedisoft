@@ -12,6 +12,7 @@ using Imedisoft.Core.Data;
 using Imedisoft.Core.Entities;
 using Imedisoft.Core.Features.Clinics;
 using Imedisoft.Core.Features.Providers;
+using OpenDental.Forms;
 using OpenDental.Logic;
 using OpenDental.UI;
 using OpenDental.UI.Voice;
@@ -1452,8 +1453,7 @@ public partial class FormPerio : FormODBase {
 		contrPerio.SaveCurExam(_perioExam);
 		contrPerio.ListPerioExams=PerioExams.Refresh(_patient.PatNum);//list will not change
 		contrPerio.ListPerioMeasures=PerioMeasures.GetForPatient(_patient.PatNum);
-		using var formPerioEdit=new FormPerioEdit();
-		formPerioEdit.PerioExamCur=_perioExam;
+		using var formPerioEdit=new FormPerioEdit(_perioExam);
 		formPerioEdit.ShowDialog();
 		var index=gridODExam.GetSelectedIndex();
 		RefreshListExams();

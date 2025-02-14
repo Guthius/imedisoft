@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Data;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Crud;
@@ -22,11 +21,6 @@ public static class Pharmacies
     public static void DeleteObject(long pharmacyNum)
     {
         PharmacyCrud.Delete(pharmacyNum);
-    }
-
-    public static string GetDescription(long pharmacyNum)
-    {
-        return GetFirstOrDefault(x => x.PharmacyNum == pharmacyNum)?.StoreName ?? string.Empty;
     }
 
     private class PharmacyCache : CacheListAbs<Pharmacy>
@@ -53,7 +47,7 @@ public static class Pharmacies
 
         protected override void FillCacheIfNeeded()
         {
-            Pharmacies.GetTableFromCache(false);
+            GetTableFromCache(false);
         }
     }
 
@@ -64,19 +58,14 @@ public static class Pharmacies
         return Cache.GetDeepCopy(shortList);
     }
 
-    public static Pharmacy GetFirstOrDefault(Func<Pharmacy, bool> predicate, bool shortList = false)
-    {
-        return Cache.GetFirstOrDefault(predicate, shortList);
-    }
-
     public static void RefreshCache()
     {
-        GetTableFromCache(true);
+        Cache.GetTableFromCache(true);
     }
 
-    public static DataTable GetTableFromCache(bool refreshCache)
+    public static void GetTableFromCache(bool refreshCache)
     {
-        return Cache.GetTableFromCache(refreshCache);
+        Cache.GetTableFromCache(refreshCache);
     }
 
     public static void ClearCache()

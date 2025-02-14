@@ -265,22 +265,22 @@ public class ProcMultiVisits
     {
         var command = "UPDATE procmultivisit "
                       + "SET IsInProcess=" + SOut.Bool(isGroupInProcess) + " "
-                      + "WHERE GroupProcMultiVisitNum=" + (groupProcMultiVisitNum);
+                      + "WHERE GroupProcMultiVisitNum=" + groupProcMultiVisitNum;
         Db.NonQ(command);
     }
 
     public static void UpdateGroupProcMultiVisitNumForGroup(long groupProcMultiVisitNumOld, long groupProcMultiVisitNumNew)
     {
         var command = "UPDATE procmultivisit "
-                      + "SET GroupProcMultiVisitNum=" + (groupProcMultiVisitNumNew) + " "
-                      + "WHERE GroupProcMultiVisitNum=" + (groupProcMultiVisitNumOld);
+                      + "SET GroupProcMultiVisitNum=" + groupProcMultiVisitNumNew + " "
+                      + "WHERE GroupProcMultiVisitNum=" + groupProcMultiVisitNumOld;
         Db.NonQ(command);
     }
 
     public static List<ProcMultiVisit> GetPatientData(long patNum)
     {
         var command = "SELECT * FROM procmultivisit "
-                      + "WHERE PatNum=" + (patNum);
+                      + "WHERE PatNum=" + patNum;
         return ProcMultiVisitCrud.SelectMany(command);
     }
 

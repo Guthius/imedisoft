@@ -29,6 +29,6 @@ public static class StmtLinks
             return;
         }
 
-        Db.NonQ($"DELETE FROM stmtlink WHERE StatementNum IN ({string.Join(",", statementNums)})");
+        Db.NonQ($"DELETE FROM stmtlink WHERE StatementNum IN ({string.Join(", ", statementNums)})");
     }
 }

@@ -62,7 +62,6 @@ public partial class FormOperatoryPick:FormODBase {
 		gridMain.Columns.Add(col);
 		gridMain.ListGridRows.Clear();
 		GridRow row;
-		var listOperatoryNumsWSNPA=Operatories.GetOpsForWebSchedNewOrExistingPatAppts().Select(x => x.OperatoryNum).ToList();
 		for(var i=0;i<_listOperatories.Count;i++) {
 			row=new GridRow();
 			row.Cells.Add(_listOperatories[i].OpName);
@@ -85,7 +84,7 @@ public partial class FormOperatoryPick:FormODBase {
 				row.Cells.Add("");
 			}
 			row.Cells.Add(_listOperatories[i].IsWebSched?"X":"");
-			row.Cells.Add(listOperatoryNumsWSNPA.Contains(_listOperatories[i].OperatoryNum) ? "X" : "");
+			row.Cells.Add("");
 			row.Tag=_listOperatories[i];
 			gridMain.ListGridRows.Add(row);
 		}

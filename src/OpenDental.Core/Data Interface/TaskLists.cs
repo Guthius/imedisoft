@@ -17,7 +17,7 @@ public class TaskLists
     {
         if (listTaskListNums.Count == 0) return [];
 
-        var command = "SELECT * FROM tasklist WHERE TaskListNum IN(" + string.Join(",", listTaskListNums.Select(x => (x))) + ")";
+        var command = "SELECT * FROM tasklist WHERE TaskListNum IN(" + string.Join(",", listTaskListNums.Select(x => x)) + ")";
         return TaskListCrud.SelectMany(command);
     }
 
@@ -37,7 +37,7 @@ public class TaskLists
         if (PrefC.GetBool(PrefName.TasksNewTrackedByUser))
             command += @"
 					INNER JOIN taskunread ON taskunread.TaskNum=task.TaskNum 
-					WHERE taskunread.UserNum = " + (userNum) + @"
+					WHERE taskunread.UserNum = " + userNum + @"
 					AND task.TaskStatus!=" + SOut.Int((int) TaskStatusEnum.Done);
         else
             command += @"
@@ -45,7 +45,7 @@ public class TaskLists
         command += BuildFilterWhereClause(userNum, filterClinicFkey, filterRegionFkey);
         command += @"
 				GROUP BY taskancestor.TaskListNum) unreadtasks ON unreadtasks.TaskListNum = tasklist.TaskListNum 
-				WHERE tasksubscription.UserNum=" + (userNum) + @"
+				WHERE tasksubscription.UserNum=" + userNum + @"
 				AND tasksubscription.TaskListNum!=0 
 				ORDER BY tasklist.Descript,tasklist.DateTimeEntry";
         return TableToList(DataCore.GetTable(command));
@@ -76,7 +76,7 @@ public class TaskLists
 					INNER JOIN (
 						SELECT TaskNum,UserNum
 						FROM taskunread
-					) isUnread ON isUnread.TaskNum = task.TaskNum AND (CASE WHEN usr.UserNum IS NOT NULL THEN isUnread.UserNum=usr.UserNum ELSE isUnread.UserNum = " + (userNum) + @" END) 
+					) isUnread ON isUnread.TaskNum = task.TaskNum AND (CASE WHEN usr.UserNum IS NOT NULL THEN isUnread.UserNum=usr.UserNum ELSE isUnread.UserNum = " + userNum + @" END) 
 					";
         }
         else
@@ -135,10 +135,10 @@ public class TaskLists
             //if a list is someone's inbox,
             if (userNumInbox > 0)
                 //then restrict by that user
-                command += "AND taskunread.UserNum=" + (userNumInbox) + ") ";
+                command += "AND taskunread.UserNum=" + userNumInbox + ") ";
             else
                 //otherwise, restrict by current user
-                command += "AND taskunread.UserNum=" + (userNum) + ") ";
+                command += "AND taskunread.UserNum=" + userNum + ") ";
         }
         else
         {
@@ -148,7 +148,7 @@ public class TaskLists
         command += BuildFilterWhereClause(userNum, filterClinicFkey, filterRegionFkey);
         command += ") NewTaskCount "
                    + "FROM tasklist "
-                   + "WHERE Parent=" + (parent) + " "
+                   + "WHERE Parent=" + parent + " "
                    + "ORDER BY tasklist.Descript,tasklist.DateTimeEntry";
         return TableToList(DataCore.GetTable(command));
     }
@@ -167,7 +167,7 @@ public class TaskLists
                    //See the note in RefreshRepeatingTrunk.  Behavior needs to be tested.
                    + "FROM tasklist "
                    + "WHERE IsRepeating=1 "
-                   + "AND DateType=" + ((int) taskDateType) + " "
+                   + "AND DateType=" + (int) taskDateType + " "
                    + "ORDER BY tasklist.Descript,tasklist.DateTimeEntry";
         return TableToList(DataCore.GetTable(command));
     }
@@ -210,7 +210,7 @@ public class TaskLists
                    + "FROM tasklist "
                    + "WHERE DateTL >= " + SOut.Date(dateFrom)
                    + " AND DateTL <= " + SOut.Date(dateTo)
-                   + " AND DateType=" + ((int) taskDateType)
+                   + " AND DateType=" + (int) taskDateType
                    + " ORDER BY tasklist.Descript,tasklist.DateTimeEntry";
         return TableToList(DataCore.GetTable(command));
     }
@@ -243,19 +243,19 @@ public class TaskLists
         if (listClinicNumsUnrestricted.Contains(filterClinicFkey)) //Make sure user is not restricted for this clinic.
             listClinicNums.Add(filterClinicFkey);
         listClinicNumsInRegion.AddRange(listClinicNumsUnrestrictedInRegion);
-        var strClinicFilterNums = string.Join(",", listClinicNums.Select(x => (x)));
-        var strRegionFilterNums = string.Join(",", listClinicNumsInRegion.Select(x => (x)));
+        var strClinicFilterNums = string.Join(",", listClinicNums.Select(x => x));
+        var strRegionFilterNums = string.Join(",", listClinicNumsInRegion.Select(x => x));
         //Clause for TaskLists that have Default filter.
         var cmdFilterTaskListByDefault = "(tasklistfortask.GlobalTaskFilterType IN ("
-                                         + ((long) EnumTaskFilterType.Disabled) + "," + ((long) EnumTaskFilterType.Default) + ")" //Disabled is treated as Default for tasklists.
+                                         + (long) EnumTaskFilterType.Disabled + "," + (long) EnumTaskFilterType.Default + ")" //Disabled is treated as Default for tasklists.
                                          + GetDefaultFilterTypeString((EnumTaskFilterType) PrefC.GetInt(PrefName.TasksGlobalFilterType), strClinicFilterNums, strRegionFilterNums) + ") ";
         //Clause for TaskLists that have None filter.
-        var cmdFilterTaskListByNone = "(tasklistfortask.GlobalTaskFilterType=" + ((long) EnumTaskFilterType.None) + ")";
+        var cmdFilterTaskListByNone = "(tasklistfortask.GlobalTaskFilterType=" + (long) EnumTaskFilterType.None + ")";
         //Clause for TaskLists that have Clinic filter.
-        var cmdFilterTaskListByClinic = "(tasklistfortask.GlobalTaskFilterType=" + ((long) EnumTaskFilterType.Clinic)
+        var cmdFilterTaskListByClinic = "(tasklistfortask.GlobalTaskFilterType=" + (long) EnumTaskFilterType.Clinic
                                                                                  + " AND (patient.ClinicNum IN (" + strClinicFilterNums + ") OR appointment.ClinicNum IN (" + strClinicFilterNums + "))) ";
         //Clause for TaskLists that have Region filter.
-        var cmdFilterTaskListByRegion = "(tasklistfortask.GlobalTaskFilterType=" + ((long) EnumTaskFilterType.Region)
+        var cmdFilterTaskListByRegion = "(tasklistfortask.GlobalTaskFilterType=" + (long) EnumTaskFilterType.Region
                                                                                  + " AND (patient.ClinicNum IN (" + strRegionFilterNums + ") OR appointment.ClinicNum IN (" + strRegionFilterNums + "))) ";
         //Clause for Tasks that are not connected to a patient or clinic.
         var cmdTaskClinicIsNull = "((patient.ClinicNum IS NULL) AND (appointment.ClinicNum IS NULL))";
@@ -286,7 +286,7 @@ public class TaskLists
     public static TaskList GetOne(long taskListNum)
     {
         if (taskListNum == 0) return null;
-        var command = "SELECT * FROM tasklist WHERE TaskListNum=" + (taskListNum);
+        var command = "SELECT * FROM tasklist WHERE TaskListNum=" + taskListNum;
         return TaskListCrud.SelectOne(command);
     }
 
@@ -380,17 +380,17 @@ public class TaskLists
 
     public static void Delete(TaskList taskList)
     {
-        var command = "SELECT COUNT(*) FROM tasklist WHERE Parent=" + (taskList.TaskListNum);
+        var command = "SELECT COUNT(*) FROM tasklist WHERE Parent=" + taskList.TaskListNum;
         var table = DataCore.GetTable(command);
         if (table.Rows[0][0].ToString() != "0") throw new Exception(Lans.g("TaskLists", "Not allowed to delete task list because it still has child lists attached."));
-        command = "SELECT COUNT(*) FROM task WHERE TaskListNum=" + (taskList.TaskListNum);
+        command = "SELECT COUNT(*) FROM task WHERE TaskListNum=" + taskList.TaskListNum;
         table = DataCore.GetTable(command);
         if (table.Rows[0][0].ToString() != "0") throw new Exception(Lans.g("TaskLists", "Not allowed to delete task list because it still has child tasks attached."));
-        command = "SELECT COUNT(*) FROM userod WHERE TaskListInBox=" + (taskList.TaskListNum);
+        command = "SELECT COUNT(*) FROM userod WHERE TaskListInBox=" + taskList.TaskListNum;
         table = DataCore.GetTable(command);
         if (table.Rows[0][0].ToString() != "0") throw new Exception(Lans.g("TaskLists", "Not allowed to delete task list because it is attached to a user inbox."));
         command = "DELETE from tasklist WHERE TaskListNum = '"
-                  + (taskList.TaskListNum) + "'";
+                  + taskList.TaskListNum + "'";
         Db.NonQ(command);
     }
 
@@ -399,7 +399,7 @@ public class TaskLists
         var parentNum = taskListNumChild;
         while (true)
         {
-            parentNum = SIn.Long(DataCore.GetScalar("SELECT parent FROM tasklist WHERE TaskListNum=" + (parentNum)));
+            parentNum = SIn.Long(DataCore.GetScalar("SELECT parent FROM tasklist WHERE TaskListNum=" + parentNum));
             if (parentNum == 0) return false; //Got to the top level of the tree for this list and it is the main list.
             if (parentNum == taskListNum) return true; //Got to the TaskList whose parent is the one we are looking for.
         }
@@ -415,7 +415,7 @@ public class TaskLists
 
     public static long GetMailboxUserNum(long taskListNum)
     {
-        var command = "SELECT UserNum FROM userod WHERE TaskListInBox=" + (taskListNum);
+        var command = "SELECT UserNum FROM userod WHERE TaskListInBox=" + taskListNum;
         return SIn.Long(DataCore.GetScalar(command));
     }
 
@@ -423,7 +423,7 @@ public class TaskLists
     {
         var command = "SELECT UserNum FROM taskancestor,userod "
                       + "WHERE taskancestor.TaskListNum=userod.TaskListInBox "
-                      + "AND taskancestor.TaskNum=" + (taskNum);
+                      + "AND taskancestor.TaskNum=" + taskNum;
         return SIn.Long(DataCore.GetScalar(command));
     }
 

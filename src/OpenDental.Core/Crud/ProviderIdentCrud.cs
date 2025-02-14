@@ -46,31 +46,4 @@ public class ProviderIdentCrud
             table.Rows.Add(SOut.Long(providerIdent.ProviderIdentNum), SOut.Long(providerIdent.ProvNum), providerIdent.PayorID, SOut.Int((int) providerIdent.SuppIDType), providerIdent.IDNumber);
         return table;
     }
-
-    public static void Insert(ProviderIdent providerIdent)
-    {
-        var command = "INSERT INTO providerident (";
-
-        command += "ProvNum,PayorID,SuppIDType,IDNumber) VALUES(";
-
-        command +=
-            SOut.Long(providerIdent.ProvNum) + ","
-                                             + "'" + SOut.String(providerIdent.PayorID) + "',"
-                                             + SOut.Int((int) providerIdent.SuppIDType) + ","
-                                             + "'" + SOut.String(providerIdent.IDNumber) + "')";
-        {
-            providerIdent.ProviderIdentNum = Db.NonQ(command, true, "ProviderIdentNum", "providerIdent");
-        }
-    }
-
-    public static void Update(ProviderIdent providerIdent)
-    {
-        var command = "UPDATE providerident SET "
-                      + "ProvNum         =  " + SOut.Long(providerIdent.ProvNum) + ", "
-                      + "PayorID         = '" + SOut.String(providerIdent.PayorID) + "', "
-                      + "SuppIDType      =  " + SOut.Int((int) providerIdent.SuppIDType) + ", "
-                      + "IDNumber        = '" + SOut.String(providerIdent.IDNumber) + "' "
-                      + "WHERE ProviderIdentNum = " + SOut.Long(providerIdent.ProviderIdentNum);
-        Db.NonQ(command);
-    }
 }

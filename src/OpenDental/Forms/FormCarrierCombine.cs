@@ -11,7 +11,7 @@ public partial class FormCarrierCombine : FormODBase
 {
     private List<Carrier> _carriers;
 
-    public List<long> ListCarrierNums { get; set; }
+    public List<long> CarrierNums { get; set; }
     public long SelectedCarrierNum { get; set; }
 
     public FormCarrierCombine()
@@ -26,7 +26,7 @@ public partial class FormCarrierCombine : FormODBase
 
     private void FillGrid()
     {
-        _carriers = Carriers.GetCarriers(ListCarrierNums);
+        _carriers = Carriers.GetCarriers(CarrierNums);
 
         gridMain.BeginUpdate();
 

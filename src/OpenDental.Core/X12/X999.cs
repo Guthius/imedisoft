@@ -1,180 +1,217 @@
 using System.Collections.Generic;
 using DataConnectionBase;
 
-namespace OpenDentBusiness{
-	
-	public class X999:X12object{
+namespace OpenDentBusiness;
 
-		public X999(string messageText):base(messageText){		
-		}
-		
-		///<summary>In X12 lingo, the batchNumber is known as the functional group.</summary>
-		public int GetBatchNumber(){
-			if(this.FunctGroups[0].Transactions.Count!=1) {
-				return 0;
-			}
-			var seg=FunctGroups[0].Transactions[0].GetSegmentByID("AK1");
-			if(seg==null) {
-				return 0;
-			}
-			var num=seg.Get(2);
-			try{
-				return SIn.Int(num);
-			}
-			catch{
-				return 0;
-			}
-		}
+public class X999(string messageText) : X12object(messageText)
+{
+    public int GetBatchNumber()
+    {
+        if (FunctGroups[0].Transactions.Count != 1)
+        {
+            return 0;
+        }
 
-		///<summary>Do this first to get a list of all trans nums that are contained within this 999.  Then, for each trans num, we can later retrieve the AckCode for that single trans num.</summary>
-		public List<int> GetTransNums(){
-			var retVal=new List<int>();
-			X12Segment seg;
-			var transNum=0;
-			for(var i=0;i<FunctGroups[0].Transactions[0].Segments.Count;i++){
-				seg=FunctGroups[0].Transactions[0].Segments[i];
-				if(seg.SegmentID=="AK2"){
-					transNum=0;
-					try{
-						transNum=SIn.Int(seg.Get(2));
-					}
-					catch{
-						transNum=0;
-					}
-					if(transNum!=0){
-						retVal.Add(transNum);
-					}
-				}
-			}
-			return retVal;
-		}
+        var seg = FunctGroups[0].Transactions[0].GetSegmentByID("AK1");
+        if (seg == null)
+        {
+            return 0;
+        }
 
-		///<summary>Use after GetTransNums.  Will return A=Accepted, R=Rejected, or "" if can't determine.</summary>
-		public string GetAckForTrans(int transNum){
-			X12Segment seg;
-			var foundTransNum=false;
-			var thisTransNum=0;
-			for(var i=0;i<FunctGroups[0].Transactions[0].Segments.Count;i++){
-				seg=FunctGroups[0].Transactions[0].Segments[i];
-				if(foundTransNum){
-					if(seg.SegmentID!="IK5"){
-						continue;
-					}
-					var code=seg.Get(1);
-					var ack="";
-					if(code=="A" || code=="E") {//Accepted or accepted with Errors.
-						ack="A";
-					}
-					else { //M, R, W or X
-						ack="R";
-					}
-					return ack;
-				}
-				if(seg.SegmentID=="AK2"){
-					thisTransNum=0;
-					try {
-						thisTransNum=SIn.Int(seg.Get(2));
-					}
-					catch {
-						thisTransNum=0;
-					}
-					if(thisTransNum==transNum) {
-						foundTransNum=true;
-					}
-				}
-			}
-			return "";
-		}
+        var num = seg.Get(2);
+        try
+        {
+            return SIn.Int(num);
+        }
+        catch
+        {
+            return 0;
+        }
+    }
 
-		///<summary>Will return "" if unable to determine.  But would normally return A=Accepted or R=Rejected or P=Partially accepted if only some of the transactions were accepted.</summary>
-		public string GetBatchAckCode(){
-			if(this.FunctGroups[0].Transactions.Count!=1){
-				return "";
-			}
-			var seg=FunctGroups[0].Transactions[0].GetSegmentByID("AK9");
-			if(seg==null){
-				return "";
-			}
-			var code=seg.Get(1);
-			var ack="";
-			if(code=="A" || code=="E"){//Accepted or accepted with Errors.
-				ack="A";
-			}
-			else if(code=="P") {//Partially accepted
-				ack="P";
-			}
-			else { //M, R, W, X
-				ack="R";//rejected
-			}
-			return ack;
-		}
+    /// <summary>
+    /// Do this first to get a list of all trans nums that are contained within this 999.
+    /// Then, for each trans num, we can later retrieve the AckCode for that single trans num.
+    /// </summary>
+    public List<int> GetTransNums()
+    {
+        var transNums = new List<int>();
+        
+        foreach (var x12Segment in FunctGroups[0].Transactions[0].Segments)
+        {
+            if (x12Segment.SegmentID != "AK2")
+            {
+                continue;
+            }
+            
+            int transNum;
+            try
+            {
+                transNum = SIn.Int(x12Segment.Get(2));
+            }
+            catch
+            {
+                transNum = 0;
+            }
 
-		
-		public string GetHumanReadable() {
-			var retVal="";
-			for(var i=0;i<Segments.Count;i++) {
-				if(Segments[i].SegmentID!="IK3"
-					&& Segments[i].SegmentID!="IK4") {
-					continue;
-				}
-				if(retVal != "") {//if multiple errors
-					retVal+="\r\n";
-				}
-				if(Segments[i].SegmentID=="IK3") {
-					retVal+="Segment "+Segments[i].Get(1)+": "+GetSegmentSyntaxError(Segments[i].Get(4));
-				}
-				if(Segments[i].SegmentID=="IK4") {
-					retVal+="Element "+Segments[i].Get(1)+": "+GetElementSyntaxError(Segments[i].Get(3));
-				}
-				//retVal+=GetRejectReason(Segments[i].Get(3))+", "
-				//	+GetFollowupAction(Segments[i].Get(4));
-			}
-			return retVal;
-		}
+            if (transNum != 0)
+            {
+                transNums.Add(transNum);
+            }
+        }
 
-		private string GetSegmentSyntaxError(string code) {
-			switch(code) {
-				case "1": return "Unrecognized segment ID";
-				case "2": return "Unexpected segment";
-				case "3": return "Required segment missing";
-				case "4": return "Loop occurs over maximum times";
-				case "5": return "Segment exceeds maximum use";
-				case "6": return "Segment not in defined transaction set";
-				case "7": return "Segment not in proper sequence";
-				case "8": return "Segment has data element errors";
-				case "I4": return "Implementation \"not used\" segment present";
-				case "I6": return "Implementation dependent segment missing";
-				case "I7": return "Implementation loop occurs under minimum times";
-				case "I8": return "Implementation segment below minimum use";
-				case "I9": return "Implementation dependent \"not used\" segment present";
-				default: return code;//will never happen
-			}
-		}
+        return transNums;
+    }
 
-		private string GetElementSyntaxError(string code) {
-			switch(code) {
-				case "1": return "Required data element missing";
-				case "2": return "Conditional required data element missing";
-				case "3": return "Too many data elements";
-				case "4": return "Data element too short";
-				case "5": return "Data element too long";
-				case "6": return "Invalid character in data element";
-				case "7": return "Invalid code value";
-				case "8": return "Invalid date";
-				case "9": return "Invalid time";
-				case "10": return "Exclusion condition violated";
-				case "12": return "Too many repetitions";
-				case "13": return "Too many components";
-				case "I10": return "Implementation \"not used\" data element present";
-				case "I11": return "Implementation too few repetitions";
-				case "I12": return "Implementation pattern match failure";
-				case "I13": return "Implementation dependent \"not used\" data element present";
-				case "I6": return "Code value not used in implementation";
-				case "I9": return "Implementation dependent data element missing";
-				default: return code;//will never happen
-			}
-		}
-	
+    /// <summary>
+    /// Use after GetTransNums.
+    /// Will return A=Accepted, R=Rejected, or "" if can't determine.
+    /// </summary>
+    public string GetAckForTrans(int transNum)
+    {
+        var foundTransNum = false;
+        foreach (var x12Segment in FunctGroups[0].Transactions[0].Segments)
+        {
+            if (foundTransNum)
+            {
+                if (x12Segment.SegmentID != "IK5")
+                {
+                    continue;
+                }
 
-	}
+                var code = x12Segment.Get(1);
+                var ack = code is "A" or "E" ? "A" : "R";
+
+                return ack;
+            }
+
+            if (x12Segment.SegmentID != "AK2")
+            {
+                continue;
+            }
+            
+            int thisTransNum;
+            try
+            {
+                thisTransNum = SIn.Int(x12Segment.Get(2));
+            }
+            catch
+            {
+                thisTransNum = 0;
+            }
+
+            if (thisTransNum == transNum)
+            {
+                foundTransNum = true;
+            }
+        }
+
+        return "";
+    }
+
+    /// <summary>
+    /// Will return "" if unable to determine.
+    /// But would normally return A=Accepted or R=Rejected or P=Partially accepted if only some of the transactions were accepted.
+    /// </summary>
+    public string GetBatchAckCode()
+    {
+        if (FunctGroups[0].Transactions.Count != 1)
+        {
+            return "";
+        }
+
+        var seg = FunctGroups[0].Transactions[0].GetSegmentByID("AK9");
+        if (seg == null)
+        {
+            return "";
+        }
+
+        var code = seg.Get(1);
+        var ack = code switch
+        {
+            "A" or "E" => "A",
+            "P" => "P",
+            _ => "R"
+        };
+
+        return ack;
+    }
+
+
+    public string GetHumanReadable()
+    {
+        var result = "";
+        
+        foreach (var x12Segment in Segments)
+        {
+            if (x12Segment.SegmentID != "IK3" && x12Segment.SegmentID != "IK4")
+            {
+                continue;
+            }
+
+            if (result != "")
+            {
+                result += "\r\n";
+            }
+
+            if (x12Segment.SegmentID == "IK3")
+            {
+                result += "Segment " + x12Segment.Get(1) + ": " + GetSegmentSyntaxError(x12Segment.Get(4));
+            }
+
+            if (x12Segment.SegmentID == "IK4")
+            {
+                result += "Element " + x12Segment.Get(1) + ": " + GetElementSyntaxError(x12Segment.Get(3));
+            }
+        }
+
+        return result;
+    }
+
+    private static string GetSegmentSyntaxError(string code)
+    {
+        return code switch
+        {
+            "1" => "Unrecognized segment ID",
+            "2" => "Unexpected segment",
+            "3" => "Required segment missing",
+            "4" => "Loop occurs over maximum times",
+            "5" => "Segment exceeds maximum use",
+            "6" => "Segment not in defined transaction set",
+            "7" => "Segment not in proper sequence",
+            "8" => "Segment has data element errors",
+            "I4" => "Implementation \"not used\" segment present",
+            "I6" => "Implementation dependent segment missing",
+            "I7" => "Implementation loop occurs under minimum times",
+            "I8" => "Implementation segment below minimum use",
+            "I9" => "Implementation dependent \"not used\" segment present",
+            _ => code
+        };
+    }
+
+    private static string GetElementSyntaxError(string code)
+    {
+        return code switch
+        {
+            "1" => "Required data element missing",
+            "2" => "Conditional required data element missing",
+            "3" => "Too many data elements",
+            "4" => "Data element too short",
+            "5" => "Data element too long",
+            "6" => "Invalid character in data element",
+            "7" => "Invalid code value",
+            "8" => "Invalid date",
+            "9" => "Invalid time",
+            "10" => "Exclusion condition violated",
+            "12" => "Too many repetitions",
+            "13" => "Too many components",
+            "I10" => "Implementation \"not used\" data element present",
+            "I11" => "Implementation too few repetitions",
+            "I12" => "Implementation pattern match failure",
+            "I13" => "Implementation dependent \"not used\" data element present",
+            "I6" => "Code value not used in implementation",
+            "I9" => "Implementation dependent data element missing",
+            _ => code
+        };
+    }
 }

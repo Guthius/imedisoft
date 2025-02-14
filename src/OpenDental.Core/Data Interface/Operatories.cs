@@ -28,7 +28,7 @@ public class Operatories
     public static bool HasFutureApts(long operatoryNum, params ApptStatus[] apptStatusArrayIgnore)
     {
         var command = "SELECT COUNT(*) FROM appointment "
-                      + "WHERE Op = " + (operatoryNum) + " ";
+                      + "WHERE Op = " + operatoryNum + " ";
         if (apptStatusArrayIgnore.Length > 0)
         {
             command += "AND AptStatus NOT IN (";
@@ -144,34 +144,6 @@ public class Operatories
     {
         if (listClinicNums.IsNullOrEmpty()) return [];
         return GetWhere(x => listClinicNums.Contains(x.ClinicNum)).Select(x => x.OperatoryNum).ToList();
-    }
-
-    public static List<Operatory> GetOpsForWebSched()
-    {
-        //Only return the ops flagged as IsWebSched.
-        return GetWhere(x => x.IsWebSched, true);
-    }
-
-    public static List<Operatory> GetOpsForWebSchedNewOrExistingPatAppts(bool isNewPat = true, bool isShort = true)
-    {
-        var defCat = DefCat.WebSchedExistingApptTypes;
-        if (isNewPat) defCat = DefCat.WebSchedNewPatApptTypes;
-        //Get all of the deflinks that are of type Operatory in order to get the operatory specific FKeys.
-        var listOperatoryNums = DefLinks.GetOperatoryDefLinksForCategory(defCat)
-            .Select(x => x.FKey)
-            .Distinct()
-            .ToList();
-        return GetWhere(x => listOperatoryNums.Contains(x.OperatoryNum), isShort);
-    }
-
-    public static List<Operatory> GetOpsForDefAndCategory(long defNum, DefCat defCat, bool isShort = true)
-    {
-        var listOpNums = DefLinks.GetOperatoryDefLinksForCategory(defCat, isShort)
-            .Where(x => x.DefNum == defNum)
-            .Select(x => x.FKey)
-            .Distinct()
-            .ToList();
-        return GetWhere(x => listOpNums.Contains(x.OperatoryNum), isShort);
     }
 
     private class OperatoryCache : CacheListAbs<Operatory>

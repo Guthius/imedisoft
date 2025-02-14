@@ -47,7 +47,7 @@ public static class AlertCategories
 
         protected override void FillCacheIfNeeded()
         {
-            AlertCategories.GetTableFromCache(false);
+            GetTableFromCache(false);
         }
     }
 
@@ -58,9 +58,9 @@ public static class AlertCategories
         return Cache.GetDeepCopy(shortList);
     }
 
-    public static DataTable GetTableFromCache(bool refreshCache)
+    public static void GetTableFromCache(bool refreshCache)
     {
-        return Cache.GetTableFromCache(refreshCache);
+        Cache.GetTableFromCache(refreshCache);
     }
 
     public static void ClearCache()

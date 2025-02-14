@@ -32,7 +32,7 @@ public class SmsToMobiles
         if (patNum == -1)
         {
             //Only limit clinic if not searching for a particular PatNum.
-            if (listClinicNums.Count > 0) listCommandFilters.Add("ClinicNum IN (" + string.Join(",", listClinicNums.Select(x => (x))) + ")");
+            if (listClinicNums.Count > 0) listCommandFilters.Add("ClinicNum IN (" + string.Join(",", listClinicNums.Select(x => x)) + ")");
         }
         else
         {

@@ -22,9 +22,9 @@ public class Etrans835Attaches
     {
         if ((listEtransNums == null || listEtransNums.Count == 0) && (listClaimNums == null || listClaimNums.Length == 0)) return []; //Both are either not defined or contain no information, there would be no WHERE clause.
         var listWhereClauses = new List<string>();
-        if (listClaimNums.Length != 0) listWhereClauses.Add("etrans835attach.ClaimNum IN (" + string.Join(",", listClaimNums.Select(x => (x))) + ")");
+        if (listClaimNums.Length != 0) listWhereClauses.Add("etrans835attach.ClaimNum IN (" + string.Join(",", listClaimNums.Select(x => x)) + ")");
         if (!isSimple && listEtransNums != null && listEtransNums.Count > 0) //Includes manually detached and split attaches created when spliting procs from ERA.
-            listWhereClauses.Add("etrans.EtransNum IN (" + string.Join(",", listEtransNums.Select(x => (x))) + ")");
+            listWhereClauses.Add("etrans.EtransNum IN (" + string.Join(",", listEtransNums.Select(x => x)) + ")");
         if (listWhereClauses.Count == 0) return [];
         var command = "SELECT etrans835attach.* ";
         if (!isSimple) command += ",etrans.DateTimeTrans ";
@@ -60,7 +60,7 @@ public class Etrans835Attaches
             command += "INNER JOIN etrans ON etrans.EtransNum=etrans835attach.EtransNum "
                        + "INNER JOIN claim ON claim.ClaimNum=etrans835attach.ClaimNum "
                        + "INNER JOIN insplan ON insplan.PlanNum=claim.PlanNum ";
-        command += "WHERE etrans835attach.EtransNum IN (" + string.Join(",", listEtrans835Nums.Select(x => (x))) + ") "
+        command += "WHERE etrans835attach.EtransNum IN (" + string.Join(",", listEtrans835Nums.Select(x => x)) + ") "
                    + "ORDER BY etrans835attach.DateTimeEntry"; //Attaches created from splitting an ERA need to be after the original claim attach.
         var table = DataCore.GetTable(command);
         if (isSimple) return Etrans835AttachCrud.TableToList(table);
@@ -87,7 +87,7 @@ public class Etrans835Attaches
         if (arrayEtranNums.Length == 0) return;
 
         var command = "DELETE FROM etrans835attach "
-                      + "WHERE EtransNum IN (" + string.Join(",", arrayEtranNums.Select(x => (x))) + ")";
+                      + "WHERE EtransNum IN (" + string.Join(",", arrayEtranNums.Select(x => x)) + ")";
         if (clpSegmentIndex >= 0) command += " AND ClpSegmentIndex=" + SOut.Int(clpSegmentIndex);
         Db.NonQ(command);
     }
@@ -96,7 +96,7 @@ public class Etrans835Attaches
     {
         if (listEtrans835AttachNums == null || listEtrans835AttachNums.Count == 0) return;
 
-        Db.NonQ("DELETE FROM etrans835attach WHERE Etrans835AttachNum IN (" + string.Join(",", listEtrans835AttachNums.Select(x => (x))) + ")");
+        Db.NonQ("DELETE FROM etrans835attach WHERE Etrans835AttachNum IN (" + string.Join(",", listEtrans835AttachNums.Select(x => x)) + ")");
     }
 
     public static void DetachEraClaim(Hx835_Claim hx835_Claim)

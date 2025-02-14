@@ -88,7 +88,7 @@ public static class QuickPasteCats
 
         protected override void FillCacheIfNeeded()
         {
-            QuickPasteCats.GetTableFromCache(false);
+            GetTableFromCache(false);
         }
     }
 
@@ -109,9 +109,9 @@ public static class QuickPasteCats
         return Cache.GetWhere(predicate, shortList);
     }
 
-    public static DataTable GetTableFromCache(bool refreshCache)
+    public static void GetTableFromCache(bool refreshCache)
     {
-        return Cache.GetTableFromCache(refreshCache);
+        Cache.GetTableFromCache(refreshCache);
     }
 
     public static void ClearCache()

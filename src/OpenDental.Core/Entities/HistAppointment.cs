@@ -127,12 +127,6 @@ public class HistAppointment : TableBase
 
     #endregion Copies of Task Fields
 
-    ///<summary>Pass in the old appointment that needs to be recorded.</summary>
-    public HistAppointment(Appointment appt)
-    {
-        SetAppt(appt);
-    }
-
     ///<summary>Updates the base appointment object but maintains HistAppointment filed values.</summary>
     public void SetAppt(Appointment appt)
     {
@@ -142,26 +136,6 @@ public class HistAppointment : TableBase
             var fieldInfoHist = typeof(HistAppointment).GetField(arrayFieldInfos[i].Name);
             fieldInfoHist.SetValue(this, arrayFieldInfos[i].GetValue(appt));
         }
-    }
-
-    public Appointment ToAppt()
-    {
-        var appt = new Appointment();
-        
-        var fieldInfos = typeof(Appointment).GetFields();
-        
-        foreach (var fieldInfo in fieldInfos)
-        {
-            var fieldInfoHist = typeof(HistAppointment).GetField(fieldInfo.Name);
-            
-            fieldInfo.SetValue(appt, fieldInfoHist.GetValue(this));
-        }
-
-        return appt;
-    }
-
-    public HistAppointment()
-    {
     }
 }
 

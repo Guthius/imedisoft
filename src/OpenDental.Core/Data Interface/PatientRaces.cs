@@ -16,7 +16,7 @@ public class PatientRaces
 				COALESCE(cdcrec.HeirarchicalCode,'') HeirarchicalCode
 				FROM patientrace 
 				LEFT JOIN cdcrec ON cdcrec.CdcrecCode=patientrace.CdcrecCode
-				WHERE PatNum=" + (patNum);
+				WHERE PatNum=" + patNum;
         var table = DataCore.GetTable(command);
         var listPatientRaces = PatientRaceCrud.TableToList(table);
         for (var i = 0; i < table.Rows.Count; i++)
@@ -70,49 +70,6 @@ public class PatientRaces
         return PatientRaceOld.Unknown;
     }
 
-    public static List<PatientRace> GetPatRacesFromPatientRaceOld(PatientRaceOld raceOld, long patNum)
-    {
-        var retVal = new List<PatientRace>();
-        switch (raceOld)
-        {
-            case PatientRaceOld.Unknown:
-                //Do nothing.  No entry means "Unknown", the old default.
-                break;
-            case PatientRaceOld.Multiracial:
-            case PatientRaceOld.Other:
-                retVal.Add(new PatientRace(patNum, "2131-1")); //Other race
-                break;
-            case PatientRaceOld.HispanicLatino:
-                retVal.Add(new PatientRace(patNum, "2106-3")); //White
-                retVal.Add(new PatientRace(patNum, "2135-2")); //Hispanic
-                break;
-            case PatientRaceOld.AfricanAmerican:
-                retVal.Add(new PatientRace(patNum, "2054-5")); //Black or African American
-                break;
-            case PatientRaceOld.White:
-                retVal.Add(new PatientRace(patNum, "2106-3")); //White
-                break;
-            case PatientRaceOld.HawaiiOrPacIsland:
-                retVal.Add(new PatientRace(patNum, "2076-8")); //Hawaiian or Pacific Islander
-                break;
-            case PatientRaceOld.AmericanIndian:
-                retVal.Add(new PatientRace(patNum, "1002-5")); //AmericanIndian
-                break;
-            case PatientRaceOld.Asian:
-                retVal.Add(new PatientRace(patNum, "2028-9")); //Black or African American
-                break;
-            case PatientRaceOld.Aboriginal:
-                retVal.Add(new PatientRace(patNum, "2500-7")); //OTHER PACIFIC ISLANDER
-                break;
-            case PatientRaceOld.BlackHispanic:
-                retVal.Add(new PatientRace(patNum, "2054-5")); //Black or African American
-                retVal.Add(new PatientRace(patNum, "2135-2")); //Hispanic
-                break;
-        }
-
-        return retVal;
-    }
-
     public static string GetRaceDescription(List<PatientRace> listPatRaces)
     {
         if (listPatRaces.Count(x => !x.IsEthnicity) == 0) return "";
@@ -131,13 +88,13 @@ public class PatientRaces
         if (listPatRaces.Count == 0)
         {
             //DELETE all for the patient if listPatRaces is empty.
-            command = "DELETE FROM patientrace WHERE PatNum = " + (patNum); //Can't use CRUD layer here because there might be multiple races for one patient.
+            command = "DELETE FROM patientrace WHERE PatNum = " + patNum; //Can't use CRUD layer here because there might be multiple races for one patient.
             Db.NonQ(command);
             return;
         }
 
         List<PatientRace> listPatientRacesDB;
-        command = "SELECT * FROM patientrace WHERE PatNum = " + (patNum);
+        command = "SELECT * FROM patientrace WHERE PatNum = " + patNum;
         listPatientRacesDB = PatientRaceCrud.SelectMany(command);
         //delete excess rows
         for (var i = 0; i < listPatientRacesDB.Count; i++)

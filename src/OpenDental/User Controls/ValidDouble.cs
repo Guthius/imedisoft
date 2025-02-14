@@ -1,128 +1,122 @@
 using System;
 using System.ComponentModel;
+using System.Globalization;
 using System.Windows.Forms;
 
 namespace OpenDental;
 
-///<summary>See usage notes in ValidNum.</summary>
-public class ValidDouble:System.Windows.Forms.TextBox {
-		
-	[Category("OD")]
-	[Description("The maximum value that user can enter.")]
-	public double MaxVal {get;set;}=100000000;
-		
-		
-	[Category("OD")]
-	[Description("The minimum value that user can enter.")]
-	public double MinVal {get;set; }=-100000000;
-			
-	private ErrorProvider errorProvider1=new ErrorProvider();
+public class ValidDouble : TextBox
+{
+    private readonly ErrorProvider _errorProvider1 = new();
 
-	///<summary>You can use this instead of getting and setting Text.  Will throw exception if you try to Get when IsValid=false.</summary>
-	[Browsable(false)]
-	[DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
-	public double Value{
-		//This is a wrapper around Text.  Text is our single storage mechanism.
-		get{
-			if(!IsValid()){
-				throw new Exception(errorProvider1.GetError(this));
-			}
-			if(Text=="" && MinVal==0.01){
-				//In the 5 places where minVal is set to 1 cent, the Value property is not used.
-				//But we need to return something valid.
-				return 0.01;
-			}
-			if(Text==""){
-				return 0;
-			}
-			return Convert.ToDouble(Text);
-		}
-		set{
-			Text=value.ToString();
-			ParseValue();//to set any error
-		}
-	}
+    [Category("OD")]
+    [Description("The maximum value that user can enter.")]
+    public double MaxVal { get; set; } = 100000000;
 
-	///<summary>True if the text entered is a valid double. This replaces the older construct: if(textAbcd.errorProvider1.GetError(textAbcd)!="")</summary>
-	public bool IsValid() {
-		ParseValue();
-		return string.IsNullOrEmpty(errorProvider1.GetError(this));
-	}
+    [Category("OD")]
+    [Description("The minimum value that user can enter.")]
+    public double MinVal { get; set; } = -100000000;
 
-		
-	public ValidDouble(){
-		InitializeComponent();
-		errorProvider1.BlinkStyle=ErrorBlinkStyle.NeverBlink;
-	}
+    [Browsable(false)]
+    [DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+    public double Value
+    {
+        get
+        {
+            if (!IsValid())
+            {
+                throw new Exception(_errorProvider1.GetError(this));
+            }
 
-	#region Component Designer generated code
+            if (Text == "" && MinVal == 0.01)
+            {
+                return 0.01;
+            }
 
-	private void InitializeComponent(){
-		this.SuspendLayout();
-		// 
-		// ValidDouble
-		// 
-		this.Validating += new System.ComponentModel.CancelEventHandler(this.ValidNum_Validating);
-		this.ResumeLayout(false);
+            if (Text == "")
+            {
+                return 0;
+            }
 
-	}
-	#endregion
+            return Convert.ToDouble(Text);
+        }
+        set
+        {
+            Text = value.ToString(CultureInfo.InvariantCulture);
 
-	private void ValidNum_Validating(object sender, CancelEventArgs e) {
-		//Warning.  This will not get hit if you never click into and then out of the box.
-		//So we also parse when setting value and when checking IsValid.
-		ParseValue();
-	}
+            ParseValue();
+        }
+    }
 
-	private void ParseValue() {
-		var myMessage="";
-		if(Text=="" && MinVal==0.01) {
-			//We do use 1 cent in about 5 windows and we allow it to be blank
-			errorProvider1.SetError(this,"");
-			return;
-		}
-		if(Text=="") {
-			//Implied zero, which is usually allowed unless that's outside the range.
-			if(0<MinVal || 0>MaxVal)	{
-				errorProvider1.SetError(this,"Zero or blank is not allowed.");
-				return;
-			}
-			errorProvider1.SetError(this,"");
-			return;
-		}
-		try {
-			if(System.Convert.ToDouble(this.Text)>MaxVal){
-				throw new Exception("Number must be less than or equal to "+MaxVal);
-			}
-			if(System.Convert.ToDouble(this.Text)<MinVal){
-				throw new Exception("Number must be greater than or equal to "+(MinVal));
-			}
-			errorProvider1.SetError(this,"");
-		}
-		catch(Exception ex) {
-			if(ex.Message=="Input string was not in a correct format.") {
-				myMessage="Must be a number. No letters or symbols allowed";
-			}
-			else {
-				myMessage=ex.Message;
-			}
-			errorProvider1.SetError(this,myMessage);
-		}			
-	}
+    public bool IsValid()
+    {
+        ParseValue();
 
-	
+        return string.IsNullOrEmpty(_errorProvider1.GetError(this));
+    }
 
+    public ValidDouble()
+    {
+        InitializeComponent();
+
+        _errorProvider1.BlinkStyle = ErrorBlinkStyle.NeverBlink;
+    }
+
+    private void InitializeComponent()
+    {
+        SuspendLayout();
+
+        Validating += ValidNum_Validating;
+        
+        ResumeLayout(false);
+    }
+
+    private void ValidNum_Validating(object sender, CancelEventArgs e)
+    {
+        ParseValue();
+    }
+
+    private void ParseValue()
+    {
+        if (Text == "" && MinVal == 0.01)
+        {
+            _errorProvider1.SetError(this, "");
+            
+            return;
+        }
+
+        if (Text == "")
+        {
+            if (0 < MinVal || 0 > MaxVal)
+            {
+                _errorProvider1.SetError(this, "Zero or blank is not allowed.");
+                
+                return;
+            }
+
+            _errorProvider1.SetError(this, "");
+            return;
+        }
+
+        try
+        {
+            if (Convert.ToDouble(Text) > MaxVal)
+            {
+                throw new Exception("Number must be less than or equal to " + MaxVal);
+            }
+
+            if (Convert.ToDouble(Text) < MinVal)
+            {
+                throw new Exception("Number must be greater than or equal to " + (MinVal));
+            }
+
+            _errorProvider1.SetError(this, "");
+        }
+        catch (Exception ex)
+        {
+            var message = ex.Message == "Input string was not in a correct format." ? "Must be a number. No letters or symbols allowed" : ex.Message;
+
+            _errorProvider1.SetError(this, message);
+        }
+    }
 }
-
-//Example for ValidDouble=========================================================
-//textAmount.Text=something.Amount.ToString("f2");
-//In butOK_Click:
-/*
-			if(!textAmount.IsValid())
-				|| (test additional textboxes as needed) 
-			{
-				MsgBox.Show(this,"Please fix data entry errors first.");
-				return;
-			}
-*/
-//something.Amount=PIn.Double(textAmount.Text);

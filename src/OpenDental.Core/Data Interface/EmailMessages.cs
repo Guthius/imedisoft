@@ -52,12 +52,10 @@ public class EmailMessages
 
     public static EmailMessage GetOne(long emailMessageNum)
     {
-        var command = "SELECT * FROM emailmessage WHERE EmailMessageNum = " + (emailMessageNum);
         var emailMessage = EmailMessageCrud.SelectOne(emailMessageNum);
-        if (emailMessage != null)
+        if (emailMessage is not null)
         {
-            command = "SELECT * FROM emailattach WHERE EmailMessageNum = " + (emailMessageNum);
-            emailMessage.Attachments = EmailAttachCrud.SelectMany(command);
+            emailMessage.Attachments = EmailAttachCrud.SelectMany("SELECT * FROM emailattach WHERE EmailMessageNum = " + emailMessageNum);
         }
 
         return emailMessage;
@@ -137,7 +135,7 @@ public class EmailMessages
             if (mailboxTypeArray.Contains(MailboxType.Sent)) listEmailSentOrReceiveds.AddRange(GetSentTypes(EmailPlatform.WebMail));
 
             if (listEmailSentOrReceiveds.Count > 0)
-                strSentReceived += "ProvNumWebMail=" + (emailAddress.WebmailProvNum)
+                strSentReceived += "ProvNumWebMail=" + emailAddress.WebmailProvNum
                                                      + " AND SentOrReceived IN (" + string.Join(",", listEmailSentOrReceiveds.Select(x => SOut.Int((int) x))) + ") ";
         }
 
@@ -237,7 +235,7 @@ public class EmailMessages
     {
         var command = "SELECT * FROM emailmessage "
                       + "WHERE TRUE ";
-        if (searchPatNum != 0) command += "AND PatNum=" + (searchPatNum) + " ";
+        if (searchPatNum != 0) command += "AND PatNum=" + searchPatNum + " ";
 
         if (searchEmail != "")
             command += "AND (FromAddress LIKE '%" + SOut.String(searchEmail) + "%' "
@@ -257,7 +255,7 @@ public class EmailMessages
         var listEmailMessagesRet = EmailMessageCrud.SelectMany(command);
         for (var i = 0; i < listEmailMessagesRet.Count; i++)
         {
-            command = "SELECT * FROM emailattach WHERE EmailMessageNum=" + (listEmailMessagesRet[i].EmailMessageNum);
+            command = "SELECT * FROM emailattach WHERE EmailMessageNum=" + listEmailMessagesRet[i].EmailMessageNum;
             listEmailMessagesRet[i].Attachments = EmailAttachCrud.SelectMany(command);
         }
 
@@ -295,7 +293,7 @@ public class EmailMessages
 
         if (emailSentOrReceived == emailMessage.SentOrReceived) return emailSentOrReceived; //Nothing to do.
 
-        var command = "UPDATE emailmessage SET SentOrReceived=" + SOut.Int((int) emailSentOrReceived) + " WHERE EmailMessageNum=" + (emailMessage.EmailMessageNum);
+        var command = "UPDATE emailmessage SET SentOrReceived=" + SOut.Int((int) emailSentOrReceived) + " WHERE EmailMessageNum=" + emailMessage.EmailMessageNum;
         Db.NonQ(command);
         return emailSentOrReceived;
     }
@@ -313,14 +311,14 @@ public class EmailMessages
 
         if (emailSentOrReceived == emailMessage.SentOrReceived) return emailSentOrReceived; //Nothing to do.
 
-        var command = "UPDATE emailmessage SET SentOrReceived=" + SOut.Int((int) emailSentOrReceived) + " WHERE EmailMessageNum=" + (emailMessage.EmailMessageNum);
+        var command = "UPDATE emailmessage SET SentOrReceived=" + SOut.Int((int) emailSentOrReceived) + " WHERE EmailMessageNum=" + emailMessage.EmailMessageNum;
         Db.NonQ(command);
         return emailSentOrReceived;
     }
 
     public static void UpdatePatNum(EmailMessage emailMessage)
     {
-        var command = "UPDATE emailmessage SET PatNum=" + (emailMessage.PatNum) + " WHERE EmailMessageNum=" + (emailMessage.EmailMessageNum);
+        var command = "UPDATE emailmessage SET PatNum=" + emailMessage.PatNum + " WHERE EmailMessageNum=" + emailMessage.EmailMessageNum;
         Db.NonQ(command);
     }
     
@@ -339,7 +337,7 @@ public class EmailMessages
     {
         if (emailMessage.EmailMessageNum == 0) return; //this prevents deletion of all commlog entries if something goes wrong.
 
-        var command = "DELETE FROM emailmessage WHERE EmailMessageNum=" + (emailMessage.EmailMessageNum);
+        var command = "DELETE FROM emailmessage WHERE EmailMessageNum=" + emailMessage.EmailMessageNum;
         Db.NonQ(command);
     }
 
@@ -575,7 +573,7 @@ public class EmailMessages
         //Get the time that the last Direct Ack was sent for the From address.
         command = DbHelper.LimitOrderBy(
             "SELECT MsgDateTime FROM emailmessage "
-            + "WHERE FromAddress='" + SOut.String(emailAddressFrom.EmailUsername.Trim()) + "' AND SentOrReceived=" + ((int) emailSentOrReceivedAckSent) + " "
+            + "WHERE FromAddress='" + SOut.String(emailAddressFrom.EmailUsername.Trim()) + "' AND SentOrReceived=" + (int) emailSentOrReceivedAckSent + " "
             + "ORDER BY MsgDateTime DESC",
             1);
         var dateTimeLastAck = SIn.DateTime(DataCore.GetScalar(command)); //dateTimeLastAck will be 0001-01-01 if there is not yet any sent Acks.

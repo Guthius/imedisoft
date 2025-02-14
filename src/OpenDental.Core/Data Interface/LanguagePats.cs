@@ -241,13 +241,13 @@ public class LanguagePats
 
     public static void DeleteForEFormFieldDef(long eFormFieldDefNum)
     {
-        var command = "DELETE FROM languagepat WHERE EFormFieldDefNum=" + (eFormFieldDefNum);
+        var command = "DELETE FROM languagepat WHERE EFormFieldDefNum=" + eFormFieldDefNum;
         var count = Db.NonQ(command);
     }
 
     public static void Delete(long languagePatNum)
     {
-        var command = "DELETE FROM languagepat WHERE LanguagePatNum=" + (languagePatNum);
+        var command = "DELETE FROM languagepat WHERE LanguagePatNum=" + languagePatNum;
         var count = Db.NonQ(command);
     }
 }

@@ -982,7 +982,7 @@ public class DisplayFields
 
         protected override void FillCacheIfNeeded()
         {
-            DisplayFields.GetTableFromCache(false);
+            GetTableFromCache(false);
         }
     }
 
@@ -995,7 +995,7 @@ public class DisplayFields
 
     public static void RefreshCache()
     {
-        GetTableFromCache(true);
+        Cache.GetTableFromCache(true);
     }
 
     public static DataTable GetTableFromCache(bool refreshCache)

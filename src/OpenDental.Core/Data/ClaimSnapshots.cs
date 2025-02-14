@@ -140,7 +140,7 @@ public static class ClaimSnapshots
 
     public static void Insert(ClaimSnapshot claimSnapshot)
     {
-        if (Db.GetCount("SELECT COUNT(*) FROM claimsnapshot WHERE ProcNum=" + claimSnapshot.ProcNum + " AND ClaimProcNum='" + claimSnapshot.ClaimProcNum + "'") != "0")
+        if (Db.GetCount("SELECT COUNT(*) FROM claimsnapshot WHERE ProcNum = " + claimSnapshot.ProcNum + " AND ClaimProcNum = " + claimSnapshot.ClaimProcNum) != "0")
         {
             return;
         }

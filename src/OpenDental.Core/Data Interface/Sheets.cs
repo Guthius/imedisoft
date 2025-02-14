@@ -33,7 +33,7 @@ public class Sheets
     {
         if (listSheetNums.IsNullOrEmpty()) return [];
 
-        var command = "SELECT * FROM sheet WHERE SheetNum IN (" + string.Join(",", listSheetNums.Select(x => (x))) + ")";
+        var command = "SELECT * FROM sheet WHERE SheetNum IN (" + string.Join(",", listSheetNums.Select(x => x)) + ")";
         return SheetCrud.SelectMany(command);
     }
 
@@ -85,13 +85,13 @@ public class Sheets
 
     public static List<Sheet> GetReferralSlips(long patNum, long referralNum)
     {
-        var command = "SELECT * FROM sheet WHERE PatNum=" + (patNum)
+        var command = "SELECT * FROM sheet WHERE PatNum=" + patNum
                                                           + " AND sheet.SheetType=" + SOut.Int((int) SheetTypeEnum.ReferralSlip)
                                                           + " AND EXISTS(SELECT * FROM sheetfield "
                                                           + "WHERE sheet.SheetNum=sheetfield.SheetNum "
-                                                          + "AND sheetfield.FieldType=" + ((int) SheetFieldType.Parameter)
+                                                          + "AND sheetfield.FieldType=" + (int) SheetFieldType.Parameter
                                                           + " AND sheetfield.FieldName='ReferralNum' "
-                                                          + "AND sheetfield.FieldValue='" + (referralNum) + "') "
+                                                          + "AND sheetfield.FieldValue='" + referralNum + "') "
                                                           + "AND IsDeleted=0 "
                                                           + "ORDER BY DateTimeSheet";
         return SheetCrud.SelectMany(command);
@@ -101,18 +101,18 @@ public class Sheets
     {
         var command = "SELECT sheet.* FROM sheet,sheetfield "
                       + "WHERE sheet.SheetNum=sheetfield.SheetNum"
-                      + " AND sheet.PatNum=" + (patNum)
-                      + " AND sheet.SheetType=" + ((int) SheetTypeEnum.LabSlip)
-                      + " AND sheetfield.FieldType=" + ((int) SheetFieldType.Parameter)
+                      + " AND sheet.PatNum=" + patNum
+                      + " AND sheet.SheetType=" + (int) SheetTypeEnum.LabSlip
+                      + " AND sheetfield.FieldType=" + (int) SheetFieldType.Parameter
                       + " AND sheetfield.FieldName='LabCaseNum' "
-                      + "AND sheetfield.FieldValue='" + (labCaseNum) + "' "
+                      + "AND sheetfield.FieldValue='" + labCaseNum + "' "
                       + "AND IsDeleted=0";
         return SheetCrud.SelectOne(command);
     }
 
     public static List<Sheet> GetForTerminal(long patNum)
     {
-        var command = "SELECT * FROM sheet WHERE PatNum=" + (patNum)
+        var command = "SELECT * FROM sheet WHERE PatNum=" + patNum
                                                           + " AND ShowInTerminal > 0 AND IsDeleted=0"
                                                           + " ORDER BY ShowInTerminal,DateTimeSheet";
         return SheetCrud.SelectMany(command);
@@ -120,7 +120,7 @@ public class Sheets
 
     public static int GetMaxTerminalNum(long patNum)
     {
-        var command = "SELECT MAX(ShowInTerminal) FROM sheet WHERE PatNum=" + (patNum)
+        var command = "SELECT MAX(ShowInTerminal) FROM sheet WHERE PatNum=" + patNum
                                                                             + " AND IsDeleted=0";
         return (int) Db.GetLong(command);
     }
@@ -128,7 +128,7 @@ public class Sheets
     public static List<Sheet> GetForPatientForToday(long patNum)
     {
         var dateSQL = "CURDATE()";
-        var command = "SELECT * FROM sheet WHERE PatNum=" + (patNum) + " "
+        var command = "SELECT * FROM sheet WHERE PatNum=" + patNum + " "
                       + "AND DATE(DateTimeSheet) = " + dateSQL + " "
                       + "AND IsDeleted=0";
         return SheetCrud.SelectMany(command);
@@ -136,7 +136,7 @@ public class Sheets
 
     public static List<Sheet> GetForPatient(long patNum)
     {
-        var command = "SELECT * FROM sheet WHERE IsDeleted=0 AND PatNum=" + (patNum);
+        var command = "SELECT * FROM sheet WHERE IsDeleted=0 AND PatNum=" + patNum;
         return SheetCrud.SelectMany(command);
     }
 
@@ -147,23 +147,23 @@ public class Sheets
                   + "LEFT JOIN sheet ON sheet.SheetNum = sheetfield.SheetNum "
                   + "WHERE IsDeleted=0 "
                   + "AND FieldType = 10 " //PatImage
-                  + "AND FieldValue = '" + (docNum) + "' " //FieldName == DocCategory, which we do not care about here.
+                  + "AND FieldValue = '" + docNum + "' " //FieldName == DocCategory, which we do not care about here.
                   + "GROUP BY sheet.SheetNum "
                   + "UNION "
                   + "SELECT sheet.* "
                   + "FROM sheet "
                   + "WHERE sheet.SheetType=" + SOut.Int((int) SheetTypeEnum.ReferralLetter) + " "
                   + "AND sheet.IsDeleted=0 "
-                  + "AND sheet.DocNum=" + (docNum);
+                  + "AND sheet.DocNum=" + docNum;
         return SheetCrud.SelectMany(command);
     }
 
     public static Sheet GetMostRecentExamSheet(long patNum, string examDescript)
     {
         var command = "SELECT * FROM sheet WHERE DateTimeSheet="
-                      + "(SELECT MAX(DateTimeSheet) FROM sheet WHERE PatNum=" + (patNum) + " "
+                      + "(SELECT MAX(DateTimeSheet) FROM sheet WHERE PatNum=" + patNum + " "
                       + "AND Description='" + SOut.String(examDescript) + "' AND IsDeleted=0) "
-                      + "AND PatNum=" + (patNum) + " "
+                      + "AND PatNum=" + patNum + " "
                       + "AND Description='" + SOut.String(examDescript) + "' "
                       + "AND IsDeleted=0 "
                       + "LIMIT 1";
@@ -315,13 +315,13 @@ public class Sheets
 
     public static void Delete(long sheetNum, long patNum = 0, byte showInTerminal = 0)
     {
-        var command = "UPDATE sheet SET IsDeleted=1,ShowInTerminal=0 WHERE SheetNum=" + (sheetNum);
+        var command = "UPDATE sheet SET IsDeleted=1,ShowInTerminal=0 WHERE SheetNum=" + sheetNum;
         Db.NonQ(command);
         if (patNum > 0 && showInTerminal > 0)
         {
             //showInTerminal must be at least 1, so decrementing those that are at least 2
             command = "UPDATE sheet SET ShowInTerminal=ShowInTerminal-1 "
-                      + "WHERE PatNum=" + (patNum) + " "
+                      + "WHERE PatNum=" + patNum + " "
                       + "AND IsDeleted=0 "
                       + "AND ShowInTerminal>" + SOut.Byte(showInTerminal); //decrement ShowInTerminal for all sheets with a bigger ShowInTerminal than the one deleted
             Db.NonQ(command);
@@ -403,9 +403,9 @@ public class Sheets
         //sheet---------------------------------------------------------------------------------------
         var command = "SELECT DateTimeSheet,SheetNum,Description,ShowInTerminal,DateTSheetEdited "
                       + "FROM sheet WHERE IsDeleted=0 "
-                      + "AND PatNum =" + (patNum) + " "
-                      + "AND (SheetType=" + ((int) SheetTypeEnum.PatientForm) + " OR SheetType=" + ((int) SheetTypeEnum.MedicalHistory);
-        if (PrefC.GetBool(PrefName.PatientFormsShowConsent)) command += " OR SheetType=" + ((int) SheetTypeEnum.Consent); //Show consent forms if pref is true.
+                      + "AND PatNum =" + patNum + " "
+                      + "AND (SheetType=" + (int) SheetTypeEnum.PatientForm + " OR SheetType=" + (int) SheetTypeEnum.MedicalHistory;
+        if (PrefC.GetBool(PrefName.PatientFormsShowConsent)) command += " OR SheetType=" + (int) SheetTypeEnum.Consent; //Show consent forms if pref is true.
         command += ")";
         //+"ORDER BY ShowInTerminal";//DATE(DateTimeSheet),ShowInTerminal,TIME(DateTimeSheet)";
         var tableRawSheet = DataCore.GetTable(command);
@@ -436,7 +436,7 @@ public class Sheets
         command = "SELECT DateCreated,DocCategory,DocNum,Description,document.DateTStamp "
                   + "FROM document,definition "
                   + "WHERE document.DocCategory=definition.DefNum"
-                  + " AND PatNum =" + (patNum)
+                  + " AND PatNum =" + patNum
                   + " AND definition.ItemValue LIKE '%F%'";
         //+" ORDER BY DateCreated";
         var tableRawDoc = DataCore.GetTable(command);
@@ -464,7 +464,7 @@ public class Sheets
         //eForms---------------------------------------------------------------------------------------
         command = "SELECT EFormNum,DateTimeShown,Description,DateTEdited "
                   + "FROM eform "
-                  + "WHERE PatNum =" + (patNum);
+                  + "WHERE PatNum =" + patNum;
         var tableRawEForm = DataCore.GetTable(command);
         for (var i = 0; i < tableRawEForm.Rows.Count; i++)
         {
@@ -497,9 +497,9 @@ public class Sheets
     {
         var command = "SELECT * "
                       + "FROM sheet WHERE IsDeleted=0 "
-                      + "AND PatNum=" + (patNum) + " "
+                      + "AND PatNum=" + patNum + " "
                       + "AND SheetType=" + SOut.Int((int) SheetTypeEnum.ExamSheet) + " ";
-        if (sheetDefNum != -1) command += "AND SheetDefNum = " + (sheetDefNum) + " ";
+        if (sheetDefNum != -1) command += "AND SheetDefNum = " + sheetDefNum + " ";
         command += "AND DATE(DateTimeSheet)>=" + SOut.Date(dateStart) + " AND DATE(DateTimeSheet)<=" + SOut.Date(dateEnd) + " "
                    + "ORDER BY DateTimeSheet";
         return SheetCrud.SelectMany(command);
@@ -507,13 +507,13 @@ public class Sheets
 
     public static byte GetBiggestShowInTerminal(long patNum)
     {
-        var command = "SELECT MAX(ShowInTerminal) FROM sheet WHERE IsDeleted=0 AND PatNum=" + (patNum);
+        var command = "SELECT MAX(ShowInTerminal) FROM sheet WHERE IsDeleted=0 AND PatNum=" + patNum;
         return SIn.Byte(DataCore.GetScalar(command));
     }
 
     public static void ClearFromTerminal(long patNum)
     {
-        var command = "UPDATE sheet SET ShowInTerminal=0 WHERE PatNum=" + (patNum);
+        var command = "UPDATE sheet SET ShowInTerminal=0 WHERE PatNum=" + patNum;
         Db.NonQ(command);
     }
 

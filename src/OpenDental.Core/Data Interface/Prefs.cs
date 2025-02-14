@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Globalization;
 using System.Linq;
 using System.Windows.Forms;
 using CodeBase;
@@ -13,34 +14,38 @@ namespace OpenDentBusiness;
 
 public class Prefs
 {
-    public delegate void OnCacheRefreshDelegate();
-
     public static bool GetBoolNoCache(PrefName prefName)
     {
-        var command = "SELECT ValueString FROM preference WHERE PrefName = '" + SOut.String(prefName.ToString()) + "'";
-        return SIn.Bool(DataCore.GetScalar(command));
+        return SIn.Bool(DataCore.GetScalar("SELECT ValueString FROM preference WHERE PrefName = '" + SOut.String(prefName.ToString()) + "'"));
     }
 
-    public static bool GetYNNoCache(PrefName prefName)
+    public static bool GetYnNoCache(PrefName prefName)
     {
         var command = "SELECT ValueString FROM preference WHERE PrefName = '" + SOut.String(prefName.ToString()) + "'";
+
         var yn = (YN) SIn.Int(DataCore.GetScalar(command));
-        if (yn == YN.Yes) return true;
-        if (yn == YN.No) return false;
-        //unknown, so use the default
+        switch (yn)
+        {
+            case YN.Yes:
+                return true;
+
+            case YN.No:
+                return false;
+        }
+
         var prefValueType = prefName.GetValueType();
-        if (prefValueType == PrefValueType.YN_DEFAULT_FALSE) return false;
-        if (prefValueType == PrefValueType.YN_DEFAULT_TRUE) return true;
-        throw new ArgumentException("Invalid type");
+
+        return prefValueType switch
+        {
+            PrefValueType.YN_DEFAULT_FALSE => false,
+            PrefValueType.YN_DEFAULT_TRUE => true,
+            _ => throw new ArgumentException("Invalid type")
+        };
     }
 
     public static void Update(Pref pref)
     {
-        //Don't use CRUD here because we want to update based on PrefName instead of PrefNum.  Otherwise, it might fail the first time someone runs 7.6.
-        var command = "UPDATE preference SET "
-                      + "ValueString = '" + SOut.String(pref.ValueString) + "' "
-                      + " WHERE PrefName = '" + SOut.String(pref.PrefName) + "'";
-        Db.NonQ(command);
+        Db.NonQ("UPDATE preference SET ValueString = '" + SOut.String(pref.ValueString) + "' " + " WHERE PrefName = '" + SOut.String(pref.PrefName) + "'");
     }
 
     public static bool UpdateInt(PrefName prefName, int newValue)
@@ -48,17 +53,19 @@ public class Prefs
         return UpdateLong(prefName, newValue);
     }
 
-    public static bool UpdateYN(PrefName prefName, YN newValue)
+    public static bool UpdateYn(PrefName prefName, YN newValue)
     {
         return UpdateLong(prefName, (int) newValue);
     }
 
-    public static bool UpdateYN(PrefName prefName, CheckState checkState)
+    public static bool UpdateYn(PrefName prefName, CheckState checkState)
     {
-        var yn = YN.Unknown;
-        if (checkState == CheckState.Checked) yn = YN.Yes;
-        if (checkState == CheckState.Unchecked) yn = YN.No;
-        return UpdateYN(prefName, yn);
+        return UpdateYn(prefName, checkState switch
+        {
+            CheckState.Checked => YN.Yes,
+            CheckState.Unchecked => YN.No,
+            _ => YN.Unknown
+        });
     }
 
     public static bool UpdateByte(PrefName prefName, byte newValue)
@@ -68,135 +75,153 @@ public class Prefs
 
     public static bool UpdateLong(PrefName prefName, long newValue)
     {
-        //Very unusual.  Involves cache, so Meth is used further down instead of here at the top.
-        var curValue = PrefC.GetLong(prefName);
-        if (curValue == newValue) return false; //no change needed
-        var command = "UPDATE preference SET "
-                      + "ValueString = '" + (newValue) + "' "
-                      + "WHERE PrefName = '" + SOut.String(prefName.ToString()) + "'";
-        var retVal = true;
-        Db.NonQ(command);
-        var pref = new Pref();
-        pref.PrefName = prefName.ToString();
-        pref.ValueString = newValue.ToString();
+        var value = PrefC.GetLong(prefName);
+        if (value == newValue)
+        {
+            return false;
+        }
+
+        Db.NonQ("UPDATE preference SET ValueString = '" + newValue + "' WHERE PrefName = '" + SOut.String(prefName.ToString()) + "'");
+
+        var pref = new Pref
+        {
+            PrefName = prefName.ToString(),
+            ValueString = newValue.ToString()
+        };
+
         UpdateValueForKey(pref);
-        return retVal;
+
+        return true;
     }
 
-    public static bool UpdateDouble(PrefName prefName, double newValue, bool doRounding = true, bool doUseEnUSFormat = false)
+    public static bool UpdateDouble(PrefName prefName, double newValue, bool doRounding = true, bool useEnUsFormat = false)
     {
-        //Very unusual.  Involves cache, so Meth is used further down instead of here at the top.
-        var curValue = PrefC.GetDouble(prefName, doUseEnUSFormat);
-        if (curValue == newValue) return false; //no change needed
-        var command = "UPDATE preference SET "
-                      + "ValueString = '" + SOut.Double(newValue, doRounding, doUseEnUSFormat) + "' "
-                      + "WHERE PrefName = '" + SOut.String(prefName.ToString()) + "'";
-        var retVal = true;
-        Db.NonQ(command);
-        var pref = new Pref();
-        pref.PrefName = prefName.ToString();
-        pref.ValueString = newValue.ToString();
-        UpdateValueForKey(pref);
-        return retVal;
+        var value = PrefC.GetDouble(prefName, useEnUsFormat);
+        if (value == newValue)
+        {
+            return false;
+        }
+
+        Db.NonQ("UPDATE preference SET ValueString = '" + SOut.Double(newValue, doRounding, useEnUsFormat) + "' WHERE PrefName = '" + SOut.String(prefName.ToString()) + "'");
+
+        UpdateValueForKey(new Pref
+        {
+            PrefName = prefName.ToString(),
+            ValueString = newValue.ToString(CultureInfo.InvariantCulture)
+        });
+
+        return true;
     }
 
-    public static bool UpdateBool(PrefName prefName, bool newValue)
+    public static bool UpdateBool(PrefName prefName, bool newValue, bool isForced = false)
     {
-        return UpdateBool(prefName, newValue, false);
-    }
+        var value = PrefC.GetBool(prefName);
+        if (!isForced && value == newValue)
+        {
+            return false;
+        }
 
-    public static bool UpdateBool(PrefName prefName, bool newValue, bool isForced)
-    {
-        //Very unusual.  Involves cache, so Meth is used further down instead of here at the top.
-        var curValue = PrefC.GetBool(prefName);
-        if (!isForced && curValue == newValue) return false; //no change needed
-        var command = "UPDATE preference SET "
-                      + "ValueString = '" + SOut.Bool(newValue) + "' "
-                      + "WHERE PrefName = '" + SOut.String(prefName.ToString()) + "'";
-        var retVal = true;
-        Db.NonQ(command);
-        var pref = new Pref();
-        pref.PrefName = prefName.ToString();
-        pref.ValueString = SOut.Bool(newValue);
-        UpdateValueForKey(pref);
-        return retVal;
+        Db.NonQ("UPDATE preference SET ValueString = '" + SOut.Bool(newValue) + "' WHERE PrefName = '" + SOut.String(prefName.ToString()) + "'");
+
+        UpdateValueForKey(new Pref
+        {
+            PrefName = prefName.ToString(),
+            ValueString = SOut.Bool(newValue)
+        });
+
+        return true;
     }
 
     public static bool UpdateString(PrefName prefName, string newValue)
     {
-        //Very unusual.  Involves cache, so Meth is used further down instead of here at the top.
-        var curValue = PrefC.GetString(prefName);
-        if (curValue == newValue) return false; //no change needed
-        var command = "UPDATE preference SET "
-                      + "ValueString = '" + SOut.String(newValue) + "' "
-                      + "WHERE PrefName = '" + SOut.String(prefName.ToString()) + "'";
-        var retVal = true;
-        Db.NonQ(command);
-        var pref = new Pref();
-        pref.PrefName = prefName.ToString();
-        pref.ValueString = newValue;
-        UpdateValueForKey(pref);
-        return retVal;
+        var value = PrefC.GetString(prefName);
+        if (value == newValue)
+        {
+            return false;
+        }
+
+        Db.NonQ("UPDATE preference SET ValueString = '" + SOut.String(newValue) + "' WHERE PrefName = '" + SOut.String(prefName.ToString()) + "'");
+
+        UpdateValueForKey(new Pref
+        {
+            PrefName = prefName.ToString(),
+            ValueString = newValue
+        });
+
+        return true;
     }
 
     public static void UpdateStringNoCache(PrefName prefName, string newValue)
     {
-        var command = "UPDATE preference SET ValueString='" + SOut.String(newValue) + "' WHERE PrefName='" + SOut.String(prefName.ToString()) + "'";
-        Db.NonQ(command);
+        Db.NonQ("UPDATE preference SET ValueString = '" + SOut.String(newValue) + "' WHERE PrefName = '" + SOut.String(prefName.ToString()) + "'");
     }
 
     public static bool UpdateDateT(PrefName prefName, DateTime newValue)
     {
-        //Very unusual.  Involves cache, so Meth is used further down instead of here at the top.
-        var curValue = PrefC.GetDateT(prefName);
-        if (curValue == newValue) return false; //no change needed
-        var command = "UPDATE preference SET "
-                      + "ValueString = '" + SOut.DateTime(newValue, false) + "' "
-                      + "WHERE PrefName = '" + SOut.String(prefName.ToString()) + "'";
-        var retVal = true;
-        Db.NonQ(command);
-        var pref = new Pref();
-        pref.PrefName = prefName.ToString();
-        pref.ValueString = SOut.DateTime(newValue, false);
-        UpdateValueForKey(pref);
-        return retVal;
+        var value = PrefC.GetDateT(prefName);
+        if (value == newValue)
+        {
+            return false;
+        }
+
+        Db.NonQ("UPDATE preference SET ValueString = '" + SOut.DateTime(newValue, false) + "' WHERE PrefName = '" + SOut.String(prefName.ToString()) + "'");
+
+        UpdateValueForKey(new Pref
+        {
+            PrefName = prefName.ToString(),
+            ValueString = SOut.DateTime(newValue, false)
+        });
+
+        return true;
     }
 
     public static void UpdateDefNumsForPref(PrefName prefName, string defNumFrom, string defNumTo)
     {
-        var listStrDefNums = GetOne(prefName)
+        var defNums = GetOne(prefName)
             .ValueString
             .Split(",", StringSplitOptions.RemoveEmptyEntries)
             .ToList();
-        listStrDefNums = Defs.RemoveOrReplaceDefNum(listStrDefNums, defNumFrom, defNumTo);
-        if (listStrDefNums == null) return; //Nothing to update.
-        var strDefNums = string.Join(",", listStrDefNums.Select(x => SOut.String(x)));
+
+        defNums = Defs.RemoveOrReplaceDefNum(defNums, defNumFrom, defNumTo);
+        if (defNums == null)
+        {
+            return;
+        }
+
+        var strDefNums = string.Join(",", defNums.Select(SOut.String));
+
         UpdateString(prefName, strDefNums);
     }
 
-    public static Pref GetPref(string PrefName)
+    public static Pref GetPref(string prefName)
     {
-        return GetOne(PrefName);
+        return GetOne(prefName);
     }
 
     public static PrefName GetSheetDefPref(SheetTypeEnum sheetType)
     {
-        var retVal = PrefName.SheetsDefaultConsent;
-        //The following SheetTypeEnums will always fail this Enum.TryParse(...)
-        //ERA, ERAGridHeader, PatientDashboard, PatientDashboardWidget
-        //These SheetTypeEnums do not save to the DB when created and do not have a corresponding 'practice wide default'.
-        //The mentioned SheetTypeEnums really shouldn't call this function.
-        if (!Enum.TryParse("SheetsDefault" + sheetType.GetDescription(), out retVal)) throw new Exception(Lans.g("SheetDefs", "Unsupported SheetTypeEnum") + "\r\n" + sheetType);
+        if (!Enum.TryParse("SheetsDefault" + sheetType.GetDescription(), out PrefName retVal))
+        {
+            throw new Exception("Unsupported SheetTypeEnum\r\n" + sheetType);
+        }
+
         return retVal;
     }
 
     public static List<Pref> GetInsHistPrefs()
     {
-        return GetPrefs([
-            PrefName.InsHistBWCodes.ToString(), PrefName.InsHistDebridementCodes.ToString(),
-            PrefName.InsHistExamCodes.ToString(), PrefName.InsHistPanoCodes.ToString(), PrefName.InsHistPerioLLCodes.ToString(),
-            PrefName.InsHistPerioLRCodes.ToString(), PrefName.InsHistPerioMaintCodes.ToString(), PrefName.InsHistPerioULCodes.ToString(),
-            PrefName.InsHistPerioURCodes.ToString(), PrefName.InsHistProphyCodes.ToString()
+        return GetPrefs(
+        [
+            nameof(PrefName.InsHistBWCodes),
+            nameof(PrefName.InsHistDebridementCodes),
+            nameof(PrefName.InsHistExamCodes),
+            nameof(PrefName.InsHistPanoCodes),
+            nameof(PrefName.InsHistPerioLLCodes),
+            nameof(PrefName.InsHistPerioLRCodes),
+            nameof(PrefName.InsHistPerioMaintCodes),
+            nameof(PrefName.InsHistPerioULCodes),
+            nameof(PrefName.InsHistPerioURCodes),
+            nameof(PrefName.InsHistProphyCodes)
         ]);
     }
 
@@ -204,38 +229,48 @@ public class Prefs
     {
         return
         [
-            PrefName.InsHistBWCodes, PrefName.InsHistPanoCodes, PrefName.InsHistExamCodes, PrefName.InsHistProphyCodes,
-            PrefName.InsHistPerioURCodes, PrefName.InsHistPerioULCodes, PrefName.InsHistPerioLRCodes, PrefName.InsHistPerioLLCodes,
-            PrefName.InsHistPerioMaintCodes, PrefName.InsHistDebridementCodes
+            PrefName.InsHistBWCodes,
+            PrefName.InsHistPanoCodes,
+            PrefName.InsHistExamCodes,
+            PrefName.InsHistProphyCodes,
+            PrefName.InsHistPerioURCodes,
+            PrefName.InsHistPerioULCodes,
+            PrefName.InsHistPerioLRCodes,
+            PrefName.InsHistPerioLLCodes,
+            PrefName.InsHistPerioMaintCodes,
+            PrefName.InsHistDebridementCodes
         ];
     }
 
     private class PrefCache : CacheDictNonPkAbs<Pref, string, Pref>
     {
-        public OnCacheRefreshDelegate OnCacheRefresh;
-
         protected override List<Pref> GetCacheFromDb()
         {
-            var command = "SELECT * FROM preference";
-            return PrefCrud.SelectMany(command);
+            return PrefCrud.SelectMany("SELECT * FROM preference");
         }
 
         protected override List<Pref> TableToList(DataTable dataTable)
         {
-            //Can't use Crud.PrefCrud.TableToList(table) because it will fail the first time someone runs 7.6 before conversion.
-            var listPrefs = new List<Pref>();
+            var prefs = new List<Pref>();
+
             var containsPrefNum = dataTable.Columns.Contains("PrefNum");
+
             foreach (DataRow row in dataTable.Rows)
             {
                 var pref = new Pref();
-                if (containsPrefNum) pref.PrefNum = SIn.Long(row["PrefNum"].ToString());
+
+                if (containsPrefNum)
+                {
+                    pref.PrefNum = SIn.Long(row["PrefNum"].ToString());
+                }
+
                 pref.PrefName = SIn.String(row["PrefName"].ToString());
                 pref.ValueString = SIn.String(row["ValueString"].ToString());
-                //no need to load up the comments.  Especially since this will fail when user first runs version 5.8.
-                listPrefs.Add(pref);
+
+                prefs.Add(pref);
             }
 
-            return listPrefs;
+            return prefs;
         }
 
         protected override Pref Copy(Pref item)
@@ -250,7 +285,7 @@ public class Prefs
 
         protected override void FillCacheIfNeeded()
         {
-            Prefs.GetTableFromCache(false);
+            GetTableFromCache(false);
         }
 
         protected override string GetDictKey(Pref item)
@@ -270,33 +305,32 @@ public class Prefs
 
         protected override Dictionary<string, Pref> ToDictionary(List<Pref> items)
         {
-            var dictPrefs = new Dictionary<string, Pref>();
-            var listDuplicatePrefs = new List<string>();
+            var prefs = new Dictionary<string, Pref>();
+            var duplicatePrefs = new List<string>();
+
             foreach (var pref in items)
-                if (dictPrefs.ContainsKey(pref.PrefName))
-                    listDuplicatePrefs.Add(pref.PrefName); //The current preference is a duplicate preference.
+            {
+                if (prefs.ContainsKey(pref.PrefName))
+                {
+                    duplicatePrefs.Add(pref.PrefName);
+                }
                 else
-                    dictPrefs.Add(pref.PrefName, pref);
+                {
+                    prefs.Add(pref.PrefName, pref);
+                }
+            }
 
-            if (listDuplicatePrefs.Count > 0 && //Duplicate preferences found, and
-                dictPrefs.ContainsKey(PrefName.CorruptedDatabase.ToString()) && //CorruptedDatabase preference exists (only v3.4+), and
-                dictPrefs[PrefName.CorruptedDatabase.ToString()].ValueString != "0") //The CorruptedDatabase flag is set.
-                throw new ApplicationException(Lans.g("Prefs", "Your database is corrupted because an update failed.  Please contact us.  This database is unusable and you will need to restore from a backup."));
-
-            if (listDuplicatePrefs.Count > 0) //Duplicate preferences, but the CorruptedDatabase flag is not set.
-                throw new ApplicationException(Lans.g("Prefs", "Duplicate preferences found in database") + ": " + string.Join(",", listDuplicatePrefs));
-            return dictPrefs;
+            return duplicatePrefs.Count switch
+            {
+                > 0 when prefs.ContainsKey(nameof(PrefName.CorruptedDatabase)) && prefs[nameof(PrefName.CorruptedDatabase)].ValueString != "0" => throw new ApplicationException("Your database is corrupted because an update failed.  Please contact us.  This database is unusable and you will need to restore from a backup."),
+                > 0 => throw new ApplicationException("Duplicate preferences found in database: " + string.Join(",", duplicatePrefs)),
+                _ => prefs
+            };
         }
 
         protected override DataTable ToDataTable(List<Pref> items)
         {
             return PrefCrud.ListToTable(items);
-        }
-
-        protected override void GotNewCache(List<Pref> items)
-        {
-            base.GotNewCache(items);
-            ODException.SwallowAnyException(() => OnCacheRefresh?.Invoke());
         }
     }
 
@@ -319,24 +353,32 @@ public class Prefs
 
     public static Pref GetOne(string prefName)
     {
-        if (!PrefCaches.GetContainsKey(prefName)) throw new Exception(prefName + " is an invalid pref name.");
+        if (!PrefCaches.GetContainsKey(prefName))
+        {
+            throw new Exception(prefName + " is an invalid pref name.");
+        }
+
         return PrefCaches.GetOne(prefName);
     }
 
-    public static List<Pref> GetPrefs(List<string> listPrefNames)
+    public static List<Pref> GetPrefs(List<string> prefNames)
     {
-        if (listPrefNames == null || listPrefNames.Count == 0) return [];
-        return PrefCaches.GetWhere(x => listPrefNames.Contains(x.PrefName));
+        if (prefNames == null || prefNames.Count == 0)
+        {
+            return [];
+        }
+
+        return PrefCaches.GetWhere(x => prefNames.Contains(x.PrefName));
     }
 
     public static void RefreshCache()
     {
-        GetTableFromCache(true);
+        PrefCaches.GetTableFromCache(true);
     }
 
-    public static DataTable GetTableFromCache(bool doRefreshCache)
+    public static void GetTableFromCache(bool refreshCache)
     {
-        return PrefCaches.GetTableFromCache(doRefreshCache);
+        PrefCaches.GetTableFromCache(refreshCache);
     }
 
     public static void ClearCache()

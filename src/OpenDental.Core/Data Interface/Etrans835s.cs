@@ -60,7 +60,7 @@ public class Etrans835s
         var listPatNames = x835.ListClaimsPaid.Select(x => x.PatientName.ToString()).Distinct().ToList();
         etrans835.PatientName = "";
         if (listPatNames.Count > 0) etrans835.PatientName = listPatNames[0];
-        if (listPatNames.Count > 1) etrans835.PatientName = "(" + (listPatNames.Count) + ")";
+        if (listPatNames.Count > 1) etrans835.PatientName = "(" + listPatNames.Count + ")";
         etrans835.Status = x835.GetStatus();
         if (etrans835.Etrans835Num == 0)
             Insert(etrans835);

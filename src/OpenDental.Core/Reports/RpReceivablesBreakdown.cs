@@ -15,7 +15,7 @@ namespace OpenDentBusiness {
 			//-------------------------------------------------------------------------------------//
 			// Create temperary tables for sorting data
 			var listHiddenUnearnedDefNums= Defs.GetDefsNoCache(DefCat.PaySplitUnearnedType).FindAll(x => !string.IsNullOrEmpty(x.ItemValue)).Select(x => x.DefNum).ToList();
-			var isAgingProcLifo=Prefs.GetYNNoCache(PrefName.AgingProcLifo);
+			var isAgingProcLifo=Prefs.GetYnNoCache(PrefName.AgingProcLifo);
 			var query="";
 			var whereProv="";//used as the provider portion of the where clauses.
 											//each whereProv needs to be set up separately for each query

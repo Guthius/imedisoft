@@ -26,8 +26,8 @@ public class GraphicsHelper
         }
 
         var vector = new Vector(x2 - x1, y2 - y1); //connect the dots
-        var vector12oclock = new Vector(0, 1);
-        var angle = Vector.AngleBetween(vector12oclock, vector);
+        var vector12Oclock = new Vector(0, 1);
+        var angle = Vector.AngleBetween(vector12Oclock, vector);
         var pointCenter = new PointF(x1 + (x2 - x1) / 2f, y1 + (y2 - y1) / 2f);
         var graphicsState = g.Save();
         g.TranslateTransform(pointCenter.X, pointCenter.Y);
@@ -84,17 +84,13 @@ public class GraphicsHelper
         //The overload for DrawString that takes a StringFormat will cause the tabs '\t' to be ignored.
         //In order for the tabs to not get ignored, we have to tell StringFormat how many pixels each tab should be.
         //50.0f is the closest to our Fill Sheet Edit preview.
-        stringFormat.SetTabStops(0.0f, new float[] {50.0f});
-        stringFormat.Alignment = StringAlignment.Near;
-        if (align == HorizontalAlignment.Center)
+        stringFormat.SetTabStops(0.0f, [50.0f]);
+        stringFormat.Alignment = align switch
         {
-            stringFormat.Alignment = StringAlignment.Center;
-        }
-
-        if (align == HorizontalAlignment.Right)
-        {
-            stringFormat.Alignment = StringAlignment.Far;
-        }
+            HorizontalAlignment.Center => StringAlignment.Center,
+            HorizontalAlignment.Right => StringAlignment.Far,
+            _ => StringAlignment.Near
+        };
 
         g.DrawString(str, font, brush, rectangleActual, stringFormat);
         stringFormat?.Dispose();
@@ -125,20 +121,18 @@ public class GraphicsHelper
         var font = new Font(xfont.Name, (float) xfont.Size, fontstyle);
         var sizeLayout = new SizeF(rectangleF.Width, font.Height);
         var stringFormat = new StringFormat();
-        stringFormat.SetTabStops(0.0f, new float[] {50.0f}); //helps with measurement further down.
+        stringFormat.SetTabStops(0.0f, [50.0f]); //helps with measurement further down.
         stringFormat.Trimming = StringTrimming.Word;
         var pixelsPerLine = font.GetHeight();
-        var xStringFormat = new XStringFormat(); //or maybe XStringFormats.Default
-        xStringFormat.Alignment = XStringAlignment.Near;
-        if (horizontalAlignment == HorizontalAlignment.Center)
+        var xStringFormat = new XStringFormat
         {
-            xStringFormat.Alignment = XStringAlignment.Center;
-        }
-
-        if (horizontalAlignment == HorizontalAlignment.Right)
-        {
-            xStringFormat.Alignment = XStringAlignment.Far;
-        }
+            Alignment = horizontalAlignment switch
+            {
+                HorizontalAlignment.Center => XStringAlignment.Center,
+                HorizontalAlignment.Right => XStringAlignment.Far,
+                _ => XStringAlignment.Near
+            }
+        };
 
         float lineIdx = 0;
         int chars;
@@ -159,7 +153,7 @@ public class GraphicsHelper
             //TextRenderer.MeasureText(str.Substring(i),font, //no overload for measuring line by line
             //sizeLayout is a rectangle one line high, so we are measuring how much will fit in one line.
             //_lines variable below is thrown away.
-            g.MeasureString(str.Substring(i), font, sizeLayout, stringFormat, out chars, out var _lines);
+            g.MeasureString(str.Substring(i), font, sizeLayout, stringFormat, out chars, out _);
             //Newline characters \r\n, \r, and \n will not be recognized in Unicode PDF and will create rectangles on the screen, so since g.MeasureString has
             //already calculated the next new line that will appear on the screen, we can remove the unneeded newline characters from the current substring.
             var substring = str.Substring(i, chars);
@@ -167,16 +161,17 @@ public class GraphicsHelper
             substring = substring.Replace("\r", "");
             substring = substring.Replace("\n", "");
             substring = substring.Replace("\t", "    ");
-            //use points here:
-            double x = PixelsToPoints(rectangleF.X);
-            if (horizontalAlignment == HorizontalAlignment.Right)
-            {
-                x = PixelsToPoints(rectangleF.Right);
-            }
 
-            if (horizontalAlignment == HorizontalAlignment.Center)
+            double x = PixelsToPoints(rectangleF.X);
+            switch (horizontalAlignment)
             {
-                x = PixelsToPoints(rectangleF.X + rectangleF.Width / 2f);
+                case HorizontalAlignment.Right:
+                    x = PixelsToPoints(rectangleF.Right);
+                    break;
+                
+                case HorizontalAlignment.Center:
+                    x = PixelsToPoints(rectangleF.X + rectangleF.Width / 2f);
+                    break;
             }
 
             double y = PixelsToPoints(rectangleF.Y + pixelsPerLine * lineIdx);
@@ -384,10 +379,10 @@ public class GraphicsHelper
         //e.g. If the sizeFSmall.Height was tall enough for 7.1 lines, g.MeasureString would try to fit 8 when we really would want just 7 since that's how many full
         //lines we could actually fit.
         //figure out how many lines of text will fit on the current page
-        g.MeasureString(text, font, sizeFSmall, stringFormat, out var charactersFitted, out var linesFilled); //don't care about linesFilled
+        g.MeasureString(text, font, sizeFSmall, stringFormat, out var charactersFitted, out _); //don't care about linesFilled
         //These two lines are just for height
         var sizeF = new SizeF(widthAvail, heightAvail);
-        var sizeFFit = g.MeasureString(text, font, sizeF, stringFormat, out var charactersFitted2, out var linesFilled2);
+        var sizeFFit = g.MeasureString(text, font, sizeF, stringFormat, out _, out _);
         bitmap.Dispose();
         g.Dispose();
         var heightAndChars = new HeightAndChars();

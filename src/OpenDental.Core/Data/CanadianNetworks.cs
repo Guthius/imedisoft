@@ -54,7 +54,7 @@ public static class CanadianNetworks
 
         protected override void FillCacheIfNeeded()
         {
-            CanadianNetworks.GetTableFromCache(false);
+            GetTableFromCache(false);
         }
     }
 
@@ -68,10 +68,5 @@ public static class CanadianNetworks
     public static CanadianNetwork GetFirstOrDefault(Func<CanadianNetwork, bool> predicate, bool shortList = false)
     {
         return Cache.GetFirstOrDefault(predicate, shortList);
-    }
-
-    public static void GetTableFromCache(bool refreshCache)
-    {
-        Cache.GetTableFromCache(refreshCache);
     }
 }

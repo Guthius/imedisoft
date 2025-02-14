@@ -48,7 +48,7 @@ public static class DictCustoms
 
         protected override void FillCacheIfNeeded()
         {
-            DictCustoms.GetTableFromCache(false);
+            GetTableFromCache(false);
         }
     }
 
@@ -64,9 +64,9 @@ public static class DictCustoms
         return Cache.GetFirstOrDefault(predicate, shortList);
     }
 
-    public static DataTable GetTableFromCache(bool refreshCache)
+    public static void GetTableFromCache(bool refreshCache)
     {
-        return Cache.GetTableFromCache(refreshCache);
+        Cache.GetTableFromCache(refreshCache);
     }
 
     public static void ClearCache()

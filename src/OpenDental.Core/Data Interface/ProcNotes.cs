@@ -11,8 +11,7 @@ public class ProcNotes
 {
     public static List<ProcNote> GetProcNotesForProc(long procNum)
     {
-        var command = "SELECT * FROM procnote WHERE ProcNum=" + (procNum);
-        return ProcNoteCrud.SelectMany(command);
+        return ProcNoteCrud.SelectMany("SELECT * FROM procnote WHERE ProcNum = " + procNum);
     }
 
     public static void Insert(ProcNote procNote)
@@ -22,10 +21,18 @@ public class ProcNotes
 
     public static List<long> GetIsProcNoteSigned(List<long> listProcNums)
     {
-        if (listProcNums.Count == 0) return [];
-        var command = "SELECT * FROM procnote WHERE ProcNum IN (" + string.Join(",", listProcNums.Select(x => (x))) + ")";
-        var listProcNotes = ProcNoteCrud.SelectMany(command); //get all ProcNotes with ProcNum in the supplied list
-        if (listProcNotes.Count == 0) return [];
+        if (listProcNums.Count == 0)
+        {
+            return [];
+        }
+        
+        var command = "SELECT * FROM procnote WHERE ProcNum IN (" + string.Join(", ", listProcNums.Select(x => x)) + ")";
+        var listProcNotes = ProcNoteCrud.SelectMany(command);
+        if (listProcNotes.Count == 0)
+        {
+            return [];
+        }
+        
         return listProcNotes
             .GroupBy(x => x.ProcNum, (x, y) => y.Aggregate((y1, y2) => y1.EntryDateTime > y2.EntryDateTime ? y1 : y2)) //group by ProcNum, get most recent ProcNote
             .Where(x => !string.IsNullOrWhiteSpace(x.Signature)) //where the most recent ProcNote is signed

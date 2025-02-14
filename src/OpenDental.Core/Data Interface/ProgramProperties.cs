@@ -229,12 +229,6 @@ public class ProgramProperties
         ProgramPropertyCrud.Sync(listProgPropsNew, listProgPropsDb);
     }
 
-    public static void Sync(List<ProgramProperty> listProgPropsNew, long programNum, List<long> listClinicNums)
-    {
-        var listProgPropsDb = GetWhere(x => x.ProgramNum == programNum && x.PropertyDesc != "" && listClinicNums.Contains(x.ClinicNum));
-        ProgramPropertyCrud.Sync(listProgPropsNew, listProgPropsDb);
-    }
-
     public static void GetXWebCreds(long clinicNum, out WebPaymentProperties xwebProperties)
     {
         string xWebID;
@@ -475,9 +469,9 @@ public class ProgramProperties
         GetTableFromCache(true);
     }
 
-    public static DataTable GetTableFromCache(bool refreshCache)
+    public static void GetTableFromCache(bool refreshCache)
     {
-        return Cache.GetTableFromCache(refreshCache);
+        Cache.GetTableFromCache(refreshCache);
     }
 
     public static void ClearCache()

@@ -37,7 +37,7 @@ public class Employers
     public static string DependentPatients(Employer employer)
     {
         var command = "SELECT CONCAT(CONCAT(LName,', '),FName) FROM patient"
-                      + " WHERE EmployerNum = '" + (employer.EmployerNum) + "'";
+                      + " WHERE EmployerNum = '" + employer.EmployerNum + "'";
         var table = DataCore.GetTable(command);
         var retStr = "";
         for (var i = 0; i < table.Rows.Count; i++)
@@ -56,7 +56,7 @@ public class Employers
                       + "LEFT JOIN inssub ON insplan.PlanNum=inssub.PlanNum "
                       + "LEFT JOIN patient ON inssub.Subscriber=patient.PatNum "
                       + "LEFT JOIN carrier ON insplan.CarrierNum=carrier.CarrierNum "
-                      + "WHERE insplan.EmployerNum = " + (employer.EmployerNum);
+                      + "WHERE insplan.EmployerNum = " + employer.EmployerNum;
         var table = DataCore.GetTable(command);
         var retStr = "";
         for (var i = 0; i < table.Rows.Count; i++)
@@ -145,20 +145,20 @@ public class Employers
         var newNum = listEmployerNums[0];
         for (var i = 1; i < listEmployerNums.Count; i++)
         {
-            var command = "SELECT PatNum FROM patient WHERE EmployerNum = " + (listEmployerNums[i]) + "";
+            var command = "SELECT PatNum FROM patient WHERE EmployerNum = " + listEmployerNums[i] + "";
             var listPatNums = Db.GetListLong(command);
             for (var j = 0; j < listPatNums.Count; j++)
             {
-                command = "UPDATE patient SET EmployerNum = " + (newNum) + " WHERE PatNum = " + (listPatNums[j]) + "";
+                command = "UPDATE patient SET EmployerNum = " + newNum + " WHERE PatNum = " + listPatNums[j] + "";
                 Db.NonQ(command);
             }
 
-            command = "SELECT * FROM insplan WHERE EmployerNum = " + (listEmployerNums[i]);
+            command = "SELECT * FROM insplan WHERE EmployerNum = " + listEmployerNums[i];
             var listInsPlans = InsPlanCrud.SelectMany(command);
             //Security.CurUser.UserNum gets set on MT by the DtoProcessor so it matches the user from the client WS.
             for (var j = 0; j < listInsPlans.Count; j++)
             {
-                command = "UPDATE insplan SET EmployerNum = " + (newNum) + " WHERE PlanNum = " + (listInsPlans[j].PlanNum);
+                command = "UPDATE insplan SET EmployerNum = " + newNum + " WHERE PlanNum = " + listInsPlans[j].PlanNum;
                 Db.NonQ(command);
                 InsEditLogs.MakeLogEntry("EmployerNum", Security.CurUser.UserNum, listEmployerNums[i].ToString(), newNum.ToString(),
                     InsEditLogType.InsPlan, listInsPlans[j].PlanNum, 0, listInsPlans[j].GroupNum + " - " + listInsPlans[j].GroupName);

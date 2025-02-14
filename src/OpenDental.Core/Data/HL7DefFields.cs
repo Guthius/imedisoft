@@ -59,7 +59,7 @@ public static class HL7DefFields
 
         protected override void FillCacheIfNeeded()
         {
-            HL7DefFields.GetTableFromCache(false);
+            GetTableFromCache(false);
         }
     }
 
@@ -70,9 +70,9 @@ public static class HL7DefFields
         return Cache.GetWhere(predicate, shortList);
     }
 
-    public static DataTable GetTableFromCache(bool refreshCache)
+    public static void GetTableFromCache(bool refreshCache)
     {
-        return Cache.GetTableFromCache(refreshCache);
+        Cache.GetTableFromCache(refreshCache);
     }
 
     public static void ClearCache()

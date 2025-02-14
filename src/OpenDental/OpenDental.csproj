@@ -115,6 +115,24 @@
       <Compile Update="Features\Providers\Forms\FormProviderSetup.cs">
         <SubType>Form</SubType>
       </Compile>
+      <Compile Update="Forms\FormPerioEdit.cs">
+        <SubType>Form</SubType>
+      </Compile>
+      <Compile Update="Forms\FormDunningSetup.cs">
+        <SubType>Form</SubType>
+      </Compile>
+      <Compile Update="Forms\FormDunningEdit.cs">
+        <SubType>Form</SubType>
+      </Compile>
+      <Compile Update="Forms\FormContactEdit.cs">
+        <SubType>Form</SubType>
+      </Compile>
+      <Compile Update="Features\FormClaimPayList.cs">
+        <SubType>Form</SubType>
+      </Compile>
+      <Compile Update="Forms\FormClaimPayList.cs">
+        <SubType>Form</SubType>
+      </Compile>
     </ItemGroup>
 
 </Project>

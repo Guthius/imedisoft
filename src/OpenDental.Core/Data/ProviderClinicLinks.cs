@@ -10,11 +10,6 @@ namespace Imedisoft.Core.Data;
 
 public static class ProviderClinicLinks
 {
-    public static List<ProviderClinicLink> GetForProvider(long provNum)
-    {
-        return GetWhere(x => x.ProvNum == provNum);
-    }
-
     public static List<ProviderClinicLink> GetAllForClinics(List<long> clinicNums)
     {
         return GetWhere(x => clinicNums.Contains(x.ClinicNum));
@@ -35,11 +30,6 @@ public static class ProviderClinicLinks
             .Select(x => x.ProvNum)
             .Distinct()
             .ToList();
-    }
-
-    public static bool Sync(List<ProviderClinicLink> providerClinicLinks, List<ProviderClinicLink> providerClinicLinksDb)
-    {
-        return ProviderClinicLinkCrud.Sync(providerClinicLinks, providerClinicLinksDb);
     }
 
     private class ProviderClinicLinkCache : CacheListAbs<ProviderClinicLink>
@@ -79,12 +69,12 @@ public static class ProviderClinicLinks
 
     public static void RefreshCache()
     {
-        GetTableFromCache(true);
+        Cache.GetTableFromCache(true);
     }
 
-    public static DataTable GetTableFromCache(bool refreshCache)
+    public static void GetTableFromCache(bool refreshCache)
     {
-        return Cache.GetTableFromCache(refreshCache);
+        Cache.GetTableFromCache(refreshCache);
     }
 
     public static void ClearCache()

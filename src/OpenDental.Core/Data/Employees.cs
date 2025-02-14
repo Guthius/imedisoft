@@ -12,11 +12,6 @@ namespace Imedisoft.Core.Data;
 
 public static class Employees
 {
-    public static List<Employee> GetForTimeCard()
-    {
-        return EmployeeCrud.SelectMany("SELECT * FROM employee WHERE IsHidden=0 ORDER BY LName,Fname");
-    }
-
     public static void Insert(Employee employee)
     {
         if (employee.LName == "" && employee.FName == "")
@@ -93,11 +88,6 @@ public static class Employees
         return name;
     }
 
-    public static Employee GetEmpNoCache(long employeeNum)
-    {
-        return employeeNum == 0 ? null : EmployeeCrud.SelectOne(employeeNum);
-    }
-
     public static Employee GetEmp(long employeeNum)
     {
         return GetFirstOrDefault(x => x.EmployeeNum == employeeNum);
@@ -167,16 +157,6 @@ public static class Employees
                 .ToList();
     }
 
-    public static int SortByLastName(Employee employee1, Employee employee2)
-    {
-        return string.Compare(employee1.LName, employee2.LName, StringComparison.Ordinal);
-    }
-
-    public static int SortByFirstName(Employee employee1, Employee employee2)
-    {
-        return string.Compare(employee1.FName, employee2.FName, StringComparison.Ordinal);
-    }
-
     public static void UpdateChanged(Employee employee, Employee employeeOld, bool doInvalidate = false)
     {
         if (employee.LName == "" && employee.FName == "")
@@ -188,50 +168,6 @@ public static class Employees
         {
             Signalods.SetInvalid(InvalidType.Employees);
         }
-    }
-
-    public static void UpdateClockStatus(long employeeNum)
-    {
-        var clockEvent = ClockEventCrud.SelectOne(
-            $"""
-             SELECT * FROM clockevent 
-             WHERE TimeDisplayed2<=ADDDATE(ADDDATE(CURDATE(), 1), INTERVAL -1 SECOND) AND TimeDisplayed1<=NOW()
-             AND EmployeeNum={employeeNum}
-             ORDER BY IF(YEAR(TimeDisplayed2) < 1880,TimeDisplayed1,TimeDisplayed2) DESC
-             LIMIT 1
-             """);
-
-        var employee = GetEmpNoCache(employeeNum);
-        var employeeOld = employee.Copy();
-
-        if (clockEvent != null && clockEvent.TimeDisplayed2 > DateTime.Now)
-        {
-            employee.ClockStatus = "Manual Entry";
-        }
-        else if (clockEvent == null || (clockEvent.TimeDisplayed2.Year > 1880 && clockEvent.ClockStatus == TimeClockStatus.Home))
-        {
-            employee.ClockStatus = TimeClockStatus.Home.ToString();
-        }
-        else if (clockEvent.TimeDisplayed2.Year > 1880 && clockEvent.ClockStatus == TimeClockStatus.Lunch)
-        {
-            employee.ClockStatus = TimeClockStatus.Lunch.ToString();
-        }
-        else if (clockEvent.TimeDisplayed1.Year > 1880 && clockEvent.TimeDisplayed2.Year < 1880 && clockEvent.ClockStatus == TimeClockStatus.Break)
-        {
-            employee.ClockStatus = TimeClockStatus.Break.ToString();
-        }
-        else if (clockEvent.TimeDisplayed2.Year > 1880 && clockEvent.ClockStatus == TimeClockStatus.Break)
-        {
-            employee.ClockStatus = "Working";
-        }
-        else
-        {
-            employee.ClockStatus = "Working";
-        }
-
-        UpdateChanged(employee, employeeOld, true);
-
-        RefreshCache();
     }
 
     private class EmployeeCache : CacheListAbs<Employee>
@@ -258,7 +194,7 @@ public static class Employees
 
         protected override void FillCacheIfNeeded()
         {
-            Employees.GetTableFromCache(false);
+            GetTableFromCache(false);
         }
 
         protected override bool IsInListShort(Employee item)
@@ -281,12 +217,12 @@ public static class Employees
 
     public static void RefreshCache()
     {
-        GetTableFromCache(true);
+        Cache.GetTableFromCache(true);
     }
 
-    public static DataTable GetTableFromCache(bool refreshCache)
+    public static void GetTableFromCache(bool refreshCache)
     {
-        return Cache.GetTableFromCache(refreshCache);
+        Cache.GetTableFromCache(refreshCache);
     }
 
     public static void ClearCache()

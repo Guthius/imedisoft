@@ -43,7 +43,7 @@ public static class Ebills
 
         protected override void FillCacheIfNeeded()
         {
-            Ebills.GetTableFromCache(false);
+            GetTableFromCache(false);
         }
     }
 
@@ -59,9 +59,9 @@ public static class Ebills
         return Cache.GetFirstOrDefault(match, isShort);
     }
 
-    public static DataTable GetTableFromCache(bool doRefreshCache)
+    public static void GetTableFromCache(bool doRefreshCache)
     {
-        return Cache.GetTableFromCache(doRefreshCache);
+        Cache.GetTableFromCache(doRefreshCache);
     }
 
     public static void ClearCache()

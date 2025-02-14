@@ -1,5 +1,6 @@
 using System;
 using System.Windows.Forms;
+using Imedisoft.Core.Data;
 using Imedisoft.Core.Entities;
 using OpenDental.Forms;
 using OpenDentBusiness;

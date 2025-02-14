@@ -56,7 +56,7 @@ public static class RecallTriggers
 
         protected override void FillCacheIfNeeded()
         {
-            RecallTriggers.GetTableFromCache(false);
+            GetTableFromCache(false);
         }
     }
 
@@ -67,9 +67,9 @@ public static class RecallTriggers
         return Cache.GetWhere(predicate, shortList);
     }
 
-    public static DataTable GetTableFromCache(bool refreshCache)
+    public static void GetTableFromCache(bool refreshCache)
     {
-        return Cache.GetTableFromCache(refreshCache);
+        Cache.GetTableFromCache(refreshCache);
     }
 
     public static void ClearCache()

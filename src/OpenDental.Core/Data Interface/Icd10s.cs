@@ -20,38 +20,49 @@ public class Icd10s
 
     public static List<Icd10> GetAll()
     {
-        var command = "SELECT * FROM icd10";
-        return Icd10Crud.SelectMany(command);
+        return Icd10Crud.SelectMany("SELECT * FROM icd10");
     }
 
-    public static Icd10 GetByCode(string Icd10Code)
+    public static Icd10 GetByCode(string icd10Code)
     {
-        var command = "SELECT * FROM icd10 WHERE Icd10Code='" + SOut.String(Icd10Code) + "'";
-        return Icd10Crud.SelectOne(command);
+        return Icd10Crud.SelectOne("SELECT * FROM icd10 WHERE Icd10Code = '" + SOut.String(icd10Code) + "'");
     }
 
     public static List<Icd10> GetBySearchText(string searchText)
     {
-        var listSearchTokens = searchText.Split(' ').ToList();
-        var command = @"SELECT * FROM icd10 ";
-        for (var i = 0; i < listSearchTokens.Count; i++)
+        var tokens = searchText.Split(' ').ToList();
+
+        var commandText = @"SELECT * FROM icd10 ";
+        for (var i = 0; i < tokens.Count; i++)
         {
             if (i == 0)
-                command += "WHERE ";
+            {
+                commandText += "WHERE ";
+            }
             else
-                command += "AND ";
-            command += "(Icd10Code LIKE '%" + SOut.String(listSearchTokens[i]) + "%' OR Description LIKE '%" + SOut.String(listSearchTokens[i]) + "%') ";
+            {
+                commandText += "AND ";
+            }
+
+            commandText += "(Icd10Code LIKE '%" + SOut.String(tokens[i]) + "%' OR Description LIKE '%" + SOut.String(tokens[i]) + "%') ";
         }
 
-        return Icd10Crud.SelectMany(command);
+        return Icd10Crud.SelectMany(commandText);
     }
 
     public static string GetCodeAndDescription(string icd10Code)
     {
-        if (string.IsNullOrEmpty(icd10Code)) return "";
+        if (string.IsNullOrEmpty(icd10Code))
+        {
+            return string.Empty;
+        }
 
         var icd10 = GetByCode(icd10Code);
-        if (icd10 == null) return "";
+        if (icd10 == null)
+        {
+            return string.Empty;
+        }
+
         return icd10.Icd10Code + "-" + icd10.Description;
     }
 }

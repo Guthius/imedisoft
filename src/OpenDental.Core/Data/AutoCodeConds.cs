@@ -75,30 +75,30 @@ public static class AutoCodeConds
 
         protected override void FillCacheIfNeeded()
         {
-            AutoCodeConds.GetTableFromCache(false);
+            GetTableFromCache(false);
         }
     }
     
     private static readonly AutoCodeCondCache Cache = new();
 
-    public static List<AutoCodeCond> GetDeepCopy(bool isShort = false)
+    public static List<AutoCodeCond> GetDeepCopy(bool shortList = false)
     {
-        return Cache.GetDeepCopy(isShort);
+        return Cache.GetDeepCopy(shortList);
     }
 
-    public static List<AutoCodeCond> GetWhere(Predicate<AutoCodeCond> match, bool isShort = false)
+    public static List<AutoCodeCond> GetWhere(Predicate<AutoCodeCond> predicate, bool shortList = false)
     {
-        return Cache.GetWhere(match, isShort);
+        return Cache.GetWhere(predicate, shortList);
     }
     
     public static void RefreshCache()
     {
-        GetTableFromCache(true);
+        Cache.GetTableFromCache(true);
     }
 
-    public static DataTable GetTableFromCache(bool doRefreshCache)
+    public static void GetTableFromCache(bool refreshCache)
     {
-        return Cache.GetTableFromCache(doRefreshCache);
+        Cache.GetTableFromCache(refreshCache);
     }
 
     public static void ClearCache()

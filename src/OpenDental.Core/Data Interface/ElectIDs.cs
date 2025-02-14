@@ -92,7 +92,7 @@ public static class ElectIDs
     {
         protected override List<ElectID> GetCacheFromDb()
         {
-            return ElectIDCrud.SelectMany("SELECT * from electid ORDER BY CarrierName");
+            return ElectIDCrud.SelectMany("SELECT * FROM electid ORDER BY CarrierName");
         }
 
         protected override List<ElectID> TableToList(DataTable dataTable)
@@ -135,12 +135,12 @@ public static class ElectIDs
 
     public static void RefreshCache()
     {
-        GetTableFromCache(true);
+        Cache.GetTableFromCache(true);
     }
 
-    public static DataTable GetTableFromCache(bool refreshCache)
+    public static void GetTableFromCache(bool refreshCache)
     {
-        return Cache.GetTableFromCache(refreshCache);
+        Cache.GetTableFromCache(refreshCache);
     }
 
     public static void ClearCache()

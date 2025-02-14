@@ -35,7 +35,7 @@ public class RecurringCharges
 
     public static bool HasRecurringChargesForPayment(long payNum)
     {
-        var command = "SELECT COUNT(*) FROM recurringcharge WHERE PayNum=" + (payNum);
+        var command = "SELECT COUNT(*) FROM recurringcharge WHERE PayNum=" + payNum;
         return Db.GetCount(command) != "0";
     }
 
@@ -59,7 +59,7 @@ public class RecurringCharges
         if (listRecurringCharges.Count == 0) return;
 
         var command = @"DELETE FROM recurringcharge
-				WHERE RecurringChargeNum IN(" + string.Join(",", listRecurringCharges.Select(x => (x.RecurringChargeNum))) + ")";
+				WHERE RecurringChargeNum IN(" + string.Join(",", listRecurringCharges.Select(x => x.RecurringChargeNum)) + ")";
         Db.NonQ(command);
     }
 

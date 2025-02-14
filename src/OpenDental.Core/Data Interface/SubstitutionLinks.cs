@@ -16,7 +16,7 @@ public class SubstitutionLinks
     {
         if (planNumArray.Length == 0) return [];
         var listPlanNums = new List<long>(planNumArray);
-        var command = "SELECT * FROM substitutionlink WHERE PlanNum IN(" + string.Join(",", listPlanNums.Select(x => (x))) + ")";
+        var command = "SELECT * FROM substitutionlink WHERE PlanNum IN(" + string.Join(",", listPlanNums.Select(x => x)) + ")";
         return SubstitutionLinkCrud.SelectMany(command);
     }
 

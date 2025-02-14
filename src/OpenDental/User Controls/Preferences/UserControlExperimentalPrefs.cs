@@ -33,7 +33,7 @@ public partial class UserControlExperimentalPrefs:UserControl {
 	}
 
 	public bool SaveExperimentalPrefs() {
-		Changed|=Prefs.UpdateYN(PrefName.AgingProcLifo,checkAgingProcLifo.CheckState);
+		Changed|=Prefs.UpdateYn(PrefName.AgingProcLifo,checkAgingProcLifo.CheckState);
 		return true;
 	}
 	#endregion Methods - Public

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Windows.Forms;
+using Imedisoft.Core.Data;
 using OpenDental.UI;
 using OpenDentBusiness;
 using Imedisoft.Core.Entities;

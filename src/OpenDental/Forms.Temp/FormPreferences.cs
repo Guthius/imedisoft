@@ -490,12 +490,6 @@ namespace OpenDental {
 			{
 				return;
 			}
-//todo: add DataValid.SetInvalid(InvalidType.Prefs); here when we remove FormClosing
-			//Special case. If server connection settings were updated, clear the dictionary of connections so it reinitializes all connections the next time it is accessed.
-			if(userControlServerConnections.DoClearConnectionDictionary) {
-				DataValid.SetInvalid(InvalidType.ConnectionStoreClear);
-				SecurityLogs.MakeLogEntry(EnumPermType.Setup,0,"Read-Only Server settings have been changed.");
-			}
 			//Special case. If image module needs to be swapped, force close the program.
 			if(userControlImagingGeneral.DoSwapImagingModule) {
 				Cursor=Cursors.WaitCursor;

@@ -14,7 +14,8 @@ public class SheetFieldsAvailable
         switch (sheetType)
         {
             case SheetTypeEnum.PatientDashboardWidget:
-                results.AddRange([
+                results.AddRange(
+                [
                     SheetFieldDef.NewSpecial("familyInsurance", 0, 0, 193, 80),
                     SheetFieldDef.NewSpecial("individualInsurance", 0, 0, 193, 160),
                     SheetFieldDef.NewSpecial("toothChart", 0, 0, 500, 370),
@@ -24,20 +25,23 @@ public class SheetFieldsAvailable
 
             case SheetTypeEnum.TreatmentPlan:
             case SheetTypeEnum.ReferralLetter:
-                results.AddRange([
+                results.AddRange(
+                [
                     SheetFieldDef.NewSpecial("toothChart", 0, 0, 500, 370),
                     SheetFieldDef.NewSpecial("toothChartLegend", 0, 0, 640, 14)
                 ]);
                 break;
 
             case SheetTypeEnum.ChartModule:
-                results.AddRange([
+                results.AddRange(
+                [
                     SheetFieldDef.NewSpecial("ChartModuleTabs", 0, 0, 524, 259),
                     SheetFieldDef.NewSpecial("TreatmentNotes", 0, 0, 412, 69)
                 ]);
                 if (layoutMode != SheetFieldLayoutMode.MedicalPractice)
                 {
-                    results.AddRange([
+                    results.AddRange(
+                    [
                         SheetFieldDef.NewSpecial("toothChart", 0, 0, 410, 307),
                         SheetFieldDef.NewSpecial("TrackToothProcDates", 0, 0, 329, 27)
                     ]);
@@ -108,666 +112,682 @@ public class SheetFieldsAvailable
 
     private static List<SheetFieldDef> GetLabelPatient(OutInCheck outInCheck)
     {
-        var list = new List<SheetFieldDef>();
-        if (outInCheck == OutInCheck.Out)
+        if (outInCheck != OutInCheck.Out)
         {
-            list.Add(NewOutput("nameFL"));
-            list.Add(NewOutput("nameLF"));
-            list.Add(NewOutput("address"));
-            list.Add(NewOutput("cityStateZip"));
-            list.Add(NewOutput("ChartNumber"));
-            list.Add(NewOutput("PatNum"));
-            list.Add(NewOutput("dateTime.Today"));
-            list.Add(NewOutput("birthdate"));
-            list.Add(NewOutput("priProvName"));
+            return [];
         }
 
-        return list;
+        return
+        [
+            NewOutput("nameFL"),
+            NewOutput("nameLF"),
+            NewOutput("address"),
+            NewOutput("cityStateZip"),
+            NewOutput("ChartNumber"),
+            NewOutput("PatNum"),
+            NewOutput("dateTime.Today"),
+            NewOutput("birthdate"),
+            NewOutput("priProvName")
+        ];
     }
 
     private static List<SheetFieldDef> GetLabelCarrier(OutInCheck outInCheck)
     {
-        var list = new List<SheetFieldDef>();
-        if (outInCheck == OutInCheck.Out)
+        if (outInCheck != OutInCheck.Out)
         {
-            list.Add(NewOutput("CarrierName"));
-            list.Add(NewOutput("address"));
-            list.Add(NewOutput("cityStateZip"));
+            return [];
         }
 
-        return list;
+        return
+        [
+            NewOutput("CarrierName"),
+            NewOutput("address"),
+            NewOutput("cityStateZip")
+        ];
     }
 
     private static List<SheetFieldDef> GetLabelReferral(OutInCheck outInCheck)
     {
-        var fieldDefs = new List<SheetFieldDef>();
         if (outInCheck != OutInCheck.Out)
         {
-            return fieldDefs;
+            return [];
         }
 
-        fieldDefs.Add(NewOutput("nameFL"));
-        fieldDefs.Add(NewOutput("address"));
-        fieldDefs.Add(NewOutput("cityStateZip"));
-
-        return fieldDefs;
+        return
+        [
+            NewOutput("nameFL"),
+            NewOutput("address"),
+            NewOutput("cityStateZip")
+        ];
     }
 
     private static List<SheetFieldDef> GetReferralSlip(OutInCheck outInCheck)
     {
-        var fieldDefs = new List<SheetFieldDef>();
+        var sheetFieldDefs = new List<SheetFieldDef>();
+
         switch (outInCheck)
         {
             case OutInCheck.Out:
-                fieldDefs.Add(NewOutput("referral.nameFL"));
-                fieldDefs.Add(NewOutput("referral.address"));
-                fieldDefs.Add(NewOutput("referral.cityStateZip"));
-                fieldDefs.Add(NewOutput("referral.phone"));
-                fieldDefs.Add(NewOutput("referral.phone2"));
-                fieldDefs.Add(NewOutput("patient.nameFL"));
-                fieldDefs.Add(NewOutput("dateTime.Today"));
-                fieldDefs.Add(NewOutput("patient.WkPhone"));
-                fieldDefs.Add(NewOutput("patient.HmPhone"));
-                fieldDefs.Add(NewOutput("patient.WirelessPhone"));
-                fieldDefs.Add(NewOutput("patient.address"));
-                fieldDefs.Add(NewOutput("patient.cityStateZip"));
-                fieldDefs.Add(NewOutput("patient.provider"));
+                sheetFieldDefs.Add(NewOutput("referral.nameFL"));
+                sheetFieldDefs.Add(NewOutput("referral.address"));
+                sheetFieldDefs.Add(NewOutput("referral.cityStateZip"));
+                sheetFieldDefs.Add(NewOutput("referral.phone"));
+                sheetFieldDefs.Add(NewOutput("referral.phone2"));
+                sheetFieldDefs.Add(NewOutput("patient.nameFL"));
+                sheetFieldDefs.Add(NewOutput("dateTime.Today"));
+                sheetFieldDefs.Add(NewOutput("patient.WkPhone"));
+                sheetFieldDefs.Add(NewOutput("patient.HmPhone"));
+                sheetFieldDefs.Add(NewOutput("patient.WirelessPhone"));
+                sheetFieldDefs.Add(NewOutput("patient.address"));
+                sheetFieldDefs.Add(NewOutput("patient.cityStateZip"));
+                sheetFieldDefs.Add(NewOutput("patient.provider"));
                 break;
 
             case OutInCheck.In:
-                fieldDefs.Add(NewInput("notes"));
+                sheetFieldDefs.Add(NewInput("notes"));
                 break;
 
             case OutInCheck.Check:
-                fieldDefs.Add(NewCheck("misc"));
+                sheetFieldDefs.Add(NewCheck("misc"));
                 break;
         }
 
-        return fieldDefs;
+        return sheetFieldDefs;
     }
 
     private static List<SheetFieldDef> GetLabelAppointment(OutInCheck outInCheck)
     {
-        var fieldDefs = new List<SheetFieldDef>();
         if (outInCheck != OutInCheck.Out)
         {
-            return fieldDefs;
+            return [];
         }
 
-        fieldDefs.Add(NewOutput("nameFL"));
-        fieldDefs.Add(NewOutput("nameLF"));
-        fieldDefs.Add(NewOutput("weekdayDateTime"));
-        fieldDefs.Add(NewOutput("length"));
-
-        return fieldDefs;
+        return
+        [
+            NewOutput("nameFL"),
+            NewOutput("nameLF"),
+            NewOutput("weekdayDateTime"),
+            NewOutput("length")
+        ];
     }
 
     private static List<SheetFieldDef> GetConsent(OutInCheck outInCheck)
     {
-        var fieldDefs = new List<SheetFieldDef>();
+        var sheetFieldDefs = new List<SheetFieldDef>();
 
         switch (outInCheck)
         {
             case OutInCheck.Out:
-                fieldDefs.Add(NewOutput("dateTime.Today"));
-                fieldDefs.Add(NewOutput("patient.nameFL"));
+                sheetFieldDefs.Add(NewOutput("dateTime.Today"));
+                sheetFieldDefs.Add(NewOutput("patient.nameFL"));
                 break;
 
             case OutInCheck.In:
-                fieldDefs.Add(NewInput("toothNum"));
-                fieldDefs.Add(NewInput("misc"));
+                sheetFieldDefs.Add(NewInput("toothNum"));
+                sheetFieldDefs.Add(NewInput("misc"));
                 break;
 
             case OutInCheck.Check:
-                fieldDefs.Add(NewCheck("misc"));
+                sheetFieldDefs.Add(NewCheck("misc"));
                 break;
         }
 
-        return fieldDefs;
+        return sheetFieldDefs;
     }
 
     private static List<SheetFieldDef> GetPatientLetter(OutInCheck outInCheck)
     {
-        var fieldDefs = new List<SheetFieldDef>();
+        var sheetFieldDefs = new List<SheetFieldDef>();
 
         switch (outInCheck)
         {
             case OutInCheck.Out:
-                fieldDefs.Add(NewOutput("PracticeTitle"));
-                fieldDefs.Add(NewOutput("PracticeAddress"));
-                fieldDefs.Add(NewOutput("practiceCityStateZip"));
-                fieldDefs.Add(NewOutput("patient.nameFL"));
-                fieldDefs.Add(NewOutput("patient.address"));
-                fieldDefs.Add(NewOutput("patient.cityStateZip"));
-                fieldDefs.Add(NewOutput("today.DayDate"));
-                fieldDefs.Add(NewOutput("patient.salutation"));
-                fieldDefs.Add(NewOutput("patient.priProvNameFL"));
+                sheetFieldDefs.Add(NewOutput("PracticeTitle"));
+                sheetFieldDefs.Add(NewOutput("PracticeAddress"));
+                sheetFieldDefs.Add(NewOutput("practiceCityStateZip"));
+                sheetFieldDefs.Add(NewOutput("patient.nameFL"));
+                sheetFieldDefs.Add(NewOutput("patient.address"));
+                sheetFieldDefs.Add(NewOutput("patient.cityStateZip"));
+                sheetFieldDefs.Add(NewOutput("today.DayDate"));
+                sheetFieldDefs.Add(NewOutput("patient.salutation"));
+                sheetFieldDefs.Add(NewOutput("patient.priProvNameFL"));
                 break;
 
             case OutInCheck.In:
                 break;
         }
 
-        return fieldDefs;
+        return sheetFieldDefs;
     }
 
     private static List<SheetFieldDef> GetReferralLetter(OutInCheck outInCheck)
     {
-        var list = new List<SheetFieldDef>();
-        if (outInCheck == OutInCheck.Out)
+        var sheetFieldDefs = new List<SheetFieldDef>();
+
+        switch (outInCheck)
         {
-            list.Add(NewOutput("PracticeTitle"));
-            list.Add(NewOutput("PracticeAddress"));
-            list.Add(NewOutput("PracticePhoneNumber"));
-            list.Add(NewOutput("practiceCityStateZip"));
-            list.Add(NewOutput("referral.phone"));
-            list.Add(NewOutput("referral.phone2"));
-            list.Add(NewOutput("referral.nameFL"));
-            list.Add(NewOutput("referral.nameL"));
-            list.Add(NewOutput("referral.address"));
-            list.Add(NewOutput("referral.cityStateZip"));
-            list.Add(NewOutput("today.DayDate"));
-            list.Add(NewOutput("patient.nameFL"));
-            list.Add(NewOutput("referral.salutation"));
-            list.Add(NewOutput("patient.priProvNameFL"));
-            list.Add(NewOutput("patient.Birthdate"));
-        }
-        else if (outInCheck == OutInCheck.In)
-        {
-            //none
-        }
-        else if (outInCheck == OutInCheck.Check)
-        {
-            list.Add(NewCheck("misc"));
+            case OutInCheck.Out:
+                sheetFieldDefs.Add(NewOutput("PracticeTitle"));
+                sheetFieldDefs.Add(NewOutput("PracticeAddress"));
+                sheetFieldDefs.Add(NewOutput("PracticePhoneNumber"));
+                sheetFieldDefs.Add(NewOutput("practiceCityStateZip"));
+                sheetFieldDefs.Add(NewOutput("referral.phone"));
+                sheetFieldDefs.Add(NewOutput("referral.phone2"));
+                sheetFieldDefs.Add(NewOutput("referral.nameFL"));
+                sheetFieldDefs.Add(NewOutput("referral.nameL"));
+                sheetFieldDefs.Add(NewOutput("referral.address"));
+                sheetFieldDefs.Add(NewOutput("referral.cityStateZip"));
+                sheetFieldDefs.Add(NewOutput("today.DayDate"));
+                sheetFieldDefs.Add(NewOutput("patient.nameFL"));
+                sheetFieldDefs.Add(NewOutput("referral.salutation"));
+                sheetFieldDefs.Add(NewOutput("patient.priProvNameFL"));
+                sheetFieldDefs.Add(NewOutput("patient.Birthdate"));
+                break;
+
+            case OutInCheck.In:
+                break;
+
+            case OutInCheck.Check:
+                sheetFieldDefs.Add(NewCheck("misc"));
+                break;
         }
 
-        return list;
+        return sheetFieldDefs;
     }
 
     private static List<SheetFieldDef> GetPatientForm(OutInCheck outInCheck)
     {
-        var list = new List<SheetFieldDef>();
-        if (outInCheck == OutInCheck.Out)
+        var sheetFieldDefs = new List<SheetFieldDef>();
+
+        switch (outInCheck)
         {
-            //I can't really think of any for this kind				
-        }
-        else if (outInCheck == OutInCheck.In)
-        {
-            list.Add(NewInput("Address"));
-            list.Add(NewInput("Address2"));
-            list.Add(NewInput("Birthdate"));
-            list.Add(NewInput("City"));
-            list.Add(NewInput("Email"));
-            list.Add(NewInput("FName"));
-            list.Add(NewInput("HmPhone"));
-            list.Add(NewInput("ICEName"));
-            list.Add(NewInput("ICEPhone"));
-            list.Add(NewInput("ins1CarrierName"));
-            list.Add(NewInput("ins1CarrierPhone"));
-            list.Add(NewInput("ins1EmployerName"));
-            list.Add(NewInput("ins1GroupName"));
-            list.Add(NewInput("ins1GroupNum"));
-            list.Add(NewInput("ins1SubscriberID"));
-            list.Add(NewInput("ins1SubscriberNameF"));
-            list.Add(NewInput("ins2CarrierName"));
-            list.Add(NewInput("ins2CarrierPhone"));
-            list.Add(NewInput("ins2EmployerName"));
-            list.Add(NewInput("ins2GroupName"));
-            list.Add(NewInput("ins2GroupNum"));
-            list.Add(NewInput("ins2SubscriberID"));
-            list.Add(NewInput("ins2SubscriberNameF"));
-            list.Add(NewInput("LName"));
-            list.Add(NewInput("MiddleI"));
-            list.Add(NewInput("misc"));
-            list.Add(NewInput("Preferred"));
-            list.Add(NewInput("referredFrom"));
-            list.Add(NewInput("SSN"));
-            list.Add(NewInput("State"));
-            list.Add(NewInput("StateNoValidation"));
-            list.Add(NewInput("WkPhone"));
-            list.Add(NewInput("WirelessPhone"));
-            list.Add(NewInput("wirelessCarrier"));
-            list.Add(NewInput("Zip"));
-        }
-        else if (outInCheck == OutInCheck.Check)
-        {
-            list.Add(NewCheck("addressAndHmPhoneIsSameEntireFamily"));
-            list.Add(NewCheck("Gender"));
-            list.Add(NewCheck("ins1Relat"));
-            list.Add(NewCheck("ins2Relat"));
-            list.Add(NewCheck("misc"));
-            list.Add(NewCheck("Position"));
-            list.Add(NewCheck("PreferConfirmMethod"));
-            list.Add(NewCheck("PreferContactMethod"));
-            list.Add(NewCheck("PreferRecallMethod"));
-            list.Add(NewCheck("StudentStatus"));
+            case OutInCheck.Out:
+                break;
+
+            case OutInCheck.In:
+                sheetFieldDefs.Add(NewInput("Address"));
+                sheetFieldDefs.Add(NewInput("Address2"));
+                sheetFieldDefs.Add(NewInput("Birthdate"));
+                sheetFieldDefs.Add(NewInput("City"));
+                sheetFieldDefs.Add(NewInput("Email"));
+                sheetFieldDefs.Add(NewInput("FName"));
+                sheetFieldDefs.Add(NewInput("HmPhone"));
+                sheetFieldDefs.Add(NewInput("ICEName"));
+                sheetFieldDefs.Add(NewInput("ICEPhone"));
+                sheetFieldDefs.Add(NewInput("ins1CarrierName"));
+                sheetFieldDefs.Add(NewInput("ins1CarrierPhone"));
+                sheetFieldDefs.Add(NewInput("ins1EmployerName"));
+                sheetFieldDefs.Add(NewInput("ins1GroupName"));
+                sheetFieldDefs.Add(NewInput("ins1GroupNum"));
+                sheetFieldDefs.Add(NewInput("ins1SubscriberID"));
+                sheetFieldDefs.Add(NewInput("ins1SubscriberNameF"));
+                sheetFieldDefs.Add(NewInput("ins2CarrierName"));
+                sheetFieldDefs.Add(NewInput("ins2CarrierPhone"));
+                sheetFieldDefs.Add(NewInput("ins2EmployerName"));
+                sheetFieldDefs.Add(NewInput("ins2GroupName"));
+                sheetFieldDefs.Add(NewInput("ins2GroupNum"));
+                sheetFieldDefs.Add(NewInput("ins2SubscriberID"));
+                sheetFieldDefs.Add(NewInput("ins2SubscriberNameF"));
+                sheetFieldDefs.Add(NewInput("LName"));
+                sheetFieldDefs.Add(NewInput("MiddleI"));
+                sheetFieldDefs.Add(NewInput("misc"));
+                sheetFieldDefs.Add(NewInput("Preferred"));
+                sheetFieldDefs.Add(NewInput("referredFrom"));
+                sheetFieldDefs.Add(NewInput("SSN"));
+                sheetFieldDefs.Add(NewInput("State"));
+                sheetFieldDefs.Add(NewInput("StateNoValidation"));
+                sheetFieldDefs.Add(NewInput("WkPhone"));
+                sheetFieldDefs.Add(NewInput("WirelessPhone"));
+                sheetFieldDefs.Add(NewInput("wirelessCarrier"));
+                sheetFieldDefs.Add(NewInput("Zip"));
+                break;
+
+            case OutInCheck.Check:
+                sheetFieldDefs.Add(NewCheck("addressAndHmPhoneIsSameEntireFamily"));
+                sheetFieldDefs.Add(NewCheck("Gender"));
+                sheetFieldDefs.Add(NewCheck("ins1Relat"));
+                sheetFieldDefs.Add(NewCheck("ins2Relat"));
+                sheetFieldDefs.Add(NewCheck("misc"));
+                sheetFieldDefs.Add(NewCheck("Position"));
+                sheetFieldDefs.Add(NewCheck("PreferConfirmMethod"));
+                sheetFieldDefs.Add(NewCheck("PreferContactMethod"));
+                sheetFieldDefs.Add(NewCheck("PreferRecallMethod"));
+                sheetFieldDefs.Add(NewCheck("StudentStatus"));
+                break;
         }
 
-        return list;
+        return sheetFieldDefs;
     }
 
     private static List<SheetFieldDef> GetRoutingSlip(OutInCheck outInCheck)
     {
-        var list = new List<SheetFieldDef>();
-        if (outInCheck == OutInCheck.Out)
+        var sheetFieldDefs = new List<SheetFieldDef>();
+
+        switch (outInCheck)
         {
-            list.Add(NewOutput("appt.timeDate"));
-            list.Add(NewOutput("appt.length"));
-            list.Add(NewOutput("appt.providers"));
-            list.Add(NewOutput("appt.procedures"));
-            list.Add(NewOutput("appt.Note"));
-            list.Add(NewOutput("appt.estPatientPortion"));
-            list.Add(NewOutput("otherFamilyMembers"));
-            list.Add(NewOutput("labName"));
-            list.Add(NewOutput("dateLabSent"));
-            list.Add(NewOutput("dateLabReceived"));
-            list.Add(NewOutput("referral.FLName"));
-            list.Add(NewOutput("referral.LName"));
-            list.Add(NewOutput("referral.address"));
-            list.Add(NewOutput("referral.cityStateZip"));
-            //most fields turned out to work best as static text.
-        }
-        else if (outInCheck == OutInCheck.In)
-        {
-            //Not applicable
-        }
-        else if (outInCheck == OutInCheck.Check)
-        {
-            //Not applicable
+            case OutInCheck.Out:
+                sheetFieldDefs.Add(NewOutput("appt.timeDate"));
+                sheetFieldDefs.Add(NewOutput("appt.length"));
+                sheetFieldDefs.Add(NewOutput("appt.providers"));
+                sheetFieldDefs.Add(NewOutput("appt.procedures"));
+                sheetFieldDefs.Add(NewOutput("appt.Note"));
+                sheetFieldDefs.Add(NewOutput("appt.estPatientPortion"));
+                sheetFieldDefs.Add(NewOutput("otherFamilyMembers"));
+                sheetFieldDefs.Add(NewOutput("labName"));
+                sheetFieldDefs.Add(NewOutput("dateLabSent"));
+                sheetFieldDefs.Add(NewOutput("dateLabReceived"));
+                sheetFieldDefs.Add(NewOutput("referral.FLName"));
+                sheetFieldDefs.Add(NewOutput("referral.LName"));
+                sheetFieldDefs.Add(NewOutput("referral.address"));
+                sheetFieldDefs.Add(NewOutput("referral.cityStateZip"));
+                break;
+
+            case OutInCheck.In:
+            case OutInCheck.Check:
+                break;
         }
 
-        return list;
+        return sheetFieldDefs;
     }
 
     private static List<SheetFieldDef> GetMedicalHistory(OutInCheck outInCheck)
     {
-        var list = new List<SheetFieldDef>();
-        if (outInCheck == OutInCheck.Out)
+        var sheetFieldDefs = new List<SheetFieldDef>();
+
+        switch (outInCheck)
         {
-            //none
-        }
-        else if (outInCheck == OutInCheck.In)
-        {
-            list.Add(NewInput("Birthdate"));
-            list.Add(NewInput("FName"));
-            list.Add(NewInput("LName"));
-            list.Add(NewInput("misc"));
-            list.Add(NewInput("ICEName"));
-            list.Add(NewInput("ICEPhone"));
-            list.Add(NewInput("inputMed1"));
-            list.Add(NewInput("inputMed2"));
-            list.Add(NewInput("inputMed3"));
-            list.Add(NewInput("inputMed4"));
-            list.Add(NewInput("inputMed5"));
-            list.Add(NewInput("inputMed6"));
-            list.Add(NewInput("inputMed7"));
-            list.Add(NewInput("inputMed8"));
-            list.Add(NewInput("inputMed9"));
-            list.Add(NewInput("inputMed10"));
-            list.Add(NewInput("inputMed11"));
-            list.Add(NewInput("inputMed12"));
-            list.Add(NewInput("inputMed13"));
-            list.Add(NewInput("inputMed14"));
-            list.Add(NewInput("inputMed15"));
-            list.Add(NewInput("inputMed16"));
-            list.Add(NewInput("inputMed17"));
-            list.Add(NewInput("inputMed18"));
-            list.Add(NewInput("inputMed19"));
-            list.Add(NewInput("inputMed20"));
-        }
-        else if (outInCheck == OutInCheck.Check)
-        {
-            list.Add(NewCheck("allergy"));
-            list.Add(NewCheck("problem"));
-            list.Add(NewCheck("misc"));
-            list.Add(NewInput("checkMed1"));
-            list.Add(NewInput("checkMed2"));
-            list.Add(NewInput("checkMed3"));
-            list.Add(NewInput("checkMed4"));
-            list.Add(NewInput("checkMed5"));
-            list.Add(NewInput("checkMed6"));
-            list.Add(NewInput("checkMed7"));
-            list.Add(NewInput("checkMed8"));
-            list.Add(NewInput("checkMed9"));
-            list.Add(NewInput("checkMed10"));
-            list.Add(NewInput("checkMed11"));
-            list.Add(NewInput("checkMed12"));
-            list.Add(NewInput("checkMed13"));
-            list.Add(NewInput("checkMed14"));
-            list.Add(NewInput("checkMed15"));
-            list.Add(NewInput("checkMed16"));
-            list.Add(NewInput("checkMed17"));
-            list.Add(NewInput("checkMed18"));
-            list.Add(NewInput("checkMed19"));
-            list.Add(NewInput("checkMed20"));
+            case OutInCheck.Out:
+                break;
+
+            case OutInCheck.In:
+                sheetFieldDefs.Add(NewInput("Birthdate"));
+                sheetFieldDefs.Add(NewInput("FName"));
+                sheetFieldDefs.Add(NewInput("LName"));
+                sheetFieldDefs.Add(NewInput("misc"));
+                sheetFieldDefs.Add(NewInput("ICEName"));
+                sheetFieldDefs.Add(NewInput("ICEPhone"));
+                sheetFieldDefs.Add(NewInput("inputMed1"));
+                sheetFieldDefs.Add(NewInput("inputMed2"));
+                sheetFieldDefs.Add(NewInput("inputMed3"));
+                sheetFieldDefs.Add(NewInput("inputMed4"));
+                sheetFieldDefs.Add(NewInput("inputMed5"));
+                sheetFieldDefs.Add(NewInput("inputMed6"));
+                sheetFieldDefs.Add(NewInput("inputMed7"));
+                sheetFieldDefs.Add(NewInput("inputMed8"));
+                sheetFieldDefs.Add(NewInput("inputMed9"));
+                sheetFieldDefs.Add(NewInput("inputMed10"));
+                sheetFieldDefs.Add(NewInput("inputMed11"));
+                sheetFieldDefs.Add(NewInput("inputMed12"));
+                sheetFieldDefs.Add(NewInput("inputMed13"));
+                sheetFieldDefs.Add(NewInput("inputMed14"));
+                sheetFieldDefs.Add(NewInput("inputMed15"));
+                sheetFieldDefs.Add(NewInput("inputMed16"));
+                sheetFieldDefs.Add(NewInput("inputMed17"));
+                sheetFieldDefs.Add(NewInput("inputMed18"));
+                sheetFieldDefs.Add(NewInput("inputMed19"));
+                sheetFieldDefs.Add(NewInput("inputMed20"));
+                break;
+
+            case OutInCheck.Check:
+                sheetFieldDefs.Add(NewCheck("allergy"));
+                sheetFieldDefs.Add(NewCheck("problem"));
+                sheetFieldDefs.Add(NewCheck("misc"));
+                sheetFieldDefs.Add(NewInput("checkMed1"));
+                sheetFieldDefs.Add(NewInput("checkMed2"));
+                sheetFieldDefs.Add(NewInput("checkMed3"));
+                sheetFieldDefs.Add(NewInput("checkMed4"));
+                sheetFieldDefs.Add(NewInput("checkMed5"));
+                sheetFieldDefs.Add(NewInput("checkMed6"));
+                sheetFieldDefs.Add(NewInput("checkMed7"));
+                sheetFieldDefs.Add(NewInput("checkMed8"));
+                sheetFieldDefs.Add(NewInput("checkMed9"));
+                sheetFieldDefs.Add(NewInput("checkMed10"));
+                sheetFieldDefs.Add(NewInput("checkMed11"));
+                sheetFieldDefs.Add(NewInput("checkMed12"));
+                sheetFieldDefs.Add(NewInput("checkMed13"));
+                sheetFieldDefs.Add(NewInput("checkMed14"));
+                sheetFieldDefs.Add(NewInput("checkMed15"));
+                sheetFieldDefs.Add(NewInput("checkMed16"));
+                sheetFieldDefs.Add(NewInput("checkMed17"));
+                sheetFieldDefs.Add(NewInput("checkMed18"));
+                sheetFieldDefs.Add(NewInput("checkMed19"));
+                sheetFieldDefs.Add(NewInput("checkMed20"));
+                break;
         }
 
-        return list;
+        return sheetFieldDefs;
     }
 
     private static List<SheetFieldDef> GetLabSlip(OutInCheck outInCheck)
     {
-        var list = new List<SheetFieldDef>();
-        if (outInCheck == OutInCheck.Out)
+        var sheetFieldDefs = new List<SheetFieldDef>();
+
+        switch (outInCheck)
         {
-            list.Add(NewOutput("lab.Description"));
-            list.Add(NewOutput("lab.Phone"));
-            list.Add(NewOutput("lab.Notes"));
-            list.Add(NewOutput("lab.WirelessPhone"));
-            list.Add(NewOutput("lab.Address"));
-            list.Add(NewOutput("lab.CityStZip"));
-            list.Add(NewOutput("lab.Email"));
-            list.Add(NewOutput("appt.DateTime"));
-            list.Add(NewOutput("labcase.DateTimeDue"));
-            list.Add(NewOutput("labcase.DateTimeCreated"));
-            list.Add(NewOutput("prov.nameFormal"));
-            list.Add(NewOutput("prov.stateLicence"));
-            list.Add(NewOutput("labcase.LabCaseNum"));
-            //patient fields already handled with static text: name,age,gender.
-            //other fields already handled: dateToday, practice address and phone.
-        }
-        else if (outInCheck == OutInCheck.In)
-        {
-            list.Add(NewInput("notes"));
-            list.Add(NewInput("labcase.Instructions"));
-            list.Add(NewInput("misc"));
-        }
-        else if (outInCheck == OutInCheck.Check)
-        {
-            list.Add(NewCheck("misc"));
+            case OutInCheck.Out:
+                sheetFieldDefs.Add(NewOutput("lab.Description"));
+                sheetFieldDefs.Add(NewOutput("lab.Phone"));
+                sheetFieldDefs.Add(NewOutput("lab.Notes"));
+                sheetFieldDefs.Add(NewOutput("lab.WirelessPhone"));
+                sheetFieldDefs.Add(NewOutput("lab.Address"));
+                sheetFieldDefs.Add(NewOutput("lab.CityStZip"));
+                sheetFieldDefs.Add(NewOutput("lab.Email"));
+                sheetFieldDefs.Add(NewOutput("appt.DateTime"));
+                sheetFieldDefs.Add(NewOutput("labcase.DateTimeDue"));
+                sheetFieldDefs.Add(NewOutput("labcase.DateTimeCreated"));
+                sheetFieldDefs.Add(NewOutput("prov.nameFormal"));
+                sheetFieldDefs.Add(NewOutput("prov.stateLicence"));
+                sheetFieldDefs.Add(NewOutput("labcase.LabCaseNum"));
+                break;
+
+            case OutInCheck.In:
+                sheetFieldDefs.Add(NewInput("notes"));
+                sheetFieldDefs.Add(NewInput("labcase.Instructions"));
+                sheetFieldDefs.Add(NewInput("misc"));
+                break;
+
+            case OutInCheck.Check:
+                sheetFieldDefs.Add(NewCheck("misc"));
+                break;
         }
 
-        return list;
+        return sheetFieldDefs;
     }
 
     public static List<SheetFieldDef> GetExamSheet(OutInCheck outInCheck)
     {
-        var list = new List<SheetFieldDef>();
-        if (outInCheck == OutInCheck.Out)
+        var sheetFieldDefs = new List<SheetFieldDef>();
+
+        switch (outInCheck)
         {
-            list.Add(NewOutput("patient.priProvNameFL"));
-            list.Add(NewOutput("sheet.DateTimeSheet"));
-        }
-        else if (outInCheck == OutInCheck.In)
-        {
-            list.Add(NewInput("Birthdate"));
-            list.Add(NewInput("FName"));
-            list.Add(NewInput("LName"));
-            list.Add(NewInput("MiddleI"));
-            list.Add(NewInput("misc"));
-            list.Add(NewInput("Preferred"));
-        }
-        else if (outInCheck == OutInCheck.Check)
-        {
-            list.Add(NewCheck("Gender"));
-            list.Add(NewCheck("misc"));
-            list.Add(NewCheck("Race")); //This is really race/ethnicity combined.
+            case OutInCheck.Out:
+                sheetFieldDefs.Add(NewOutput("patient.priProvNameFL"));
+                sheetFieldDefs.Add(NewOutput("sheet.DateTimeSheet"));
+                break;
+
+            case OutInCheck.In:
+                sheetFieldDefs.Add(NewInput("Birthdate"));
+                sheetFieldDefs.Add(NewInput("FName"));
+                sheetFieldDefs.Add(NewInput("LName"));
+                sheetFieldDefs.Add(NewInput("MiddleI"));
+                sheetFieldDefs.Add(NewInput("misc"));
+                sheetFieldDefs.Add(NewInput("Preferred"));
+                break;
+
+            case OutInCheck.Check:
+                sheetFieldDefs.Add(NewCheck("Gender"));
+                sheetFieldDefs.Add(NewCheck("misc"));
+                sheetFieldDefs.Add(NewCheck("Race"));
+                break;
         }
 
-        return list;
+        return sheetFieldDefs;
     }
 
     public static List<SheetFieldDef> GetDepositSlip(OutInCheck outInCheck)
     {
-        var list = new List<SheetFieldDef>();
-        if (outInCheck == OutInCheck.Out)
+        var sheetFieldDefs = new List<SheetFieldDef>();
+
+        switch (outInCheck)
         {
-            list.Add(NewOutput("cashSumTotal"));
-            list.Add(NewOutput("checkNumber01"));
-            list.Add(NewOutput("checkNumber02"));
-            list.Add(NewOutput("checkNumber03"));
-            list.Add(NewOutput("checkNumber04"));
-            list.Add(NewOutput("checkNumber05"));
-            list.Add(NewOutput("checkNumber06"));
-            list.Add(NewOutput("checkNumber07"));
-            list.Add(NewOutput("checkNumber08"));
-            list.Add(NewOutput("checkNumber09"));
-            list.Add(NewOutput("checkNumber10"));
-            list.Add(NewOutput("checkNumber11"));
-            list.Add(NewOutput("checkNumber12"));
-            list.Add(NewOutput("checkNumber13"));
-            list.Add(NewOutput("checkNumber14"));
-            list.Add(NewOutput("checkNumber15"));
-            list.Add(NewOutput("checkNumber16"));
-            list.Add(NewOutput("checkNumber17"));
-            list.Add(NewOutput("checkNumber18"));
-            list.Add(NewOutput("deposit.BankAccountInfo"));
-            list.Add(NewOutput("deposit.DateDeposit"));
-            list.Add(NewOutput("depositList"));
-            list.Add(NewOutput("depositTotal"));
-            list.Add(NewOutput("depositItemCount"));
-            list.Add(NewOutput("depositItem01"));
-            list.Add(NewOutput("depositItem02"));
-            list.Add(NewOutput("depositItem03"));
-            list.Add(NewOutput("depositItem04"));
-            list.Add(NewOutput("depositItem05"));
-            list.Add(NewOutput("depositItem06"));
-            list.Add(NewOutput("depositItem07"));
-            list.Add(NewOutput("depositItem08"));
-            list.Add(NewOutput("depositItem09"));
-            list.Add(NewOutput("depositItem10"));
-            list.Add(NewOutput("depositItem11"));
-            list.Add(NewOutput("depositItem12"));
-            list.Add(NewOutput("depositItem13"));
-            list.Add(NewOutput("depositItem14"));
-            list.Add(NewOutput("depositItem15"));
-            list.Add(NewOutput("depositItem16"));
-            list.Add(NewOutput("depositItem17"));
-            list.Add(NewOutput("depositItem18"));
-        }
-        else if (outInCheck == OutInCheck.In)
-        {
-        }
-        else if (outInCheck == OutInCheck.Check)
-        {
+            case OutInCheck.Out:
+                sheetFieldDefs.Add(NewOutput("cashSumTotal"));
+                sheetFieldDefs.Add(NewOutput("checkNumber01"));
+                sheetFieldDefs.Add(NewOutput("checkNumber02"));
+                sheetFieldDefs.Add(NewOutput("checkNumber03"));
+                sheetFieldDefs.Add(NewOutput("checkNumber04"));
+                sheetFieldDefs.Add(NewOutput("checkNumber05"));
+                sheetFieldDefs.Add(NewOutput("checkNumber06"));
+                sheetFieldDefs.Add(NewOutput("checkNumber07"));
+                sheetFieldDefs.Add(NewOutput("checkNumber08"));
+                sheetFieldDefs.Add(NewOutput("checkNumber09"));
+                sheetFieldDefs.Add(NewOutput("checkNumber10"));
+                sheetFieldDefs.Add(NewOutput("checkNumber11"));
+                sheetFieldDefs.Add(NewOutput("checkNumber12"));
+                sheetFieldDefs.Add(NewOutput("checkNumber13"));
+                sheetFieldDefs.Add(NewOutput("checkNumber14"));
+                sheetFieldDefs.Add(NewOutput("checkNumber15"));
+                sheetFieldDefs.Add(NewOutput("checkNumber16"));
+                sheetFieldDefs.Add(NewOutput("checkNumber17"));
+                sheetFieldDefs.Add(NewOutput("checkNumber18"));
+                sheetFieldDefs.Add(NewOutput("deposit.BankAccountInfo"));
+                sheetFieldDefs.Add(NewOutput("deposit.DateDeposit"));
+                sheetFieldDefs.Add(NewOutput("depositList"));
+                sheetFieldDefs.Add(NewOutput("depositTotal"));
+                sheetFieldDefs.Add(NewOutput("depositItemCount"));
+                sheetFieldDefs.Add(NewOutput("depositItem01"));
+                sheetFieldDefs.Add(NewOutput("depositItem02"));
+                sheetFieldDefs.Add(NewOutput("depositItem03"));
+                sheetFieldDefs.Add(NewOutput("depositItem04"));
+                sheetFieldDefs.Add(NewOutput("depositItem05"));
+                sheetFieldDefs.Add(NewOutput("depositItem06"));
+                sheetFieldDefs.Add(NewOutput("depositItem07"));
+                sheetFieldDefs.Add(NewOutput("depositItem08"));
+                sheetFieldDefs.Add(NewOutput("depositItem09"));
+                sheetFieldDefs.Add(NewOutput("depositItem10"));
+                sheetFieldDefs.Add(NewOutput("depositItem11"));
+                sheetFieldDefs.Add(NewOutput("depositItem12"));
+                sheetFieldDefs.Add(NewOutput("depositItem13"));
+                sheetFieldDefs.Add(NewOutput("depositItem14"));
+                sheetFieldDefs.Add(NewOutput("depositItem15"));
+                sheetFieldDefs.Add(NewOutput("depositItem16"));
+                sheetFieldDefs.Add(NewOutput("depositItem17"));
+                sheetFieldDefs.Add(NewOutput("depositItem18"));
+                break;
+
+            case OutInCheck.In:
+            case OutInCheck.Check:
+                break;
         }
 
-        return list;
+        return sheetFieldDefs;
     }
 
     private static List<SheetFieldDef> GetStatement(OutInCheck outInCheck)
     {
-        var list = new List<SheetFieldDef>();
-        if (outInCheck == OutInCheck.Out)
+        var sheetFieldDefs = new List<SheetFieldDef>();
+
+        switch (outInCheck)
         {
-            list.Add(NewOutput("accountNumber"));
-            list.Add(NewOutput("statement.NoteBold"));
-            list.Add(NewOutput("statement.Note"));
-            list.Add(NewOutput("futureAppointments"));
-            list.Add(NewOutput("totalLabel"));
-            list.Add(NewOutput("totalValue"));
-            list.Add(NewOutput("insEstLabel"));
-            list.Add(NewOutput("insEstValue"));
-            list.Add(NewOutput("balanceLabel"));
-            list.Add(NewOutput("balanceValue"));
-            list.Add(NewOutput("amountDueValue"));
-            list.Add(NewOutput("invoicePaymentLabel")); //only for invoices
-            list.Add(NewOutput("invoicePaymentValue")); //only for invoices
-            list.Add(NewOutput("invoiceTotalLabel")); //only for invoices
-            list.Add(NewOutput("invoiceTotalValue")); //only for invoices
-            list.Add(NewOutput("invoicePayPlanLabel")); //only for invoices
-            list.Add(NewOutput("invoicePayPlanValue")); //only for invoices
-            list.Add(NewOutput("payPlanAmtDueValue"));
-            list.Add(NewOutput("statementReceiptInvoice"));
-            list.Add(NewOutput("returnAddress"));
-            list.Add(NewOutput("billingAddress"));
-            list.Add(NewOutput("statement.DateSent"));
-            list.Add(NewOutput("statementIsCopy"));
-            list.Add(NewOutput("statementIsTaxReceipt"));
-            list.Add(NewOutput("providerLegend"));
-            list.Add(NewOutput("statementURL"));
-            list.Add(NewOutput("statementShortURL"));
-            list.Add(NewOutput("StatementNum"));
-        }
-        else if (outInCheck == OutInCheck.In)
-        {
-        }
-        else if (outInCheck == OutInCheck.Check)
-        {
+            case OutInCheck.Out:
+                sheetFieldDefs.Add(NewOutput("accountNumber"));
+                sheetFieldDefs.Add(NewOutput("statement.NoteBold"));
+                sheetFieldDefs.Add(NewOutput("statement.Note"));
+                sheetFieldDefs.Add(NewOutput("futureAppointments"));
+                sheetFieldDefs.Add(NewOutput("totalLabel"));
+                sheetFieldDefs.Add(NewOutput("totalValue"));
+                sheetFieldDefs.Add(NewOutput("insEstLabel"));
+                sheetFieldDefs.Add(NewOutput("insEstValue"));
+                sheetFieldDefs.Add(NewOutput("balanceLabel"));
+                sheetFieldDefs.Add(NewOutput("balanceValue"));
+                sheetFieldDefs.Add(NewOutput("amountDueValue"));
+                sheetFieldDefs.Add(NewOutput("invoicePaymentLabel"));
+                sheetFieldDefs.Add(NewOutput("invoicePaymentValue"));
+                sheetFieldDefs.Add(NewOutput("invoiceTotalLabel"));
+                sheetFieldDefs.Add(NewOutput("invoiceTotalValue"));
+                sheetFieldDefs.Add(NewOutput("invoicePayPlanLabel"));
+                sheetFieldDefs.Add(NewOutput("invoicePayPlanValue"));
+                sheetFieldDefs.Add(NewOutput("payPlanAmtDueValue"));
+                sheetFieldDefs.Add(NewOutput("statementReceiptInvoice"));
+                sheetFieldDefs.Add(NewOutput("returnAddress"));
+                sheetFieldDefs.Add(NewOutput("billingAddress"));
+                sheetFieldDefs.Add(NewOutput("statement.DateSent"));
+                sheetFieldDefs.Add(NewOutput("statementIsCopy"));
+                sheetFieldDefs.Add(NewOutput("statementIsTaxReceipt"));
+                sheetFieldDefs.Add(NewOutput("providerLegend"));
+                sheetFieldDefs.Add(NewOutput("statementURL"));
+                sheetFieldDefs.Add(NewOutput("statementShortURL"));
+                sheetFieldDefs.Add(NewOutput("StatementNum"));
+                break;
+
+            case OutInCheck.In:
+            case OutInCheck.Check:
+                break;
         }
 
-        return list;
+        return sheetFieldDefs;
     }
 
     private static List<SheetFieldDef> GetMedLabResults(OutInCheck outInCheck)
     {
-        var list = new List<SheetFieldDef>();
-        if (outInCheck == OutInCheck.Out)
+        var sheetFieldDefs = new List<SheetFieldDef>();
+
+        switch (outInCheck)
         {
-            list.Add(NewOutput("medlab.ClinicalInfo"));
-            list.Add(NewOutput("medlab.dateEntered"));
-            list.Add(NewOutput("medlab.DateTimeCollected"));
-            list.Add(NewOutput("medlab.DateTimeReported"));
-            list.Add(NewOutput("medlab.NoteLab"));
-            list.Add(NewOutput("medlab.obsTests"));
-            list.Add(NewOutput("medlab.ProvID"));
-            list.Add(NewOutput("medlab.provNameLF"));
-            list.Add(NewOutput("medlab.ProvNPI"));
-            list.Add(NewOutput("medlab.PatAccountNum"));
-            list.Add(NewOutput("medlab.PatAge"));
-            list.Add(NewOutput("medlab.PatFasting"));
-            list.Add(NewOutput("medlab.PatIDAlt"));
-            list.Add(NewOutput("medlab.PatIDLab"));
-            list.Add(NewOutput("medlab.SpecimenID"));
-            list.Add(NewOutput("medlab.SpecimenIDAlt"));
-            list.Add(NewOutput("medlab.TotalVolume"));
-            list.Add(NewOutput("medLabFacilityAddr"));
-            list.Add(NewOutput("medLabFacilityDir"));
-            list.Add(NewOutput("patient.addrCityStZip"));
-            list.Add(NewOutput("patient.Birthdate"));
-            list.Add(NewOutput("patient.FName"));
-            list.Add(NewOutput("patient.Gender"));
-            list.Add(NewOutput("patient.HmPhone"));
-            list.Add(NewOutput("patient.MiddleI"));
-            list.Add(NewOutput("patient.LName"));
-            list.Add(NewOutput("patient.PatNum"));
-            list.Add(NewOutput("patient.SSN"));
-            list.Add(NewOutput("practiceAddrCityStZip"));
-            list.Add(NewOutput("PracticePh"));
-            list.Add(NewOutput("PracticeTitle"));
-        }
-        else if (outInCheck == OutInCheck.In)
-        {
-        }
-        else if (outInCheck == OutInCheck.Check)
-        {
+            case OutInCheck.Out:
+                sheetFieldDefs.Add(NewOutput("medlab.ClinicalInfo"));
+                sheetFieldDefs.Add(NewOutput("medlab.dateEntered"));
+                sheetFieldDefs.Add(NewOutput("medlab.DateTimeCollected"));
+                sheetFieldDefs.Add(NewOutput("medlab.DateTimeReported"));
+                sheetFieldDefs.Add(NewOutput("medlab.NoteLab"));
+                sheetFieldDefs.Add(NewOutput("medlab.obsTests"));
+                sheetFieldDefs.Add(NewOutput("medlab.ProvID"));
+                sheetFieldDefs.Add(NewOutput("medlab.provNameLF"));
+                sheetFieldDefs.Add(NewOutput("medlab.ProvNPI"));
+                sheetFieldDefs.Add(NewOutput("medlab.PatAccountNum"));
+                sheetFieldDefs.Add(NewOutput("medlab.PatAge"));
+                sheetFieldDefs.Add(NewOutput("medlab.PatFasting"));
+                sheetFieldDefs.Add(NewOutput("medlab.PatIDAlt"));
+                sheetFieldDefs.Add(NewOutput("medlab.PatIDLab"));
+                sheetFieldDefs.Add(NewOutput("medlab.SpecimenID"));
+                sheetFieldDefs.Add(NewOutput("medlab.SpecimenIDAlt"));
+                sheetFieldDefs.Add(NewOutput("medlab.TotalVolume"));
+                sheetFieldDefs.Add(NewOutput("medLabFacilityAddr"));
+                sheetFieldDefs.Add(NewOutput("medLabFacilityDir"));
+                sheetFieldDefs.Add(NewOutput("patient.addrCityStZip"));
+                sheetFieldDefs.Add(NewOutput("patient.Birthdate"));
+                sheetFieldDefs.Add(NewOutput("patient.FName"));
+                sheetFieldDefs.Add(NewOutput("patient.Gender"));
+                sheetFieldDefs.Add(NewOutput("patient.HmPhone"));
+                sheetFieldDefs.Add(NewOutput("patient.MiddleI"));
+                sheetFieldDefs.Add(NewOutput("patient.LName"));
+                sheetFieldDefs.Add(NewOutput("patient.PatNum"));
+                sheetFieldDefs.Add(NewOutput("patient.SSN"));
+                sheetFieldDefs.Add(NewOutput("practiceAddrCityStZip"));
+                sheetFieldDefs.Add(NewOutput("PracticePh"));
+                sheetFieldDefs.Add(NewOutput("PracticeTitle"));
+                break;
+
+            case OutInCheck.In:
+            case OutInCheck.Check:
+                break;
         }
 
-        return list;
+        return sheetFieldDefs;
     }
 
     private static List<SheetFieldDef> GetTreatmentPlans(OutInCheck outInCheck)
     {
-        var list = new List<SheetFieldDef>();
-        if (outInCheck == OutInCheck.Out)
+        var sheetFieldDefs = new List<SheetFieldDef>();
+
+        switch (outInCheck)
         {
-            list.Add(NewOutput("Heading"));
-            list.Add(NewOutput("defaultHeading"));
-            list.Add(NewOutput("Note"));
-            list.Add(NewOutput("tpPatPortionEst"));
-            list.Add(NewOutput("SignatureText"));
-            list.Add(NewOutput("SignaturePracticeText"));
-            list.Add(NewOutput("DateTSigned"));
-            list.Add(NewOutput("DateTPracticeSigned"));
-        }
-        else if (outInCheck == OutInCheck.In)
-        {
-        }
-        else if (outInCheck == OutInCheck.Check)
-        {
+            case OutInCheck.Out:
+                sheetFieldDefs.Add(NewOutput("Heading"));
+                sheetFieldDefs.Add(NewOutput("defaultHeading"));
+                sheetFieldDefs.Add(NewOutput("Note"));
+                sheetFieldDefs.Add(NewOutput("tpPatPortionEst"));
+                sheetFieldDefs.Add(NewOutput("SignatureText"));
+                sheetFieldDefs.Add(NewOutput("SignaturePracticeText"));
+                sheetFieldDefs.Add(NewOutput("DateTSigned"));
+                sheetFieldDefs.Add(NewOutput("DateTPracticeSigned"));
+                break;
+
+            case OutInCheck.In:
+            case OutInCheck.Check:
+                break;
         }
 
-        return list;
+        return sheetFieldDefs;
     }
 
     private static List<SheetFieldDef> GetPaymentPlans(OutInCheck outInCheck)
     {
-        var list = new List<SheetFieldDef>();
-        if (outInCheck == OutInCheck.Out)
+        var sheetFieldDefs = new List<SheetFieldDef>();
+
+        switch (outInCheck)
         {
-            list.Add(NewOutput("PracticeTitle"));
-            list.Add(NewOutput("dateToday"));
-            list.Add(NewOutput("nameLF"));
-            list.Add(NewOutput("guarantor"));
-            list.Add(NewOutput("Principal"));
-            list.Add(NewOutput("DateOfAgreement"));
-            list.Add(NewOutput("APR"));
-            list.Add(NewOutput("totalFinanceCharge"));
-            list.Add(NewOutput("totalCostOfLoan"));
-            list.Add(NewOutput("Note"));
-            list.Add(NewOutput("ccNumberMaskedWithExp"));
-            list.Add(NewOutput("TermsAndConditions"));
-        }
-        else if (outInCheck == OutInCheck.In)
-        {
-        }
-        else if (outInCheck == OutInCheck.Check)
-        {
+            case OutInCheck.Out:
+                sheetFieldDefs.Add(NewOutput("PracticeTitle"));
+                sheetFieldDefs.Add(NewOutput("dateToday"));
+                sheetFieldDefs.Add(NewOutput("nameLF"));
+                sheetFieldDefs.Add(NewOutput("guarantor"));
+                sheetFieldDefs.Add(NewOutput("Principal"));
+                sheetFieldDefs.Add(NewOutput("DateOfAgreement"));
+                sheetFieldDefs.Add(NewOutput("APR"));
+                sheetFieldDefs.Add(NewOutput("totalFinanceCharge"));
+                sheetFieldDefs.Add(NewOutput("totalCostOfLoan"));
+                sheetFieldDefs.Add(NewOutput("Note"));
+                sheetFieldDefs.Add(NewOutput("ccNumberMaskedWithExp"));
+                sheetFieldDefs.Add(NewOutput("TermsAndConditions"));
+                break;
+
+            case OutInCheck.In:
+            case OutInCheck.Check:
+                break;
         }
 
-        return list;
+        return sheetFieldDefs;
     }
 
     private static List<SheetFieldDef> GetEra(OutInCheck outInCheck)
     {
-        var retList = new List<SheetFieldDef>();
+        var sheetFieldDefs = new List<SheetFieldDef>();
+
         switch (outInCheck)
         {
             case OutInCheck.Out:
-                retList.Add(NewOutput("PayerName"));
-                retList.Add(NewOutput("PayerID"));
-                retList.Add(NewOutput("PayerAddress"));
-                retList.Add(NewOutput("PayerCity"));
-                retList.Add(NewOutput("PayerState"));
-                retList.Add(NewOutput("PayerZip"));
-                retList.Add(NewOutput("PayerContactInfo"));
-                retList.Add(NewOutput("PayeeName"));
-                retList.Add(NewOutput("PayeeId"));
-                retList.Add(NewOutput("TransHandlingDesc"));
-                retList.Add(NewOutput("PaymentMethod"));
-                retList.Add(NewOutput("AcctNumEndingIn"));
-                retList.Add(NewOutput("Check#"));
-                retList.Add(NewOutput("DateEffective"));
-                retList.Add(NewOutput("InsPaid"));
+                sheetFieldDefs.Add(NewOutput("PayerName"));
+                sheetFieldDefs.Add(NewOutput("PayerID"));
+                sheetFieldDefs.Add(NewOutput("PayerAddress"));
+                sheetFieldDefs.Add(NewOutput("PayerCity"));
+                sheetFieldDefs.Add(NewOutput("PayerState"));
+                sheetFieldDefs.Add(NewOutput("PayerZip"));
+                sheetFieldDefs.Add(NewOutput("PayerContactInfo"));
+                sheetFieldDefs.Add(NewOutput("PayeeName"));
+                sheetFieldDefs.Add(NewOutput("PayeeId"));
+                sheetFieldDefs.Add(NewOutput("TransHandlingDesc"));
+                sheetFieldDefs.Add(NewOutput("PaymentMethod"));
+                sheetFieldDefs.Add(NewOutput("AcctNumEndingIn"));
+                sheetFieldDefs.Add(NewOutput("Check#"));
+                sheetFieldDefs.Add(NewOutput("DateEffective"));
+                sheetFieldDefs.Add(NewOutput("InsPaid"));
                 break;
+
             case OutInCheck.In:
-                //none
-                break;
             case OutInCheck.Check:
-                //none
                 break;
         }
 
-        return retList;
+        return sheetFieldDefs;
     }
 
     private static List<SheetFieldDef> GetEraGridHeader(OutInCheck outInCheck)
     {
-        var retList = new List<SheetFieldDef>();
+        var sheetFieldDefs = new List<SheetFieldDef>();
+
         switch (outInCheck)
         {
             case OutInCheck.Out:
-                retList.Add(NewOutput("Subscriber"));
-                retList.Add(NewOutput("Patient"));
-                retList.Add(NewOutput("ClaimIdentifier"));
-                retList.Add(NewOutput("PayorControlNum"));
-                retList.Add(NewOutput("Status"));
-                retList.Add(NewOutput("DateService"));
-                retList.Add(NewOutput("ClaimFee"));
-                retList.Add(NewOutput("InsPaid"));
-                retList.Add(NewOutput("PatientResponsibility"));
-                retList.Add(NewOutput("DatePayerReceived"));
-                retList.Add(NewOutput("ClaimIndexNum"));
+                sheetFieldDefs.Add(NewOutput("Subscriber"));
+                sheetFieldDefs.Add(NewOutput("Patient"));
+                sheetFieldDefs.Add(NewOutput("ClaimIdentifier"));
+                sheetFieldDefs.Add(NewOutput("PayorControlNum"));
+                sheetFieldDefs.Add(NewOutput("Status"));
+                sheetFieldDefs.Add(NewOutput("DateService"));
+                sheetFieldDefs.Add(NewOutput("ClaimFee"));
+                sheetFieldDefs.Add(NewOutput("InsPaid"));
+                sheetFieldDefs.Add(NewOutput("PatientResponsibility"));
+                sheetFieldDefs.Add(NewOutput("DatePayerReceived"));
+                sheetFieldDefs.Add(NewOutput("ClaimIndexNum"));
                 break;
+
             case OutInCheck.In:
-                //none
-                break;
             case OutInCheck.Check:
-                //none
                 break;
         }
 
-        return retList;
+        return sheetFieldDefs;
     }
 
     public class Today

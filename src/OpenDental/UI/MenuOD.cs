@@ -4,34 +4,6 @@ using System.Drawing;
 using System.Windows.Forms;
 
 namespace OpenDental.UI;
-/*
-Jordan is the only one allowed to edit this file.
-Typically dock it to the top of a form in the designer.
-Unlike the MS menu, we don't add menu items in the designer.
-Boilerplate for adding menu items:
-
-		private void LayoutMenu(){//typically called in Load()
-			menuMain.BeginUpdate();//only for huge menu
-			//File-----------------------------------------------------------------------------------------------------------
-			menuMain.Add(new MenuItemOD("File",menuItemFile_Click));
-			//Reports--------------------------------------------------------------------------------------------------------
-			MenuItemOD menuItemReports=new MenuItemOD("Reports");//Use a local variable if there are children
-			menuMain.Add(menuItemReports);
-			menuItemReports.Add("Daily",menuItemDaily_Click);//Normal simple pattern when there are no children
-			MenuItemOD menuItemWeekly=new MenuItemOD("Weekly",menuItemWeekly_Click);//Also use a local variable if you want to set more properties.
-			menuItemWeekly.Checked=true;
-			menuItemReports.Add(menuItemWeekly);
-			menuItemReports.AddSeparator();
-			_menuItemMonthly=new MenuItemOD("Monthly",menuItemMonthly_Click);//Use class field when you need access later, for example to set Available=false
-			menuItemReports.Add(_menuItemMonthly);
-			//Help-----------------------------------------------------------------------------------------------------------
-			menuMain.Add("Help",menuItemHelp_Click);
-			menuMain.EndUpdate();//only if used BeginUpdate
-		}
-
-Boilerplate for the new WpfControls.UI.Menu is over in Menu.xaml.cs
-
-*/
 
 ///<summary>Used in OD instead of MainMenu or MenuStrip.  Those will fail on high dpi monitors.  Never set item Visibility.  Use Available instead.</summary>
 public class MenuOD:Control{

@@ -266,7 +266,7 @@ public partial class FormProcTools : FormODBase {
 			}
 			else {
 				if(CultureInfo.CurrentCulture.Name.EndsWith("CA")) {//Canadian. en-CA or fr-CA
-					RecallTypes.SetToDefaultCA();
+					RecallTypes.SetToDefaultCa();
 				}
 				else {//USA
 					RecallTypes.SetToDefault();

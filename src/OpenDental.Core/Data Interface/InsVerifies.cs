@@ -16,7 +16,7 @@ public class InsVerifies
     public static InsVerify GetOneByFKey(long fkey, VerifyTypes verifyType)
     {
         //In some cases, insverify can have more than one row per plan. Using ORDER BY and LIMIT to ensure we get latest DateLastVerified if there are multiple rows for one plan (JobNum:53236)
-        var command = "SELECT * FROM insverify WHERE FKey=" + (fkey) + " AND VerifyType=" + SOut.Int((int) verifyType) + " ORDER BY DateLastVerified DESC LIMIT 1";
+        var command = "SELECT * FROM insverify WHERE FKey=" + fkey + " AND VerifyType=" + SOut.Int((int) verifyType) + " ORDER BY DateLastVerified DESC LIMIT 1";
         return InsVerifyCrud.SelectOne(command);
     }
 
@@ -65,7 +65,7 @@ public class InsVerifies
 
     public static void DeleteByFKey(long fkey, VerifyTypes verifyType)
     {
-        var command = "DELETE FROM insverify WHERE FKey=" + (fkey) + " AND VerifyType=" + SOut.Int((int) verifyType);
+        var command = "DELETE FROM insverify WHERE FKey=" + fkey + " AND VerifyType=" + SOut.Int((int) verifyType);
         Db.NonQ(command);
     }
 
@@ -118,7 +118,7 @@ public class InsVerifies
             //All clinics
             whereClinic = "AND (clinic.IsInsVerifyExcluded=0 OR clinic.ClinicNum IS NULL) ";
             if (!listRegionDefNums.Contains(0) && !listRegionDefNums.Contains(-1) && listRegionDefNums.Count > 0) //Specific region
-                whereClinic += " AND clinic.Region IN(" + string.Join(",", listRegionDefNums.Select(x => (x))) + ") ";
+                whereClinic += " AND clinic.Region IN(" + string.Join(",", listRegionDefNums.Select(x => x)) + ") ";
         }
         else if (listClinicNums.Contains(0))
         {
@@ -128,18 +128,18 @@ public class InsVerifies
             {
                 //Also has specific clinics selected
                 whereClinic = "AND (clinic.ClinicNum IS NULL OR ";
-                whereClinic += "(clinic.IsInsVerifyExcluded=0 AND clinic.ClinicNum IN(" + string.Join(",", listClinicNums.Select(x => (x))) + ") ";
+                whereClinic += "(clinic.IsInsVerifyExcluded=0 AND clinic.ClinicNum IN(" + string.Join(",", listClinicNums.Select(x => x)) + ") ";
                 if (!listRegionDefNums.Contains(0) && !listRegionDefNums.Contains(-1) && listRegionDefNums.Count > 0) //Specific region
-                    whereClinic += " AND clinic.Region IN(" + string.Join(",", listRegionDefNums.Select(x => (x))) + ") ";
+                    whereClinic += " AND clinic.Region IN(" + string.Join(",", listRegionDefNums.Select(x => x)) + ") ";
                 whereClinic += ")) ";
             }
         }
         else if (listClinicNums.Count > 0)
         {
             //Specific Clinic
-            whereClinic = "AND clinic.IsInsVerifyExcluded=0 AND clinic.ClinicNum IN(" + string.Join(",", listClinicNums.Select(x => (x))) + ") ";
+            whereClinic = "AND clinic.IsInsVerifyExcluded=0 AND clinic.ClinicNum IN(" + string.Join(",", listClinicNums.Select(x => x)) + ") ";
             if (!listRegionDefNums.Contains(0) && !listRegionDefNums.Contains(-1) && listRegionDefNums.Count > 0) //Specific region
-                whereClinic += " AND clinic.Region IN(" + string.Join(",", listRegionDefNums.Select(x => (x))) + ") ";
+                whereClinic += " AND clinic.Region IN(" + string.Join(",", listRegionDefNums.Select(x => x)) + ") ";
         }
 
         var checkBenefitYear = PrefC.GetBool(PrefName.InsVerifyFutureDateBenefitYear);
@@ -184,8 +184,8 @@ public class InsVerifies
         var whereClause = @"
 				WHERE appointment.AptDateTime BETWEEN DATE(" + SOut.Date(dateStart) + ") AND DATE(" + SOut.Date(dateEnd.AddDays(1)) + @") 
 				AND appointment.AptStatus IN (" + SOut.Int((int) ApptStatus.Scheduled) + "," + SOut.Int((int) ApptStatus.Complete) + @")
-				" + (userNum == -1 ? "" : "AND insverify.UserNum=" + (userNum)) + @"
-				" + (defNumStatus < 1 ? "" : "AND insverify.DefNum=" + (defNumStatus)) + @"
+				" + (userNum == -1 ? "" : "AND insverify.UserNum=" + userNum) + @"
+				" + (defNumStatus < 1 ? "" : "AND insverify.DefNum=" + defNumStatus) + @"
 				" + (excludePatClones ? "AND patientlink.PatNumTo IS NULL" : "") + @"
 				" + whereClinic;
         //Previously we joined the insverify table using a large OR clause. This caused MySQL to not be able to use any index on the insverify table.

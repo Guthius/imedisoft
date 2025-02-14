@@ -106,7 +106,7 @@ public class EmailAttaches
 
     public static List<EmailAttach> GetForTemplate(long emailTemplateNum)
     {
-        var command = "SELECT * FROM emailattach WHERE EmailTemplateNum=" + (emailTemplateNum);
+        var command = "SELECT * FROM emailattach WHERE EmailTemplateNum=" + emailTemplateNum;
         return EmailAttachCrud.SelectMany(command);
     }
 

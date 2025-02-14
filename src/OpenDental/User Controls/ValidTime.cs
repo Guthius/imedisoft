@@ -5,82 +5,73 @@ using System.Windows.Forms;
 
 namespace OpenDental;
 
-public class ValidTime:System.Windows.Forms.TextBox {
-	private ErrorProvider _errorProvider=new ErrorProvider();
-	private System.ComponentModel.Container components = null;
+public class ValidTime : TextBox
+{
+    private readonly ErrorProvider _errorProvider = new();
+    private readonly Container _components = null;
+    
+    public bool IsValid()
+    {
+        return _errorProvider.GetError(this) == "";
+    }
 
-	///<summary>Returns true if a valid time has been entered.</summary>
-	public bool IsValid() {
-		return _errorProvider.GetError(this)=="";
-	}
+    [Category("OD")]
+    [Description("Default is false, meaning the format should look like '10:05:30 PM' for en-us. If short true, format should look like '10:05 PM'.")]
+    [DefaultValue(false)]
+    public bool IsShortTimeString { get; set; }
 
-	/// <summary>Default is false, meaning the format should look like '10:05:30 PM' for en-us. If short true, format should look like '10:05 PM'.</summary>
-	[Category("OD")]
-	[Description("Default is false, meaning the format should look like '10:05:30 PM' for en-us. If short true, format should look like '10:05 PM'.")]
-	[DefaultValue(false)]
-	public bool IsShortTimeString { get; set; }
+    public ValidTime()
+    {
+        InitializeComponent();
+        
+        _errorProvider.BlinkStyle = ErrorBlinkStyle.NeverBlink;
+        
+        Size = new Size(120, 20);
+    }
 
-		
-	public ValidTime(){
-		InitializeComponent();
-		_errorProvider.BlinkStyle=ErrorBlinkStyle.NeverBlink;
-		Size=new Size(120,20);
-	}
+    protected override void Dispose(bool disposing)
+    {
+        if (disposing)
+        {
+            _components?.Dispose();
+        }
 
-		
-	protected override void Dispose( bool disposing ){
-		if( disposing ){
-			if(components != null){
-				components.Dispose();
-			}
-		}
-		base.Dispose( disposing );
-	}
+        base.Dispose(disposing);
+    }
+    
+    private void InitializeComponent()
+    {
+        SuspendLayout();
 
-	#region Component Designer generated code
+        Validating += ValidTime_Validating;
+        
+        ResumeLayout(false);
+    }
+    
+    private void ValidTime_Validating(object sender, CancelEventArgs e)
+    {
+        try
+        {
+            if (Text == "")
+            {
+                _errorProvider.SetError(this, "");
+                return;
+            }
 
-	private void InitializeComponent(){
-		this.SuspendLayout();
-		// 
-		// ValidDate
-		// 
-		this.Validating += new System.ComponentModel.CancelEventHandler(this.ValidTime_Validating);
-		this.ResumeLayout(false);
+            Text = IsShortTimeString ? DateTime.Parse(Text).ToShortTimeString() : DateTime.Parse(Text).ToLongTimeString();
 
-	}
-	#endregion
+            _errorProvider.SetError(this, "");
+        }
+        catch (Exception ex)
+        {
+            var message = ex.Message == "String was not recognized as a valid time." ? "Invalid time" : ex.Message;
 
-	private void ValidTime_Validating(object sender, CancelEventArgs e) {
-		var myMessage="";
-		try{
-			if(Text==""){
-				_errorProvider.SetError(this,"");
-				return;
-			}
-			if(IsShortTimeString) {
-				Text=DateTime.Parse(Text).ToShortTimeString();//Formats string as '10:05 PM'. Will throw exception if invalid.
-			}
-			else {
-				Text=DateTime.Parse(Text).ToLongTimeString();//Formats string as '10:05:30 PM'. Will throw exception if invalid.
-			}
-			_errorProvider.SetError(this,"");
-		}
-		catch(Exception ex){
-			//Cancel the event and select the text to be corrected by the user
-			if(ex.Message=="String was not recognized as a valid time."){
-				myMessage="Invalid time";
-			}
-			else{
-				myMessage=ex.Message;
-			}
-			_errorProvider.SetError(this,Lan.g("ValidTime",myMessage));
-		}
-	}
-
-	///<summary>Gets rid of the orange exlamation circle.</summary>
-	public void ClearError() {
-		_errorProvider.SetError(this,"");
-	}
-
-
+            _errorProvider.SetError(this, message);
+        }
+    }
+    
+    public void ClearError()
+    {
+        _errorProvider.SetError(this, "");
+    }
 }

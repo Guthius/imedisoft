@@ -22,7 +22,7 @@ public static class ClaimFormItems
 
     public static void DeleteAllForClaimForm(long claimFormNum)
     {
-        Db.NonQ("DELETE FROM claimformitem WHERE ClaimFormNum = " + (claimFormNum));
+        Db.NonQ("DELETE FROM claimformitem WHERE ClaimFormNum = " + claimFormNum);
     }
 
     public static List<ClaimFormItem> GetListForForm(long claimFormNum)
@@ -54,7 +54,7 @@ public static class ClaimFormItems
 
         protected override void FillCacheIfNeeded()
         {
-            ClaimFormItems.GetTableFromCache(false);
+            GetTableFromCache(false);
         }
     }
 
@@ -67,12 +67,12 @@ public static class ClaimFormItems
 
     public static void RefreshCache()
     {
-        GetTableFromCache(true);
+        Cache.GetTableFromCache(true);
     }
 
-    public static DataTable GetTableFromCache(bool refreshCache)
+    public static void GetTableFromCache(bool refreshCache)
     {
-        return Cache.GetTableFromCache(refreshCache);
+        Cache.GetTableFromCache(refreshCache);
     }
 
     public static void ClearCache()

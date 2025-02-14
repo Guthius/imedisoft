@@ -40,7 +40,7 @@ public class SheetDefs
     public static void DeleteObject(long sheetDefNum)
     {
         //validate that not already in use by a refferral.
-        var command = "SELECT LName,FName FROM referral WHERE Slip=" + (sheetDefNum);
+        var command = "SELECT LName,FName FROM referral WHERE Slip=" + sheetDefNum;
         var table = DataCore.GetTable(command);
         //int count=PIn.PInt(Db.GetCount(command));
         var referralNames = "";
@@ -52,11 +52,11 @@ public class SheetDefs
 
         if (table.Rows.Count > 0) throw new ApplicationException(Lans.g("sheetDefs", "SheetDef is already in use by referrals. Not allowed to delete.") + " " + referralNames);
         //validate that not already in use by automation.
-        command = "SELECT AutomationNum FROM automation WHERE SheetDefNum=" + (sheetDefNum);
+        command = "SELECT AutomationNum FROM automation WHERE SheetDefNum=" + sheetDefNum;
         table = DataCore.GetTable(command);
         if (table.Rows.Count > 0) throw new ApplicationException(Lans.g("sheetDefs", "SheetDef is in use by automation. Not allowed to delete."));
         //validate that not already in use by a laboratory
-        command = "SELECT Description FROM laboratory WHERE Slip=" + (sheetDefNum);
+        command = "SELECT Description FROM laboratory WHERE Slip=" + sheetDefNum;
         table = DataCore.GetTable(command);
         if (table.Rows.Count > 0)
             throw new ApplicationException(Lans.g("sheetDefs", "SheetDef is in use by laboratories. Not allowed to delete.")
@@ -76,14 +76,14 @@ public class SheetDefs
         listPrefNamesClinicDefault.Add(PrefName.SheetsDefaultTreatmentPlan);
         command = "SELECT ClinicNum "
                   + "FROM clinicpref "
-                  + "WHERE ValueString='" + (sheetDefNum) + "' "
+                  + "WHERE ValueString='" + sheetDefNum + "' "
                   + "AND PrefName IN(" + string.Join(",", listPrefNamesClinicDefault.Select(x => "'" + x + "'")) + ") ";
         table = DataCore.GetTable(command);
         if (table.Rows.Count > 0)
             throw new ApplicationException(Lans.g("sheetDefs", "SheetDef is in use by clinics. Not allowed to delete.")
                                            + "\r\n" + string.Join(", ", table.Select().Select(x => Clinics.GetAbbr(SIn.Long(x["ClinicNum"].ToString())))));
         //validate that not already in use by eClipboard
-        command = "SELECT EClipboardSheetDefNum,ClinicNum FROM eclipboardsheetdef WHERE SheetDefNum=" + (sheetDefNum);
+        command = "SELECT EClipboardSheetDefNum,ClinicNum FROM eclipboardsheetdef WHERE SheetDefNum=" + sheetDefNum;
         table = DataCore.GetTable(command);
         if (table.Rows.Count > 0)
         {
@@ -97,17 +97,17 @@ public class SheetDefs
         }
 
         //Set payplan.SheetDefNum to 0. Setting it to 0 will use the default or internal payplan sheet type.
-        command = "UPDATE payplan SET payplan.SheetDefNum = 0 WHERE payplan.SheetDefNum = " + (sheetDefNum);
+        command = "UPDATE payplan SET payplan.SheetDefNum = 0 WHERE payplan.SheetDefNum = " + sheetDefNum;
         Db.NonQ(command);
         //Set payplantemplate.sheetDefNum to 0.
         //We don't have to worry about clinics because sheet defs are not clinic specific.
-        command = "UPDATE payplantemplate SET payplantemplate.SheetDefNum = 0 WHERE payplantemplate.SheetDefNum = " + (sheetDefNum);
+        command = "UPDATE payplantemplate SET payplantemplate.SheetDefNum = 0 WHERE payplantemplate.SheetDefNum = " + sheetDefNum;
         Db.NonQ(command);
         command = "DELETE FROM grouppermission"
-                  + " WHERE FKey=" + (sheetDefNum)
+                  + " WHERE FKey=" + sheetDefNum
                   + " AND PermType=" + SOut.Enum(EnumPermType.DashboardWidget);
         Db.NonQ(command);
-        command = "DELETE FROM sheetfielddef WHERE SheetDefNum=" + (sheetDefNum);
+        command = "DELETE FROM sheetfielddef WHERE SheetDefNum=" + sheetDefNum;
         Db.NonQ(command);
         SheetDefCrud.Delete(sheetDefNum);
     }
@@ -179,7 +179,7 @@ public class SheetDefs
         for (var i = 0; i < sheetDef.SheetFieldDefs.Count; i++)
         {
             if (sheetDef.SheetFieldDefs[i].FieldType != SheetFieldType.PatImage) continue;
-            sheetDef.SheetFieldDefs[i].FieldName = (defNum.ToString());
+            sheetDef.SheetFieldDefs[i].FieldName = defNum.ToString();
         }
     }
 

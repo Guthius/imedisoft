@@ -4,40 +4,14 @@ using System.Data;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Crud;
 using Imedisoft.Core.Entities;
-using OpenDentBusiness;
 
 namespace Imedisoft.Core.Data;
 
 public static class ProviderIdents
 {
-    public static void Update(ProviderIdent providerIdent)
-    {
-        ProviderIdentCrud.Update(providerIdent);
-    }
-
-    public static void Insert(ProviderIdent providerIdent)
-    {
-        ProviderIdentCrud.Insert(providerIdent);
-    }
-
-    public static void Delete(ProviderIdent providerIdent)
-    {
-        Db.NonQ("DELETE FROM providerident WHERE ProviderIdentNum = " + providerIdent.ProviderIdentNum);
-    }
-
-    public static ProviderIdent[] GetForProv(long provNum)
-    {
-        return GetWhere(x => x.ProvNum == provNum).ToArray();
-    }
-
     public static ProviderIdent[] GetForPayor(long provNum, string payorId)
     {
         return GetWhere(x => x.ProvNum == provNum && x.PayorID == payorId).ToArray();
-    }
-
-    public static void DeleteAllForProv(long provNum)
-    {
-        Db.NonQ("DELETE from providerident WHERE provnum = " + provNum);
     }
 
     private class ProviderIdentCache : CacheListAbs<ProviderIdent>
@@ -75,14 +49,9 @@ public static class ProviderIdents
         return Cache.GetWhere(predicate, shortList);
     }
 
-    public static void RefreshCache()
+    public static void GetTableFromCache(bool refreshCache)
     {
-        Cache.GetTableFromCache(true);
-    }
-
-    public static DataTable GetTableFromCache(bool refreshCache)
-    {
-        return Cache.GetTableFromCache(refreshCache);
+        Cache.GetTableFromCache(refreshCache);
     }
 
     public static void ClearCache()

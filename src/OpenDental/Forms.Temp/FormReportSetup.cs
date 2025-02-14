@@ -325,7 +325,6 @@ public partial class FormReportSetup:FormODBase {
 		_hasChanged |=Prefs.UpdateString(PrefName.ReportsIncompleteProcsExcludeCodes,string.Join(",",listAllExcludeCodes));
 		if(UpdateReportingServer()) {
 			_hasChanged=true;
-			DataValid.SetInvalid(InvalidType.ConnectionStoreClear);
 		}
 		if(_hasChanged) {
 			DataValid.SetInvalid(InvalidType.Prefs);

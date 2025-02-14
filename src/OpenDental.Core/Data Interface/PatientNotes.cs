@@ -15,47 +15,45 @@ public class PatientNotes
     public static PatientNote Refresh(long patNum, long guarantor)
     {
         var patientNote = GetOne(patNum);
-        if (patientNote == null)
+        if (patientNote is null)
         {
             InsertRow(patNum);
-            //Do NOT go back to the database to get the newly inserted row because there could be replication delay for larger customers.
-            //Instead, just fill in the patientNote object with default values.
-            patientNote = new PatientNote();
-            patientNote.PatNum = patNum;
+
+            patientNote = new PatientNote
+            {
+                PatNum = patNum
+            };
         }
 
         PatientNote patientNoteGuarantor;
-        //Check to see if the patient passed in IS the guarantor.
         if (patNum == guarantor)
         {
-            //Do NOT try and insert yet another row for the guarantor if the guarantor IS the patient that we just inserted a new row for.
-            //Make a deep copy of the current patientNote instead.
             patientNoteGuarantor = patientNote.Copy();
         }
         else
         {
-            //Guarantor is a different patient than the patNum passed in.
             patientNoteGuarantor = GetOne(guarantor);
-            if (patientNoteGuarantor == null)
+            if (patientNoteGuarantor is null)
             {
                 InsertRow(guarantor);
-                //Do NOT go back to the database to get the newly inserted row because there could be replication delay for larger customers.
-                //Instead, just fill in the patientNote object with default values.
-                patientNoteGuarantor = new PatientNote();
-                patientNoteGuarantor.PatNum = guarantor;
+
+                patientNoteGuarantor = new PatientNote
+                {
+                    PatNum = guarantor
+                };
             }
         }
 
-        //Always override the family memeber's FamFinancial value with that of the guarantors (old behavior).
         patientNote.FamFinancial = patientNoteGuarantor.FamFinancial;
+
         return patientNote;
     }
 
-    public static void Update(PatientNote Cur, long guarantor)
+    public static void Update(PatientNote patientNote, long guarantor)
     {
-        PatientNoteCrud.Update(Cur);
-        var command = "UPDATE patientnote SET FamFinancial = '" + SOut.String(Cur.FamFinancial) + "'" + " WHERE patnum = " + guarantor;
-        Db.NonQ(command);
+        PatientNoteCrud.Update(patientNote);
+
+        Db.NonQ("UPDATE patientnote SET FamFinancial = '" + SOut.String(patientNote.FamFinancial) + "'" + " WHERE patnum = " + guarantor);
     }
 
     private static PatientNote GetOne(long patNum)
@@ -67,9 +65,10 @@ public class PatientNotes
     {
         try
         {
-            var command = "INSERT INTO patientnote (PatNum,SecDateTEntry) VALUES('" + patNum + "',NOW())";
-            command += " ON DUPLICATE KEY UPDATE PatNum='" + patNum + "'";
-            Db.NonQ(command);
+            Db.NonQ(
+                "INSERT INTO patientnote (PatNum, SecDateTEntry) " +
+                "VALUES('" + patNum + "', NOW()) " +
+                "ON DUPLICATE KEY UPDATE PatNum = " + patNum);
         }
         catch
         {
@@ -111,10 +110,14 @@ public class PatientNotes
 
     public static long GetUserNumOrthoLocked(long patNum)
     {
-        var command = "SELECT UserNumOrthoLocked FROM patientnote WHERE PatNum = " + patNum;
-        var raw = DataCore.GetScalar(command);
-        if (raw is not null) return SIn.Long(raw);
+        var raw = DataCore.GetScalar("SELECT UserNumOrthoLocked FROM patientnote WHERE PatNum = " + patNum);
+        if (raw is not null)
+        {
+            return SIn.Long(raw);
+        }
+
         InsertRow(patNum);
+
         return 0;
     }
 

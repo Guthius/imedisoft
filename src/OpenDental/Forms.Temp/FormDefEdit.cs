@@ -137,10 +137,6 @@ public partial class FormDefEdit : FormODBase {
 		if(_def.Category==DefCat.PaySplitUnearnedType) {
 			labelValue.Text="X=Do Not Show in Account or on Reports";
 		}
-		if(_def.Category==DefCat.EClipboardImageCapture) {
-			labelValue.Text="Name";
-			labelValue.Text="Patient instructions";
-		}
 		if(!_defCatOptions.EnableValue){
 			labelValue.Visible=false;
 			textValue.Visible=false;

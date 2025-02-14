@@ -146,12 +146,7 @@ public static class Medications
         var medication = GetOne(medicationNum);
 
         var medName = medication.MedName;
-        if (medication.GenericNum == medication.MedicationNum)
-        {
-            return medName;
-        }
-
-        if (!GetContainsKey(medication.GenericNum))
+        if (medication.GenericNum == medication.MedicationNum || !GetContainsKey(medication.GenericNum))
         {
             return medName;
         }
@@ -173,11 +168,6 @@ public static class Medications
             "FROM medication, medicationpat " +
             "WHERE medication.MedicationNum=medicationpat.MedicationNum " +
             "AND medicationpat.PatNum=" + patNum);
-    }
-
-    public static Medication GetMedicationFromDbByRxCui(long rxCui)
-    {
-        return MedicationCrud.SelectOne("SELECT * FROM medication WHERE RxCui = " + rxCui + " ORDER BY MedicationNum");
     }
 
     public static List<Medication> GetAllMedsByRxCui(long rxCui)
@@ -209,7 +199,7 @@ public static class Medications
 
         protected override void FillCacheIfNeeded()
         {
-            Medications.GetTableFromCache(false);
+            GetTableFromCache(false);
         }
 
         protected override long GetDictKey(Medication item)
@@ -248,10 +238,5 @@ public static class Medications
     public static bool GetContainsKey(long medicationNum)
     {
         return Cache.GetContainsKey(medicationNum);
-    }
-
-    public static void GetTableFromCache(bool refreshCache)
-    {
-        Cache.GetTableFromCache(refreshCache);
     }
 }

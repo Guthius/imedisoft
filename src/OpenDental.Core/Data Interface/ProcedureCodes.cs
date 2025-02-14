@@ -24,7 +24,7 @@ public class ProcedureCodes
                       "FROM claimproc c " +
                       "INNER JOIN procedurelog p ON c.ProcNum=p.ProcNum " +
                       "INNER JOIN procedurecode pc ON p.CodeNum=pc.CodeNum " +
-                      "WHERE c.ClaimNum=" + (claimNum);
+                      "WHERE c.ClaimNum=" + claimNum;
         return ProcedureCodeCrud.SelectMany(command);
     }
 
@@ -413,7 +413,7 @@ public class ProcedureCodes
 
         for (var i = 0; i < table.Rows.Count; i++)
         {
-            command = "UPDATE procedurecode SET ProcCat=" + (catNum)
+            command = "UPDATE procedurecode SET ProcCat=" + catNum
                                                           + " WHERE ProcCat=" + table.Rows[i][0]
                                                           + " AND procedurecode.ProcCode LIKE 'T%'";
             Db.NonQ(command);
@@ -528,22 +528,26 @@ public class ProcedureCodes
             "OHI", "13211",
             "Post-op Check", "79601"
         };
-        Def def;
         var itemorder = 0;
         for (var i = 0; i < array.Length; i += 2)
         {
-            if (!IsValidCode(array[i + 1])) //first, test all procedures for valid
+            if (!IsValidCode(array[i + 1]))
+            {
                 continue;
-            def = new Def
+            }
+            
+            var def = new Def
             {
                 Category = DefCat.ApptProcsQuickAdd,
                 ItemOrder = itemorder++,
                 ItemName = array[i],
                 ItemValue = array[i + 1]
             };
+            
             Defs.Insert(def);
-            var logText = Lans.g("Defintions", "Definition created:") + " " + def.ItemName + " "
-                          + Lans.g("Defintions", "with category:") + " " + def.Category.GetDescription();
+            
+            var logText = "Definition created: " + def.ItemName + " with category: " + def.Category.GetDescription();
+            
             SecurityLogs.MakeLogEntry(EnumPermType.DefEdit, 0, logText);
         }
     }
@@ -561,8 +565,13 @@ public class ProcedureCodes
         var arrayProcedureCodeSettingLines = Class1.GetProcedureCodeSettings().Split(['\r', '\n'], StringSplitOptions.RemoveEmptyEntries);
         string[] arrayAdaDictionaryCode;
         //load our codes into a hashtable
+        
         var hashTable = new Hashtable(); //key=adacode, value=entire row string
-        for (var i = 0; i < arrayProcedureCodeSettingLines.Length; i++) hashTable.Add(arrayProcedureCodeSettingLines[i].Substring(0, 5), arrayProcedureCodeSettingLines[i]);
+        foreach (var t in arrayProcedureCodeSettingLines)
+        {
+            hashTable.Add(t.Substring(0, 5), t);
+        }
+        
         for (var i = 0; i < arrayAdaCodeLines.Length; i++)
         {
             arrayAdaDictionaryCode = arrayAdaCodeLines[i].Split('\t');
@@ -641,17 +650,17 @@ public class ProcedureCodes
         return countProcCodesUpdated;
     }
 
-    public static int ResetADAdescriptionsAndAbbrs(List<ProcedureCode> listProcedureCodes)
+    public static int ResetADAdescriptionsAndAbbrs(List<ProcedureCode> procedureCodes)
     {
         ProcedureCode procedureCode;
         var count = 0;
-        for (var i = 0; i < listProcedureCodes.Count; i++)
+        for (var i = 0; i < procedureCodes.Count; i++)
         {
-            if (!IsValidCode(listProcedureCodes[i].ProcCode)) //If this code is not in this database
+            if (!IsValidCode(procedureCodes[i].ProcCode)) //If this code is not in this database
                 continue;
-            procedureCode = GetProcCode(listProcedureCodes[i].ProcCode);
+            procedureCode = GetProcCode(procedureCodes[i].ProcCode);
             var datePrevious = procedureCode.DateTStamp;
-            var isDescriptMatch = procedureCode.Descript == listProcedureCodes[i].Descript;
+            var isDescriptMatch = procedureCode.Descript == procedureCodes[i].Descript;
             var isDbProcAbbrDescBlank = string.IsNullOrWhiteSpace(procedureCode.AbbrDesc);
             if (!isDescriptMatch || isDbProcAbbrDescBlank) //Only increments one time for each code if there are changes necessary.
                 count++;
@@ -659,7 +668,7 @@ public class ProcedureCodes
             {
                 //Update description.
                 var oldDescript = procedureCode.Descript;
-                procedureCode.Descript = listProcedureCodes[i].Descript;
+                procedureCode.Descript = procedureCodes[i].Descript;
                 Update(procedureCode);
                 SecurityLogs.MakeLogEntry(EnumPermType.ProcCodeEdit, 0, "Code " + procedureCode.ProcCode + " changed from '" + oldDescript + "' to '" + procedureCode.Descript + "' by D-Codes Tool."
                     , procedureCode.CodeNum, datePrevious);
@@ -669,7 +678,7 @@ public class ProcedureCodes
             {
                 //Update abbreviation if current code.AbbrDesc in db is blank.
                 var oldAbbrDesc = procedureCode.AbbrDesc;
-                procedureCode.AbbrDesc = listProcedureCodes[i].AbbrDesc;
+                procedureCode.AbbrDesc = procedureCodes[i].AbbrDesc;
                 Update(procedureCode);
                 SecurityLogs.MakeLogEntry(EnumPermType.ProcCodeEdit, 0, $"Code {procedureCode.ProcCode} changed from '{oldAbbrDesc}' to '{procedureCode.AbbrDesc}' by D-Codes Tool."
                     , procedureCode.CodeNum, datePrevious);
@@ -677,7 +686,6 @@ public class ProcedureCodes
         }
 
         return count;
-        //don't forget to refresh procedurecodes.
     }
 
     public static bool HasMissedCode()
@@ -709,54 +717,48 @@ public class ProcedureCodes
         return false;
     }
 
-    public static List<ProcedureCode> GetFromCommaDelimitedList(string codeStr)
+    public static List<ProcedureCode> GetFromCommaDelimitedList(string codes)
     {
-        var listProcedureCodes = new List<ProcedureCode>();
-        if (string.IsNullOrEmpty(codeStr)) return listProcedureCodes;
-        var listProcCodes = codeStr.Split(',').ToList();
-        for (var i = 0; i < listProcCodes.Count; i++) listProcedureCodes.Add(GetProcCode(listProcCodes[i]));
-        return listProcedureCodes;
+        return string.IsNullOrEmpty(codes) ? [] : codes.Split(',').Select(GetProcCode).ToList();
     }
 
     public static List<ProcedureCode> GetAllCodes()
     {
-        var command = "SELECT * from procedurecode ORDER BY ProcCode";
-        return ProcedureCodeCrud.SelectMany(command);
+        return ProcedureCodeCrud.SelectMany("SELECT * FROM procedurecode ORDER BY ProcCode");
     }
 
-    public static void ClearFkey(List<long> listCodeNums)
+    public static void ClearFkey(List<long> codeNums)
     {
-        ProcedureCodeCrud.ClearFkey(listCodeNums);
+        ProcedureCodeCrud.ClearFkey(codeNums);
     }
 
-    public static List<ProcedureCode> GetCodesForCodeNums(List<long> listCodeNums)
+    public static List<ProcedureCode> GetCodesForCodeNums(List<long> codeNums)
     {
-        return Cache.GetWhere(x => listCodeNums.Contains(x.CodeNum));
+        return Cache.GetWhere(x => codeNums.Contains(x.CodeNum));
     }
 
     public static List<long> GetOrthoBandingCodeNums()
     {
-        var strListOrthoNums = PrefC.GetString(PrefName.OrthoPlacementProcsList);
-        var listCodeNums = new List<long>();
-        if (strListOrthoNums != "") return strListOrthoNums.Split(',').ToList().Select(x => SIn.Long(x)).ToList();
-
-        return GetWhereFromList(x => x.ProcCode.ToUpper().StartsWith("D8")).Select(x => x.CodeNum).ToList();
+        var orthoNums = PrefC.GetString(PrefName.OrthoPlacementProcsList);
+        return orthoNums != "" 
+            ? orthoNums.Split(',').ToList().Select(x => SIn.Long(x)).ToList() 
+            : GetWhereFromList(x => x.ProcCode.ToUpper().StartsWith("D8")).Select(x => x.CodeNum).ToList();
     }
     
     public static List<ProcedureCode> GetMandibularCodes()
     {
-        var listMandibularCodes = new List<ProcedureCode>();
-        ODException.SwallowAnyException(() => { listMandibularCodes = JsonConvert.DeserializeObject<List<ProcedureCode>>(Class1.GetMandibularCodes()); });
-        //The list of mandibular proc codes can be null, due to DeserializeObject interrupting an empty string as null
-        return listMandibularCodes ?? [];
+        var mandibularCodes = new List<ProcedureCode>();
+        
+        ODException.SwallowAnyException(() => { mandibularCodes = JsonConvert.DeserializeObject<List<ProcedureCode>>(Class1.GetMandibularCodes()); });
+
+        return mandibularCodes ?? [];
     }
     
     private class ProcedureCodeCache : CacheDictNonPkAbs<ProcedureCode, string, ProcedureCode>
     {
         protected override List<ProcedureCode> GetCacheFromDb()
         {
-            var command = "SELECT * FROM procedurecode ORDER BY ProcCat,ProcCode";
-            return ProcedureCodeCrud.SelectMany(command);
+            return ProcedureCodeCrud.SelectMany("SELECT * FROM procedurecode ORDER BY ProcCat, ProcCode");
         }
 
         protected override List<ProcedureCode> TableToList(DataTable dataTable)
@@ -776,7 +778,7 @@ public class ProcedureCodes
 
         protected override void FillCacheIfNeeded()
         {
-            ProcedureCodes.GetTableFromCache(false);
+            GetTableFromCache(false);
         }
 
         protected override string GetDictKey(ProcedureCode item)
@@ -817,24 +819,24 @@ public class ProcedureCodes
         return Cache.GetOne(procCode);
     }
 
-    public static ProcedureCode GetFirstOrDefault(Func<ProcedureCode, bool> match, bool isShort = false)
+    public static ProcedureCode GetFirstOrDefault(Func<ProcedureCode, bool> predicate, bool shortList = false)
     {
-        return Cache.GetFirstOrDefault(match, isShort);
+        return Cache.GetFirstOrDefault(predicate, shortList);
     }
 
-    public static ProcedureCode GetFirstOrDefaultFromList(Func<ProcedureCode, bool> match, bool isShort = false)
+    public static ProcedureCode GetFirstOrDefaultFromList(Func<ProcedureCode, bool> predicate, bool shortList = false)
     {
-        return Cache.GetFirstOrDefaultFromList(match, isShort);
+        return Cache.GetFirstOrDefaultFromList(predicate, shortList);
     }
 
-    public static List<ProcedureCode> GetWhere(Func<ProcedureCode, bool> match, bool isShort = false)
+    public static List<ProcedureCode> GetWhere(Func<ProcedureCode, bool> predicate, bool shortList = false)
     {
-        return Cache.GetWhere(match, isShort);
+        return Cache.GetWhere(predicate, shortList);
     }
 
-    public static List<ProcedureCode> GetWhereFromList(Predicate<ProcedureCode> match, bool isShort = false)
+    public static List<ProcedureCode> GetWhereFromList(Predicate<ProcedureCode> predicate, bool shortList = false)
     {
-        return Cache.GetWhereFromList(match, isShort);
+        return Cache.GetWhereFromList(predicate, shortList);
     }
 
     public static bool GetContainsKey(string procCode)
@@ -849,12 +851,12 @@ public class ProcedureCodes
 
     public static void RefreshCache()
     {
-        GetTableFromCache(true);
+        Cache.GetTableFromCache(true);
     }
 
-    public static DataTable GetTableFromCache(bool doRefreshCache)
+    public static void GetTableFromCache(bool refreshCache)
     {
-        return Cache.GetTableFromCache(doRefreshCache);
+        Cache.GetTableFromCache(refreshCache);
     }
 
     public static void ClearCache()

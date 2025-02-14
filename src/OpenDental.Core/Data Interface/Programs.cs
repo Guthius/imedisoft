@@ -38,13 +38,14 @@ public class Programs
     public static bool IsEnabledByHq(Program program, out string err)
     {
         err = "";
-        if (program == null)
+        if (program is not null)
         {
-            err = Lans.g("Programs", "The currently selected program could not be found.");
-            return false;
+            return true;
         }
         
-        return true;
+        err = "The currently selected program could not be found.";
+        return false;
+
     }
     
     public static bool IsEnabledByHq(ProgramName progName, out string err)
@@ -55,43 +56,39 @@ public class Programs
     
     public static void Update(Program cur, Program old = null)
     {
-        var isRefreshNeeded = false;
-
         if (old is null)
         {
             ProgramCrud.Update(cur);
-            isRefreshNeeded = true;
         }
         else
         {
-            isRefreshNeeded = ProgramCrud.Update(cur, old);
+            ProgramCrud.Update(cur, old);
         }
     }
     
-    public static void Insert(Program Cur)
+    public static void Insert(Program program)
     {
-        ProgramCrud.Insert(Cur);
+        ProgramCrud.Insert(program);
     }
 
     public static void Delete(Program prog)
     {
-        var command = "DELETE from toolbutitem WHERE ProgramNum = " + (prog.ProgramNum);
-        Db.NonQ(command);
-        command = "DELETE from program WHERE ProgramNum = '" + prog.ProgramNum + "'";
-        Db.NonQ(command);
+        Db.NonQ("DELETE from toolbutitem WHERE ProgramNum = " + prog.ProgramNum);
+        Db.NonQ("DELETE from program WHERE ProgramNum = " + prog.ProgramNum);
     }
 
     public static bool IsEnabled(ProgramName progName)
     {
         var program = GetFirstOrDefault(x => x.ProgName == progName.ToString());
-        if (program == null) return false;
-        return program.Enabled;
+        
+        return program is {Enabled: true};
     }
     
     public static bool IsEnabled(long programNum)
     {
         var program = GetFirstOrDefault(x => x.ProgramNum == programNum);
-        return program == null ? false : program.Enabled;
+        
+        return program?.Enabled ?? false;
     }
 
     public static Program GetProgram(long programNum)
@@ -107,7 +104,8 @@ public class Programs
     public static long GetProgramNum(ProgramName progName)
     {
         var program = GetCur(progName);
-        return program == null ? 0 : program.ProgramNum;
+        
+        return program?.ProgramNum ?? 0;
     }
 
     public static List<string> GetListDisabledForWeb()
@@ -422,9 +420,9 @@ public class Programs
         GetTableFromCache(true);
     }
 
-    public static DataTable GetTableFromCache(bool doRefreshCache)
+    public static void GetTableFromCache(bool doRefreshCache)
     {
-        return Cache.GetTableFromCache(doRefreshCache);
+        Cache.GetTableFromCache(doRefreshCache);
     }
 
     public static void ClearCache()

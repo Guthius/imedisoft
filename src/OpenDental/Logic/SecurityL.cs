@@ -11,12 +11,6 @@ public class SecurityL
 {
     public static bool ChangePassword(bool isForcedLogOff, bool willRefreshSecurityCache = true)
     {
-        if (Security.CurUser.UserNumCEMT != 0)
-        {
-            MsgBox.Show("FormOpenDental", "Use the CEMT tool to change your password.");
-            return false;
-        }
-
         using var formUserPassword = new FormUserPassword(isCreate: false, Security.CurUser.UserName);
 
         if (formUserPassword.ShowDialog() == DialogResult.Cancel)
@@ -46,7 +40,6 @@ public class SecurityL
 
         Security.CurUser.PasswordIsStrong = formUserPassword.IsPasswordStrong;
         Security.CurUser.SetPassword(formUserPassword.PasswordContainer_);
-        Security.PasswordTyped = formUserPassword.PasswordTyped;
 
         if (willRefreshSecurityCache)
         {

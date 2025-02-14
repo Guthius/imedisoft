@@ -45,9 +45,9 @@ public static class DiseaseDefs
         DiseaseDefCrud.Update(diseaseDef);
     }
 
-    public static long Insert(DiseaseDef diseaseDef)
+    public static void Insert(DiseaseDef diseaseDef)
     {
-        return DiseaseDefCrud.Insert(diseaseDef);
+        DiseaseDefCrud.Insert(diseaseDef);
     }
 
     public static bool IsDiseaseDefInUse(long diseaseDefNum)
@@ -72,37 +72,6 @@ public static class DiseaseDefs
         var diseaseDef = GetFirstOrDefault(x => x.DiseaseDefNum == diseaseDefNum);
 
         return diseaseDef == null ? "" : diseaseDef.DiseaseName;
-    }
-
-    public static long GetNumFromCode(string codeValue)
-    {
-        var diseaseDef = GetFirstOrDefault(x => x.SnomedCode == codeValue);
-        if (diseaseDef != null)
-        {
-            return diseaseDef.DiseaseDefNum;
-        }
-
-        diseaseDef = GetFirstOrDefault(x => x.ICD9Code == codeValue);
-        if (diseaseDef != null)
-        {
-            return diseaseDef.DiseaseDefNum;
-        }
-
-        diseaseDef = GetFirstOrDefault(x => x.Icd10Code == codeValue);
-
-        return diseaseDef?.DiseaseDefNum ?? 0;
-    }
-
-    public static long GetNumFromSnomed(string snomedCode)
-    {
-        if (snomedCode == "")
-        {
-            return 0;
-        }
-
-        var diseaseDef = GetFirstOrDefault(x => x.SnomedCode == snomedCode);
-
-        return diseaseDef?.DiseaseDefNum ?? 0;
     }
 
     public static DiseaseDef GetItem(long diseaseDefNum)
@@ -176,7 +145,7 @@ public static class DiseaseDefs
 
         protected override void FillCacheIfNeeded()
         {
-            DiseaseDefs.GetTableFromCache(false);
+            GetTableFromCache(false);
         }
 
         protected override bool IsInListShort(DiseaseDef item)
@@ -197,11 +166,6 @@ public static class DiseaseDefs
         return Cache.GetDeepCopy(shortList);
     }
 
-    public static List<DiseaseDef> GetWhere(Predicate<DiseaseDef> predicate, bool shortList = false)
-    {
-        return Cache.GetWhere(predicate, shortList);
-    }
-
     public static DiseaseDef GetFirstOrDefault(Func<DiseaseDef, bool> predicate, bool shortList = false)
     {
         return Cache.GetFirstOrDefault(predicate, shortList);
@@ -209,12 +173,12 @@ public static class DiseaseDefs
 
     public static void RefreshCache()
     {
-        GetTableFromCache(true);
+        Cache.GetTableFromCache(true);
     }
 
-    public static DataTable GetTableFromCache(bool refreshCache)
+    public static void GetTableFromCache(bool refreshCache)
     {
-        return Cache.GetTableFromCache(refreshCache);
+        Cache.GetTableFromCache(refreshCache);
     }
 
     public static void ClearCache()

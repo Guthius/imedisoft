@@ -29,6 +29,7 @@ public static class DisplayReports
     public static DisplayReport GetByInternalName(string reportName)
     {
         var displayReports = GetWhere(x => x.InternalName == reportName);
+        
         return displayReports.IsNullOrEmpty() ? null : displayReports[0];
     }
 
@@ -66,7 +67,7 @@ public static class DisplayReports
 
         protected override void FillCacheIfNeeded()
         {
-            DisplayReports.GetTableFromCache(false);
+            GetTableFromCache(false);
         }
 
         protected override List<DisplayReport> GetCacheFromDb()
@@ -102,9 +103,9 @@ public static class DisplayReports
         return Cache.GetWhere(predicate, shortList);
     }
 
-    public static DataTable GetTableFromCache(bool refreshCache)
+    public static void GetTableFromCache(bool refreshCache)
     {
-        return Cache.GetTableFromCache(refreshCache);
+        Cache.GetTableFromCache(refreshCache);
     }
 
     public static void ClearCache()

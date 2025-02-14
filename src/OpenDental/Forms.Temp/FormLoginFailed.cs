@@ -44,8 +44,6 @@ public partial class FormLoginFailed:FormODBase {
 			}
 		}
 		var username=textUser.Text;
-		//Set the PasswordTyped property prior to checking the credentials for Middle Tier.
-		Security.PasswordTyped=password;
 		try{
 			userodEntered=Userods.CheckUserAndPassword(username,password,useEcwAlgorithm);
 		}

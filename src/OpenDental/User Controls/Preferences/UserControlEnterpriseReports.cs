@@ -157,9 +157,6 @@ public partial class UserControlEnterpriseReports:UserControl {
 				Changed|=Prefs.UpdateString(PrefName.ReportingServerURI,textReportingServerURI.Text);
 			}
 		}
-		if(Changed) {
-			DataValid.SetInvalid(InvalidType.ConnectionStoreClear);
-		}
 		return true;
 	}
 

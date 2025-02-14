@@ -506,7 +506,7 @@ public class SheetUtil {
 
 	///<summary>Returns the associated SheetFieldLayoutMode for given sheetType. Always includes SheetFieldLayoutMode.Default.</summary>
 	public static List<SheetFieldLayoutMode> GetModesForSheetType(SheetTypeEnum sheetType) {
-		return EnumTools.GetAttributeOrDefault<SheetLayoutAttribute>(sheetType).ArraySheetFieldLayoutModes.ToList();
+		return EnumTools.GetAttributeOrDefault<SheetLayoutAttribute>(sheetType).SheetFieldLayoutModes.ToList();
 	}
 
 	///<summary>Typically returns something similar to \\SERVER\OpenDentImages\SheetImages</summary>

@@ -7883,7 +7883,7 @@ public partial class ControlChart : UserControl
             _listProcButtonQuicks = ProcButtonQuicks.GetAll();
         }
 
-        _listProcButtonQuicks.Sort(ProcButtonQuicks.sortYX);
+        _listProcButtonQuicks.Sort(ProcButtonQuicks.SortYx);
         for (var i = 0; i < _listProcButtonQuicks.Count; i++)
         {
             var panelItem = new ODPanelItem();

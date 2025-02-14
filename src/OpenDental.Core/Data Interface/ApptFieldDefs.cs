@@ -13,7 +13,7 @@ public class ApptFieldDefs
     public static void Update(ApptFieldDef apptFieldDef, string fieldNameOld)
     {
         var command = "SELECT COUNT(*) FROM apptfielddef WHERE FieldName='" + SOut.String(apptFieldDef.FieldName) + "' "
-                      + "AND ApptFieldDefNum != " + (apptFieldDef.ApptFieldDefNum);
+                      + "AND ApptFieldDefNum != " + apptFieldDef.ApptFieldDefNum;
         if (Db.GetCount(command) != "0") throw new ApplicationException(Lans.g("FormApptFieldDefEdit", "Field name already in use."));
         ApptFieldDefCrud.Update(apptFieldDef);
         command = "UPDATE apptfield SET FieldName='" + SOut.String(apptFieldDef.FieldName) + "' "
@@ -51,7 +51,7 @@ public class ApptFieldDefs
             throw new ApplicationException(s);
         }
 
-        command = "DELETE FROM apptfielddef WHERE ApptFieldDefNum =" + (apptFieldDef.ApptFieldDefNum);
+        command = "DELETE FROM apptfielddef WHERE ApptFieldDefNum =" + apptFieldDef.ApptFieldDefNum;
         Db.NonQ(command);
     }
 

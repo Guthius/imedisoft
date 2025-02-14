@@ -26,17 +26,17 @@ public class Defs
         switch (def.Category)
         {
             case DefCat.ClaimCustomTracking:
-                listCommands.Add("SELECT COUNT(*) FROM securitylog WHERE DefNum=" + (def.DefNum));
-                listCommands.Add("SELECT COUNT(*) FROM claim WHERE CustomTracking=" + (def.DefNum));
+                listCommands.Add("SELECT COUNT(*) FROM securitylog WHERE DefNum=" + def.DefNum);
+                listCommands.Add("SELECT COUNT(*) FROM claim WHERE CustomTracking=" + def.DefNum);
                 break;
             case DefCat.ClaimErrorCode:
-                listCommands.Add("SELECT COUNT(*) FROM claimtracking WHERE TrackingErrorDefNum=" + (def.DefNum));
+                listCommands.Add("SELECT COUNT(*) FROM claimtracking WHERE TrackingErrorDefNum=" + def.DefNum);
                 break;
             case DefCat.InsurancePaymentType:
-                listCommands.Add("SELECT COUNT(*) FROM claimpayment WHERE PayType=" + (def.DefNum));
+                listCommands.Add("SELECT COUNT(*) FROM claimpayment WHERE PayType=" + def.DefNum);
                 break;
             case DefCat.SupplyCats:
-                listCommands.Add("SELECT COUNT(*) FROM supply WHERE Category=" + (def.DefNum));
+                listCommands.Add("SELECT COUNT(*) FROM supply WHERE Category=" + def.DefNum);
                 break;
             case DefCat.AccountQuickCharge:
                 break; //Users can delete AcctProcQuickCharge entries.  Nothing has an FKey to a AcctProcQuickCharge Def so no need to check anything.
@@ -54,17 +54,7 @@ public class Defs
                     SecurityLogs.MakeLogEntry(EnumPermType.DefEdit, 0, logText);
                 }
 
-                listCommands.Add("SELECT COUNT(*) FROM autonote WHERE Category=" + (def.DefNum)); //just in case update failed or concurrency issue
-                break;
-            case DefCat.WebSchedNewPatApptTypes:
-                DefCountValid(DefCat.WebSchedNewPatApptTypes);
-                break;
-            case DefCat.WebSchedExistingApptTypes:
-                DefCountValid(DefCat.WebSchedExistingApptTypes);
-                break;
-            case DefCat.EClipboardImageCapture:
-                listCommands.Add("SELECT COUNT(*) FROM eclipboardimagecapturedef WHERE DefNum=" + (def.DefNum));
-                listCommands.Add("SELECT COUNT(*) FROM eclipboardimagecapture WHERE DefNum=" + (def.DefNum));
+                listCommands.Add("SELECT COUNT(*) FROM autonote WHERE Category=" + def.DefNum); //just in case update failed or concurrency issue
                 break;
             default:
                 throw new ApplicationException("NOT Allowed to delete this type of def.");
@@ -74,11 +64,11 @@ public class Defs
             if (Db.GetCount(listCommands[i]) != "0")
                 throw new ApplicationException(Lans.g("Defs", "Def is in use.  Not allowed to delete."));
 
-        command = "DELETE FROM definition WHERE DefNum=" + (def.DefNum);
+        command = "DELETE FROM definition WHERE DefNum=" + def.DefNum;
         Db.NonQ(command);
         command = "UPDATE definition SET ItemOrder=ItemOrder-1 "
-                  + "WHERE Category=" + ((int) def.Category)
-                  + " AND ItemOrder > " + (def.ItemOrder);
+                  + "WHERE Category=" + (int) def.Category
+                  + " AND ItemOrder > " + def.ItemOrder;
         Db.NonQ(command);
     }
 
@@ -350,7 +340,7 @@ public class Defs
                         PrefC.GetLong(PrefName.SalesTaxAdjustmentType),
                         PrefC.GetLong(PrefName.RefundAdjustmentType)))
                     return true;
-                listStrCommands.Add("SELECT COUNT(*) FROM adjustment WHERE AdjType=" + (def.DefNum));
+                listStrCommands.Add("SELECT COUNT(*) FROM adjustment WHERE AdjType=" + def.DefNum);
                 break;
             case DefCat.ApptConfirmed:
                 if (def.DefNum.In(
@@ -366,10 +356,10 @@ public class Defs
                         PrefC.GetLong(PrefName.ApptEConfirmStatusDeclined),
                         PrefC.GetLong(PrefName.ApptEConfirmStatusSendFailed)))
                     return true;
-                listStrCommands.Add("SELECT COUNT(*) FROM appointment WHERE Confirmed=" + (def.DefNum));
+                listStrCommands.Add("SELECT COUNT(*) FROM appointment WHERE Confirmed=" + def.DefNum);
                 break;
             case DefCat.AutoNoteCats:
-                listStrCommands.Add("SELECT COUNT(*) FROM autonote WHERE Category=" + (def.DefNum));
+                listStrCommands.Add("SELECT COUNT(*) FROM autonote WHERE Category=" + def.DefNum);
                 break;
             case DefCat.BillingTypes:
                 var isClinicDefaultBillingType = ClinicPrefs.GetPrefAllClinics(PrefName.PracticeDefaultBillType).Any(x => x.ValueString == def.DefNum.ToString());
@@ -377,20 +367,20 @@ public class Defs
                     return true;
                 break;
             case DefCat.ContactCategories:
-                listStrCommands.Add("SELECT COUNT(*) FROM contact WHERE Category=" + (def.DefNum));
+                listStrCommands.Add("SELECT COUNT(*) FROM contact WHERE Category=" + def.DefNum);
                 break;
             case DefCat.Diagnosis:
-                listStrCommands.Add("SELECT COUNT(*) FROM procedurelog WHERE Dx=" + (def.DefNum));
+                listStrCommands.Add("SELECT COUNT(*) FROM procedurelog WHERE Dx=" + def.DefNum);
                 break;
             case DefCat.ImageCats:
-                listStrCommands.Add("SELECT COUNT(*) FROM document WHERE DocCategory=" + (def.DefNum));
-                listStrCommands.Add("SELECT COUNT(*) FROM sheetfielddef WHERE FieldType=" + SOut.Int((int) SheetFieldType.PatImage) + " AND FieldName=" + (def.DefNum));
-                listStrCommands.Add("SELECT COUNT(*) FROM mountdef WHERE DefaultCat=" + (def.DefNum));
+                listStrCommands.Add("SELECT COUNT(*) FROM document WHERE DocCategory=" + def.DefNum);
+                listStrCommands.Add("SELECT COUNT(*) FROM sheetfielddef WHERE FieldType=" + SOut.Int((int) SheetFieldType.PatImage) + " AND FieldName=" + def.DefNum);
+                listStrCommands.Add("SELECT COUNT(*) FROM mountdef WHERE DefaultCat=" + def.DefNum);
                 if (def.DefNum != 0 && def.DefNum == PrefC.GetLong(PrefName.TaskAttachmentCategory)) return true;
                 break;
             case DefCat.PaymentTypes:
                 if (def.DefNum.In(PrefC.GetLong(PrefName.RecurringChargesPayTypeCC), PrefC.GetLong(PrefName.AccountingCashPaymentType)) || IsPaymentTypeInUse(def)) return true;
-                listStrCommands.Add("SELECT COUNT(*) FROM payment WHERE PayType=" + (def.DefNum));
+                listStrCommands.Add("SELECT COUNT(*) FROM payment WHERE PayType=" + def.DefNum);
                 break;
             case DefCat.InsurancePaymentType:
                 if (def.DefNum.In(
@@ -399,14 +389,14 @@ public class Defs
                         PrefC.GetLong(PrefName.EraFwtPaymentType),
                         PrefC.GetLong(PrefName.EraDefaultPaymentType)))
                     return true;
-                listStrCommands.Add("SELECT COUNT(*) FROM claimpayment WHERE PayType=" + (def.DefNum));
+                listStrCommands.Add("SELECT COUNT(*) FROM claimpayment WHERE PayType=" + def.DefNum);
                 break;
             case DefCat.PaySplitUnearnedType:
                 if (def.DefNum.In(PrefC.GetLong(PrefName.TpUnearnedType))) return true;
-                listStrCommands.Add("SELECT COUNT(*) FROM paysplit WHERE UnearnedType=" + (def.DefNum));
+                listStrCommands.Add("SELECT COUNT(*) FROM paysplit WHERE UnearnedType=" + def.DefNum);
                 break;
             case DefCat.Prognosis:
-                listStrCommands.Add("SELECT COUNT(*) FROM procedurelog WHERE Prognosis=" + (def.DefNum));
+                listStrCommands.Add("SELECT COUNT(*) FROM procedurelog WHERE Prognosis=" + def.DefNum);
                 break;
             case DefCat.RecallUnschedStatus:
                 if (def.DefNum.In(
@@ -415,17 +405,17 @@ public class Defs
                         PrefC.GetLong(PrefName.RecallStatusEmailed),
                         PrefC.GetLong(PrefName.RecallStatusEmailedTexted)))
                     return true;
-                listStrCommands.Add("SELECT COUNT(*) FROM appointment WHERE UnschedStatus=" + (def.DefNum));
-                listStrCommands.Add("SELECT COUNT(*) FROM recall WHERE RecallStatus=" + (def.DefNum));
+                listStrCommands.Add("SELECT COUNT(*) FROM appointment WHERE UnschedStatus=" + def.DefNum);
+                listStrCommands.Add("SELECT COUNT(*) FROM recall WHERE RecallStatus=" + def.DefNum);
                 break;
             case DefCat.TaskPriorities:
-                listStrCommands.Add("SELECT COUNT(*) FROM task WHERE PriorityDefNum=" + (def.DefNum));
+                listStrCommands.Add("SELECT COUNT(*) FROM task WHERE PriorityDefNum=" + def.DefNum);
                 break;
             case DefCat.TxPriorities:
-                listStrCommands.Add("SELECT COUNT(*) FROM procedurelog WHERE Priority=" + (def.DefNum));
+                listStrCommands.Add("SELECT COUNT(*) FROM procedurelog WHERE Priority=" + def.DefNum);
                 break;
             case DefCat.CommLogTypes:
-                listStrCommands.Add("SELECT COUNT(*) FROM commlog WHERE CommType=" + (def.DefNum));
+                listStrCommands.Add("SELECT COUNT(*) FROM commlog WHERE CommType=" + def.DefNum);
                 break;
         }
 
@@ -452,8 +442,8 @@ public class Defs
 
     public static void MergeBillingTypeDefNums(long defNumFrom, long defNumTo)
     {
-        var strDefNumTo = (defNumTo.ToString());
-        var strDefNumFrom = (defNumFrom.ToString());
+        var strDefNumTo = defNumTo.ToString();
+        var strDefNumFrom = defNumFrom.ToString();
 
         #region Tables with FK to Billing Type DefNum
 
@@ -516,7 +506,7 @@ public class Defs
         var programNum = Programs.GetProgramNum(ProgramName.TrojanExpressCollect);
         command = $@"UPDATE programproperty 
 				SET PropertyValue='{strDefNumTo}' 
-				WHERE ProgramNum={(programNum)} 
+				WHERE ProgramNum={programNum} 
 				AND PropertyDesc='BillingType' 
 				AND PropertyValue='{strDefNumFrom}'";
         Db.NonQ(command);
@@ -527,31 +517,31 @@ public class Defs
     public static void MergeImageCatDefNums(long defNumFrom, long defNumTo)
     {
         var command = "UPDATE document"
-                      + " SET DocCategory=" + (defNumTo)
-                      + " WHERE DocCategory=" + (defNumFrom);
+                      + " SET DocCategory=" + defNumTo
+                      + " WHERE DocCategory=" + defNumFrom;
         Db.NonQ(command);
         command = "UPDATE mount"
-                  + " SET DocCategory=" + (defNumTo)
-                  + " WHERE DocCategory=" + (defNumFrom);
+                  + " SET DocCategory=" + defNumTo
+                  + " WHERE DocCategory=" + defNumFrom;
         Db.NonQ(command);
         command = "UPDATE lettermerge"
-                  + " SET Category=" + (defNumTo)
-                  + " WHERE Category=" + (defNumFrom);
+                  + " SET Category=" + defNumTo
+                  + " WHERE Category=" + defNumFrom;
         Db.NonQ(command);
         command = "UPDATE sheetfielddef"
-                  + " SET FieldName='" + (defNumTo) + "'"
-                  + " WHERE FieldType=" + SOut.Int((int) SheetFieldType.PatImage) + " AND FieldName='" + (defNumFrom) + "'";
+                  + " SET FieldName='" + defNumTo + "'"
+                  + " WHERE FieldType=" + SOut.Int((int) SheetFieldType.PatImage) + " AND FieldName='" + defNumFrom + "'";
         Db.NonQ(command);
         command = "UPDATE sheetfield"
-                  + " SET FieldName='" + (defNumTo) + "'"
-                  + " WHERE FieldType=" + SOut.Int((int) SheetFieldType.PatImage) + " AND FieldName='" + (defNumFrom) + "'";
+                  + " SET FieldName='" + defNumTo + "'"
+                  + " WHERE FieldType=" + SOut.Int((int) SheetFieldType.PatImage) + " AND FieldName='" + defNumFrom + "'";
         Db.NonQ(command);
         var programNum = Programs.GetProgramNum(ProgramName.XVWeb);
         if (programNum != 0)
         {
             command = "UPDATE programproperty"
-                      + " SET PropertyValue='" + (defNumTo) + "'"
-                      + " WHERE ProgramNum=" + (programNum) + " AND PropertyDesc='ImageCategory' AND PropertyValue='" + (defNumFrom) + "'";
+                      + " SET PropertyValue='" + defNumTo + "'"
+                      + " WHERE ProgramNum=" + programNum + " AND PropertyDesc='ImageCategory' AND PropertyValue='" + defNumFrom + "'";
             Db.NonQ(command);
         }
     }

@@ -671,12 +671,6 @@ public class Ledgers
         return command;
     }
 
-    public static Dictionary<long, Dictionary<Tuple<TsiFKeyType, long>, TsiTrans>> GetDictTransForGuars(List<long> listGuarNums)
-    {
-        return GetTransForGuars(listGuarNums).GroupBy(x => x.Guarantor)
-            .ToDictionary(x => x.Key, x => x.ToDictionary(y => Tuple.Create(y.KeyType, y.PriKey)));
-    }
-
     public static List<TsiTrans> GetTransForGuars(List<long> listGuarNums)
     {
         var familyPatNums = "";
@@ -712,19 +706,6 @@ public class Ledgers
                 SIn.Date(x["TranDate"].ToString()),
                 SIn.Double(x["TranAmount"].ToString()) - SIn.Double(x["InsEst"].ToString()) //have to subtract InsEst so that balance due will match the PatAging.AmountDue
             )).ToList();
-    }
-
-    public static Dictionary<long, DateTime> GetDateBalanceBegan(long clinicNum)
-    {
-        List<long> listClinNums = null;
-        if (true)
-        {
-            listClinNums = [clinicNum];
-        }
-
-        return GetGuarDateBals(DateTime.Today, listClinicNums: listClinNums) //Create a dictionary that tells a story about the transactions and their dates for each family.
-            //find the earliest trans that uses up the account credits and is therefore the trans date for which the account balance is "first" positive
-            .ToDictionary(x => x.Key, x => x.Value.Where(y => y.Bal > 0.005).Select(y => y.TranDate).DefaultIfEmpty(DateTime.MinValue).Min());
     }
 
     public static DataTable GetDateBalanceBegan(List<PatAging> listGuarantors, bool isSuperBills, List<long> listClinicNums = null)

@@ -29,9 +29,9 @@ public class Claims
                       + "LEFT JOIN insplan ON claim.PlanNum = insplan.PlanNum "
                       + "LEFT JOIN carrier ON insplan.CarrierNum = carrier.CarrierNum "
                       + "LEFT JOIN clinic ON clinic.ClinicNum = claim.ClinicNum "
-                      + "WHERE (claim.ProvBill = " + (provNum) + " "
-                      + "OR claim.ProvTreat = " + (provNum) + " "
-                      + "OR claim.ProvOrderOverride = " + (provNum) + ") "
+                      + "WHERE (claim.ProvBill = " + provNum + " "
+                      + "OR claim.ProvTreat = " + provNum + " "
+                      + "OR claim.ProvOrderOverride = " + provNum + ") "
                       + "AND claim.ClaimStatus != 'R' "
                       + "AND claim.DateService > " + SOut.Date(dateTerm) + " "
                       + "GROUP BY claim.ClaimNum "
@@ -51,7 +51,7 @@ public class Claims
             + " AND insplan.PlanNum = claim.PlanNum"
             + " AND insplan.CarrierNum = carrier.CarrierNum"
             + " AND (claimproc.Status = '1' OR claimproc.Status = '4' OR claimproc.Status=5)" //received or supplemental or capclaim
-            + " AND (claimproc.ClaimPaymentNum = '" + (claimPaymentNum) + "'";
+            + " AND (claimproc.ClaimPaymentNum = '" + claimPaymentNum + "'";
         if (showUnattached) command += " OR (claimproc.InsPayAmt != 0 AND claimproc.ClaimPaymentNum = '0')";
         //else shows only items attached to this payment
         command += ")"
@@ -229,7 +229,7 @@ public class Claims
                       + " WHERE ClaimNum = " + claimNum;
         var retClaim = ClaimCrud.SelectOne(command);
         if (retClaim == null) return null;
-        command = "SELECT * FROM claimattach WHERE ClaimNum = " + (claimNum);
+        command = "SELECT * FROM claimattach WHERE ClaimNum = " + claimNum;
         retClaim.Attachments = ClaimAttachCrud.SelectMany(command);
         return retClaim;
     }
@@ -275,7 +275,7 @@ public class Claims
             claim.SecurityHash = HashFields(claim);
         ClaimCrud.Update(claim);
         //now, delete all attachments and recreate.
-        var command = "DELETE FROM claimattach WHERE ClaimNum=" + (claim.ClaimNum);
+        var command = "DELETE FROM claimattach WHERE ClaimNum=" + claim.ClaimNum;
         Db.NonQ(command);
         for (var i = 0; i < claim.Attachments.Count; i++)
         {
@@ -312,8 +312,8 @@ public class Claims
             listWhereAnds.Add("claim.ClaimStatus IN ('W','P') ");
         else
             listWhereAnds.Add("claim.ClaimNum IN (" + string.Join(",", listClaimNums) + ") ");
-        if (clinicNum > 0) listWhereAnds.Add("claim.ClinicNum=" + (clinicNum) + " ");
-        if (customTracking > 0) listWhereAnds.Add("claim.CustomTracking=" + (customTracking) + " ");
+        if (clinicNum > 0) listWhereAnds.Add("claim.ClinicNum=" + clinicNum + " ");
+        if (customTracking > 0) listWhereAnds.Add("claim.CustomTracking=" + customTracking + " ");
         //Removed subselect query for HasIcd9 because we're grabbing all of the claims and claimprocs in the code anyway.
         //Much less punishing to offices that don't have medical procedures.
         var command = $@"SELECT claim.ClaimNum,carrier.NoSendElect,claim.ClaimStatus,carrier.CarrierName,patient.PatNum,carrier.ElectID,claim.MedType,
@@ -410,7 +410,7 @@ public class Claims
         var command = "UPDATE claim SET ClaimStatus = 'S',"
                       + "DateSent=" + SOut.Date(dateT) + ", "
                       + "DateSentOrig=(CASE WHEN DateSentOrig='0001-01-01' THEN " + SOut.Date(dateT) + " ELSE DateSentOrig END) "
-                      + "WHERE ClaimNum = " + (claimNum);
+                      + "WHERE ClaimNum = " + claimNum;
         Db.NonQ(command);
         if (claimOld != null && IsClaimHashValid(claimOld))
         {
@@ -424,7 +424,7 @@ public class Claims
 
     public static bool IsClaimIdentifierInUse(string claimIdentifier, long claimNumExclude, string claimType)
     {
-        var command = "SELECT COUNT(*) FROM claim WHERE ClaimIdentifier='" + SOut.String(claimIdentifier) + "' AND ClaimNum<>" + (claimNumExclude);
+        var command = "SELECT COUNT(*) FROM claim WHERE ClaimIdentifier='" + SOut.String(claimIdentifier) + "' AND ClaimNum<>" + claimNumExclude;
         if (claimType == "PreAuth")
             command += " AND ClaimType='PreAuth'";
         else
@@ -439,7 +439,7 @@ public class Claims
 
     public static bool IsReferralAttached(long referralNum)
     {
-        var command = "SELECT COUNT(*) FROM claim WHERE OrderingReferralNum=" + (referralNum);
+        var command = "SELECT COUNT(*) FROM claim WHERE OrderingReferralNum=" + referralNum;
         if (Db.GetCount(command) == "0") return false;
         return true;
     }
@@ -895,14 +895,14 @@ public class Claims
         command = "SELECT COUNT(*) "
                   + "FROM claim "
                   + "WHERE claim.ClaimStatus='R' "
-                  + "AND claim.PlanNum=" + (planNum) + " ";
-        if (insSubNum != 0) command += "AND claim.InsSubNum=" + (insSubNum);
+                  + "AND claim.PlanNum=" + planNum + " ";
+        if (insSubNum != 0) command += "AND claim.InsSubNum=" + insSubNum;
         return SIn.Int(Db.GetCount(command));
     }
 
     public static void UpdateClaimIdentifier(long claimNum, string claimIdentifier)
     {
-        var command = "UPDATE claim SET ClaimIdentifier='" + SOut.String(claimIdentifier) + "' WHERE ClaimNum=" + (claimNum);
+        var command = "UPDATE claim SET ClaimIdentifier='" + SOut.String(claimIdentifier) + "' WHERE ClaimNum=" + claimNum;
         Db.NonQ(command);
     }
 
@@ -1446,8 +1446,8 @@ public class Claims
         var command = @"
 				SELECT claim.* 
 				FROM claim
-				WHERE claim.PatNum = " + (patNum) + @"
-				AND claim.PlanNum = " + (planNum) + @"
+				WHERE claim.PatNum = " + patNum + @"
+				AND claim.PlanNum = " + planNum + @"
 				AND claim.IsOrtho = 1
 				AND claim.ClaimStatus = 'R'
 				AND EXISTS(

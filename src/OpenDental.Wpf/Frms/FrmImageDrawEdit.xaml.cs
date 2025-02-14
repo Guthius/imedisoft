@@ -2,6 +2,7 @@ using System;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
+using Imedisoft.Core.Data;
 using Imedisoft.Core.Entities;
 using OpenDentBusiness;
 using WpfControls.UI;

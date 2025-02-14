@@ -45,7 +45,7 @@ public class ClaimProcs
             return [];
         }
         
-        return DataCore.GetList("SELECT * FROM claimproc WHERE PatNum IN(" + string.Join(",", patNums) + ")", ClaimProcCrud.RowToObj);
+        return DataCore.GetList("SELECT * FROM claimproc WHERE PatNum IN (" + string.Join(", ", patNums) + ")", ClaimProcCrud.RowToObj);
     }
 
     public static List<ClaimProc> GetForPayPlans(List<long> listPayPlanNums, List<ClaimProcStatus> claimProcStatuses = null)
@@ -53,14 +53,14 @@ public class ClaimProcs
         var commandText = 
             "SELECT claimproc.* " + 
             "FROM claimproc " + 
-            "WHERE claimproc.PayPlanNum IN (" + string.Join(",", listPayPlanNums) + ") ";
+            "WHERE PayPlanNum IN (" + string.Join(", ", listPayPlanNums) + ") ";
         
         if (claimProcStatuses is {Count: > 0})
         {
-            commandText += "AND claimproc.Status IN (" + string.Join(",", claimProcStatuses.Select(x => (int) x)) + ") ";
+            commandText += "AND Status IN (" + string.Join(",", claimProcStatuses.Select(x => (int) x)) + ") ";
         }
         
-        commandText += "ORDER BY claimproc.DateCP";
+        commandText += "ORDER BY DateCP";
         
         return ClaimProcCrud.SelectMany(commandText);
     }

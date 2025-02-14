@@ -99,7 +99,7 @@ public static class InsFilingCodes
 
         protected override void FillCacheIfNeeded()
         {
-            InsFilingCodes.GetTableFromCache(false);
+            GetTableFromCache(false);
         }
     }
 
@@ -122,12 +122,12 @@ public static class InsFilingCodes
 
     public static void RefreshCache()
     {
-        GetTableFromCache(true);
+        Cache.GetTableFromCache(true);
     }
 
-    public static DataTable GetTableFromCache(bool refreshCache)
+    public static void GetTableFromCache(bool refreshCache)
     {
-        return Cache.GetTableFromCache(refreshCache);
+        Cache.GetTableFromCache(refreshCache);
     }
 
     public static void ClearCache()

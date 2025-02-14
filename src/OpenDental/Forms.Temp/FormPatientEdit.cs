@@ -1040,7 +1040,7 @@ public partial class FormPatientEdit : FormODBase {
 
 	///<summary>Checks to see if the Medicaid ID is the proper number of digits for the Medicaid State.</summary>
 	private void CheckMedicaidIDLength() {
-		var reqLength=RequiredFieldConditions.CheckMedicaidIDLength(textMedicaidState.Text,textMedicaidID.Text);
+		var reqLength=RequiredFieldConditions.CheckMedicaidIdLength(textMedicaidState.Text,textMedicaidID.Text);
 		if(reqLength.IsNullOrEmpty()) {
 			_errorProvider.SetError(textMedicaidID,"");
 			return;

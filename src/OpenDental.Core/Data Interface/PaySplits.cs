@@ -32,10 +32,10 @@ public class PaySplits
         //this query goes 10 times faster for very large databases
         var command = @"select DISTINCT paysplitunion.* FROM "
                       + "(SELECT DISTINCT paysplit.* FROM paysplit,payment "
-                      + "WHERE paysplit.PayNum=payment.PayNum and payment.PatNum='" + (patNum) + "' "
+                      + "WHERE paysplit.PayNum=payment.PayNum and payment.PatNum='" + patNum + "' "
                       + "UNION "
                       + "SELECT DISTINCT paysplit.* FROM paysplit,payment "
-                      + "WHERE paysplit.PayNum = payment.PayNum AND paysplit.PatNum='" + (patNum) + "') paysplitunion "
+                      + "WHERE paysplit.PayNum = payment.PayNum AND paysplit.PatNum='" + patNum + "') paysplitunion "
                       + "ORDER BY paysplitunion.DatePay";
         return PaySplitCrud.SelectMany(command).ToArray();
     }
@@ -51,10 +51,10 @@ public class PaySplits
         //this query goes 10 times faster for very large databases
         var command = @"select DISTINCT paysplitunion.* FROM "
                       + "(SELECT DISTINCT paysplit.* FROM paysplit,payment "
-                      + "WHERE paysplit.PayNum=payment.PayNum and payment.PatNum='" + (patNum) + "' "
+                      + "WHERE paysplit.PayNum=payment.PayNum and payment.PatNum='" + patNum + "' "
                       + "UNION "
                       + "SELECT DISTINCT paysplit.* FROM paysplit,payment " //Jordan-I think payment is not needed here
-                      + "WHERE paysplit.PayNum = payment.PayNum AND paysplit.PatNum='" + (patNum) + "') paysplitunion "
+                      + "WHERE paysplit.PayNum = payment.PayNum AND paysplit.PatNum='" + patNum + "') paysplitunion "
                       + "ORDER BY paysplitunion.DatePay";
         return PaySplitCrud.SelectMany(command);
     }
@@ -79,7 +79,7 @@ public class PaySplits
     {
         var command =
             "SELECT * FROM paysplit "
-            + "WHERE PayNum=" + (payNum);
+            + "WHERE PayNum=" + payNum;
         return PaySplitCrud.SelectMany(command);
     }
 
@@ -160,7 +160,7 @@ public class PaySplits
         var command = "SELECT paysplit.*,payment.CheckNum,payment.PayAmt,payment.PayType "
                       + "FROM paysplit "
                       + "LEFT JOIN payment ON paysplit.PayNum=payment.PayNum "
-                      + "WHERE paysplit.PayPlanNum=" + (payPlanNum) + " "
+                      + "WHERE paysplit.PayPlanNum=" + payPlanNum + " "
                       + "ORDER BY DatePay";
         var tableSplits = DataCore.GetTable(command);
         return tableSplits;
@@ -248,12 +248,12 @@ public class PaySplits
 
     public static void UpdateAttachedPaySplits(Procedure proc)
     {
-        Db.NonQ($@"UPDATE paysplit SET ProvNum = {(proc.ProvNum)} WHERE ProcNum = {(proc.ProcNum)}");
+        Db.NonQ($@"UPDATE paysplit SET ProvNum = {proc.ProvNum} WHERE ProcNum = {proc.ProcNum}");
     }
 
     public static void UnlinkForAdjust(Adjustment adj)
     {
-        Db.NonQ($@"UPDATE paysplit SET AdjNum = 0 WHERE AdjNum = {(adj.AdjNum)}");
+        Db.NonQ($@"UPDATE paysplit SET AdjNum = 0 WHERE AdjNum = {adj.AdjNum}");
     }
 
     public static void UpdateProvForAdjust(Adjustment adj, List<PaySplit> listSplits = null)
@@ -261,10 +261,10 @@ public class PaySplits
         if (listSplits != null && listSplits.Count == 0) return;
 
         if (listSplits == null)
-            Db.NonQ($@"UPDATE paysplit SET ProvNum = {(adj.ProvNum)} WHERE AdjNum = {(adj.AdjNum)}");
+            Db.NonQ($@"UPDATE paysplit SET ProvNum = {adj.ProvNum} WHERE AdjNum = {adj.AdjNum}");
         else
-            Db.NonQ($@"UPDATE paysplit SET ProvNum = {(adj.ProvNum)}
-					WHERE SplitNum IN({string.Join(",", listSplits.Select(x => (x.SplitNum)))})");
+            Db.NonQ($@"UPDATE paysplit SET ProvNum = {adj.ProvNum}
+					WHERE SplitNum IN({string.Join(",", listSplits.Select(x => x.SplitNum))})");
     }
 
     public static bool Sync(List<PaySplit> listNew, long payNum)
@@ -289,13 +289,13 @@ public class PaySplits
     {
         if (arraySplitNums.IsNullOrEmpty()) return;
 
-        var command = $"DELETE FROM paysplit WHERE SplitNum IN({string.Join(",", arraySplitNums.Select(x => (x)))})";
+        var command = $"DELETE FROM paysplit WHERE SplitNum IN({string.Join(",", arraySplitNums.Select(x => x))})";
         Db.NonQ(command);
     }
 
     public static bool IsPaySplitAttached(long procNum)
     {
-        var command = "SELECT COUNT(*) FROM paysplit WHERE ProcNum=" + (procNum);
+        var command = "SELECT COUNT(*) FROM paysplit WHERE ProcNum=" + procNum;
         if (Db.GetCount(command) == "0") return false;
         return true;
     }

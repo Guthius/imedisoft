@@ -9,6 +9,7 @@ using MigraDoc.DocumentObjectModel;
 using CodeBase;
 using DataConnectionBase;
 using Imedisoft.Core.Caching;
+using Imedisoft.Core.Data;
 using Imedisoft.Core.Entities;
 using OpenDental.Logic;
 

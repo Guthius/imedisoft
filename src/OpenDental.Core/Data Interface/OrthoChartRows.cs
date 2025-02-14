@@ -108,7 +108,7 @@ public class OrthoChartRows
 
     public static List<OrthoChartRow> GetAllForPatient(long patNum, bool doIncludeOrthoCharts = true)
     {
-        var command = "SELECT * FROM orthochartrow WHERE PatNum = " + (patNum);
+        var command = "SELECT * FROM orthochartrow WHERE PatNum = " + patNum;
         var listOrthoChartRows = OrthoChartRowCrud.SelectMany(command);
         if (!doIncludeOrthoCharts) return listOrthoChartRows;
         var listOrthoChartRowNums = listOrthoChartRows.Select(x => x.OrthoChartRowNum).ToList();
@@ -125,7 +125,7 @@ public class OrthoChartRows
 
     public static List<OrthoChartRow> GetPatientData(long patNum)
     {
-        var command = "SELECT * FROM orthochartrow WHERE PatNum = " + (patNum);
+        var command = "SELECT * FROM orthochartrow WHERE PatNum = " + patNum;
         var listOrthoChartRows = OrthoChartRowCrud.SelectMany(command);
         return listOrthoChartRows;
     }

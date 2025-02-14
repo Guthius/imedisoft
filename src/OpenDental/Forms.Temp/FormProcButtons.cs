@@ -72,7 +72,7 @@ public partial class FormProcButtons : FormODBase {
 		panelQuickButtons.BeginUpdate();
 		panelQuickButtons.ListODPanelItems.Clear();
 		_listProcButtonQuicks=ProcButtonQuicks.GetAll();
-		_listProcButtonQuicks.Sort(ProcButtonQuicks.sortYX);
+		_listProcButtonQuicks.Sort(ProcButtonQuicks.SortYx);
 		ODPanelItem panelItem;
 		for(var i=0;i<_listProcButtonQuicks.Count;i++) {
 			panelItem=new ODPanelItem();
@@ -87,7 +87,6 @@ public partial class FormProcButtons : FormODBase {
 	}
 
 	private void FillCategories(){
-		ProcButtonQuicks.ValidateAll();
 		listCategories.Items.Clear();
 		listCategories.Items.Add("Quick Buttons");//hardcoded category.
 		_listDefsProcButtonCat=Defs.GetDefsForCategory(DefCat.ProcButtonCats,true);

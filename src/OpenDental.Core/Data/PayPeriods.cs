@@ -5,27 +5,11 @@ using System.Linq;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Crud;
 using Imedisoft.Core.Entities;
-using OpenDentBusiness;
 
 namespace Imedisoft.Core.Data;
 
 public static class PayPeriods
 {
-    public static void Insert(PayPeriod payPeriod)
-    {
-        PayPeriodCrud.Insert(payPeriod);
-    }
-
-    public static void Update(PayPeriod payPeriod)
-    {
-        PayPeriodCrud.Update(payPeriod);
-    }
-
-    public static void Delete(PayPeriod payPeriod)
-    {
-        Db.NonQ("DELETE FROM payperiod WHERE PayPeriodNum = " + payPeriod.PayPeriodNum);
-    }
-
     public static int GetForDate(DateTime date)
     {
         var payPeriod = GetFirstOrDefault(x => date.Date >= x.DateStart.Date && date.Date <= x.DateStop.Date);
@@ -57,35 +41,6 @@ public static class PayPeriods
         return index > -1 ? index : GetCount() - 1;
     }
 
-    public static bool HasPayPeriodForDate(DateTime date)
-    {
-        var payPeriod = GetFirstOrDefault(x => date.Date >= x.DateStart.Date && date.Date <= x.DateStop.Date);
-
-        return payPeriod is not null;
-    }
-
-    public static bool CannotEditPayPeriodOfDate(DateTime date, long employeeNum)
-    {
-        return Security.CurUser is not null &&
-               Security.CurUser.EmployeeNum == employeeNum &&
-               PrefC.GetBool(PrefName.TimecardSecurityEnabled) &&
-               PrefC.GetBool(PrefName.TimecardUsersCantEditPastPayPeriods) &&
-               (!HasPayPeriodForDate(date) || GetForDate(date) != GetForDate(DateTime.Today));
-    }
-
-    public static PayPeriod GetMostRecent()
-    {
-        return PayPeriodCrud.SelectOne("SELECT * FROM payperiod WHERE DateStop=(SELECT MAX(DateStop) FROM payperiod)");
-    }
-
-    public static bool AreAnyOverlapping(List<PayPeriod> left, List<PayPeriod> right)
-    {
-        return left.Any(x => right.Any(y =>
-            !y.IsSame(x) &&
-            ((x.DateStop >= y.DateStart && x.DateStop <= y.DateStop) ||
-             (x.DateStart >= y.DateStart && x.DateStart <= y.DateStop))));
-    }
-
     private class PayPeriodCache : CacheListAbs<PayPeriod>
     {
         protected override List<PayPeriod> GetCacheFromDb()
@@ -110,7 +65,7 @@ public static class PayPeriods
 
         protected override void FillCacheIfNeeded()
         {
-            PayPeriods.GetTableFromCache(false);
+            GetTableFromCache(false);
         }
     }
 
@@ -136,24 +91,14 @@ public static class PayPeriods
         return Cache.GetFirstOrDefault(predicate, shortList);
     }
 
-    public static PayPeriod GetLast(bool shortList = false)
-    {
-        return Cache.GetLast(shortList);
-    }
-
     public static List<PayPeriod> GetWhere(Predicate<PayPeriod> predicate, bool shortList = false)
     {
         return Cache.GetWhere(predicate, shortList);
     }
 
-    public static void RefreshCache()
+    public static void GetTableFromCache(bool refreshCache)
     {
-        GetTableFromCache(true);
-    }
-
-    public static DataTable GetTableFromCache(bool refreshCache)
-    {
-        return Cache.GetTableFromCache(refreshCache);
+        Cache.GetTableFromCache(refreshCache);
     }
 
     public static void ClearCache()

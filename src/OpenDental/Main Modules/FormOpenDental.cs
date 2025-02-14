@@ -2536,13 +2536,7 @@ public partial class FormOpenDental : FormODBase
             {
                 Cache.Refresh(InvalidType.Prefs);
             }
-
-            //The PhoneEmpDefaults cache is unique in that it is heavily used and should never be cleared out. It should be refreshed immediately instead.
-            if (listInvalidTypes.Remove(InvalidType.PhoneEmpDefaults))
-            {
-                Cache.Refresh(InvalidType.PhoneEmpDefaults);
-            }
-
+            
             //The remaining caches should be cleared out and will be refilled when needed.
             Cache.ClearCaches(listInvalidTypes.ToArray());
             onProcess(FormsSubscribed, listSignals);
@@ -3840,41 +3834,6 @@ public partial class FormOpenDental : FormODBase
         formUserEdit.ShowDialog();
     }
 
-    private void menuItemSecurityBadges_Click(object sender, EventArgs e)
-    {
-        //Check if user is authorized
-        if (!Security.IsAuthorized(EnumPermType.BadgeIdEdit))
-        {
-            return;
-        }
-
-        //Allow selection of userod with a combobox
-        var inputBoxParam = new InputBoxParam
-        {
-            InputBoxType_ = InputBoxType.ComboSelect, //Not multiselect
-            LabelText = "Select a user."
-        };
-        var listUserodsAll = Userods.GetAll(); //Already orders by username
-        var listUserods = listUserodsAll.FindAll(x => !x.IsHidden);
-        inputBoxParam.ListSelections = listUserods.Select(x => x.UserName).ToList();
-        inputBoxParam.SizeParam = new System.Windows.Size(width: 200, height: 20);
-        var inputBox = new InputBox(inputBoxParam);
-        inputBox.ShowDialog();
-        if (inputBox.IsDialogCancel)
-        {
-            return;
-        }
-
-        var userodSelected = listUserods[inputBox.SelectedIndex];
-
-        var frmBadgeEdit = new FrmBadgeEdit
-        {
-            UserodCur = userodSelected
-        };
-
-        frmBadgeEdit.ShowDialog();
-    }
-
     private void MenuItemEasy_Click(object sender, EventArgs e)
     {
         Open<FormShowFeatures>(EnumPermType.ShowFeatures, "Show Features");
@@ -4517,18 +4476,6 @@ public partial class FormOpenDental : FormODBase
         formTelephone.ShowDialog();
     }
 
-    private void menuItemTestLatency_Click(object sender, EventArgs e)
-    {
-        if (!Security.IsAuthorized(EnumPermType.Setup))
-        {
-            return;
-        }
-
-        using var formTestLatency = new FormTestLatency();
-
-        formTestLatency.ShowDialog();
-    }
-
     private void menuItemAuditTrail_Click(object sender, EventArgs e)
     {
         if (!Security.IsAuthorized(EnumPermType.AuditTrail))
@@ -4746,21 +4693,6 @@ public partial class FormOpenDental : FormODBase
                 var formOnlinePayments = new FormOnlinePayments();
                 formOnlinePayments.Show();
                 formOnlinePayments.FormClosed += AlertFormClosingHelper;
-                break;
-            case FormType.FormRadOrderList:
-                var listFormRadOrderLists = Application.OpenForms.OfType<FormRadOrderList>().ToList();
-                if (listFormRadOrderLists.Count > 0)
-                {
-                    listFormRadOrderLists[0].RefreshRadOrdersForUser(Security.CurUser);
-                    listFormRadOrderLists[0].BringToFront();
-                }
-                else
-                {
-                    var formRadOrderList = new FormRadOrderList(Security.CurUser);
-                    formRadOrderList.Show();
-                    formRadOrderList.FormClosed += AlertFormClosingHelper;
-                }
-
                 break;
             case FormType.FormApptEdit:
                 var appointment = Appointments.GetOneApt(alertItem.FKey);
@@ -5051,7 +4983,6 @@ public partial class FormOpenDental : FormODBase
                     Security.CurUser.IsPasswordResetRequired = false;
                     Userods.Update(Security.CurUser);
                     Userods.UpdatePassword(Security.CurUser, formUserPassword.PasswordContainer_, isPasswordStrong);
-                    Security.PasswordTyped = formUserPassword.PasswordTyped;
                     Security.CurUser = Userods.GetUserNoCache(Security.CurUser.UserNum);
                 }
                 catch (Exception ex)

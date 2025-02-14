@@ -36,14 +36,14 @@ public class CustReferences
                 else
                     billingSnippet += "OR ";
 
-                billingSnippet += "BillingType=" + (listBillingTypes[i]) + " ";
+                billingSnippet += "BillingType=" + listBillingTypes[i] + " ";
                 if (i == listBillingTypes.Count - 1) billingSnippet += ") ";
             }
 
         var phonedigits = "";
         for (var i = 0; i < areaCode.Length; i++)
             if (Regex.IsMatch(areaCode[i].ToString(), "[0-9]"))
-                phonedigits = phonedigits + areaCode[i];
+                phonedigits += areaCode[i];
 
         var regexp = "";
         for (var i = 0; i < phonedigits.Length; i++)
@@ -153,7 +153,7 @@ public class CustReferences
     {
         var command = "SELECT * "
                       + "FROM custreference "
-                      + "WHERE PatNum=" + (patNum) + " "
+                      + "WHERE PatNum=" + patNum + " "
                       + "ORDER BY DateMostRecent DESC";
         var listCustReferences = CustReferenceCrud.SelectMany(command);
         if (listCustReferences.Count == 0) return null;

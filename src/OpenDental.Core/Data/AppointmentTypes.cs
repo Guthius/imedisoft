@@ -183,7 +183,7 @@ public static class AppointmentTypes
 
         protected override void FillCacheIfNeeded()
         {
-            AppointmentTypes.GetTableFromCache(false);
+            GetTableFromCache(false);
         }
 
         protected override bool IsInListShort(AppointmentType item)
@@ -209,9 +209,9 @@ public static class AppointmentTypes
         return Cache.GetWhere(predicate, shortList);
     }
 
-    public static DataTable GetTableFromCache(bool refreshCache)
+    public static void GetTableFromCache(bool refreshCache)
     {
-        return Cache.GetTableFromCache(refreshCache);
+        Cache.GetTableFromCache(refreshCache);
     }
 
     public static void ClearCache()

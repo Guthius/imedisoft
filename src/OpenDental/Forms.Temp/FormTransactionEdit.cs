@@ -491,9 +491,9 @@ public partial class FormTransactionEdit : FormODBase
                 return;
             }
 
-            _transaction.DepositNum = formDeposits.DepositSelected.DepositNum;
+            _transaction.DepositNum = formDeposits.SelectedDeposit.DepositNum;
 
-            textSourceDeposit.Text = formDeposits.DepositSelected.DateDeposit.ToShortDateString() + "  " + formDeposits.DepositSelected.Amount.ToString("c");
+            textSourceDeposit.Text = formDeposits.SelectedDeposit.DateDeposit.ToShortDateString() + "  " + formDeposits.SelectedDeposit.Amount.ToString("c");
 
             butAttachDep.Text = "Detach";
 

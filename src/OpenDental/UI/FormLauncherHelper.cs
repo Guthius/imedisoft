@@ -4,85 +4,63 @@ using OpenDental.Forms;
 
 namespace OpenDental;
 
-public class FormLauncherHelper {
-	public static void Launch(object sender,FormLauncherEventArgs e) {
-		Type type =null; 
-		//This switch doesn't actually do anything except ensure that every type of form has an actual reference here.
-		//This is needed because of our late binding. We want to know about these references.
-		switch(e.EnumFormName_){
-			//FullName looks like this: OpenDental.FormWhatever
-			case EnumFormName.FormAllergySetup:
-				type=Type.GetType((typeof(FormAllergySetup)).FullName);
-				break;
-			case EnumFormName.FormCodeSystemsImport:
-				type=Type.GetType((typeof(FormCodeSystemsImport)).FullName);
-				break;
-			case EnumFormName.FormDiseaseDefs:
-				type=Type.GetType((typeof(FormDiseaseDefs)).FullName);
-				break;
-			case EnumFormName.FormDrCeph:
-				type=Type.GetType((typeof(FormDrCeph)).FullName);
-				break;
-			case EnumFormName.FormHouseCalls:
-				type=Type.GetType((typeof(FormHouseCalls)).FullName);
-				break;
-			case EnumFormName.FormMedications:
-				type=Type.GetType((typeof(FormMedications)).FullName);
-				break;
-			case EnumFormName.FormNotePick:
-				type=Type.GetType((typeof(FormNotePick)).FullName);
-				break;
-			case EnumFormName.FormOryxUserSettings:
-				type=Type.GetType((typeof(FormOryxUserSettings)).FullName);
-				break;
-			case EnumFormName.FormPatientEdit:
-				type=Type.GetType((typeof(FormPatientEdit)).FullName);
-				break;
-			case EnumFormName.FormPrintTrojan:
-				type=Type.GetType((typeof(FormPrintTrojan)).FullName);
-				break;
-			case EnumFormName.FormSheetFillEdit:
-				type=Type.GetType((typeof(FormSheetFillEdit)).FullName);
-				break;
-			case EnumFormName.FormTrojanCollect:
-				type=Type.GetType((typeof(FormTrojanCollect)).FullName);
-				break;
-			case EnumFormName.FormTrophyNamePick:
-				type=Type.GetType((typeof(FormTrophyNamePick)).FullName);
-				break;
-			case EnumFormName.FormVideo:
-				type=Type.GetType((typeof(FormVideo)).FullName);
-				break;
-			case EnumFormName.FormWebBrowser:
-				type=Type.GetType((typeof(FormWebBrowser)).FullName);
-				break;
-			case EnumFormName.FormWebView:
-				type=Type.GetType((typeof(FormWebView)).FullName);
-				break;
-		}
-		if(type==null){
-			throw new InvalidOperationException("Form type not found.");
-		}
-		var form = (Form)Activator.CreateInstance(type);
-		e.Form=form;
-		for(var i=0;i<e.ListEventPairs.Count;i++){
-			var eventInfo=type.GetEvent(e.ListEventPairs[i].EventName);
-			eventInfo.AddEventHandler(e.Form,e.ListEventPairs[i].EventHandler);
-		}
-		for(var i=0;i<e.ListFieldPairs.Count;i++){
-			var fieldInfo=type.GetField(e.ListFieldPairs[i].FieldName);
-			fieldInfo.SetValue(e.Form,e.ListFieldPairs[i].FieldValue);
-		}
-		if(!e.IsDialog){
-			form.Show();
-			return;
-		}
-		form.ShowDialog();//We don't need sender because we never use the TopMost property which would cause child to show under.
-		if(form.DialogResult==DialogResult.OK){
-			e.IsDialogOK=true;
-		}
-		else{
-			e.IsDialogOK=false;
-		}
-	}
+public class FormLauncherHelper
+{
+    public static void Launch(object sender, FormLauncherEventArgs e)
+    {
+        var type = e.EnumFormName_ switch
+        {
+            EnumFormName.FormAllergySetup => typeof(FormAllergySetup),
+            EnumFormName.FormCodeSystemsImport => typeof(FormCodeSystemsImport),
+            EnumFormName.FormDiseaseDefs => typeof(FormDiseaseDefs),
+            EnumFormName.FormDrCeph => typeof(FormDrCeph),
+            EnumFormName.FormHouseCalls => typeof(FormHouseCalls),
+            EnumFormName.FormMedications => typeof(FormMedications),
+            EnumFormName.FormNotePick => typeof(FormNotePick),
+            EnumFormName.FormOryxUserSettings => typeof(FormOryxUserSettings),
+            EnumFormName.FormPatientEdit => typeof(FormPatientEdit),
+            EnumFormName.FormPrintTrojan => typeof(FormPrintTrojan),
+            EnumFormName.FormSheetFillEdit => typeof(FormSheetFillEdit),
+            EnumFormName.FormTrojanCollect => typeof(FormTrojanCollect),
+            EnumFormName.FormTrophyNamePick => typeof(FormTrophyNamePick),
+            EnumFormName.FormVideo => typeof(FormVideo),
+            EnumFormName.FormWebBrowser => typeof(FormWebBrowser),
+            EnumFormName.FormWebView => typeof(FormWebView),
+            _ => null
+        };
+
+        if (type == null)
+        {
+            throw new InvalidOperationException("Form type not found.");
+        }
+
+        var form = (Form) Activator.CreateInstance(type);
+        
+        e.Form = form;
+        
+        foreach (var eventPair in e.ListEventPairs)
+        {
+            var eventInfo = type.GetEvent(eventPair.EventName);
+            
+            eventInfo.AddEventHandler(e.Form, eventPair.EventHandler);
+        }
+
+        foreach (var fieldPair in e.ListFieldPairs)
+        {
+            var fieldInfo = type.GetField(fieldPair.FieldName);
+            
+            fieldInfo.SetValue(e.Form, fieldPair.FieldValue);
+        }
+
+        if (!e.IsDialog)
+        {
+            form.Show();
+            
+            return;
+        }
+
+        form.ShowDialog();
+        
+        e.IsDialogOK = form.DialogResult == DialogResult.OK;
+    }
 }

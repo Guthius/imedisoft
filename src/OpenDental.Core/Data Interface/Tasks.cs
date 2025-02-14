@@ -49,7 +49,7 @@ public class Tasks
 
     public static Task GetOne(long TaskNum)
     {
-        var command = "SELECT * FROM task WHERE TaskNum = " + (TaskNum);
+        var command = "SELECT * FROM task WHERE TaskNum = " + TaskNum;
         return TaskCrud.SelectOne(command);
     }
 
@@ -140,15 +140,15 @@ public class Tasks
         var doJoinTaskOnTaskNote = false;
         if (!doIncludeCompleted)
         {
-            listWhereClauses.Add("task.TaskStatus!=" + ((int) TaskStatusEnum.Done));
-            listWhereNoteClauses.Add("task.TaskStatus!=" + ((int) TaskStatusEnum.Done));
+            listWhereClauses.Add("task.TaskStatus!=" + (int) TaskStatusEnum.Done);
+            listWhereNoteClauses.Add("task.TaskStatus!=" + (int) TaskStatusEnum.Done);
             doJoinTaskOnTaskNote = true;
         }
 
         if (userNum != 0)
         {
-            listWhereClauses.Add("task.UserNum=" + (userNum));
-            listWhereNoteClauses.Add("tasknote.UserNum=" + (userNum));
+            listWhereClauses.Add("task.UserNum=" + userNum);
+            listWhereNoteClauses.Add("tasknote.UserNum=" + userNum);
         }
 
         if (listTaskListNums.Count > 0)
@@ -160,8 +160,8 @@ public class Tasks
 
         if (listTaskNums.Count > 0)
         {
-            listWhereClauses.Add("task.TaskNum IN (" + string.Join(",", listTaskNums.Select(x => (x))) + ")");
-            listWhereNoteClauses.Add("tasknote.TaskNum IN (" + string.Join(",", listTaskNums.Select(x => (x))) + ")");
+            listWhereClauses.Add("task.TaskNum IN (" + string.Join(",", listTaskNums.Select(x => x)) + ")");
+            listWhereNoteClauses.Add("tasknote.TaskNum IN (" + string.Join(",", listTaskNums.Select(x => x)) + ")");
         }
 
         //Note: DateTime strings that are empty actually are " " due to how the empty datetime control behaves.
@@ -209,17 +209,17 @@ public class Tasks
 
         if (taskPriorityNum != 0)
         {
-            listWhereClauses.Add("task.PriorityDefNum=" + (taskPriorityNum));
-            listWhereNoteClauses.Add("task.PriorityDefNum=" + (taskPriorityNum));
+            listWhereClauses.Add("task.PriorityDefNum=" + taskPriorityNum);
+            listWhereNoteClauses.Add("task.PriorityDefNum=" + taskPriorityNum);
             doJoinTaskOnTaskNote = true;
         }
 
         if (patNum != 0)
         {
             listWhereClauses.Add("task.ObjectType=" + SOut.Int((int) TaskObjectType.Patient));
-            listWhereClauses.Add("task.KeyNum=" + (patNum));
+            listWhereClauses.Add("task.KeyNum=" + patNum);
             listWhereNoteClauses.Add("task.ObjectType=" + SOut.Int((int) TaskObjectType.Patient));
-            listWhereNoteClauses.Add("task.KeyNum=" + (patNum));
+            listWhereNoteClauses.Add("task.KeyNum=" + patNum);
             doJoinTaskOnTaskNote = true;
         }
 
@@ -247,7 +247,7 @@ public class Tasks
                 for (var i = 1; i < listSearchesExcluding.Count; i++)
                     command += "AND task.Descript NOT LIKE '%" + SOut.String(listSearchesExcluding[i]) + "%' ";
 
-            if (!doIncludeCompleted) command += "AND task.TaskStatus!=" + ((int) TaskStatusEnum.Done) + " ";
+            if (!doIncludeCompleted) command += "AND task.TaskStatus!=" + (int) TaskStatusEnum.Done + " ";
             if (doIncludeTaskNote)
             {
                 command += "AND task.TaskNum "
@@ -405,7 +405,7 @@ public class Tasks
 
     public static List<Task> GetMany(long AptNum)
     {
-        var command = $@"SELECT * FROM task WHERE ObjectType={SOut.Int((int) TaskObjectType.Appointment)} AND task.KeyNum={(AptNum)}";
+        var command = $@"SELECT * FROM task WHERE ObjectType={SOut.Int((int) TaskObjectType.Appointment)} AND task.KeyNum={AptNum}";
         return TaskCrud.SelectMany(command);
     }
 
@@ -426,8 +426,8 @@ public class Tasks
                       + "INNER JOIN task ON task.TaskNum=taskancestor.TaskNum AND TaskStatus != " + SOut.Int((int) TaskStatusEnum.Done) + " ";
         if (listTaskNums != null) command += "AND task.TaskNum IN (" + string.Join(",", listTaskNums) + ") ";
         command += "INNER JOIN tasklist ON tasklist.TaskListNum=taskancestor.TaskListNum "
-                   + "INNER JOIN tasksubscription ON tasksubscription.TaskListNum=tasklist.TaskListNum AND tasksubscription.UserNum=" + (userNum) + " "
-                   + "LEFT JOIN taskunread ON taskunread.TaskNum=task.TaskNum AND taskunread.UserNum=" + (userNum);
+                   + "INNER JOIN tasksubscription ON tasksubscription.TaskListNum=tasklist.TaskListNum AND tasksubscription.UserNum=" + userNum + " "
+                   + "LEFT JOIN taskunread ON taskunread.TaskNum=task.TaskNum AND taskunread.UserNum=" + userNum;
         if (Clinics.ClinicNum != 0 || !true)
         {
             command += TaskLists.BuildFilterJoins(clinicNum);
@@ -480,8 +480,8 @@ public class Tasks
 
     public static void DisableRemindersFromTasklist(long taskListNum)
     {
-        var command = "UPDATE task SET ReminderType=" + ((long) TaskReminderType.NoReminder) + " "
-                      + "WHERE TaskListNum=" + (taskListNum);
+        var command = "UPDATE task SET ReminderType=" + (long) TaskReminderType.NoReminder + " "
+                      + "WHERE TaskListNum=" + taskListNum;
         Db.NonQ(command);
     }
 
@@ -489,7 +489,7 @@ public class Tasks
     {
         //startDate only applies if showing Done tasks.
         var command = "SELECT task.*,"
-                      + "(SELECT COUNT(*) FROM taskunread WHERE task.TaskNum=taskunread.TaskNum AND taskunread.UserNum=" + (userNum) + ") IsUnread, "
+                      + "(SELECT COUNT(*) FROM taskunread WHERE task.TaskNum=taskunread.TaskNum AND taskunread.UserNum=" + userNum + ") IsUnread, "
                       + "patient.LName,patient.FName,patient.Preferred "
                       + "FROM task "
                       + "LEFT JOIN patient ON task.KeyNum=patient.PatNum AND task.ObjectType=" + SOut.Int((int) TaskObjectType.Patient) + " ";
@@ -503,10 +503,10 @@ public class Tasks
 
         //No filter.
         if (showDone)
-            command += " AND (TaskStatus !=" + ((int) TaskStatusEnum.Done)
+            command += " AND (TaskStatus !=" + (int) TaskStatusEnum.Done
                                              + " OR DateTimeFinished > " + SOut.Date(dateStart) + ")"; //of if done, then restrict date
         else
-            command += " AND TaskStatus !=" + ((int) TaskStatusEnum.Done);
+            command += " AND TaskStatus !=" + (int) TaskStatusEnum.Done;
         command += BuildFilterWhereClause(userNum, listClinicNumsFilter, listDefNumsRegionFilter);
         command += " ORDER BY DateTimeEntry";
         var table = DataCore.GetTable(command);
@@ -522,7 +522,7 @@ public class Tasks
                    + "COALESCE(MAX(tasknote.DateTimeNote),task.DateTimeEntry) AS 'LastUpdated' "
                    + "FROM task "
                    + "INNER JOIN taskunread ON task.TaskNum=taskunread.TaskNum "
-                   + "AND taskunread.UserNum = " + (userNum) + " "
+                   + "AND taskunread.UserNum = " + userNum + " "
                    + "LEFT JOIN tasklist ON task.TaskListNum=tasklist.TaskListNum "
                    + "LEFT JOIN tasknote ON task.TaskNum=tasknote.TaskNum "
                    + "LEFT JOIN patient ON task.KeyNum=patient.PatNum "
@@ -571,7 +571,7 @@ public class Tasks
     {
         var command = "SELECT task.*, "
                       + "(SELECT COUNT(*) FROM taskunread WHERE task.TaskNum=taskunread.TaskNum "
-                      + "AND taskunread.UserNum=" + (userNum) + ") AS IsUnread, "
+                      + "AND taskunread.UserNum=" + userNum + ") AS IsUnread, "
                       + "tasklist.Descript AS ParentDesc, "
                       + "patient.LName,patient.FName,patient.Preferred "
                       + "FROM task "
@@ -588,7 +588,7 @@ public class Tasks
                    + "AND task.ObjectType=" + SOut.Int((int) TaskObjectType.Patient) + " "
                    + "AND task.IsRepeating=0 "
                    + "AND NOT(COALESCE(task.ReminderGroupId,'') != '' AND task.DateTimeEntry > " + "NOW()" + ") " //no future reminders
-                   + "AND task.UserNum=" + (userNum) + " "
+                   + "AND task.UserNum=" + userNum + " "
                    + "AND TaskStatus!=" + SOut.Int((int) TaskStatusEnum.Done) + " ";
         command += BuildFilterWhereClause(userNum, listClinicNumsFilter, listDefNumsRegionFilter);
         command += "ORDER BY DateTimeEntry";
@@ -600,13 +600,13 @@ public class Tasks
     {
         var command = "SELECT task.*, "
                       + "(SELECT COUNT(*) FROM taskunread WHERE task.TaskNum=taskunread.TaskNum "
-                      + "AND taskunread.UserNum=" + (Security.CurUser.UserNum) + ") AS IsUnread, "
+                      + "AND taskunread.UserNum=" + Security.CurUser.UserNum + ") AS IsUnread, "
                       + "tasklist.Descript AS ParentDesc "
                       + "FROM task "
                       + "LEFT JOIN tasklist ON task.TaskListNum=tasklist.TaskListNum ";
         command += BuildFilterJoins(false, listClinicNumsFilter, listDefNumsRegionFilter);
         command += "WHERE task.ObjectType=" + SOut.Int((int) TaskObjectType.Patient) + " "
-                   + "AND task.KeyNum=" + (patNum) + " "
+                   + "AND task.KeyNum=" + patNum + " "
                    + "AND TaskStatus!=" + SOut.Int((int) TaskStatusEnum.Done) + " ";
         command += BuildFilterWhereClause(userNum, listClinicNumsFilter, listDefNumsRegionFilter);
         command += "ORDER BY DateTimeEntry";
@@ -645,10 +645,10 @@ public class Tasks
         //if a task is someone's inbox,
         if (userNumInbox > 0)
             //then restrict by that user
-            command += "AND taskunread.UserNum=" + (userNumInbox) + ") IsUnread, ";
+            command += "AND taskunread.UserNum=" + userNumInbox + ") IsUnread, ";
         else
             //otherwise, restrict by current user
-            command += "AND taskunread.UserNum=" + (userNum) + ") IsUnread, ";
+            command += "AND taskunread.UserNum=" + userNum + ") IsUnread, ";
         if (isTaskSortApptDateTime) command += "appointment.AptNum, appointment.AptStatus, appointment.AptDateTime, ";
         command += "patient.LName,patient.FName,patient.Preferred, "
                    + "COALESCE(MAX(tasknote.DateTimeNote),task.DateTimeEntry) AS 'LastUpdated',"
@@ -660,18 +660,18 @@ public class Tasks
             command += "LEFT JOIN appointment ON task.ObjectType=" + SOut.Int((int) TaskObjectType.Appointment) + " AND task.KeyNum=appointment.AptNum ";
         else
             command += BuildFilterJoins(true, listClinicNumsFilter, listDefNumsRegionFilter, dateStartFilter, dateEndFilter, patientFilter);
-        command += "WHERE TaskListNum=" + (listNum) + " ";
+        command += "WHERE TaskListNum=" + listNum + " ";
         if (taskType == TaskType.Reminder)
             command += "AND COALESCE(task.ReminderGroupId,'') != '' "; //reminders only
         else if (taskType == TaskType.Normal) command += "AND NOT(COALESCE(task.ReminderGroupId,'') != '' AND task.DateTimeEntry > " + "NOW()" + ") "; //no future reminders
 
         //No filter.
         if (showDone)
-            command += " AND ((TaskStatus !=" + ((int) TaskStatusEnum.Done)
+            command += " AND ((TaskStatus !=" + (int) TaskStatusEnum.Done
                                               + " OR DateTimeFinished > " + SOut.Date(dateStart) + ")" //or if done, then restrict date
                                               + " OR DateTimeFinished = '0001-01-01 00:00:00')"; //Include tasks that have a finished date time as MinValue so they can be edited.
         else
-            command += " AND TaskStatus !=" + ((int) TaskStatusEnum.Done);
+            command += " AND TaskStatus !=" + (int) TaskStatusEnum.Done;
         command += BuildFilterWhereClause(userNum, listClinicNumsFilter, listDefNumsRegionFilter, dateStartFilter, dateEndFilter, patientFilter);
         command += " GROUP BY task.TaskNum " //Sorting happens below
                    + " ORDER BY DateTimeEntry";
@@ -725,14 +725,14 @@ public class Tasks
         var command =
             "SELECT task.*, "
             + "(SELECT COUNT(*) FROM taskunread WHERE task.TaskNum=taskunread.TaskNum "
-            + "AND taskunread.UserNum=" + (userNum) + ") IsUnread, " //Not sure if this makes sense here
+            + "AND taskunread.UserNum=" + userNum + ") IsUnread, " //Not sure if this makes sense here
             + "patient.LName,patient.FName,patient.Preferred "
             + "FROM task "
             + "LEFT JOIN patient ON task.KeyNum=patient.PatNum AND task.ObjectType=" + SOut.Int((int) TaskObjectType.Patient) + " ";
         command += BuildFilterJoins(true, listClinicNumsFilter, listDefNumsRegionFilter);
         command += "WHERE IsRepeating=1 "
                    + "AND COALESCE(task.ReminderGroupId,'')='' " //no reminders
-                   + "AND DateType=" + ((int) taskDataType) + " ";
+                   + "AND DateType=" + (int) taskDataType + " ";
         command += BuildFilterWhereClause(userNum, listClinicNumsFilter, listDefNumsRegionFilter);
         command += "ORDER BY DateTimeEntry";
         var table = DataCore.GetTable(command);
@@ -762,21 +762,21 @@ public class Tasks
         var command =
             "SELECT task.*, "
             + "(SELECT COUNT(*) FROM taskunread WHERE task.TaskNum=taskunread.TaskNum "
-            + "AND taskunread.UserNum=" + (userNum) + ") IsUnread, " //Not sure if this makes sense here
+            + "AND taskunread.UserNum=" + userNum + ") IsUnread, " //Not sure if this makes sense here
             + "patient.LName,patient.FName,patient.Preferred "
             + "FROM task "
             + "LEFT JOIN patient ON task.KeyNum=patient.PatNum AND task.ObjectType=" + SOut.Int((int) TaskObjectType.Patient) + " ";
         command += BuildFilterJoins(true, listClinicNumsFilter, listDefNumsRegionFilter);
         command += "WHERE DateTask >= " + SOut.Date(dateFrom)
                                         + " AND DateTask <= " + SOut.Date(dateTo)
-                                        + " AND DateType=" + ((int) taskDateType)
+                                        + " AND DateType=" + (int) taskDateType
                                         + " AND COALESCE(task.ReminderGroupId,'')='' "; //no reminders
         command += BuildFilterWhereClause(userNum, listClinicNumsFilter, listDefNumsRegionFilter);
         if (showDone)
-            command += " AND (TaskStatus !=" + ((int) TaskStatusEnum.Done)
+            command += " AND (TaskStatus !=" + (int) TaskStatusEnum.Done
                                              + " OR DateTimeFinished > " + SOut.Date(dateStart) + ")"; //of if done, then restrict date
         else
-            command += " AND TaskStatus !=" + ((int) TaskStatusEnum.Done);
+            command += " AND TaskStatus !=" + (int) TaskStatusEnum.Done;
         command += " ORDER BY DateTimeEntry";
         var table = DataCore.GetTable(command);
         return TableToList(table);
@@ -831,7 +831,7 @@ public class Tasks
         if (listClinicNumsForQuery.Count > 1)
         {
             //check if it is more than HQ and if clinic/region filter is needed
-            var strFkeys = string.Join(",", listClinicNumsForQuery.Select(x => (x)));
+            var strFkeys = string.Join(",", listClinicNumsForQuery.Select(x => x));
             clinicAnd = " AND (patient.ClinicNum IN (" + strFkeys + ") OR appointment.ClinicNum IN (" + strFkeys + ") "
                         + "OR ((patient.ClinicNum IS NULL) AND (appointment.ClinicNum IS NULL))) ";
         }
@@ -1085,7 +1085,7 @@ public class Tasks
 
     public static bool WasTaskAltered(Task task)
     {
-        var command = "SELECT * FROM task WHERE TaskNum=" + (task.TaskNum);
+        var command = "SELECT * FROM task WHERE TaskNum=" + task.TaskNum;
         var taskOld = TaskCrud.SelectOne(command);
         if (taskOld == null
             || taskOld.DateTask != task.DateTask
@@ -1107,15 +1107,15 @@ public class Tasks
     public static void Delete(long taskNum)
     {
         ClearFkey(taskNum); //Zero securitylog FKey column for rows to be deleted.
-        var command = "DELETE FROM task WHERE TaskNum = " + (taskNum);
+        var command = "DELETE FROM task WHERE TaskNum = " + taskNum;
         Db.NonQ(command);
-        command = "DELETE FROM taskancestor WHERE TaskNum = " + (taskNum);
+        command = "DELETE FROM taskancestor WHERE TaskNum = " + taskNum;
         Db.NonQ(command);
-        command = "DELETE FROM tasknote WHERE TaskNum = " + (taskNum);
+        command = "DELETE FROM tasknote WHERE TaskNum = " + taskNum;
         Db.NonQ(command);
-        command = "DELETE FROM taskattachment WHERE TaskNum = " + (taskNum);
+        command = "DELETE FROM taskattachment WHERE TaskNum = " + taskNum;
         Db.NonQ(command);
-        command = "DELETE FROM taskunread WHERE TaskNum = " + (taskNum);
+        command = "DELETE FROM taskunread WHERE TaskNum = " + taskNum;
         Db.NonQ(command);
     }
 
@@ -1131,7 +1131,7 @@ public class Tasks
                       + "AND task.ObjectType=" + SOut.Int((int) TaskObjectType.Patient) + " "
                       + "AND task.IsRepeating=0 "
                       + "AND NOT(COALESCE(task.ReminderGroupId,'') != '' AND task.DateTimeEntry > " + "NOW()" + ") " //no future reminders
-                      + "AND task.UserNum=" + (userNum) + " "
+                      + "AND task.UserNum=" + userNum + " "
                       + "AND TaskStatus != " + SOut.Int((int) TaskStatusEnum.Done);
         return SIn.Int(Db.GetCount(command));
     }
@@ -1142,7 +1142,7 @@ public class Tasks
                       + "FROM task "
                       + "WHERE task.ObjectType=" + SOut.Int((int) TaskObjectType.Patient) + " "
                       + "AND task.IsRepeating=0 "
-                      + "AND task.KeyNum=" + (patNum) + " "
+                      + "AND task.KeyNum=" + patNum + " "
                       + "AND TaskStatus != " + SOut.Int((int) TaskStatusEnum.Done);
         return SIn.Int(Db.GetCount(command));
     }
@@ -1270,7 +1270,7 @@ public class Tasks
 
     public static bool IsTaskDeleted(long taskNum)
     {
-        var command = "SELECT COUNT(*) FROM task WHERE TaskNum=" + (taskNum) + "";
+        var command = "SELECT COUNT(*) FROM task WHERE TaskNum=" + taskNum + "";
         return Db.GetCount(command) == "0";
     }
 

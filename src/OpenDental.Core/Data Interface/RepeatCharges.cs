@@ -19,7 +19,7 @@ public class RepeatCharges
     public static RepeatCharge[] Refresh(long patNum)
     {
         var command = "SELECT * FROM repeatcharge";
-        if (patNum != 0) command += " WHERE PatNum = " + (patNum);
+        if (patNum != 0) command += " WHERE PatNum = " + patNum;
         command += " ORDER BY DateStart";
         return RepeatChargeCrud.SelectMany(command).ToArray();
     }
@@ -33,7 +33,7 @@ public class RepeatCharges
                        + "AND rc.DateStart>=" + SOut.DateTime(dateGreaterThan);
         else
             command += "INNER JOIN patient p ON p.PatNum=rc.PatNum "
-                       + "WHERE p.SuperFamily=" + (patNumSuperFamily) + " "
+                       + "WHERE p.SuperFamily=" + patNumSuperFamily + " "
                        + "AND rc.ProcCode='" + SOut.String(procCode) + "' "
                        + "AND rc.ChargeAmt=" + SOut.Double(chargeAmt) + " "
                        + "AND rc.DateStart>=" + SOut.DateTime(dateGreaterThan);
@@ -52,7 +52,7 @@ public class RepeatCharges
 
     public static void Delete(RepeatCharge charge)
     {
-        var command = "DELETE FROM repeatcharge WHERE RepeatChargeNum =" + (charge.RepeatChargeNum);
+        var command = "DELETE FROM repeatcharge WHERE RepeatChargeNum =" + charge.RepeatChargeNum;
         Db.NonQ(command);
     }
 
@@ -133,7 +133,7 @@ public class RepeatCharges
     {
         //Counts the number of repeat charges that a patient has with a valid start date in the past and no stop date or a stop date in the future
         var command = "SELECT COUNT(*) FROM repeatcharge "
-                      + "WHERE PatNum=" + (patNum) + " AND DateStart BETWEEN '1880-01-01' AND " + "CURDATE()" + " "
+                      + "WHERE PatNum=" + patNum + " AND DateStart BETWEEN '1880-01-01' AND " + "CURDATE()" + " "
                       + "AND (DateStop='0001-01-01' OR DateStop>=" + "CURDATE()" + ")";
         if (Db.GetCount(command) == "0") return false;
         return true;
@@ -166,7 +166,6 @@ public class RepeatCharges
                 dateTimeRun = dateRun.AddMonths(-3);
             var listExistingProcs = Procedures.GetCompletedForDateRange(dateTimeRun, dateRun.AddDays(1), listRepeatingCharges.Select(x => x.ProcCode).Distinct().Select(x => ProcedureCodes.GetProcCode(x).CodeNum).ToList(), listRepeatChargePatNums);
             var startedUsingFKs = UpdateHistories.GetDateForVersion(new Version("16.1.0.0")); //We started using FKs from procs to repeat charges in 16.1.
-            var didEncounterAvaTaxError = false;
             var listInvalidProcCodes = new List<string>(); //Used to contain all invalid procs that cannot be added to repeating charges.
             var listOrthoCaseProcedureLinkers = OrthoCaseProcedureLinker.CreateManyForPatients(listRepeatChargePatNums);
             foreach (var repeatCharge in listRepeatingCharges)
@@ -234,7 +233,6 @@ public class RepeatCharges
                     if (procAdded.ProcNum == 0)
                     {
                         //error we actually don't want to add this procedure
-                        didEncounterAvaTaxError = true;
                         continue;
                     }
 

@@ -1,161 +1,222 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Windows.Forms;
+using Imedisoft.Core.Entities;
 using OpenDental.UI;
 using OpenDentBusiness;
-using System.Linq;
-using Imedisoft.Core.Entities;
 
 namespace OpenDental;
 
-public partial class FormSecurity:FormODBase {
+public partial class FormSecurity : FormODBase
+{
+    public FormSecurity()
+    {
+        InitializeComponent();
+    }
 
-	public FormSecurity() {
-		InitializeComponent();
-		Font=new("Microsoft Sans Serif", 8.25f);
-			
-	}
-		
-	private void FormSecurityEdit_Load(object sender,EventArgs e) {
-		LayoutMenu();
-		//userControlSecurityUserGroup must start out shorter to exactly match its designer.
-		//This is because the UI.TabPage does not properly layout in designer.
-		//This control is also used in FormCentralSecurity, where vertical space is less, so we initially match it here.
-		//In addition, we had to properly anchor to all 4 sides to the TabPage.
-		userControlSecurityUserGroup.Height=ClientSize.Height-userControlSecurityUserGroup.Top-5;
-	}
+    private void FormSecurityEdit_Load(object sender, EventArgs e)
+    {
+        LayoutMenu();
+        
+        userControlSecurityUserGroup.Height = ClientSize.Height - userControlSecurityUserGroup.Top - 5;
+    }
 
-	private void LayoutMenu() {
-		menuMain.BeginUpdate();
-		menuMain.Add(new MenuItemOD("Global Security Settings",globalSecuritySettingsToolStripMenuItem_Click));
-		menuMain.EndUpdate();
-	}
+    private void LayoutMenu()
+    {
+        menuMain.BeginUpdate();
+        menuMain.Add(new MenuItemOD("Global Security Settings", globalSecuritySettingsToolStripMenuItem_Click));
+        menuMain.EndUpdate();
+    }
 
-	private void globalSecuritySettingsToolStripMenuItem_Click(object sender,EventArgs e) {
-		using var formGlobalSecurity = new FormGlobalSecurity();
-		formGlobalSecurity.ShowDialog();//no refresh needed; settings changed in FormGlobalSecurity have no bearing on what displays in this form.
-	}
+    private void globalSecuritySettingsToolStripMenuItem_Click(object sender, EventArgs e)
+    {
+        using var formGlobalSecurity = new FormGlobalSecurity();
+        
+        formGlobalSecurity.ShowDialog();
+    }
 
-	private void userControlSecurityTabs_AddUserClick(object sender,SecurityEventArgs e) {
-		var userod = new Userod();
-		using var formUserEdit = new FormUserEdit(userod);
-		formUserEdit.IsNew=true;
-		formUserEdit.ShowDialog();
-		if(formUserEdit.DialogResult == DialogResult.OK) {//update to reflect changes that were made in FormUserEdit.
-			userControlSecurityUserGroup.FillGridUsers();//New user is not in grid yet, add them.
-			userControlSecurityUserGroup.SelectedUser=formUserEdit.UserodCur;//Selects the user that was just added in the grid.
-			userControlSecurityUserGroup.RefreshUserTabGroups();//Previously selected users User Groups are still selected, refresh for UserCur.
-		}
-	}		
+    private void userControlSecurityTabs_AddUserClick(object sender, SecurityEventArgs e)
+    {
+        var userod = new Userod();
+        
+        using var formUserEdit = new FormUserEdit(userod);
+        
+        formUserEdit.IsNew = true;
+        
+        if (formUserEdit.ShowDialog() != DialogResult.OK)
+        {
+            return;
+        }
+        
+        userControlSecurityUserGroup.FillGridUsers();
+        userControlSecurityUserGroup.SelectedUser = formUserEdit.UserodCur;
+        userControlSecurityUserGroup.RefreshUserTabGroups();
+    }
 
-	private void UserControlSecurityTabs_CopyUserClick(object sender,SecurityEventArgs e) {
-		//validation is handled here in GetUniqueUsername(...) 
-		var userod=e.User;
-		if (userod is null) {
-			MsgBox.Show(Lan.g(this,"Please select a user."));
-			return;
-		}		
-		if(!Userods.TryGetUniqueUsername(userod.UserName+"(Copy)",0,false,false,out var newUserName)){//This should really never fail.
-			MsgBox.Show(this,"Could not generate a unique username.");
-			return;
-		}
-		//New username format; user.UserName(copy)(X)
-		using var formUserPassword=new FormUserPassword(false,newUserName,isCopiedUser:true);
-		formUserPassword.IsInSecurityWindow=true;//Do not show or validate current password UI since this is a new user.
-		if(formUserPassword.ShowDialog()!=DialogResult.OK) {
-			return;
-		}
-		var userodNew=Userods.CopyUser(userod,formUserPassword.PasswordContainer_,formUserPassword.IsPasswordStrong,newUserName);
-		DataValid.SetInvalid(InvalidType.Security,InvalidType.UserClinics);//Must be called after Userods.CopyUser(...)
-		userControlSecurityUserGroup.FillGridUsers();
-		userControlSecurityUserGroup.SelectedUser=userodNew;
-		userControlSecurityUserGroup.RefreshUserTabGroups();
-	}
+    private void UserControlSecurityTabs_CopyUserClick(object sender, SecurityEventArgs e)
+    {
+        var user = e.User;
+        if (user is null)
+        {
+            ShowError("Please select a user.");
+            return;
+        }
 
-	private void userControlSecurityTabs_EditUserClick(object sender,SecurityEventArgs e) {
-		using var formUserEdit = new FormUserEdit(e.User);
-		formUserEdit.ShowDialog();
-		if(formUserEdit.DialogResult == DialogResult.OK) {//update to reflect changes that were made in FormUserEdit.
-			userControlSecurityUserGroup.FillGridUsers();
-			userControlSecurityUserGroup.RefreshUserTabGroups();
-		}
-	}
+        if (!Userods.TryGetUniqueUsername(user.UserName + "(Copy)", 0, false, out var newUserName))
+        {
+            ShowError("Could not generate a unique username.");
+            return;
+        }
+        
+        using var formUserPassword = new FormUserPassword(false, newUserName, isCopiedUser: true);
+        
+        formUserPassword.IsInSecurityWindow = true;
+        
+        if (formUserPassword.ShowDialog() != DialogResult.OK)
+        {
+            return;
+        }
 
-	private void userControlSecurityTabs_AddUserGroupClick(object sender,SecurityEventArgs e) {
-		var userGroup = new UserGroup();
-		var frmUserGroupEdit = new FrmUserGroupEdit(userGroup);
-		frmUserGroupEdit.IsNew=true;
-		frmUserGroupEdit.ShowDialog();
-		if(frmUserGroupEdit.IsDialogOK) {
-			userControlSecurityUserGroup.FillListUserGroupTabUserGroups();//update to reflect changes that were made in FormUserGroupEdit.
-			userControlSecurityUserGroup.SelectedUserGroup=userGroup;
-		}
-	}
+        var userodNew = Userods.CopyUser(user, formUserPassword.PasswordContainer_, formUserPassword.IsPasswordStrong, newUserName);
+        
+        DataValid.SetInvalid(InvalidType.Security, InvalidType.UserClinics);
+        
+        userControlSecurityUserGroup.FillGridUsers();
+        userControlSecurityUserGroup.SelectedUser = userodNew;
+        userControlSecurityUserGroup.RefreshUserTabGroups();
+    }
 
-	private void userControlSecurityTabs_EditUserGroupClick(object sender,SecurityEventArgs e) {
-		var frmUserGroupEdit = new FrmUserGroupEdit(e.Group);
-		frmUserGroupEdit.ShowDialog();
-		if(frmUserGroupEdit.IsDialogOK) {
-			userControlSecurityUserGroup.FillListUserGroupTabUserGroups();
-		}
-	}
+    private void userControlSecurityTabs_EditUserClick(object sender, SecurityEventArgs e)
+    {
+        using var formUserEdit = new FormUserEdit(e.User);
 
-	private DialogResult userControlSecurityTabs_ReportPermissionChecked(object sender,SecurityEventArgs e) {
-		var groupPermission = e.Perm;
-		using var formReportSetup = new FormReportSetup(groupPermission.UserGroupNum,true);
-		formReportSetup.ShowDialog();//FormReportSetup will handle all add/deleting report permissions, including FKey of 0.
-		return formReportSetup.DialogResult;
-	}
+        if (formUserEdit.ShowDialog() != DialogResult.OK)
+        {
+            return;
+        }
+        
+        userControlSecurityUserGroup.FillGridUsers();
+        userControlSecurityUserGroup.RefreshUserTabGroups();
+    }
 
-	private DialogResult userControlSecurityTabs_GroupPermissionChecked(object sender,SecurityEventArgs e) {
-		using var formGroupPermEdit = new FormGroupPermEdit(e.Perm);
-		formGroupPermEdit.ShowDialog();
-		return formGroupPermEdit.DialogResult;
-	}
+    private void userControlSecurityTabs_AddUserGroupClick(object sender, SecurityEventArgs e)
+    {
+        var userGroup = new UserGroup();
+        
+        var frmUserGroupEdit = new FrmUserGroupEdit(userGroup)
+        {
+            IsNew = true
+        };
+        
+        frmUserGroupEdit.ShowDialog();
 
-	private DialogResult userControlSecurityTabs_AdjustmentTypeDenyPermissionChecked(object sender,SecurityEventArgs e) {
-		var listGroupPermissionsOld=GroupPermissions.GetAdjustmentTypeDenyPermsForUserGroup(e.Perm.UserGroupNum);
-		var listDefsAll=Defs.GetDefsForCategory(DefCat.AdjTypes);
-		var listDefs=Defs.GetDefs(DefCat.AdjTypes,listGroupPermissionsOld.Select(x => x.FKey).ToList());
-		if(listGroupPermissionsOld.Any(x => x.FKey==0)) {//All individual permissions.
-			listDefs=listDefsAll.Select(x => x.Copy()).ToList();
-		}
-		using var formDefinitionPicker=new FormDefinitionPicker(DefCat.AdjTypes,listDefs);
-		formDefinitionPicker.IsMultiSelectionMode=true;
-		formDefinitionPicker.HasShowHiddenOption=true;
-		formDefinitionPicker.ShowDialog();
-		if(formDefinitionPicker.DialogResult!=DialogResult.OK) {
-			return DialogResult.Cancel;
-		}
-		var listGroupPermissionsNew=new List<GroupPermission>();
-		GroupPermission groupPermission=null;
-		var listDefsSelected=formDefinitionPicker.ListDefsSelected;
-		if(listDefsSelected.Count==listDefsAll.Count) {//Selected all individual permissions.
-			groupPermission=new GroupPermission();
-			groupPermission.UserGroupNum=e.Perm.UserGroupNum;
-			groupPermission.PermType=EnumPermType.AdjustmentTypeDeny;
-			groupPermission.FKey=0;
-			listGroupPermissionsNew.Add(groupPermission);
-			GroupPermissions.Sync(listGroupPermissionsNew,listGroupPermissionsOld);
-			return DialogResult.OK;
-		}
-		//Selected none or some individual permissions.
-		for(var i=0;i<listDefsSelected.Count;i++) {
-			groupPermission=listGroupPermissionsOld.Find(x => x.FKey==listDefsSelected[i].DefNum);
-			if(groupPermission==null) { 
-				groupPermission=new GroupPermission();
-				groupPermission.UserGroupNum=e.Perm.UserGroupNum;
-				groupPermission.PermType=EnumPermType.AdjustmentTypeDeny;
-				groupPermission.FKey=listDefsSelected[i].DefNum;
-			}
-			listGroupPermissionsNew.Add(groupPermission);
-		}
-		GroupPermissions.Sync(listGroupPermissionsNew,listGroupPermissionsOld);
-		return DialogResult.OK;
-	}
+        if (!frmUserGroupEdit.IsDialogOK)
+        {
+            return;
+        }
+        
+        userControlSecurityUserGroup.FillListUserGroupTabUserGroups();
+        userControlSecurityUserGroup.SelectedUserGroup = userGroup;
+    }
 
-	private void FormSecurityEdit_FormClosing(object sender,FormClosingEventArgs e) {
-		DataValid.SetInvalid(InvalidType.Security);
-	}
+    private void userControlSecurityTabs_EditUserGroupClick(object sender, SecurityEventArgs e)
+    {
+        var frmUserGroupEdit = new FrmUserGroupEdit(e.Group);
+        
+        frmUserGroupEdit.ShowDialog();
+        
+        if (frmUserGroupEdit.IsDialogOK)
+        {
+            userControlSecurityUserGroup.FillListUserGroupTabUserGroups();
+        }
+    }
 
+    private DialogResult userControlSecurityTabs_ReportPermissionChecked(object sender, SecurityEventArgs e)
+    {
+        var groupPermission = e.Perm;
+        
+        using var formReportSetup = new FormReportSetup(groupPermission.UserGroupNum, true);
+        
+        formReportSetup.ShowDialog();
+        
+        return formReportSetup.DialogResult;
+    }
+
+    private DialogResult userControlSecurityTabs_GroupPermissionChecked(object sender, SecurityEventArgs e)
+    {
+        using var formGroupPermEdit = new FormGroupPermEdit(e.Perm);
+        
+        formGroupPermEdit.ShowDialog();
+        
+        return formGroupPermEdit.DialogResult;
+    }
+
+    private DialogResult userControlSecurityTabs_AdjustmentTypeDenyPermissionChecked(object sender, SecurityEventArgs e)
+    {
+        var listGroupPermissionsOld = GroupPermissions.GetAdjustmentTypeDenyPermsForUserGroup(e.Perm.UserGroupNum);
+        var listDefsAll = Defs.GetDefsForCategory(DefCat.AdjTypes);
+        
+        var listDefs = Defs.GetDefs(DefCat.AdjTypes, listGroupPermissionsOld.Select(x => x.FKey).ToList());
+        if (listGroupPermissionsOld.Any(x => x.FKey == 0))
+        {
+            listDefs = listDefsAll.Select(x => x.Copy()).ToList();
+        }
+
+        using var formDefinitionPicker = new FormDefinitionPicker(DefCat.AdjTypes, listDefs);
+        
+        formDefinitionPicker.IsMultiSelectionMode = true;
+        formDefinitionPicker.HasShowHiddenOption = true;
+        
+        if (formDefinitionPicker.ShowDialog() != DialogResult.OK)
+        {
+            return DialogResult.Cancel;
+        }
+        
+        var listGroupPermissionsNew = new List<GroupPermission>();
+        
+        GroupPermission groupPermission;
+        
+        var listDefsSelected = formDefinitionPicker.ListDefsSelected;
+        if (listDefsSelected.Count == listDefsAll.Count)
+        {
+            groupPermission = new GroupPermission
+            {
+                UserGroupNum = e.Perm.UserGroupNum,
+                PermType = EnumPermType.AdjustmentTypeDeny,
+                FKey = 0
+            };
+            
+            listGroupPermissionsNew.Add(groupPermission);
+            
+            GroupPermissions.Sync(listGroupPermissionsNew, listGroupPermissionsOld);
+            
+            return DialogResult.OK;
+        }
+
+        for (var i = 0; i < listDefsSelected.Count; i++)
+        {
+            groupPermission = listGroupPermissionsOld.Find(x => x.FKey == listDefsSelected[i].DefNum);
+            
+            if (groupPermission is null)
+            {
+                groupPermission = new GroupPermission
+                {
+                    UserGroupNum = e.Perm.UserGroupNum,
+                    PermType = EnumPermType.AdjustmentTypeDeny,
+                    FKey = listDefsSelected[i].DefNum
+                };
+            }
+
+            listGroupPermissionsNew.Add(groupPermission);
+        }
+
+        GroupPermissions.Sync(listGroupPermissionsNew, listGroupPermissionsOld);
+        return DialogResult.OK;
+    }
+
+    private void FormSecurityEdit_FormClosing(object sender, FormClosingEventArgs e)
+    {
+        DataValid.SetInvalid(InvalidType.Security);
+    }
 }

@@ -26,7 +26,7 @@ public class ClaimPayments
                       + "SUM(claimproc.InsPayAmt) amount,Note,PayType "
                       + "FROM claimpayment,claimproc "
                       + "WHERE claimpayment.ClaimPaymentNum = claimproc.ClaimPaymentNum "
-                      + "AND claimproc.ClaimNum = '" + (claimNum) + "' "
+                      + "AND claimproc.ClaimNum = '" + claimNum + "' "
                       + "GROUP BY claimpayment.ClaimPaymentNum, BankBranch, CheckDate, CheckNum, Note, PayType";
         var tableRaw = DataCore.GetTable(command);
         DateTime date;
@@ -54,9 +54,9 @@ public class ClaimPayments
                       + "FROM claimpayment "
                       + "WHERE CheckDate >= " + SOut.Date(dateFrom) + " "
                       + "AND CheckDate <= " + SOut.Date(dateTo) + " ";
-        if (clinicNum != 0) command += "AND ClinicNum=" + (clinicNum) + " ";
+        if (clinicNum != 0) command += "AND ClinicNum=" + clinicNum + " ";
 
-        if (claimpayGroup != 0) command += "AND PayGroup=" + (claimpayGroup) + " ";
+        if (claimpayGroup != 0) command += "AND PayGroup=" + claimpayGroup + " ";
 
         command += "ORDER BY CheckDate";
         return DataCore.GetTable(command);
@@ -69,7 +69,7 @@ public class ClaimPayments
         var command = "SELECT * "
                       + "FROM claimpayment "
                       + "INNER JOIN eobattach ON eobattach.ClaimPaymentNum=claimpayment.ClaimPaymentNum "
-                      + "WHERE claimpayment.ClaimPaymentNum IN(" + string.Join(",", listClaimPaymentNums.Select(x => (x))) + ") "
+                      + "WHERE claimpayment.ClaimPaymentNum IN(" + string.Join(",", listClaimPaymentNums.Select(x => x)) + ") "
                       + "GROUP BY claimpayment.ClaimPaymentNum";
         return ClaimPaymentCrud.SelectMany(command);
     }
@@ -80,7 +80,7 @@ public class ClaimPayments
 
         var command = "SELECT * "
                       + "FROM claimpayment "
-                      + "WHERE ClaimPaymentNum IN(" + string.Join(",", listClaimPaymentNums.Select(x => (x))) + ")";
+                      + "WHERE ClaimPaymentNum IN(" + string.Join(",", listClaimPaymentNums.Select(x => x)) + ")";
         return ClaimPaymentCrud.SelectMany(command);
     }
 
@@ -92,7 +92,7 @@ public class ClaimPayments
             + "WHERE DepositNum = 0 "
             + "AND definition.ItemValue='' " //Check if payment type should show in the deposit slip.  'N'=not show, empty string means should show.
             + "AND CheckDate >= " + SOut.Date(dateStart);
-        if (clinicNum != 0) command += " AND ClinicNum=" + (clinicNum);
+        if (clinicNum != 0) command += " AND ClinicNum=" + clinicNum;
 
         for (var i = 0; i < listPayTypes.Count; i++)
         {
@@ -118,7 +118,7 @@ public class ClaimPayments
         var command =
             "SELECT * FROM claimpayment "
             + "INNER JOIN definition ON claimpayment.PayType=definition.DefNum "
-            + "WHERE DepositNum = " + (depositNum)
+            + "WHERE DepositNum = " + depositNum
             + " AND definition.ItemValue=''" //Check if payment type should show in the deposit slip.  'N'=not show, empty string means should show.
             //Order by the date on the check, and then the incremental order of the creation of each payment (doesn't affect random primary keys).
             //It was an internal complaint that checks on the same date show up in a 'random' order.
@@ -131,7 +131,7 @@ public class ClaimPayments
     {
         var command =
             "SELECT * FROM claimpayment "
-            + "WHERE ClaimPaymentNum = " + (claimPaymentNum);
+            + "WHERE ClaimPaymentNum = " + claimPaymentNum;
         return ClaimPaymentCrud.SelectOne(command);
     }
 
@@ -149,8 +149,8 @@ public class ClaimPayments
             var cmd = "SELECT deposit.Amount,SUM(COALESCE(claimpayment.CheckAmt,0))+SUM(COALESCE(payment.PayAmt,0)) depAmtOthers "
                       + "FROM deposit "
                       + "LEFT JOIN payment ON payment.DepositNum=deposit.DepositNum "
-                      + "LEFT JOIN claimpayment ON claimpayment.DepositNum=deposit.DepositNum AND claimpayment.ClaimPaymentNum!=" + (claimPayment.ClaimPaymentNum) + " "
-                      + "WHERE deposit.DepositNum=" + (claimPayment.DepositNum);
+                      + "LEFT JOIN claimpayment ON claimpayment.DepositNum=deposit.DepositNum AND claimpayment.ClaimPaymentNum!=" + claimPayment.ClaimPaymentNum + " "
+                      + "WHERE deposit.DepositNum=" + claimPayment.DepositNum;
             var table = DataCore.GetTable(cmd);
             if (table.Rows.Count == 0)
                 claimPayment.DepositNum = 0;
@@ -159,7 +159,7 @@ public class ClaimPayments
         else
         {
             var command = "SELECT DepositNum,CheckAmt FROM claimpayment "
-                          + "WHERE ClaimPaymentNum=" + (claimPayment.ClaimPaymentNum);
+                          + "WHERE ClaimPaymentNum=" + claimPayment.ClaimPaymentNum;
             var table = DataCore.GetTable(command);
             if (table.Rows.Count == 0) return;
 
@@ -175,7 +175,7 @@ public class ClaimPayments
     {
         //validate deposits
         var command = "SELECT DepositNum FROM claimpayment "
-                      + "WHERE ClaimPaymentNum=" + (claimPayment.ClaimPaymentNum);
+                      + "WHERE ClaimPaymentNum=" + claimPayment.ClaimPaymentNum;
         var table = DataCore.GetTable(command);
         if (table.Rows.Count == 0) return;
 
@@ -185,7 +185,7 @@ public class ClaimPayments
                 throw new ApplicationException(Lans.g("ClaimPayments", "Not allowed to delete a payment attached to a deposit."));
 
         //validate eobs
-        command = "SELECT COUNT(*) FROM eobattach WHERE ClaimPaymentNum=" + (claimPayment.ClaimPaymentNum);
+        command = "SELECT COUNT(*) FROM eobattach WHERE ClaimPaymentNum=" + claimPayment.ClaimPaymentNum;
         if (DataCore.GetScalar(command) != "0") throw new ApplicationException(Lans.g("ClaimPayments", "Not allowed to delete this payment because EOBs are attached."));
 
         if (table.Rows[0][0].ToString() != "0")
@@ -197,16 +197,16 @@ public class ClaimPayments
 
         command = "UPDATE claimproc SET "
                   + "DateInsFinalized='0001-01-01' "
-                  + "WHERE ClaimPaymentNum=" + (claimPayment.ClaimPaymentNum) + " "
-                  + "AND (SELECT SecDateEntry FROM claimpayment WHERE ClaimPaymentNum=" + (claimPayment.ClaimPaymentNum) + ")=CURDATE()";
+                  + "WHERE ClaimPaymentNum=" + claimPayment.ClaimPaymentNum + " "
+                  + "AND (SELECT SecDateEntry FROM claimpayment WHERE ClaimPaymentNum=" + claimPayment.ClaimPaymentNum + ")=CURDATE()";
         Db.NonQ(command);
         command = "UPDATE claimproc SET "
                   + "ClaimPaymentNum=0 "
-                  + "WHERE claimpaymentNum=" + (claimPayment.ClaimPaymentNum);
+                  + "WHERE claimpaymentNum=" + claimPayment.ClaimPaymentNum;
         //MessageBox.Show(string command);
         Db.NonQ(command);
         command = "DELETE FROM claimpayment "
-                  + "WHERE ClaimPaymentnum =" + (claimPayment.ClaimPaymentNum);
+                  + "WHERE ClaimPaymentnum =" + claimPayment.ClaimPaymentNum;
         //MessageBox.Show(string command);
         Db.NonQ(command);
     }
@@ -217,7 +217,7 @@ public class ClaimPayments
 
         var command = "";
         command = "SELECT COUNT(*) FROM claimpayment WHERE ClaimPaymentNum IN(" + string.Join(",", listClaimPaymentNums) + ") AND DepositNum!=0";
-        if (ignoreDepositNum != 0) command += " AND DepositNum!=" + (ignoreDepositNum);
+        if (ignoreDepositNum != 0) command += " AND DepositNum!=" + ignoreDepositNum;
 
         return SIn.Int(Db.GetCount(command));
     }
@@ -229,7 +229,7 @@ public class ClaimPayments
         //Per Mark on 07/16/2018
         //A deposit is consided an "Auto Deposit" if the ShowAutoDeposit preference is turned on
         //and only one claimpayment is attached to the deposit passed in. 
-        var command = "SELECT COUNT(*) FROM claimpayment where DepositNum=" + (claimPayment.DepositNum);
+        var command = "SELECT COUNT(*) FROM claimpayment where DepositNum=" + claimPayment.DepositNum;
         return SIn.Int(Db.GetCount(command)) == 1;
     }
 }

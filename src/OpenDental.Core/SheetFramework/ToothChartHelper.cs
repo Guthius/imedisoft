@@ -151,7 +151,7 @@ public class ToothChartHelper{
 		return args;
 	}
 
-	public static Image GetToothChartImageProcess(List<Def> ListDefs,List<Procedure> ListProceduresFiltered,List<ToothInitial> ToothInitialList,OpenDentBusiness.ToothNumberingNomenclature ToothNumberingNomenclature,
+	public static Image GetToothChartImageProcess(List<Def> ListDefs,List<Procedure> ListProceduresFiltered,List<ToothInitial> ToothInitialList,ToothNumberingNomenclature ToothNumberingNomenclature,
 		List<PerioMeasure> ListPerioMeasures, Dictionary<PrefName,Color> DictPrefToColor,List<Def> ListDefsPerio,List<Procedure> ListProcsForPerio,List<ProcedureCode> ListProcedureCodesForPerio,
 		List<ProcedureCode> ListProcedureCodesForProcs,bool IsInPatientDashboard,bool IsForWinForms,bool IsForPerio,int Width,int Height,bool IsSmaller,bool IsForChartModule){
 		var colorBackgroundIndex=14;
@@ -193,16 +193,16 @@ public class ToothChartHelper{
 		toothChart.ColorBackgroundMain=ListDefs[colorBackgroundIndex].ItemColor;
 		toothChart.ColorText=ListDefs[colorTextIndex].ItemColor;
 		switch(ToothNumberingNomenclature){
-			case OpenDentBusiness.ToothNumberingNomenclature.FDI:
+			case ToothNumberingNomenclature.FDI:
 				toothChart.SetToothNumberingNomenclature(Sparks3D.ToothNumberingNomenclature.FDI);
 				break;
-			case OpenDentBusiness.ToothNumberingNomenclature.Haderup:
+			case ToothNumberingNomenclature.Haderup:
 				toothChart.SetToothNumberingNomenclature(Sparks3D.ToothNumberingNomenclature.Haderup);
 				break;
-			case OpenDentBusiness.ToothNumberingNomenclature.Palmer:
+			case ToothNumberingNomenclature.Palmer:
 				toothChart.SetToothNumberingNomenclature(Sparks3D.ToothNumberingNomenclature.Palmer);
 				break;
-			case OpenDentBusiness.ToothNumberingNomenclature.Universal:
+			case ToothNumberingNomenclature.Universal:
 				toothChart.SetToothNumberingNomenclature(Sparks3D.ToothNumberingNomenclature.Universal);
 				break;
 		}
@@ -315,8 +315,8 @@ public class ToothChartHelper{
 	public static void DrawProcsGraphicsProcess(List<Procedure> procList,ToothChart toothChart,List<ToothInitial> toothInitialList,List<ProcedureCode> listProcedureCodes,List<Def> ListDefs) {
 		Procedure proc;
 		string[] teeth;
-		var cLight=System.Drawing.Color.White;
-		var cDark=System.Drawing.Color.White;
+		var cLight=Color.White;
+		var cDark=Color.White;
 		var listDefs=ListDefs;
 		for(var i=0;i<procList.Count;i++) {
 			proc=procList[i];
@@ -333,7 +333,7 @@ public class ToothChartHelper{
 			   )) {
 				continue;//prevents the red X. Missing teeth already handled.
 			}
-			if(ProcedureCodes.GetProcCode(proc.CodeNum,listProcedureCodes).GraphicColor==System.Drawing.Color.FromArgb(0)) {
+			if(ProcedureCodes.GetProcCode(proc.CodeNum,listProcedureCodes).GraphicColor==Color.FromArgb(0)) {
 				switch(proc.ProcStatus) {
 					case ProcStat.C:
 						cDark=listDefs[1].ItemColor;
@@ -561,7 +561,7 @@ public class ToothChartHelperData {
 	public List<Def> ListDefs=new List<Def>();
 	public List<Procedure> ListProceduresFiltered=new List<Procedure>();
 	public List<ToothInitial> ToothInitialList=new List<ToothInitial>();
-	public OpenDentBusiness.ToothNumberingNomenclature ToothNumberingNomenclature;
+	public ToothNumberingNomenclature ToothNumberingNomenclature;
 	public List<PerioMeasure> ListPerioMeasures=new List<PerioMeasure>();
 	public Dictionary<PrefName,Color> DictPrefToColor=new Dictionary<PrefName,Color>();
 	public List<Def> ListDefsPerio=new List<Def>();

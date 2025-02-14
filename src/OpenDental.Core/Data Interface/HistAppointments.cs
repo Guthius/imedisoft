@@ -13,7 +13,7 @@ public class HistAppointments
 
     public static List<HistAppointment> GetForApt(long aptNum)
     {
-        var command = "SELECT * FROM histappointment WHERE AptNum=" + (aptNum);
+        var command = "SELECT * FROM histappointment WHERE AptNum=" + aptNum;
         return HistAppointmentCrud.SelectMany(command);
     }
 

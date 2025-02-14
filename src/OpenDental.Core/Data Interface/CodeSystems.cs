@@ -79,43 +79,6 @@ public class CodeSystems
         }
     }
 
-    public static void ImportHcpcs(string tempFileName, ProgressArgs progressArgs, ref bool quit, ref int numCodesImported, ref int numCodesUpdated, bool updateExisting)
-    {
-        if (tempFileName == null) return;
-
-        var dictionaryHcpcs = Hcpcses.GetAll().ToDictionary(x => x.HcpcsCode, x => x);
-        var stringArrayLines = File.ReadAllLines(tempFileName);
-        string[] stringArrayHcpcs;
-        var hcpcs = new Hcpcs();
-        for (var i = 0; i < stringArrayLines.Length; i++)
-        {
-            //each loop should read exactly one line of code. and each line of code should be a unique code
-            if (quit) return;
-
-            if (i % 100 == 0) progressArgs(i + 1, stringArrayLines.Length);
-
-            stringArrayHcpcs = stringArrayLines[i].Split('\t');
-            if (dictionaryHcpcs.ContainsKey(stringArrayHcpcs[0]))
-            {
-                //code already exists
-                hcpcs = dictionaryHcpcs[stringArrayHcpcs[0]];
-                if (updateExisting && hcpcs.DescriptionShort != stringArrayHcpcs[1])
-                {
-                    hcpcs.DescriptionShort = stringArrayHcpcs[1];
-                    Hcpcses.Update(hcpcs);
-                    numCodesUpdated++;
-                }
-
-                continue;
-            }
-
-            hcpcs.HcpcsCode = stringArrayHcpcs[0];
-            hcpcs.DescriptionShort = stringArrayHcpcs[1];
-            Hcpcses.Insert(hcpcs);
-            numCodesImported++;
-        }
-    }
-
     public static void ImportIcd10(string tempFileName, ProgressArgs progressArgs, ref bool quit, ref int numCodesImported, ref int numCodesUpdated, bool updateExisting)
     {
         if (tempFileName == null) return;
