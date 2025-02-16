@@ -13,6 +13,7 @@ using Imedisoft.Core.Data;
 using Imedisoft.Core.Entities;
 using Imedisoft.Core.Features.Clinics;
 using Imedisoft.Core.Features.Providers;
+using OpenDental.Forms;
 using OpenDentBusiness;
 
 namespace OpenDental;
@@ -94,7 +95,7 @@ public class EtransL
         if (listTranSetIds.Count >= 2 && etrans.TranSetId835 == "")
         {
             //More than one EOB in the 835 and we do not know which one to pick.
-            using var formEtrans835PickEob = new FormEtrans835PickEob(listTranSetIds, messageText835, etrans, doOpenEtrans835: true);
+            using var formEtrans835PickEob = new FormEtrans835PickEob(listTranSetIds, messageText835, etrans, openEtrans835: true);
             formEtrans835PickEob.ShowDialog();
             return;
         }
@@ -278,7 +279,7 @@ public class EtransL
                 formPayPlanSelect.ShowDialog(); //Modal because this form allows editing of information.
                 if (formPayPlanSelect.DialogResult == DialogResult.OK)
                 {
-                    insPayPlanNum = formPayPlanSelect.PayPlanNumSelected;
+                    insPayPlanNum = formPayPlanSelect.SelectedPayPlanNum;
                 }
             }
         }

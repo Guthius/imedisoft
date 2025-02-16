@@ -208,7 +208,6 @@ namespace OpenDental
         FormSheetFillEdit,
         FormTrojanCollect,
         FormTrophyNamePick,
-        FormVideo,
         FormWebBrowser,
         FormWebView
     }

@@ -26,7 +26,7 @@ public partial class FormLoginFailed:FormODBase {
 	private void butLogin_Click(object sender,EventArgs e) {
 		Userod userodEntered;
 		string password;
-		var useEcwAlgorithm=Programs.UsingEcwTightOrFullMode();
+		var useEcwAlgorithm=false;
 		//ecw requires hash, but non-ecw requires actual password
 		password=textPassword.Text;
 		if(useEcwAlgorithm) {

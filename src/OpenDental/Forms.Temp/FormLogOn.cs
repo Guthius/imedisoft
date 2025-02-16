@@ -215,7 +215,7 @@ public partial class FormLogOn : FormODBase
             Cache.ClearCaches();
         }
 
-        var isEcw = Programs.UsingEcwTightOrFullMode();
+        var isEcw = false;
         var userName = "";
         if (PrefC.GetBool(PrefName.UserNameManualEntry))
         {

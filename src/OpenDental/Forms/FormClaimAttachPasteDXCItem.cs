@@ -3,7 +3,7 @@ using System.IO;
 using System.Windows.Forms;
 using OpenDentBusiness.Eclaims;
 
-namespace OpenDental;
+namespace OpenDental.Forms;
 
 public partial class FormClaimAttachPasteDXCItem : FormODBase
 {

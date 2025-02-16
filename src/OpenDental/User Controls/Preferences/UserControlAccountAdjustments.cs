@@ -7,6 +7,7 @@ using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Entities;
 using Imedisoft.Core.Features.Providers;
+using OpenDental.Forms;
 using OpenDentBusiness;
 
 
@@ -43,7 +44,7 @@ public partial class UserControlAccountAdjustments:UserControl {
 		FormDP.IsMultiSelectionMode=true;
 		FormDP.ShowDialog();
 		if(FormDP.DialogResult==DialogResult.OK) {
-			FillListboxBadDebt(FormDP.ListDefsSelected);
+			FillListboxBadDebt(FormDP.SelectedDefs);
 		}
 	}
 

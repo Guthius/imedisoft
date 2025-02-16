@@ -39,7 +39,7 @@ namespace OpenDental{
 			this.butOK.Size = new System.Drawing.Size(75,24);
 			this.butOK.TabIndex = 3;
 			this.butOK.Text = "&Save";
-			this.butOK.Click += new System.EventHandler(this.butSave_Click);
+			this.butOK.Click += new System.EventHandler(this.ButtonSave_Click);
 			// 
 			// label1
 			// 

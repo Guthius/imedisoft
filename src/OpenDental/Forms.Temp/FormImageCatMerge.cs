@@ -4,6 +4,7 @@ using System.Linq;
 using System.Windows.Forms;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Entities;
+using OpenDental.Forms;
 
 namespace OpenDental;
 
@@ -17,18 +18,18 @@ public partial class FormImageCatMerge:FormODBase {
 
 	private void buttonChangeInto_Click(object sender,EventArgs e) {
 		using var formDefinitionPicker=new FormDefinitionPicker(DefCat.ImageCats);
-		if(formDefinitionPicker.ShowDialog()==DialogResult.OK && formDefinitionPicker.ListDefsSelected.Count>0) {
-			textBoxInto.Text=formDefinitionPicker.ListDefsSelected.FirstOrDefault().ItemName;
-			_defNumInto=formDefinitionPicker.ListDefsSelected.FirstOrDefault().DefNum;
+		if(formDefinitionPicker.ShowDialog()==DialogResult.OK && formDefinitionPicker.SelectedDefs.Count>0) {
+			textBoxInto.Text=formDefinitionPicker.SelectedDefs.FirstOrDefault().ItemName;
+			_defNumInto=formDefinitionPicker.SelectedDefs.FirstOrDefault().DefNum;
 			CheckUIState();
 		}
 	}
 
 	private void buttonChangeFrom_Click(object sender,EventArgs e) {
 		using var formDefinitionPicker=new FormDefinitionPicker(DefCat.ImageCats);
-		if(formDefinitionPicker.ShowDialog()==DialogResult.OK && formDefinitionPicker.ListDefsSelected.Count>0) {
-			textBoxFrom.Text=formDefinitionPicker.ListDefsSelected.FirstOrDefault().ItemName;
-			_defNumFrom=formDefinitionPicker.ListDefsSelected.FirstOrDefault().DefNum;
+		if(formDefinitionPicker.ShowDialog()==DialogResult.OK && formDefinitionPicker.SelectedDefs.Count>0) {
+			textBoxFrom.Text=formDefinitionPicker.SelectedDefs.FirstOrDefault().ItemName;
+			_defNumFrom=formDefinitionPicker.SelectedDefs.FirstOrDefault().DefNum;
 			CheckUIState();
 		}
 	}

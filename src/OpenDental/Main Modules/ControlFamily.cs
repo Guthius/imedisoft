@@ -11,6 +11,7 @@ using Imedisoft.Core.Entities;
 using Imedisoft.Core.Features.Clinics;
 using Imedisoft.Core.Features.Providers;
 using OpenDental.Bridges;
+using OpenDental.Forms;
 using OpenDental.Logic;
 using OpenDental.UI;
 using OpenDentBusiness;
@@ -2521,7 +2522,7 @@ public partial class ControlFamily : UserControl {
 			}
 			//Give the user an opportunity to edit the subscription.
 			using var formDiscountPlanSubEdit=new FormDiscountPlanSubEdit();
-			formDiscountPlanSubEdit.DiscountPlanCur=formDiscountPlans.DiscountPlanSelected;
+			formDiscountPlanSubEdit.DiscountPlanCur=formDiscountPlans.SelectedDiscountPlan;
 			formDiscountPlanSubEdit.PatNum=_patient.PatNum;
 			if(formDiscountPlanSubEdit.ShowDialog()!=DialogResult.OK || formDiscountPlanSubEdit.DiscountPlanSubCur==null) {
 				return;//User either clicked Cancel or Drop, nothing to do.

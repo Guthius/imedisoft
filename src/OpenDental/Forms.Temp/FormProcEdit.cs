@@ -1676,7 +1676,7 @@ public partial class FormProcEdit : FormODBase {
 			return;
 		}
 		//If user is trying to change status to complete and using eCW.
-		if((IsNew || _procedureOld.ProcStatus!=ProcStat.C) && Programs.UsingEcwTightOrFullMode()) {
+		if((IsNew || _procedureOld.ProcStatus!=ProcStat.C) && false) {
 			MsgBox.Show(this,"Procedures cannot be set complete in this window.  Set the procedure complete by setting the appointment complete.");
 			return;
 		}

@@ -5,6 +5,7 @@ using CodeBase;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Data;
 using Imedisoft.Core.Entities;
+using OpenDental.Forms;
 using OpenDentBusiness;
 
 namespace OpenDental;
@@ -55,12 +56,12 @@ public partial class UserControlImagingGeneral:UserControl {
 		if(formDefinitionPicker.ShowDialog()==DialogResult.Cancel){
 			return;
 		}
-		if(formDefinitionPicker.ListDefsSelected.Count==0) {
+		if(formDefinitionPicker.SelectedDefs.Count==0) {
 			_imageCategoryDefault=0;
 			textImageCategoryDefault.Text="";
 			return;
 		}
-		var defSelected=formDefinitionPicker.ListDefsSelected.First();//Guaranteed user selected a Def.
+		var defSelected=formDefinitionPicker.SelectedDefs.First();//Guaranteed user selected a Def.
 		_imageCategoryDefault=defSelected.DefNum;
 		textImageCategoryDefault.Text=defSelected.ItemName;
 	}
@@ -72,12 +73,12 @@ public partial class UserControlImagingGeneral:UserControl {
 		if(formDefinitionPicker.ShowDialog()==DialogResult.Cancel){
 			return;
 		}
-		if(formDefinitionPicker.ListDefsSelected.Count==0) {
+		if(formDefinitionPicker.SelectedDefs.Count==0) {
 			_videoImageCategoryDefault=0;
 			textVideoImageCategoryDefault.Text="";
 			return;
 		}
-		var defSelected=formDefinitionPicker.ListDefsSelected.First();//Guaranteed user selected a Def.
+		var defSelected=formDefinitionPicker.SelectedDefs.First();//Guaranteed user selected a Def.
 		_videoImageCategoryDefault=defSelected.DefNum;
 		textVideoImageCategoryDefault.Text=defSelected.ItemName;
 	}

@@ -1,4 +1,4 @@
-namespace OpenDental {
+namespace OpenDental.Forms {
 	partial class FormClaimAttachPasteDXCItem {
 		/// <summary>
 		/// Required designer variable.

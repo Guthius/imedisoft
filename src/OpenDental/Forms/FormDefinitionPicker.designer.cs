@@ -1,4 +1,4 @@
-namespace OpenDental{
+namespace OpenDental.Forms{
 	partial class FormDefinitionPicker {
 		/// <summary>
 		/// Required designer variable.
@@ -38,7 +38,7 @@ namespace OpenDental{
 			this.butOK.Size = new System.Drawing.Size(75, 24);
 			this.butOK.TabIndex = 3;
 			this.butOK.Text = "&OK";
-			this.butOK.Click += new System.EventHandler(this.butOK_Click);
+			this.butOK.Click += new System.EventHandler(this.ButtonAccept_Click);
 			// 
 			// gridMain
 			// 
@@ -52,7 +52,7 @@ namespace OpenDental{
 			this.gridMain.Size = new System.Drawing.Size(377, 467);
 			this.gridMain.TabIndex = 4;
 			this.gridMain.TranslationName = "TableDefinitionPicker";
-			this.gridMain.CellDoubleClick += new OpenDental.UI.ODGridClickEventHandler(this.gridMain_CellDoubleClick);
+			this.gridMain.CellDoubleClick += new OpenDental.UI.ODGridClickEventHandler(this.GridMain_CellDoubleClick);
 			// 
 			// checkShowHidden
 			// 
@@ -62,7 +62,7 @@ namespace OpenDental{
 			this.checkShowHidden.Size = new System.Drawing.Size(111, 20);
 			this.checkShowHidden.TabIndex = 5;
 			this.checkShowHidden.Text = "Show hidden";
-			this.checkShowHidden.Click += new System.EventHandler(this.checkShowHidden_Click);
+			this.checkShowHidden.Click += new System.EventHandler(this.CheckBoxShowHidden_Click);
 			// 
 			// butNone
 			// 
@@ -73,7 +73,7 @@ namespace OpenDental{
 			this.butNone.TabIndex = 6;
 			this.butNone.Text = "None";
 			this.butNone.UseVisualStyleBackColor = true;
-			this.butNone.Click += new System.EventHandler(this.ButNone_Click);
+			this.butNone.Click += new System.EventHandler(this.ButtonNone_Click);
 			// 
 			// FormDefinitionPicker
 			// 

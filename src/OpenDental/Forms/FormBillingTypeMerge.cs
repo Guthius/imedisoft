@@ -22,12 +22,12 @@ public partial class FormBillingTypeMerge : FormODBase
 
         formDefinitionPicker.IsMultiSelectionMode = false;
 
-        if (formDefinitionPicker.ShowDialog() != DialogResult.OK || formDefinitionPicker.ListDefsSelected.Count == 0)
+        if (formDefinitionPicker.ShowDialog() != DialogResult.OK || formDefinitionPicker.SelectedDefs.Count == 0)
         {
             return;
         }
 
-        var def = formDefinitionPicker.ListDefsSelected.First();
+        var def = formDefinitionPicker.SelectedDefs.First();
 
         textDefNumInto.Text = def.DefNum.ToString();
         textNameInto.Text = def.ItemName;
@@ -44,12 +44,12 @@ public partial class FormBillingTypeMerge : FormODBase
 
         formDefinitionPicker.IsMultiSelectionMode = false;
 
-        if (formDefinitionPicker.ShowDialog() != DialogResult.OK || formDefinitionPicker.ListDefsSelected.Count == 0)
+        if (formDefinitionPicker.ShowDialog() != DialogResult.OK || formDefinitionPicker.SelectedDefs.Count == 0)
         {
             return;
         }
 
-        var def = formDefinitionPicker.ListDefsSelected.First();
+        var def = formDefinitionPicker.SelectedDefs.First();
 
         textDefNumFrom.Text = def.DefNum.ToString();
         textNameFrom.Text = def.ItemName;

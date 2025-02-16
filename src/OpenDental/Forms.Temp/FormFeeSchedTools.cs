@@ -704,8 +704,8 @@ public partial class FormFeeSchedTools :FormODBase {
 				return;
 			}
 			actionCloseFeeSchedImportCanadaProgress=ODProgress.Show();
-			var memberNumberODA=formFeeSchedPickAuthOntario.getODAMemberNumber();
-			var memberPasswordODA=formFeeSchedPickAuthOntario.getODAMemberPassword(); 
+			var memberNumberODA=formFeeSchedPickAuthOntario.GetOdaMemberNumber();
+			var memberPasswordODA=formFeeSchedPickAuthOntario.GetOdaMemberPassword(); 
 			//prepare the xml document to send--------------------------------------------------------------------------------------
 			var xmlWriterSettings = new XmlWriterSettings();
 			xmlWriterSettings.Indent = true;

@@ -6,52 +6,67 @@ using OpenDentBusiness;
 
 namespace OpenDental;
 
-public partial class FormFeeSchedPickAuthOntario:FormODBase {
+public partial class FormFeeSchedPickAuthOntario : FormODBase
+{
+    private const string OntarioDentalAssociation = "ODA";
+    private const string BritishColumbiaDentalAssociation = "BCDA";
 
-	private const string ONTARIO_DENTAL_ASSOCIATION="ODA";
-	private const string BRITISH_COLUMBIA_DENTAL_ASSOCIATION="BCDA";
+    private readonly string _dentalAssociation;
 
-	private string _dentalAssociationName;
+    public string GetOdaMemberNumber()
+    {
+        return textODAMemberNumber.Text;
+    }
 
-	public string getODAMemberNumber(){
-		return textODAMemberNumber.Text;
-	}
+    public string GetOdaMemberPassword()
+    {
+        return textODAMemberPassword.Text;
+    }
 
-	public string getODAMemberPassword() {
-		return textODAMemberPassword.Text;
-	}
+    public FormFeeSchedPickAuthOntario(string dentalAssociation)
+    {
+        InitializeComponent();
 
-	public FormFeeSchedPickAuthOntario(string dentalAssociation) {
-		InitializeComponent();
+        _dentalAssociation = dentalAssociation;
+        if (string.IsNullOrWhiteSpace(_dentalAssociation))
+        {
+            _dentalAssociation = OntarioDentalAssociation;
+        }
 
-		_dentalAssociationName=dentalAssociation;
-		if(string.IsNullOrWhiteSpace(_dentalAssociationName)) {
-			_dentalAssociationName=ONTARIO_DENTAL_ASSOCIATION;//default to Ontario
-		}
-		Text=$"Fee Schedule Authorization for {(_dentalAssociationName==BRITISH_COLUMBIA_DENTAL_ASSOCIATION ? "British Columbia" : "Ontario")}";
-	}
+        Text = $"Fee Schedule Authorization for {(_dentalAssociation == BritishColumbiaDentalAssociation ? "British Columbia" : "Ontario")}";
+    }
 
-	private void FormFeeSchedPickAuthOntario_Load(object sender,EventArgs e) {
-		if(_dentalAssociationName==ONTARIO_DENTAL_ASSOCIATION) {
-			textODAMemberNumber.Text=PrefC.GetString(PrefName.CanadaODAMemberNumber);
-			textODAMemberPassword.Text=PrefC.GetString(PrefName.CanadaODAMemberPass);
-		}
-	}
+    private void FormFeeSchedPickAuthOntario_Load(object sender, EventArgs e)
+    {
+        if (_dentalAssociation != OntarioDentalAssociation)
+        {
+            return;
+        }
+        
+        textODAMemberNumber.Text = PrefC.GetString(PrefName.CanadaODAMemberNumber);
+        textODAMemberPassword.Text = PrefC.GetString(PrefName.CanadaODAMemberPass);
+    }
 
-	private void butSave_Click(object sender,EventArgs e) {
-		if(textODAMemberNumber.Text=="") {
-			MsgBox.Show(this,$"{_dentalAssociationName} Member Number cannot be blank.");
-			return;
-		}
-		if(textODAMemberPassword.Text=="") {
-			MsgBox.Show(this,$"{_dentalAssociationName} Member Password cannot be blank.");
-			return;
-		}
-		if(_dentalAssociationName==ONTARIO_DENTAL_ASSOCIATION) {
-			Prefs.UpdateString(PrefName.CanadaODAMemberNumber,textODAMemberNumber.Text);
-			Prefs.UpdateString(PrefName.CanadaODAMemberPass,textODAMemberPassword.Text);
-		}
-		DialogResult=DialogResult.OK;
-	}
+    private void ButtonSave_Click(object sender, EventArgs e)
+    {
+        if (textODAMemberNumber.Text == "")
+        {
+            ShowError($"{_dentalAssociation} Member Number cannot be blank.");
+            return;
+        }
 
+        if (textODAMemberPassword.Text == "")
+        {
+            ShowError($"{_dentalAssociation} Member Password cannot be blank.");
+            return;
+        }
+
+        if (_dentalAssociation == OntarioDentalAssociation)
+        {
+            Prefs.UpdateString(PrefName.CanadaODAMemberNumber, textODAMemberNumber.Text);
+            Prefs.UpdateString(PrefName.CanadaODAMemberPass, textODAMemberPassword.Text);
+        }
+
+        DialogResult = DialogResult.OK;
+    }
 }

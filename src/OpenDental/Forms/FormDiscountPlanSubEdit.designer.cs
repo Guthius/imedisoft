@@ -1,4 +1,4 @@
-namespace OpenDental{
+namespace OpenDental.Forms{
 	partial class FormDiscountPlanSubEdit {
 		/// <summary>
 		/// Required designer variable.
@@ -147,7 +147,7 @@ namespace OpenDental{
 			this.butDrop.Size = new System.Drawing.Size(75, 24);
 			this.butDrop.TabIndex = 11;
 			this.butDrop.Text = "Drop";
-			this.butDrop.Click += new System.EventHandler(this.butDrop_Click);
+			this.butDrop.Click += new System.EventHandler(this.ButtonDrop_Click);
 			// 
 			// butDiscountPlans
 			// 
@@ -156,7 +156,7 @@ namespace OpenDental{
 			this.butDiscountPlans.Size = new System.Drawing.Size(20, 20);
 			this.butDiscountPlans.TabIndex = 1;
 			this.butDiscountPlans.Text = "...";
-			this.butDiscountPlans.Click += new System.EventHandler(this.butDiscountPlans_Click);
+			this.butDiscountPlans.Click += new System.EventHandler(this.ButtonDiscountPlans_Click);
 			// 
 			// label2
 			// 
@@ -200,7 +200,7 @@ namespace OpenDental{
 			this.butSave.Size = new System.Drawing.Size(75, 24);
 			this.butSave.TabIndex = 5;
 			this.butSave.Text = "&Save";
-			this.butSave.Click += new System.EventHandler(this.butSave_Click);
+			this.butSave.Click += new System.EventHandler(this.ButtonSave_Click);
 			// 
 			// textAdjustmentType
 			// 

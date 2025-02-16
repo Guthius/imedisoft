@@ -457,7 +457,7 @@ public partial class FormRpEraAutoProcessed:FormODBase {
 		var listTranSetIds=x12object.GetTranSetIds();
 		var transSetIdSelected=etrans.TranSetId835;
 		if(listTranSetIds.Count>=2 && etrans.TranSetId835=="") {
-			using var formEtrans835PickEob=new FormEtrans835PickEob(listTranSetIds,messageText835,etrans,doOpenEtrans835:false);
+			using var formEtrans835PickEob=new FormEtrans835PickEob(listTranSetIds,messageText835,etrans,openEtrans835:false);
 			Cursor=Cursors.Default;
 			formEtrans835PickEob.ShowDialog();
 			Cursor=Cursors.WaitCursor;

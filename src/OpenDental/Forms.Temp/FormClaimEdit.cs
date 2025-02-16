@@ -1723,7 +1723,7 @@ public partial class FormClaimEdit : FormODBase {
 					using var formPayPlanSelect=new FormPayPlanSelect(listPayPlans);
 					formPayPlanSelect.ShowDialog();
 					if(formPayPlanSelect.DialogResult==DialogResult.OK) {
-						listClaimProcsForPayTotal[i].PayPlanNum=formPayPlanSelect.PayPlanNumSelected;
+						listClaimProcsForPayTotal[i].PayPlanNum=formPayPlanSelect.SelectedPayPlanNum;
 					}
 				}
 			}
@@ -1798,7 +1798,7 @@ public partial class FormClaimEdit : FormODBase {
 			using var formPayPlanSelect=new FormPayPlanSelect(listPayPlans);
 			formPayPlanSelect.ShowDialog();
 			if(formPayPlanSelect.DialogResult==DialogResult.OK) {
-				claimProc.PayPlanNum=formPayPlanSelect.PayPlanNumSelected;
+				claimProc.PayPlanNum=formPayPlanSelect.SelectedPayPlanNum;
 			}
 		}
 		ClaimProcs.Insert(claimProc);
@@ -1970,7 +1970,7 @@ public partial class FormClaimEdit : FormODBase {
 						using var formPayPlanSelect=new FormPayPlanSelect(listPayPlans);
 						formPayPlanSelect.ShowDialog();
 						if(formPayPlanSelect.DialogResult==DialogResult.OK) {
-							listClaimProcs[i].PayPlanNum=formPayPlanSelect.PayPlanNumSelected;
+							listClaimProcs[i].PayPlanNum=formPayPlanSelect.SelectedPayPlanNum;
 						}
 					}
 				}

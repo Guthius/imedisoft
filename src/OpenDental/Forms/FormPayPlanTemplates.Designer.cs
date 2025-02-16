@@ -1,4 +1,4 @@
-namespace OpenDental {
+namespace OpenDental.Forms {
 	partial class FormPayPlanTemplates {
 		/// <summary>
 		/// Required designer variable.
@@ -38,7 +38,7 @@ namespace OpenDental {
 			this.comboBoxClinic.Name = "comboBoxClinic";
 			this.comboBoxClinic.Size = new System.Drawing.Size(201, 21);
 			this.comboBoxClinic.TabIndex = 208;
-			this.comboBoxClinic.SelectionChangeCommitted += new System.EventHandler(this.comboBoxClinic_SelectionChangeCommitted);
+			this.comboBoxClinic.SelectionChangeCommitted += new System.EventHandler(this.ComboBoxClinic_SelectionChangeCommitted);
 			// 
 			// gridPayPlanTemplates
 			// 
@@ -48,7 +48,7 @@ namespace OpenDental {
 			this.gridPayPlanTemplates.Size = new System.Drawing.Size(964, 401);
 			this.gridPayPlanTemplates.TabIndex = 4;
 			this.gridPayPlanTemplates.Title = "Pay Plan Templates";
-			this.gridPayPlanTemplates.CellDoubleClick += new OpenDental.UI.ODGridClickEventHandler(this.gridPayPlanTemplates_CellDoubleClick);
+			this.gridPayPlanTemplates.CellDoubleClick += new OpenDental.UI.ODGridClickEventHandler(this.GridPayPlanTemplates_CellDoubleClick);
 			// 
 			// butOK
 			// 
@@ -58,7 +58,7 @@ namespace OpenDental {
 			this.butOK.Size = new System.Drawing.Size(75, 24);
 			this.butOK.TabIndex = 3;
 			this.butOK.Text = "&OK";
-			this.butOK.Click += new System.EventHandler(this.butOK_Click);
+			this.butOK.Click += new System.EventHandler(this.ButtonAccept_Click);
 			// 
 			// butAddTemplate
 			// 
@@ -71,7 +71,7 @@ namespace OpenDental {
 			this.butAddTemplate.Text = "Add";
 			this.butAddTemplate.UseVisualStyleBackColor = true;
 			this.butAddTemplate.Visible = false;
-			this.butAddTemplate.Click += new System.EventHandler(this.butAddTemplate_Click);
+			this.butAddTemplate.Click += new System.EventHandler(this.ButtonAddTemplate_Click);
 			// 
 			// checkShowHidden
 			// 
@@ -82,7 +82,7 @@ namespace OpenDental {
 			this.checkShowHidden.TabIndex = 210;
 			this.checkShowHidden.Text = "Show Hidden";
 			this.checkShowHidden.Visible = false;
-			this.checkShowHidden.Click += new System.EventHandler(this.checkShowHidden_Click);
+			this.checkShowHidden.Click += new System.EventHandler(this.CheckBoxShowHidden_Click);
 			// 
 			// FormPayPlanTemplates
 			// 

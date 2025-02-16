@@ -3,6 +3,7 @@ using System.Linq;
 using System.Windows.Forms;
 using CodeBase;
 using Imedisoft.Core.Entities;
+using OpenDental.Forms;
 using OpenDentBusiness;
 
 namespace OpenDental.Logic;
@@ -30,7 +31,7 @@ public class SecurityL
         var isPasswordStrong = formUserPassword.IsPasswordStrong;
         try
         {
-            Userods.UpdatePassword(Security.CurUser, formUserPassword.PasswordContainer_, isPasswordStrong);
+            Userods.UpdatePassword(Security.CurUser, formUserPassword.Password, isPasswordStrong);
         }
         catch (Exception ex)
         {
@@ -39,7 +40,7 @@ public class SecurityL
         }
 
         Security.CurUser.PasswordIsStrong = formUserPassword.IsPasswordStrong;
-        Security.CurUser.SetPassword(formUserPassword.PasswordContainer_);
+        Security.CurUser.SetPassword(formUserPassword.Password);
 
         if (willRefreshSecurityCache)
         {

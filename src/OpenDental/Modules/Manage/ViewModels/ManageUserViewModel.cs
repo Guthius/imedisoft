@@ -2,6 +2,7 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Imedisoft.Core.Entities;
+using OpenDental.Forms;
 using OpenDentBusiness;
 
 namespace OpenDental.Modules.Manage.ViewModels;

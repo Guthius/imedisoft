@@ -5,7 +5,7 @@ using CodeBase;
 using Imedisoft.Core.Entities;
 using OpenDentBusiness;
 
-namespace OpenDental;
+namespace OpenDental.Forms;
 
 public partial class FormDefEditBlockout : FormODBase
 {

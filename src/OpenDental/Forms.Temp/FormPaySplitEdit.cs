@@ -653,7 +653,7 @@ public partial class FormPaySplitEdit : FormODBase {
 			checkPayPlan.Checked=false;
 			return;
 		}
-		var payPlan=listPayPlans.Find(x => x.PayPlanNum==formPayPlanSelect.PayPlanNumSelected);
+		var payPlan=listPayPlans.Find(x => x.PayPlanNum==formPayPlanSelect.SelectedPayPlanNum);
 		AttachPayPlan(payPlan);
 	}
 

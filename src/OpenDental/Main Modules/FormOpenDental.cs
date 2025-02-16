@@ -4982,7 +4982,7 @@ public partial class FormOpenDental : FormODBase
                 {
                     Security.CurUser.IsPasswordResetRequired = false;
                     Userods.Update(Security.CurUser);
-                    Userods.UpdatePassword(Security.CurUser, formUserPassword.PasswordContainer_, isPasswordStrong);
+                    Userods.UpdatePassword(Security.CurUser, formUserPassword.Password, isPasswordStrong);
                     Security.CurUser = Userods.GetUserNoCache(Security.CurUser.UserNum);
                 }
                 catch (Exception ex)

@@ -10,6 +10,7 @@ using Imedisoft.Core.Features.Clinics;
 using Imedisoft.Core.Features.Clinics.Dtos;
 using Imedisoft.Core.Features.Providers;
 using Imedisoft.Core.Features.Providers.Dtos;
+using OpenDental.Forms;
 using OpenDentBusiness;
 
 namespace OpenDental;
@@ -17,8 +18,8 @@ namespace OpenDental;
 public partial class FormUserEdit : FormODBase
 {
     public bool IsNew;
-
     public Userod UserodCur;
+
     private List<AlertSub> _listAlertSubsUserTypesOld;
     private List<UserGroup> _listUserGroups;
     private List<ClinicDto> _listClinics;
@@ -42,7 +43,7 @@ public partial class FormUserEdit : FormODBase
         InitializeComponent();
 
         UserodCur = userod.Copy();
-        
+
         _isFromAddUser = isFromAddUser;
     }
 
@@ -84,16 +85,19 @@ public partial class FormUserEdit : FormODBase
 
         if (listUserGroup.SelectedIndices.Count == 0)
         {
-            //never allowed to delete last group, so this won't fail
             listUserGroup.SelectedIndex = 0;
         }
 
         _isFillingList = false;
+
         securityTreeUser.FillTreePermissionsInitial();
+
         RefreshUserTree();
+
         listEmployee.Items.Clear();
-        listEmployee.Items.Add(Lan.g(this, "none"));
+        listEmployee.Items.Add("none");
         listEmployee.SelectedIndex = 0;
+
         _listEmployees = Employees.GetDeepCopy(true);
         for (var i = 0; i < _listEmployees.Count; i++)
         {
@@ -105,8 +109,9 @@ public partial class FormUserEdit : FormODBase
         }
 
         listProv.Items.Clear();
-        listProv.Items.Add(Lan.g(this, "none"));
+        listProv.Items.Add("none");
         listProv.SelectedIndex = 0;
+
         _listProviders = Providers.GetDeepCopy(true);
         for (var i = 0; i < _listProviders.Count; i++)
         {
@@ -143,9 +148,10 @@ public partial class FormUserEdit : FormODBase
         }
 
         listClinic.Items.Clear();
-        listClinic.Items.Add(Lan.g(this, "All"));
-        listAlertSubsClinicsMulti.Items.Add(Lan.g(this, "All"));
-        listAlertSubsClinicsMulti.Items.Add(Lan.g(this, "Headquarters"));
+        listClinic.Items.Add("All");
+
+        listAlertSubsClinicsMulti.Items.Add("All");
+        listAlertSubsClinicsMulti.Items.Add("Headquarters");
         if (UserodCur.ClinicNum == 0)
         {
             //Unrestricted
@@ -177,18 +183,18 @@ public partial class FormUserEdit : FormODBase
 
             if (UserodCur.ClinicNum != 0 && listUserClinics.Exists(x => x.ClinicNum == _listClinics[i].Id))
             {
-                listClinicMulti.SetSelected(i); //No "All" option, don't select i+1
+                listClinicMulti.SetSelected(i);
             }
 
             if (!isAllClinicsSubscribed && _listAlertSubsUserTypesOld.Exists(x => x.ClinicNum == _listClinics[i].Id))
             {
-                listAlertSubsClinicsMulti.SetSelected(i + 2); //All+HQ
+                listAlertSubsClinicsMulti.SetSelected(i + 2);
             }
         }
 
         if (string.IsNullOrEmpty(UserodCur.PasswordHash))
         {
-            butPassword.Text = Lan.g(this, "Create Password");
+            butPassword.Text = "Create Password";
         }
 
         if (IsNew)
@@ -205,7 +211,6 @@ public partial class FormUserEdit : FormODBase
         }
     }
 
-    ///<summary>Refreshes the security tree in the "Users" tab.</summary>
     private void RefreshUserTree()
     {
         securityTreeUser.FillForUserGroup(listUserGroup.GetListSelected<UserGroup>().Select(x => x.UserGroupNum).ToList());
@@ -256,46 +261,51 @@ public partial class FormUserEdit : FormODBase
             return;
         }
 
-        UserodCur.SetPassword(formUserPassword.PasswordContainer_);
+        UserodCur.SetPassword(formUserPassword.Password);
         UserodCur.PasswordIsStrong = formUserPassword.IsPasswordStrong;
         _passwordTyped = formUserPassword.PasswordTyped;
+
         if (string.IsNullOrEmpty(UserodCur.PasswordHash))
         {
-            butPassword.Text = Lan.g(this, "Create Password");
+            butPassword.Text = "Create Password";
         }
         else
         {
-            butPassword.Text = Lan.g(this, "Change Password");
+            butPassword.Text = "Change Password";
         }
     }
 
-    private void butUnlock_Click(object sender, EventArgs e)
+    private void ButtonUnlock_Click(object sender, EventArgs e)
     {
-        if (!MsgBox.Show(this, MsgBoxButtons.YesNo, "Users can become locked when invalid credentials have been entered several times in a row.\r\n"
-                                                    + "Unlock this user so that more log in attempts can be made?"))
+        if (!Confirm("Users can become locked when invalid credentials have been entered several times in a row.\r\n" +
+                     "Unlock this user so that more log in attempts can be made?"))
         {
             return;
         }
 
         UserodCur.DateTFail = DateTime.MinValue;
         UserodCur.FailedAttempts = 0;
+
         try
         {
             Userods.Update(UserodCur);
-            MsgBox.Show(this, "User has been unlocked.");
+
+            ShowInfo("User has been unlocked.");
         }
         catch (Exception)
         {
-            MsgBox.Show(this, "There was a problem unlocking this user.  Please call support or wait the allotted lock time.");
+            ShowError("There was a problem unlocking this user. Please call support or wait the allotted lock time.");
         }
     }
 
     private bool IsValidLogOffMinutes()
     {
-        if (!(textLogOffAfterMinutes.Text == "") && (!int.TryParse(textLogOffAfterMinutes.Text, out var minutes) || minutes < 0))
+        if (textLogOffAfterMinutes.Text != "" && (!int.TryParse(textLogOffAfterMinutes.Text, out var minutes) || minutes < 0))
         {
-            MsgBox.Show(this, "Invalid 'Automatic logoff time in minutes'.\r\n" +
-                              "Must be blank, 0, or a positive integer.");
+            ShowError(
+                "Invalid 'Automatic logoff time in minutes'.\r\n" +
+                "Must be blank, 0, or a positive integer.");
+
             return false;
         }
 
@@ -321,9 +331,10 @@ public partial class FormUserEdit : FormODBase
             _userOdPrefLogOffAfterMinutes.ValueString = textLogOffAfterMinutes.Text;
             UserOdPrefs.Upsert(_userOdPrefLogOffAfterMinutes);
             isCacheInvalid = true;
+
             if (!PrefC.GetBool(PrefName.SecurityLogOffAllowUserOverride))
             {
-                MsgBox.Show(this, "User logoff overrides will not take effect until the Global Security setting \"Allow user override for automatic logoff\" is checked");
+                Warn("User logoff overrides will not take effect until the Global Security setting \"Allow user override for automatic logoff\" is checked");
             }
         }
 
@@ -334,40 +345,41 @@ public partial class FormUserEdit : FormODBase
     {
         if (textUserName.Text == "")
         {
-            MsgBox.Show(this, "Please enter a username.");
+            ShowError("Please enter a username.");
+
             return;
         }
 
         if (IsNew && textUserName.Text != textUserName.Text.TrimEnd())
         {
-            MsgBox.Show(this, "User Name cannot end with white space.");
+            ShowError("User Name cannot end with white space.");
             return;
         }
 
         if (!_isFromAddUser && IsNew && PrefC.GetBool(PrefName.PasswordsMustBeStrong) && string.IsNullOrWhiteSpace(_passwordTyped))
         {
-            MsgBox.Show(this, "Password may not be blank when the strong password feature is turned on.");
+            ShowError("Password may not be blank when the strong password feature is turned on.");
             return;
         }
 
-        if (true && listClinic.SelectedIndex == -1)
+        if (listClinic.SelectedIndex == -1)
         {
-            MsgBox.Show(this, "This user does not have a User Default Clinic set.  Please choose one to continue.");
+            ShowError("This user does not have a User Default Clinic set.  Please choose one to continue.");
             return;
         }
 
         if (listUserGroup.SelectedIndices.Count == 0)
         {
-            MsgBox.Show(this, "Users must have at least one user group associated. Please select a user group to continue.");
+            ShowError("Users must have at least one user group associated. Please select a user group to continue.");
             return;
         }
 
         if (_isFromAddUser && !Security.IsAuthorized(EnumPermType.SecurityAdmin, true))
         {
-            if (listUserGroup.SelectedIndices.Count != 1
-                || !listUserGroup.GetListSelected<UserGroup>().Select(x => x.UserGroupNum).Contains(PrefC.GetLong(PrefName.DefaultUserGroup)))
+            if (listUserGroup.SelectedIndices.Count != 1 || !listUserGroup.GetListSelected<UserGroup>().Select(x => x.UserGroupNum).Contains(PrefC.GetLong(PrefName.DefaultUserGroup)))
             {
-                MsgBox.Show(this, "This user must be assigned to the default user group.");
+                ShowError("This user must be assigned to the default user group.");
+                
                 for (var i = 0; i < listUserGroup.Items.Count; i++)
                 {
                     if (((UserGroup) listUserGroup.Items.GetObjectAt(i)).UserGroupNum == PrefC.GetLong(PrefName.DefaultUserGroup))
@@ -389,58 +401,26 @@ public partial class FormUserEdit : FormODBase
             return;
         }
 
-        var listUserClinics = new List<UserClinic>();
-        if (true)
+        var userClinics = new List<UserClinic>();
+        foreach (var index in listClinicMulti.SelectedIndices)
         {
-            //Check to see if users have restricted clinics set.
-            for (var i = 0; i < listClinicMulti.SelectedIndices.Count; i++)
-            {
-                listUserClinics.Add(new UserClinic(_listClinics[listClinicMulti.SelectedIndices[i]].Id, UserodCur.UserNum));
-            }
-
-            //If they set the user up with a default clinic and it's not in the restricted list, return.
-            if (listUserClinics.Count > 0 && !listUserClinics.Exists(x => x.ClinicNum == _listClinics[listClinic.SelectedIndex - 1].Id))
-            {
-                MsgBox.Show(this, "User cannot have a default clinic that they are not restricted to.");
-                return;
-            }
+            userClinics.Add(new UserClinic(_listClinics[index].Id, UserodCur.UserNum));
         }
 
-        if (listClinic.SelectedIndex == 0)
+        if (userClinics.Count > 0 && !userClinics.Exists(x => x.ClinicNum == _listClinics[listClinic.SelectedIndex - 1].Id))
         {
-            UserodCur.ClinicNum = 0;
-        }
-        else
-        {
-            UserodCur.ClinicNum = _listClinics[listClinic.SelectedIndex - 1].Id;
+            ShowError("User cannot have a default clinic that they are not restricted to.");
+            
+            return;
         }
 
-        UserodCur.ClinicIsRestricted = false; //This is kept in sync with their choice of "All".
-        if (listClinicMulti.SelectedIndices.Count > 0)
-        {
-            UserodCur.ClinicIsRestricted = true;
-        }
-
+        UserodCur.ClinicNum = listClinic.SelectedIndex == 0 ? 0 : _listClinics[listClinic.SelectedIndex - 1].Id;
+        UserodCur.ClinicIsRestricted = listClinicMulti.SelectedIndices.Count > 0;
         UserodCur.IsHidden = checkIsHidden.Checked;
         UserodCur.IsPasswordResetRequired = checkRequireReset.Checked;
         UserodCur.UserName = textUserName.Text;
-        if (listEmployee.SelectedIndex == 0)
-        {
-            UserodCur.EmployeeNum = 0;
-        }
-        else
-        {
-            UserodCur.EmployeeNum = _listEmployees[listEmployee.SelectedIndex - 1].EmployeeNum;
-        }
-
-        if (listProv.SelectedIndex == 0)
-        {
-            UserodCur.ProvNum = 0;
-        }
-        else
-        {
-            UserodCur.ProvNum = _listProviders[listProv.SelectedIndex - 1].Id;
-        }
+        UserodCur.EmployeeNum = listEmployee.SelectedIndex == 0 ? 0 : _listEmployees[listEmployee.SelectedIndex - 1].EmployeeNum;
+        UserodCur.ProvNum = listProv.SelectedIndex == 0 ? 0 : _listProviders[listProv.SelectedIndex - 1].Id;
 
         if (IsNew)
         {
@@ -450,14 +430,14 @@ public partial class FormUserEdit : FormODBase
             }
             catch (Exception ex)
             {
-                ODMessageBox.Show(ex.Message);
+                ShowError(ex.Message);
+                
                 return;
             }
 
-            for (var i = 0; i < listUserClinics.Count; i++)
+            foreach (var userClinic in userClinics)
             {
-                //Set the user clinic's UserNum to the one we just inserted.
-                listUserClinics[i].UserNum = UserodCur.UserNum;
+                userClinic.UserNum = UserodCur.UserNum;
             }
 
             SecurityLogs.MakeLogEntry(EnumPermType.AddNewUser, 0, "New user '" + UserodCur.UserName + "' added");
@@ -472,11 +452,10 @@ public partial class FormUserEdit : FormODBase
             }
             catch (Exception ex)
             {
-                ODMessageBox.Show(ex.Message);
+                ShowError(ex.Message);
                 return;
             }
-
-            //if this is the current user, update the user, credentials, etc.
+            
             if (UserodCur.UserNum == Security.CurUser.UserNum)
             {
                 Security.CurUser = UserodCur.Copy();
@@ -498,86 +477,80 @@ public partial class FormUserEdit : FormODBase
 
                 return listUserGroupsRet;
             };
+            
             var listUserGroupsRemoved = funcGetMissing(listUserGroupsOld, listUserGroupsNew);
             var listUserGroupsAdded = funcGetMissing(listUserGroupsNew, listUserGroupsOld);
+            
             if (listUserGroupsRemoved.Count > 0)
             {
                 //Only log if there are items in the list
-                SecurityLogs.MakeLogEntry(EnumPermType.SecurityAdmin, 0, "User " + UserodCur.UserName +
-                                                                         " removed from User group(s): " + string.Join(", ", listUserGroupsRemoved.Select(x => x.Description).ToArray()) + " by: " + Security.CurUser.UserName);
+                SecurityLogs.MakeLogEntry(EnumPermType.SecurityAdmin, 0, "User " + UserodCur.UserName + " removed from User group(s): " + string.Join(", ", listUserGroupsRemoved.Select(x => x.Description).ToArray()) + " by: " + Security.CurUser.UserName);
             }
 
             if (listUserGroupsAdded.Count > 0)
             {
                 //Only log if there are items in the list.
-                SecurityLogs.MakeLogEntry(EnumPermType.SecurityAdmin, 0, "User " + UserodCur.UserName +
-                                                                         " added to User group(s): " + string.Join(", ", listUserGroupsAdded.Select(x => x.Description).ToArray()) + " by: " + Security.CurUser.UserName);
+                SecurityLogs.MakeLogEntry(EnumPermType.SecurityAdmin, 0, "User " + UserodCur.UserName + " added to User group(s): " + string.Join(", ", listUserGroupsAdded.Select(x => x.Description).ToArray()) + " by: " + Security.CurUser.UserName);
             }
         }
 
-        if (UserClinics.Sync(listUserClinics, UserodCur.UserNum))
+        if (UserClinics.Sync(userClinics, UserodCur.UserNum))
         {
-            //Either syncs new list, or clears old list if no longer restricted.
             DataValid.SetInvalid(InvalidType.UserClinics);
         }
 
         var isUserOdPrefCacheInvalid = false;
-        //Get eRx prefs for all other users. The same user can use the same ID at multiple clinics so we don't want to compare against the prefs of the currently selected user.
-        var listOtherUserOdPrefs = UserOdPrefs.GetByFkeyAndFkeyType(Programs.GetCur(ProgramName.eRx).ProgramNum, UserOdFkeyType.Program).FindAll(x => x.UserNum != UserodCur.UserNum);
-        //This list is filled on load with all of the prefs for the current user and contains any changes made in FormUserPrefAdditional.
+        
         DataValid.SetInvalid(InvalidType.Security);
-        //List of AlertTypes that are selected.
+        
         var listAlertCatagoryNumsUser = new List<long>();
         for (var i = 0; i < listAlertSubMulti.SelectedIndices.Count; i++)
         {
             listAlertCatagoryNumsUser.Add(_listAlertCategories[listAlertSubMulti.SelectedIndices[i]].AlertCategoryNum);
         }
 
-        var listClinicNums = new List<long>();
+        var clinicNums = new List<long>();
         for (var i = 0; i < listAlertSubsClinicsMulti.SelectedIndices.Count; i++)
         {
             if (listAlertSubsClinicsMulti.SelectedIndices[i] == 0)
             {
                 //All
-                listClinicNums.Add(-1); //Add All
+                clinicNums.Add(-1); //Add All
                 break;
             }
 
             if (listAlertSubsClinicsMulti.SelectedIndices[i] == 1)
             {
                 //HQ
-                listClinicNums.Add(0);
+                clinicNums.Add(0);
                 continue;
             }
 
-            var clinic = _listClinics[listAlertSubsClinicsMulti.SelectedIndices[i] - 2]; //Subtract 2 for 'All' and 'HQ'
-            listClinicNums.Add(clinic.Id);
+            var clinic = _listClinics[listAlertSubsClinicsMulti.SelectedIndices[i] - 2];
+            
+            clinicNums.Add(clinic.Id);
         }
 
-        var _listAlertSubsUserTypesNew = _listAlertSubsUserTypesOld.Select(x => x.Copy()).ToList();
-        //Remove AlertTypes that have been deselected through either deslecting the type or clinic.
-        _listAlertSubsUserTypesNew.RemoveAll(x => !listAlertCatagoryNumsUser.Contains(x.AlertCategoryNum));
-        if (true)
-        {
-            _listAlertSubsUserTypesNew.RemoveAll(x => !listClinicNums.Contains(x.ClinicNum));
-        }
+        var listAlertSubsUserTypesNew = _listAlertSubsUserTypesOld.Select(x => x.Copy()).ToList();
+        
+        listAlertSubsUserTypesNew.RemoveAll(x => !listAlertCatagoryNumsUser.Contains(x.AlertCategoryNum));
+        listAlertSubsUserTypesNew.RemoveAll(x => !clinicNums.Contains(x.ClinicNum));
 
-        for (var i = 0; i < listAlertCatagoryNumsUser.Count; i++)
+        foreach (var t in listAlertCatagoryNumsUser)
         {
-            //Clinics enabled.
-            for (var j = 0; j < listClinicNums.Count; j++)
+            foreach (var clinicNum in clinicNums)
             {
-                if (!_listAlertSubsUserTypesOld.Exists(x => x.ClinicNum == listClinicNums[j] && x.AlertCategoryNum == listAlertCatagoryNumsUser[i]))
+                if (!_listAlertSubsUserTypesOld.Exists(x => x.ClinicNum == clinicNum && x.AlertCategoryNum == t))
                 {
                     //Was not subscribed to type.
-                    _listAlertSubsUserTypesNew.Add(new AlertSub(UserodCur.UserNum, listClinicNums[j], listAlertCatagoryNumsUser[i]));
+                    listAlertSubsUserTypesNew.Add(new AlertSub(UserodCur.UserNum, clinicNum, t));
                     continue;
                 }
             }
         }
 
         isUserOdPrefCacheInvalid |= SaveLogOffPreferences();
-        AlertSubs.Sync(_listAlertSubsUserTypesNew, _listAlertSubsUserTypesOld);
+        AlertSubs.Sync(listAlertSubsUserTypesNew, _listAlertSubsUserTypesOld);
         if (isUserOdPrefCacheInvalid)
         {
             DataValid.SetInvalid(InvalidType.UserOdPrefs);

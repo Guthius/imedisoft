@@ -23,7 +23,6 @@ public class FormLauncherHelper
             EnumFormName.FormSheetFillEdit => typeof(FormSheetFillEdit),
             EnumFormName.FormTrojanCollect => typeof(FormTrojanCollect),
             EnumFormName.FormTrophyNamePick => typeof(FormTrophyNamePick),
-            EnumFormName.FormVideo => typeof(FormVideo),
             EnumFormName.FormWebBrowser => typeof(FormWebBrowser),
             EnumFormName.FormWebView => typeof(FormWebView),
             _ => null

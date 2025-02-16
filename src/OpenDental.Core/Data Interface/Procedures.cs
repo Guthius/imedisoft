@@ -3782,7 +3782,7 @@ public class Procedures
         #region Procedure Status
 
         //If user is trying to change status to complete and using eCW.
-        if (procedure.ProcStatus == ProcStat.C && (isNew || procedureOld.ProcStatus != ProcStat.C) && Programs.UsingEcwTightOrFullMode())
+        if (procedure.ProcStatus == ProcStat.C && (isNew || procedureOld.ProcStatus != ProcStat.C) && false)
         {
             actionOnFailure.Invoke(Lans.g(translationSource, "Procedures cannot be set complete in this window.  Set the procedure complete by setting the appointment complete."));
             return false;

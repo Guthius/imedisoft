@@ -13,14 +13,9 @@ namespace OpenDental;
 
 public partial class FormFeeSchedGroups : FormODBase
 {
-    ///<summary>All clinics in the cache.</summary>
-    private List<ClinicDto> _listClinicsAll;
-
-    ///<summary>List of all clinics for the selected FeeSchedGroup in the grid.  Used to fill gridClinics.</summary>
-    private List<ClinicDto> _listClinicsForGroup = [];
-
-    ///<summary>List of all FeeSchedGroups in db.</summary>
-    private List<FeeSchedGroup> _listFeeSchedGroups;
+    private List<ClinicDto> _clinicDtos;
+    private List<ClinicDto> _clinicDtosForGroup = [];
+    private List<FeeSchedGroup> _feeSchedGroups;
 
     public FormFeeSchedGroups()
     {
@@ -30,10 +25,16 @@ public partial class FormFeeSchedGroups : FormODBase
     private void FormFeeSchedGroups_Load(object sender, EventArgs e)
     {
         SetFilterControlsAndAction(FilterFeeSchedGroups, textFeeSched);
-        //No restricting clinics because this window assumes that the user is an admin without restricted clinics
-        _listClinicsAll = Clinics.GetWhere(x => x.Id > -1 && x.IsHidden == false).OrderBy(x => x.Abbr).ToList(); //Get all Clinics from cache that are not hidden
-        _listFeeSchedGroups = FeeSchedGroups.GetAll().OrderBy(x => x.Description).ToList();
-        ListTools.DeepCopy<FeeSchedGroup, FeeSchedGroup>(_listFeeSchedGroups);
+
+        _clinicDtos = Clinics
+            .GetWhere(x => x.IsHidden == false)
+            .OrderBy(x => x.Abbr)
+            .ToList();
+
+        _feeSchedGroups = FeeSchedGroups.GetAll().OrderBy(x => x.Description).ToList();
+
+        ListTools.DeepCopy<FeeSchedGroup, FeeSchedGroup>(_feeSchedGroups);
+
         FillClinicCombo();
         FilterFeeSchedGroups();
     }
@@ -42,39 +43,30 @@ public partial class FormFeeSchedGroups : FormODBase
     {
         comboClinic.Items.Clear();
         comboClinic.Items.Add("All");
-        for (var i = 0; i < _listClinicsAll.Count(); i++)
+
+        foreach (var clinicDto in _clinicDtos)
         {
-            comboClinic.Items.Add(_listClinicsAll[i].Abbr);
+            comboClinic.Items.Add(clinicDto.Abbr);
         }
 
         comboClinic.SelectedIndex = 0;
     }
 
-    //Used by comboClinic to filter the list of FeeSchedGroups
-    private void comboClinic_SelectionChanged(object sender, EventArgs e)
+    private void ComboBoxClinic_SelectionChanged(object sender, EventArgs e)
     {
         FilterFeeSchedGroups();
     }
 
     private void FilterFeeSchedGroups()
     {
-        var listFeeSchedsFiltered = FeeScheds.GetWhere(x => x.Description.ToLower().Contains(textFeeSched.Text.ToLower()));
-        //Clinic filter will be either a list of all clinics or a list containing only the selected clinic
-        List<ClinicDto> listClinicsFiltered;
-        if (comboClinic.SelectedIndex == 0)
-        {
-            listClinicsFiltered = _listClinicsAll;
-        }
-        else
-        {
-            listClinicsFiltered = ListTools.FromSingle(_listClinicsAll[comboClinic.SelectedIndex - 1]);
-        }
+        var filteredFeeScheds = FeeScheds.GetWhere(x => x.Description.ToLower().Contains(textFeeSched.Text.ToLower()));
+        var filteredClinics = comboClinic.SelectedIndex == 0 ? _clinicDtos : ListTools.FromSingle(_clinicDtos[comboClinic.SelectedIndex - 1]);
 
-        //This filter should return everything if both filters are empty.
-        _listFeeSchedGroups
-            .Where(x => listFeeSchedsFiltered.Select(y => y.FeeSchedNum).Contains(x.FeeSchedNum))
-            .Where(x => x.ListClinicNumsAll.Any(y => listClinicsFiltered.Select(z => z.Id).Contains(y)))
+        _feeSchedGroups
+            .Where(x => filteredFeeScheds.Select(y => y.FeeSchedNum).Contains(x.FeeSchedNum))
+            .Where(x => x.ListClinicNumsAll.Any(y => filteredClinics.Select(z => z.Id).Contains(y)))
             .ToList();
+
         FillGridGroups();
         FillGridClinics();
     }
@@ -82,21 +74,22 @@ public partial class FormFeeSchedGroups : FormODBase
     private void FillGridGroups()
     {
         gridGroups.BeginUpdate();
+
         gridGroups.Columns.Clear();
-        GridColumn col;
-        col = new GridColumn(Lan.g(this, "Group Name"), 200);
-        gridGroups.Columns.Add(col);
-        col = new GridColumn(Lan.g(this, "Fee Schedule"), 75);
-        gridGroups.Columns.Add(col);
+        gridGroups.Columns.Add(new GridColumn("Group Name", 200));
+        gridGroups.Columns.Add(new GridColumn("Fee Schedule", 75));
+
         gridGroups.ListGridRows.Clear();
-        GridRow row;
-        for (var i = 0; i < _listFeeSchedGroups.Count(); i++)
+
+        foreach (var feeSchedGroup in _feeSchedGroups)
         {
-            row = new GridRow();
-            row.Cells.Add(_listFeeSchedGroups[i].Description);
-            row.Cells.Add(FeeScheds.GetDescription(_listFeeSchedGroups[i].FeeSchedNum)); //Returns empty string if the FeeSched couldn't be found.
-            row.Tag = _listFeeSchedGroups[i];
-            gridGroups.ListGridRows.Add(row);
+            var gridRow = new GridRow();
+
+            gridRow.Cells.Add(feeSchedGroup.Description);
+            gridRow.Cells.Add(FeeScheds.GetDescription(feeSchedGroup.FeeSchedNum));
+            gridRow.Tag = feeSchedGroup;
+
+            gridGroups.ListGridRows.Add(gridRow);
         }
 
         gridGroups.EndUpdate();
@@ -104,68 +97,73 @@ public partial class FormFeeSchedGroups : FormODBase
 
     private void FillGridClinics()
     {
-        _listClinicsForGroup.Clear();
+        _clinicDtosForGroup.Clear();
         if (gridGroups.GetSelectedIndex() >= 0)
         {
-            _listClinicsForGroup = Clinics.GetClinics(gridGroups.SelectedTag<FeeSchedGroup>().ListClinicNumsAll).OrderBy(x => x.Abbr).ToList();
+            _clinicDtosForGroup = Clinics.GetClinics(gridGroups.SelectedTag<FeeSchedGroup>().ListClinicNumsAll).OrderBy(x => x.Abbr).ToList();
         }
 
         gridClinics.BeginUpdate();
+
         gridClinics.Columns.Clear();
-        GridColumn col;
-        col = new GridColumn(Lan.g(this, "Abbr"), 100);
-        col.IsWidthDynamic = true;
-        gridClinics.Columns.Add(col);
-        col = new GridColumn(Lan.g(this, "Description"), 100);
-        col.IsWidthDynamic = true;
-        col.DynamicWeight = 2;
-        gridClinics.Columns.Add(col);
+        gridClinics.Columns.Add(new GridColumn("Abbr", 100) {IsWidthDynamic = true});
+        gridClinics.Columns.Add(new GridColumn("Description", 100) {IsWidthDynamic = true, DynamicWeight = 2});
+
         gridClinics.ListGridRows.Clear();
-        GridRow row;
-        for (var i = 0; i < _listClinicsForGroup.Count(); i++)
+
+        foreach (var clinicDto in _clinicDtosForGroup)
         {
-            row = new GridRow();
-            row.Cells.Add(_listClinicsForGroup[i].Abbr);
-            row.Cells.Add(_listClinicsForGroup[i].Description + (_listClinicsForGroup[i].IsHidden ? " (Hidden)" : ""));
-            row.Tag = _listClinicsForGroup[i];
-            gridClinics.ListGridRows.Add(row);
+            var gridRow = new GridRow();
+
+            gridRow.Cells.Add(clinicDto.Abbr);
+            gridRow.Cells.Add(clinicDto.Description + (clinicDto.IsHidden ? " (Hidden)" : ""));
+            gridRow.Tag = clinicDto;
+
+            gridClinics.ListGridRows.Add(gridRow);
         }
 
         gridClinics.EndUpdate();
     }
 
-    private void gridGroups_CellClick(object sender, ODGridClickEventArgs e)
+    private void GridGroups_CellClick(object sender, ODGridClickEventArgs e)
     {
         FillGridClinics();
     }
 
-    private void gridGroups_CellDoubleClick(object sender, ODGridClickEventArgs e)
+    private void GridGroups_CellDoubleClick(object sender, ODGridClickEventArgs e)
     {
         var feeSchedGroup = (FeeSchedGroup) gridGroups.ListGridRows[e.Row].Tag;
+
         using var formFeeSchedGroupEdit = new FormFeeSchedGroupEdit(feeSchedGroup);
-        formFeeSchedGroupEdit.ShowDialog();
-        if (formFeeSchedGroupEdit.DialogResult == DialogResult.OK)
+
+        if (formFeeSchedGroupEdit.ShowDialog() == DialogResult.OK)
         {
             FeeSchedGroups.Update(feeSchedGroup);
         }
 
-        //Still need to refresh incase the user deleted the FeeSchedGroup, since it returns DialogResult.Cancel.
         FilterFeeSchedGroups();
     }
 
-    private void butAdd_Click(object sender, EventArgs e)
+    private void ButtonAdd_Click(object sender, EventArgs e)
     {
-        var feeSchedGroup = new FeeSchedGroup();
-        feeSchedGroup.ListClinicNumsAll = [];
-        feeSchedGroup.IsNew = true;
-        using var formFeeSchedGroupEdit = new FormFeeSchedGroupEdit(feeSchedGroup);
-        formFeeSchedGroupEdit.ShowDialog();
-        if (formFeeSchedGroupEdit.DialogResult == DialogResult.OK)
+        var feeSchedGroup = new FeeSchedGroup
         {
-            FeeSchedGroups.Insert(feeSchedGroup);
-            _listFeeSchedGroups.Add(feeSchedGroup);
-            _listFeeSchedGroups = _listFeeSchedGroups.OrderBy(x => x.Description).ToList();
-            FilterFeeSchedGroups();
+            ListClinicNumsAll = [],
+            IsNew = true
+        };
+
+        using var formFeeSchedGroupEdit = new FormFeeSchedGroupEdit(feeSchedGroup);
+
+        if (formFeeSchedGroupEdit.ShowDialog() != DialogResult.OK)
+        {
+            return;
         }
+
+        FeeSchedGroups.Insert(feeSchedGroup);
+
+        _feeSchedGroups.Add(feeSchedGroup);
+        _feeSchedGroups = _feeSchedGroups.OrderBy(x => x.Description).ToList();
+
+        FilterFeeSchedGroups();
     }
 }

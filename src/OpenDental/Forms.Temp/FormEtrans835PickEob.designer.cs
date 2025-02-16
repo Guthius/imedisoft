@@ -48,7 +48,7 @@ namespace OpenDental{
 			this.gridEobs.TabIndex = 5;
 			this.gridEobs.Title = "EOB List";
 			this.gridEobs.TranslationName = "TableEOB";
-			this.gridEobs.CellDoubleClick += new OpenDental.UI.ODGridClickEventHandler(this.gridEobs_CellDoubleClick);
+			this.gridEobs.CellDoubleClick += new OpenDental.UI.ODGridClickEventHandler(this.GridEobs_CellDoubleClick);
 			// 
 			// FormEtrans835PickEob
 			// 

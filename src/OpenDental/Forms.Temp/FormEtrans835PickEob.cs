@@ -2,59 +2,70 @@ using System;
 using System.Collections.Generic;
 using System.Windows.Forms;
 using Imedisoft.Core.Entities;
+using OpenDental.UI;
 
 namespace OpenDental;
 
-public partial class FormEtrans835PickEob:FormODBase {
+public partial class FormEtrans835PickEob : FormODBase
+{
+    private readonly List<string> _eobTranIds;
+    private readonly string _messageText835;
+    private readonly Etrans _etrans;
+    private readonly bool _openEtrans835;
 
-	private string _messageText835;
-	private List<string> _listEobTranIds;
-	private Etrans _etrans;
-	///<summary>When true, double clicking an EOB in the grid will not open FormEtrans835Edit. It just sets the TransSetIdSelected for use outside the form.</summary>
-	private bool _doOpenEtrans835;
-	///<summary>The TransSetId for the selected EOB.</summary>
-	public string TransSetIdSelected=null;
+    public string TransSetIdSelected { get; set; }
 
-	public FormEtrans835PickEob(List<string> listEobTranIds,string messageText835,Etrans etrans,bool doOpenEtrans835) {
-		InitializeComponent();
+    public FormEtrans835PickEob(List<string> eobTranIds, string messageText835, Etrans etrans, bool openEtrans835)
+    {
+        _eobTranIds = eobTranIds;
+        _messageText835 = messageText835;
+        _etrans = etrans;
+        _openEtrans835 = openEtrans835;
 
-		_listEobTranIds=listEobTranIds;
-		_messageText835=messageText835;
-		_etrans=etrans;
-		_doOpenEtrans835=doOpenEtrans835;
-	}
-		
-	private void FormEtrans835PickEob_Load(object sender,EventArgs e) {
-		FillGridEobs();
-	}
+        InitializeComponent();
+    }
 
-	private void FillGridEobs() {
-		gridEobs.BeginUpdate();
-		gridEobs.Columns.Clear();
-		var col=new UI.GridColumn("",20);
-		col.IsWidthDynamic=true;
-		gridEobs.Columns.Add(col);
-		gridEobs.ListGridRows.Clear();
-		for(var i=0;i<_listEobTranIds.Count;i++) {
-			var row=new UI.GridRow();
-			row.Cells.Add(_listEobTranIds[i]);
-			gridEobs.ListGridRows.Add(row);
-		}
-		gridEobs.EndUpdate();
-	}
+    private void FormEtrans835PickEob_Load(object sender, EventArgs e)
+    {
+        FillGridEobs();
+    }
 
-	private void gridEobs_CellDoubleClick(object sender,UI.ODGridClickEventArgs e) {
-		TransSetIdSelected=_listEobTranIds[gridEobs.SelectedIndices[0]];
-		if(!_doOpenEtrans835) {
-			DialogResult=DialogResult.OK;
-			Close();
-			return;
-		}
-		var formEtrans835Edit=new FormEtrans835Edit();
-		formEtrans835Edit.EtransCur=_etrans;
-		formEtrans835Edit.MessageText835=_messageText835;
-		formEtrans835Edit.TranSetId835=TransSetIdSelected;
-		formEtrans835Edit.Show();//Not attached to parent window because the user may have to close parent window to navigate other areas of the program.
-	}
+    private void FillGridEobs()
+    {
+        gridEobs.BeginUpdate();
+        
+        gridEobs.Columns.Clear();
+        gridEobs.Columns.Add(new GridColumn("", 20) {IsWidthDynamic = true});
+        
+        gridEobs.ListGridRows.Clear();
+        
+        foreach (var transId in _eobTranIds)
+        {
+            var gridRow = new GridRow();
+            
+            gridRow.Cells.Add(transId);
+            
+            gridEobs.ListGridRows.Add(gridRow);
+        }
 
+        gridEobs.EndUpdate();
+    }
+
+    private void GridEobs_CellDoubleClick(object sender, ODGridClickEventArgs e)
+    {
+        TransSetIdSelected = _eobTranIds[gridEobs.SelectedIndices[0]];
+        if (!_openEtrans835)
+        {
+            DialogResult = DialogResult.OK;
+            Close();
+            return;
+        }
+
+        var formEtrans835Edit = new FormEtrans835Edit();
+
+        formEtrans835Edit.EtransCur = _etrans;
+        formEtrans835Edit.MessageText835 = _messageText835;
+        formEtrans835Edit.TranSetId835 = TransSetIdSelected;
+        formEtrans835Edit.Show();
+    }
 }

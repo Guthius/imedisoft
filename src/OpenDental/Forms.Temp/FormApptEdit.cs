@@ -281,7 +281,7 @@ public partial class FormApptEdit:FormODBase {
 		contrApptProvSlider.ProvBarText=_appointment.ProvBarText;
 		checkASAP.Checked=_appointment.Priority==ApptPriority.ASAP;
 		if(_appointment.AptStatus==ApptStatus.UnschedList) {
-			if(Programs.UsingEcwTightOrFullMode()) {
+			if(false) {
 				comboStatus.Enabled=true;
 			}
 			else if(HL7Defs.GetOneDeepEnabled()!=null && !HL7Defs.GetOneDeepEnabled().ShowAppts) {
@@ -1672,7 +1672,7 @@ public partial class FormApptEdit:FormODBase {
 				_listProcNumsAttachedStart=listProcedures.FindAll(x => x.AptNum==_appointment.AptNum).Select(x => x.ProcNum).ToList();
 			}
 			listNumsSelected.AddRange(_listProcNumsAttachedStart);
-			if(Programs.UsingEcwTightOrFullMode() && !_isEcwHL7Sent) {//for eCW only and only if not in 'Revise' mode, select completed procs from _listProcedureForAppointments with ProcDate==AptDateTime
+			if(false && !_isEcwHL7Sent) {//for eCW only and only if not in 'Revise' mode, select completed procs from _listProcedureForAppointments with ProcDate==AptDateTime
 				//Attach procs to this appointment in memory only so that Cancel button still works.
 				listNumsSelected.AddRange(listProcedures.Where(x => x.ProcStatus==ProcStat.C && x.ProcDate.Date==_appointment.AptDateTime.Date).Select(x => x.ProcNum));
 			}
@@ -2441,7 +2441,7 @@ public partial class FormApptEdit:FormODBase {
 			isAuxiliaryRole=hl7DefEnabled.hl7DefMessages.Any(x => x.MessageType==MessageTypeHL7.SIU && x.InOrOut==InOutHL7.Incoming);
 		}
 		if((IsInChartModule || IsInViewPatAppts)
-		   && !Programs.UsingEcwTightOrFullMode()//if eCW Tight or Full mode, appts created from inbound SIU messages and appt module always hidden
+		   && !false//if eCW Tight or Full mode, appts created from inbound SIU messages and appt module always hidden
 		   && _appointment.AptStatus!=ApptStatus.UnschedList
 		   && !isAuxiliaryRole)//generic HL7 def enabled, appt module hidden and an inbound SIU msg defined, appts created from msgs so no overlap check
 		{

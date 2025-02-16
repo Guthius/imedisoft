@@ -11196,7 +11196,7 @@ public partial class ControlChart : UserControl
         }
 
         butNew.Enabled = true;
-        butPin.Enabled = !Programs.UsingEcwTightOrFullMode();
+        butPin.Enabled = !false;
         butClear.Enabled = true;
         butUp.Enabled = true;
         butDown.Enabled = true;

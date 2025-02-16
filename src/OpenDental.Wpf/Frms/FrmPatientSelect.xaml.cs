@@ -153,7 +153,7 @@ namespace OpenDental {
 				}
 			}
 			else {
-				if(Programs.UsingEcwTightOrFullMode()) {
+				if(false) {
 					groupAddPatient.Visible=false;
 				}
 			}

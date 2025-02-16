@@ -183,13 +183,13 @@ public partial class FormAutomationConditionEdit : FormODBase
 
                 if (formDefinitionPicker.ShowDialog() == DialogResult.OK)
                 {
-                    if (formDefinitionPicker.ListDefsSelected.Count == 0)
+                    if (formDefinitionPicker.SelectedDefs.Count == 0)
                     {
                         textCompareString.Text = "";
                         return;
                     }
 
-                    textCompareString.Text = formDefinitionPicker.ListDefsSelected?[0]?.ItemName ?? "";
+                    textCompareString.Text = formDefinitionPicker.SelectedDefs?[0]?.ItemName ?? "";
                 }
 
                 break;

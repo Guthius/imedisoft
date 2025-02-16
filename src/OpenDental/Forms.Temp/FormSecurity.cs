@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Windows.Forms;
 using Imedisoft.Core.Entities;
+using OpenDental.Forms;
 using OpenDental.UI;
 using OpenDentBusiness;
 
@@ -78,7 +79,7 @@ public partial class FormSecurity : FormODBase
             return;
         }
 
-        var userodNew = Userods.CopyUser(user, formUserPassword.PasswordContainer_, formUserPassword.IsPasswordStrong, newUserName);
+        var userodNew = Userods.CopyUser(user, formUserPassword.Password, formUserPassword.IsPasswordStrong, newUserName);
         
         DataValid.SetInvalid(InvalidType.Security, InvalidType.UserClinics);
         
@@ -177,7 +178,7 @@ public partial class FormSecurity : FormODBase
         
         GroupPermission groupPermission;
         
-        var listDefsSelected = formDefinitionPicker.ListDefsSelected;
+        var listDefsSelected = formDefinitionPicker.SelectedDefs;
         if (listDefsSelected.Count == listDefsAll.Count)
         {
             groupPermission = new GroupPermission

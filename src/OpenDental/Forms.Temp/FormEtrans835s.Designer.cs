@@ -70,7 +70,7 @@
 			this.listStatus.SelectionMode = OpenDental.UI.SelectionMode.MultiExtended;
 			this.listStatus.Size = new System.Drawing.Size(120, 56);
 			this.listStatus.TabIndex = 106;
-			this.listStatus.MouseUp += new System.Windows.Forms.MouseEventHandler(this.listStatus_MouseUp);
+			this.listStatus.MouseUp += new System.Windows.Forms.MouseEventHandler(this.ListBoxStatus_MouseUp);
 			// 
 			// butRefresh
 			// 
@@ -81,7 +81,7 @@
 			this.butRefresh.TabIndex = 82;
 			this.butRefresh.Text = "Refresh";
 			this.butRefresh.UseVisualStyleBackColor = true;
-			this.butRefresh.Click += new System.EventHandler(this.butRefresh_Click);
+			this.butRefresh.Click += new System.EventHandler(this.ButtonRefresh_Click);
 			// 
 			// groupBox2
 			// 
@@ -244,7 +244,7 @@
 			this.gridMain.TabIndex = 8;
 			this.gridMain.Title = "ERAs";
 			this.gridMain.TranslationName = "TableEtrans835s";
-			this.gridMain.DoubleClick += new System.EventHandler(this.gridMain_DoubleClick);
+			this.gridMain.DoubleClick += new System.EventHandler(this.GridMain_DoubleClick);
 			// 
 			// checkAutomatableCarriersOnly
 			// 
@@ -273,7 +273,7 @@
 			this.butAutoProcessedEras.TabIndex = 272;
 			this.butAutoProcessedEras.Text = "Auto Processed Report";
 			this.butAutoProcessedEras.UseVisualStyleBackColor = true;
-			this.butAutoProcessedEras.Click += new System.EventHandler(this.butAutoProcessedEras_Click);
+			this.butAutoProcessedEras.Click += new System.EventHandler(this.ButtonAutoProcessedEras_Click);
 			// 
 			// FormEtrans835s
 			// 

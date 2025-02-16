@@ -9,6 +9,7 @@ using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Data;
 using Imedisoft.Core.Entities;
+using OpenDental.Forms;
 using EdgeExpressProps = OpenDentBusiness.ProgramProperties.PropertyDescs.EdgeExpress;
 
 namespace OpenDental;
@@ -304,8 +305,8 @@ public partial class FormClaimPayEdit:FormODBase {
 	private void butPickPaymentGroup_Click(object sender,EventArgs e) {
 		using var formDefinitionPicker=new FormDefinitionPicker(DefCat.ClaimPaymentGroups);
 		formDefinitionPicker.ShowDialog();
-		if(formDefinitionPicker.DialogResult==DialogResult.OK && !formDefinitionPicker.ListDefsSelected.IsNullOrEmpty()) {
-			FillComboPaymentGroup(formDefinitionPicker.ListDefsSelected[0].DefNum);
+		if(formDefinitionPicker.DialogResult==DialogResult.OK && !formDefinitionPicker.SelectedDefs.IsNullOrEmpty()) {
+			FillComboPaymentGroup(formDefinitionPicker.SelectedDefs[0].DefNum);
 		}
 	}
 

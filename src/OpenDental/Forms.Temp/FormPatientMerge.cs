@@ -78,7 +78,7 @@ public partial class FormPatientMerge:FormODBase {
 		   || _patientFrom.Birthdate!=_patientTo.Birthdate) 
 		{//mismatch
 			msgText=Lan.g(this,"The two patients do not have the same first name, last name, and birthdate.");
-			if(Programs.UsingEcwTightOrFullMode()) {
+			if(false) {
 				msgText+="\r\n"+Lan.g(this,"The patients must first be merged from within eCW, then immediately merged in the same order in Open Dental.  "
 				                           +"If the patients are not merged in this manner, some information may not properly bridge between eCW and Open Dental.");
 			}

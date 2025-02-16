@@ -132,6 +132,11 @@ public class FormODBase : Form
         ODMessageBox.Show(message, Text);
     }
     
+    protected void Warn(string message)
+    {
+        ODMessageBox.Show(message, Text);
+    }
+    
     protected void ShowInfo(string message)
     {
         ODMessageBox.Show(message, Text);

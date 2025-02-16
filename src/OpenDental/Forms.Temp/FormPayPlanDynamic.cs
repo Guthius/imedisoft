@@ -15,6 +15,7 @@ using System.Windows.Forms;
 using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Entities;
+using OpenDental.Forms;
 using OpenDental.Logic;
 
 namespace OpenDental;
@@ -549,11 +550,11 @@ public partial class FormPayPlanDynamic : FormODBase {
 		using var formPayPlanTemplates=new FormPayPlanTemplates();
 		formPayPlanTemplates.IsSelectionMode=true;
 		formPayPlanTemplates.ShowDialog();
-		if(formPayPlanTemplates.DialogResult==DialogResult.Cancel || formPayPlanTemplates.PayPlanTemplateCur==null) {
+		if(formPayPlanTemplates.DialogResult==DialogResult.Cancel || formPayPlanTemplates.SelectedPayPlanTemplate==null) {
 			return;
 		}
 		//Apply template to plan terms
-		var payPlanTemplate=formPayPlanTemplates.PayPlanTemplateCur;
+		var payPlanTemplate=formPayPlanTemplates.SelectedPayPlanTemplate;
 		if(SIn.Double(textDownPayment.Text)!=payPlanTemplate.DownPayment && textDownPayment.ReadOnly) { 
 			if(!MsgBox.Show(MsgBoxButtons.YesNo,"You cannot change the downpayment. Would you like to apply everything else from the template?")) {
 				return;

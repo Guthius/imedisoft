@@ -247,7 +247,6 @@ public partial class ControlImages : UserControl{
 		toolBarMain.Add("",ToolBarScanPhoto_Click,WpfControls.UI.EnumIcons.ScanPhoto,toolTipText:Lan.g(this,"Scan Photo"));
 		toolBarMain.AddSeparator();
 		toolBarMain.Add(Lan.g(this,"Mount / Acquire"),ToolBarMountAcquire_Click,WpfControls.UI.EnumIcons.Acquire,toolTipText:Lan.g(this,"Create Mount and/or Acquire from device"));
-		toolBarMain.Add(Lan.g(this,"Video"),ToolBarVideo_Click,WpfControls.UI.EnumIcons.Video,toolTipText:Lan.g(this,"Intraoral Video Camera"));
 		toolBarMain.AddSeparator();
 		var contextMenuImport = new WpfControls.UI.ContextMenu();
 		contextMenuImport.Add(new WpfControls.UI.MenuItem(Lan.g(this,"Import Automatically"),ToolBarImportAuto));
@@ -2908,31 +2907,6 @@ public partial class ControlImages : UserControl{
 		Documents.Update(document);
 		var nodeTypeAndKey=controlImageDisplay.GetNodeTypeAndKey();
 		SelectTreeNode1(nodeTypeAndKey);
-	}
-
-	private void ToolBarVideo_Click(object sender,EventArgs e){
-		//If no patient selected, then this button is disabled
-		if(!Security.IsAuthorized(EnumPermType.ImageCreate)) {
-			return;
-		}
-		if(!/* ODBuild.IsTrial() */ false
-		   && !OpenDentBusiness.Help.IsEncryptedKeyValid())//always true in debug
-		{
-			MsgBox.Show(this,"This feature requires an active support plan.");
-			return;
-		}
-		if(_formLauncherVideo is null){
-			_formLauncherVideo=new FormLauncher(EnumFormName.FormVideo);
-			_formLauncherVideo.SetEvent("BitmapCaptured",formVideo_BitmapCaptured);
-		}
-		if(_formLauncherVideo.IsNullDisposedOrNotVis()){
-			PreselectFirstItem();
-			//still might not be one selected, so test each time
-			_formLauncherVideo.Show();
-			LayoutControls();
-			return;
-		}
-		_formLauncherVideo.RestoreAndFront();
 	}
 	#endregion Methods - Event Handlers Toolbars
 

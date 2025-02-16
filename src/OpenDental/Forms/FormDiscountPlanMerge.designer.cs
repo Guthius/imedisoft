@@ -1,4 +1,4 @@
-namespace OpenDental{
+namespace OpenDental.Forms{
 	partial class FormDiscountPlanMerge {
 		/// <summary>
 		/// Required designer variable.
@@ -87,7 +87,7 @@ namespace OpenDental{
 			this.butChangePlanInto.Size = new System.Drawing.Size(75, 24);
 			this.butChangePlanInto.TabIndex = 4;
 			this.butChangePlanInto.Text = "Change";
-			this.butChangePlanInto.Click += new System.EventHandler(this.butChangePlanInto_Click);
+			this.butChangePlanInto.Click += new System.EventHandler(this.ButtonChangePlanInto_Click);
 			// 
 			// textFeeSchedInto
 			// 
@@ -165,7 +165,7 @@ namespace OpenDental{
 			this.butChangePlanFrom.Size = new System.Drawing.Size(75, 24);
 			this.butChangePlanFrom.TabIndex = 9;
 			this.butChangePlanFrom.Text = "Change";
-			this.butChangePlanFrom.Click += new System.EventHandler(this.butChangePlanFrom_Click);
+			this.butChangePlanFrom.Click += new System.EventHandler(this.ButtonChangePlanFrom_Click);
 			// 
 			// textFeeSchedFrom
 			// 
@@ -210,7 +210,7 @@ namespace OpenDental{
 			this.butMerge.Size = new System.Drawing.Size(75, 24);
 			this.butMerge.TabIndex = 3;
 			this.butMerge.Text = "Merge";
-			this.butMerge.Click += new System.EventHandler(this.butMerge_Click);
+			this.butMerge.Click += new System.EventHandler(this.ButtonMerge_Click);
 			// 
 			// FormDiscountPlanMerge
 			// 
@@ -223,7 +223,6 @@ namespace OpenDental{
 			this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
 			this.Name = "FormDiscountPlanMerge";
 			this.Text = "Merge Discount Plans";
-			this.Load += new System.EventHandler(this.FormDiscountPlanMerge_Load);
 			this.groupBox1.ResumeLayout(false);
 			this.groupBox1.PerformLayout();
 			this.groupBox2.ResumeLayout(false);

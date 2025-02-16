@@ -194,13 +194,13 @@ public partial class FormClaimPayList : FormODBase
             return;
         }
 
-        if (formDefinitionPicker.ListDefsSelected.Count < 1)
+        if (formDefinitionPicker.SelectedDefs.Count < 1)
         {
             FillComboPaymentGroup();
         }
         else
         {
-            FillComboPaymentGroup(formDefinitionPicker.ListDefsSelected[0].DefNum);
+            FillComboPaymentGroup(formDefinitionPicker.SelectedDefs[0].DefNum);
         }
     }
 }

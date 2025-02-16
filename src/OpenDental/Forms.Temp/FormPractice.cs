@@ -23,7 +23,7 @@ public partial class FormPractice : FormODBase {
 			label15.Text=Lang.g(this,"City, Prov, Postal");
 		}
 		checkIsMedicalOnly.Checked=PrefC.GetBool(PrefName.PracticeIsMedicalOnly);
-		if(Programs.UsingEcwTightOrFullMode()) {
+		if(false) {
 			checkIsMedicalOnly.Visible=false;
 		}
 		textPracticeTitle.Text=PrefC.GetString(PrefName.PracticeTitle);

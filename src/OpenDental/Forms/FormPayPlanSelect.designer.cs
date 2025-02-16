@@ -1,11 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Forms;
+﻿using System.Windows.Forms;
 
-namespace OpenDental {
+namespace OpenDental.Forms {
 	public partial class FormPayPlanSelect {
 		/// <summary>
 		/// Required designer variable.
@@ -50,7 +45,7 @@ namespace OpenDental {
 			this.butOK.Size = new System.Drawing.Size(75, 26);
 			this.butOK.TabIndex = 0;
 			this.butOK.Text = "&OK";
-			this.butOK.Click += new System.EventHandler(this.butOK_Click);
+			this.butOK.Click += new System.EventHandler(this.ButtonAccept_Click);
 			// 
 			// gridMain
 			// 
@@ -63,8 +58,8 @@ namespace OpenDental {
 			this.gridMain.TabIndex = 3;
 			this.gridMain.Title = "Payment Plans";
 			this.gridMain.TranslationName = "TablePaymentPlans";
-			this.gridMain.CellDoubleClick += new OpenDental.UI.ODGridClickEventHandler(this.gridMain_CellDoubleClick);
-			this.gridMain.KeyDown += new System.Windows.Forms.KeyEventHandler(this.gridMain_KeyDown);
+			this.gridMain.CellDoubleClick += new OpenDental.UI.ODGridClickEventHandler(this.GridMain_CellDoubleClick);
+			this.gridMain.KeyDown += new System.Windows.Forms.KeyEventHandler(this.GridMain_KeyDown);
 			// 
 			// butNone
 			// 
@@ -75,7 +70,7 @@ namespace OpenDental {
 			this.butNone.TabIndex = 4;
 			this.butNone.Text = "None";
 			this.butNone.Visible = false;
-			this.butNone.Click += new System.EventHandler(this.butNone_Click);
+			this.butNone.Click += new System.EventHandler(this.ButtonNone_Click);
 			// 
 			// labelExpl
 			// 

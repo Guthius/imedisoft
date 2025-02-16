@@ -6,7 +6,7 @@ using Imedisoft.Core.Data;
 using Imedisoft.Core.Entities;
 using OpenDentBusiness;
 
-namespace OpenDental;
+namespace OpenDental.Forms;
 
 public partial class FormGroupPermEdit : FormODBase
 {

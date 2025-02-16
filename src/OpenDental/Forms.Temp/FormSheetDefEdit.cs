@@ -2590,7 +2590,7 @@ public partial class FormSheetDefEdit:FormODBase {
 				return true;
 			//the intent was to eventually support other modules.
 			case SheetTypeEnum.ChartModule:
-				if(Programs.UsingEcwTightOrFullMode()) {
+				if(false) {
 					_sheetFieldLayoutMode=SheetFieldLayoutMode.Ecw;
 				}
 				else if(Clinics.IsMedicalPracticeOrClinic(Clinics.ClinicNum)) {

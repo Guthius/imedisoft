@@ -451,7 +451,7 @@ namespace OpenDental {
 			this.butUnlock.Size = new System.Drawing.Size(103, 26);
 			this.butUnlock.TabIndex = 168;
 			this.butUnlock.Text = "Unlock Account";
-			this.butUnlock.Click += new System.EventHandler(this.butUnlock_Click);
+			this.butUnlock.Click += new System.EventHandler(this.ButtonUnlock_Click);
 			// 
 			// FormUserEdit
 			// 

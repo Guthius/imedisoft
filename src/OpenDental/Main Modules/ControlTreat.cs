@@ -104,7 +104,7 @@ public partial class ControlTreat : System.Windows.Forms.UserControl{
 		//showHidden=true;//shows hidden priorities
 		LayoutToolBar();//redundant?
 		tabControlShowSort.TabPages.Remove(tabPagePrint);//We may add this back in gridPlans_CellClick.
-		if(Programs.UsingEcwTightOrFullMode()) {
+		if(false) {
 			butPlannedAppt.Visible=false;
 		}
 	}

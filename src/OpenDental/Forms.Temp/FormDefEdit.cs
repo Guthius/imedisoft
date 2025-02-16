@@ -13,6 +13,7 @@ using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Data;
 using Imedisoft.Core.Entities;
+using OpenDental.Forms;
 using OpenDentBusiness;
 
 namespace OpenDental;
@@ -202,7 +203,7 @@ public partial class FormDefEdit : FormODBase {
 		if(formDefinitionPicker.DialogResult!=DialogResult.OK) {
 			return;
 		}
-		var defSelected=formDefinitionPicker.ListDefsSelected.DefaultIfEmpty(new Def { ItemName="" }).First();
+		var defSelected=formDefinitionPicker.SelectedDefs.DefaultIfEmpty(new Def { ItemName="" }).First();
 		_strSelectedValue=defSelected.DefNum==0?"":defSelected.DefNum.ToString();//list should have exactly one def in it, but this is safe
 		textValue.Text=defSelected.ItemName;
 	}

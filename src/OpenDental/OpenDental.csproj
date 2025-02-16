@@ -133,6 +133,42 @@
       <Compile Update="Forms\FormClaimPayList.cs">
         <SubType>Form</SubType>
       </Compile>
+      <Compile Update="Forms\FormDefinitionPicker.cs">
+        <SubType>Form</SubType>
+      </Compile>
+      <Compile Update="Forms\FormDiscountPlanSubEdit.cs">
+        <SubType>Form</SubType>
+      </Compile>
+      <Compile Update="Forms\FormDiscountPlans.cs">
+        <SubType>Form</SubType>
+      </Compile>
+      <Compile Update="Forms\FormDiscountPlanMerge.cs">
+        <SubType>Form</SubType>
+      </Compile>
+      <Compile Update="Forms\FormPayPlanRecalculate.cs">
+        <SubType>Form</SubType>
+      </Compile>
+      <Compile Update="Forms\FormPayPlanSelect.cs">
+        <SubType>Form</SubType>
+      </Compile>
+      <Compile Update="Forms\FormPayPlanTemplates.cs">
+        <SubType>Form</SubType>
+      </Compile>
+      <Compile Update="Forms\FormUserPassword.cs">
+        <SubType>Form</SubType>
+      </Compile>
+      <Compile Update="Forms\FormDefEditBlockout.cs">
+        <SubType>Form</SubType>
+      </Compile>
+      <Compile Update="Forms\FormClaimAttachPasteDXCItem.cs">
+        <SubType>Form</SubType>
+      </Compile>
+      <Compile Update="Forms\FormDeposits.cs">
+        <SubType>Form</SubType>
+      </Compile>
+      <Compile Update="Forms\FormGroupPermEdit.cs">
+        <SubType>Form</SubType>
+      </Compile>
     </ItemGroup>
 
 </Project>

@@ -8,6 +8,7 @@ using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Data;
 using Imedisoft.Core.Entities;
+using OpenDental.Forms;
 
 namespace OpenDental;
 
@@ -246,7 +247,7 @@ public partial class FormRecallTypeEdit:FormODBase {
 		if(formDefinitionPicker.DialogResult!=DialogResult.OK) {
 			return;
 		}
-		_listDefsCur=ListTools.DeepCopy<Def,Def>(formDefinitionPicker.ListDefsSelected);
+		_listDefsCur=ListTools.DeepCopy<Def,Def>(formDefinitionPicker.SelectedDefs);
 		FillBlockoutTypeValues();
 	}
 

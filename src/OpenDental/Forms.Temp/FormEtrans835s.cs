@@ -2,249 +2,296 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Windows.Forms;
-using OpenDental.UI;
-using OpenDentBusiness;
 using CodeBase;
 using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Data;
 using Imedisoft.Core.Entities;
 using Imedisoft.Core.Features.Clinics;
+using OpenDental.UI;
+using OpenDentBusiness;
 
 namespace OpenDental;
 
-public partial class FormEtrans835s:FormODBase {
-	
-	///<summary>Start date used to populate _listEtranss.</summary>
-	private DateTime _dateFrom=DateTime.MaxValue;
-	///<summary>End date used to populate _listEtranss.</summary>
-	private DateTime _dateTo=DateTime.MaxValue;
-	private List<X835Status> _listX835Statuses= [];
+public partial class FormEtrans835s : FormODBase
+{
+    private readonly List<X835Status> _x835Statuses = [];
+    private DateTime _dateFrom = DateTime.MaxValue;
+    private DateTime _dateTo = DateTime.MaxValue;
 
-	public FormEtrans835s() {
-		InitializeComponent();
-	}
-		
-	private void FormEtrans835s_Load(object sender,EventArgs e) {
-		base.SetFilterControlsAndAction((() => FilterAndFillGrid()),
-			textRangeMin,textRangeMax,textControlId,textCarrier,textCheckTrace,comboClinics,checkShowFinalizedOnly,checkAutomatableCarriersOnly,dateRangePicker
-		);
-		dateRangePicker.SetDateTimeFrom(DateTime.Today.AddDays(-7));
-		dateRangePicker.SetDateTimeTo(DateTime.Today);
-		#region User Clinics
-		if(true) {
-			comboClinics.IsAllSelected=true;//Defaults to 'All' so that 835s with missing clinic will show.
-		}
-		#endregion
-		#region Statuses
-		if(PrefC.GetBool(PrefName.EraShowStatusAndClinic)) {
-			checkShowFinalizedOnly.Visible=false;
-		}
-		else {
-			labelStatus.Visible=false;
-			listStatus.Visible=false;
-			checkAutomatableCarriersOnly.Visible=false;
-			comboClinics.Visible=false;
-		}
-		for(var i=0;i<Enum.GetValues(typeof(X835Status)).Length;i++) {
-			var x835Status=(X835Status)i;
-			if(x835Status.In(X835Status.None,X835Status.FinalizedSomeDetached,X835Status.FinalizedAllDetached)) {
-				//FinalizedSomeDetached and FinalizedAllDetached are shown via Finalized.
-				continue;
-			}
-			listStatus.Items.Add(Lan.g(this,x835Status.GetDescription()));
-			_listX835Statuses.Add(x835Status);
-			var isSelected=true;
-			if(x835Status==X835Status.Finalized) {
-				isSelected=false;
-			}
-			listStatus.SetSelected(listStatus.Items.Count-1,isSelected);
-		}
-		#endregion
-	}
+    public FormEtrans835s()
+    {
+        InitializeComponent();
+    }
 
-	private void FormEtrans835s_Shown(object sender,EventArgs e) {
-		if(PrefC.GetBool(PrefName.EraRefreshOnLoad)) {
-			//This must be in Shown due to the progress bar forcing this window behind other windows.
-			FilterAndFillGrid();
-			SecurityLogs.MakeLogEntry(EnumPermType.InsPayCreate,0,"Window 'Electronic EOBs - ERA 835s' opened.");
-		}
-	}
+    private void FormEtrans835s_Load(object sender, EventArgs e)
+    {
+        SetFilterControlsAndAction(FilterAndFillGrid,
+            textRangeMin,
+            textRangeMax,
+            textControlId,
+            textCarrier,
+            textCheckTrace,
+            comboClinics,
+            checkShowFinalizedOnly,
+            checkAutomatableCarriersOnly,
+            dateRangePicker);
 
-	///<summary>Allows you to pass in predetermined filter options.</summary>
-	private void FillGrid(List<long> listSelectedClinicNums,string carrierName,string checkTraceNum,
-		string amountMin,string amountMax,string controlId,bool doShowAutomatableCarriersOnly)
-	{
-		Cursor=Cursors.WaitCursor;
-		labelControlId.Visible=PrefC.GetBool(PrefName.EraShowControlIdFilter);
-		textControlId.Visible=PrefC.GetBool(PrefName.EraShowControlIdFilter);
-		var showStatusAndClinics=PrefC.GetBool(PrefName.EraShowStatusAndClinic);
-		_dateFrom=dateRangePicker.GetDateTimeFrom();
-		_dateTo=dateRangePicker.GetDateTimeTo(isDefaultMaxDateT:true);
-		var progressOD=new UI.ProgressWin();
-		progressOD.ActionMain=() => {
-			EtransL.AddMissingEtrans835s(_dateFrom,_dateTo);
-		};
-		progressOD.ShowDialog();
-		progressOD=new UI.ProgressWin();
-		progressOD.ActionMain=() => {
-			#region Filters
-			if(true) {
-				if(comboClinics.ListClinicNumsSelected.Count==0){
-					comboClinics.IsAllSelected=true;//All clinics.
-				}
-			}
-			var listX835Statuses=new List<X835Status>();
-			if(showStatusAndClinics) {
-				for(var i=0;i<listStatus.SelectedIndices.Count;i++) {//Add the selected statuses to the list.
-					listX835Statuses.Add(_listX835Statuses[listStatus.SelectedIndices[i]]);
-				}
-				if(listX835Statuses.Contains(X835Status.Finalized)) {//Our list in the UI only allows the user to select "Finalized" thus we include all 3 finalized statuses.
-					listX835Statuses.Add(X835Status.FinalizedAllDetached);
-					listX835Statuses.Add(X835Status.FinalizedSomeDetached);
-				}
-			}
-			else if(checkShowFinalizedOnly.Checked) {
-				listX835Statuses=new List<X835Status>([X835Status.Finalized,X835Status.FinalizedAllDetached,X835Status.FinalizedSomeDetached]);
-			}
-			else {
-				listX835Statuses=new List<X835Status>([X835Status.NotFinalized,X835Status.Partial,X835Status.Unprocessed]);
-			}
-			var eraDataFiltered=EtransL.GetEraDataFiltered(showStatusAndClinics,listX835Statuses,listSelectedClinicNums,amountMin,amountMax,
-				_dateFrom,_dateTo,carrierName,checkTraceNum,controlId,doShowAutomatableCarriersOnly,comboClinics.IsAllSelected);
-			#endregion Filters
-			gridMain.Invoke(gridMain.BeginUpdate);
-			#region Initilize columns
-			gridMain.Columns.Clear();
-			gridMain.Columns.Add(new GridColumn(Lan.g("TableEtrans835s","Patient Name"),250));
-			gridMain.Columns.Add(new GridColumn(Lan.g("TableEtrans835s","Carrier Name"),190));
-			if(showStatusAndClinics) {
-				gridMain.Columns.Add(new GridColumn(Lan.g("TableEtrans835s","Status"),80));
-			}
-			gridMain.Columns.Add(new GridColumn(Lan.g("TableEtrans835s","Date"),80,GridSortingStrategy.DateParse));
-			gridMain.Columns.Add(new GridColumn(Lan.g("TableEtrans835s","Amount"),80,GridSortingStrategy.AmountParse));
-			if(showStatusAndClinics && true) {
-				gridMain.Columns.Add(new GridColumn(Lan.g("TableEtrans835s","Clinic"),70));
-			}
-			gridMain.Columns.Add(new GridColumn(Lan.g("TableEtrans835s","Code"),37,HorizontalAlignment.Center));
-			GridColumn col;
-			if(PrefC.GetBool(PrefName.EraShowControlIdFilter)) {
-				col=new GridColumn(Lan.g("TableEtrans835s","ControlID"),70);
-				col.IsWidthDynamic=true;
-				gridMain.Columns.Add(col);
-			}
-			col=new GridColumn(Lan.g("TableEtrans835s","Note"),250);
-			col.IsWidthDynamic=true;
-			col.DynamicWeight=2;
-			gridMain.Columns.Add(col);
-			#endregion
-			#region Fill Rows
-			gridMain.ListGridRows.Clear();
-			for(var i=0;i<eraDataFiltered.ListEtrans.Count;i++) {
-				ODEvent.Fire(ODEventType.ProgressBar,Lan.g(this,"Filling grid rows ")+(i+1)+"/"+eraDataFiltered.ListEtrans.Count);
-				var etrans835=eraDataFiltered.ListEtrans835s[i];
-				var row=new GridRow();
-				row.Cells.Add(etrans835.PatientName);
-				row.Cells.Add(etrans835.PayerName);
-				if(showStatusAndClinics) {
-					var status=Lan.g(this,etrans835.Status.GetDescription());
-					row.Cells.Add(status);
-				}
-				row.Cells.Add(SOut.Date(eraDataFiltered.ListEtrans[i].DateTimeTrans));
-				row.Cells.Add(SOut.Double(etrans835.InsPaid));
-				#region Column: Clinic
-				if(showStatusAndClinics && true) {
-					var listClinicNums=eraDataFiltered.ListAttached.FindAll(x => x.EtransNum==eraDataFiltered.ListEtrans[i].EtransNum)
-						.Select(x => x.ClinicNum).Distinct().ToList();
-					var clinicAbbr="";
-					if(listClinicNums.Count==1) {
-						if(listClinicNums[0]==0) {
-							clinicAbbr=Lan.g(this,"Unassigned");
-						}
-						else {
-							clinicAbbr=Clinics.GetAbbr(listClinicNums[0]);
-						}
-					}
-					else if(listClinicNums.Count>1) {
-						clinicAbbr="("+Lan.g(this,"Multiple")+")";
-					}
-					row.Cells.Add(clinicAbbr);
-				}
-				#endregion
-				row.Cells.Add(etrans835.PaymentMethodCode);
-				if(PrefC.GetBool(PrefName.EraShowControlIdFilter)) {
-					row.Cells.Add(etrans835.ControlId);
-				}
-				row.Cells.Add(eraDataFiltered.ListEtrans[i].Note);
-				row.Tag=eraDataFiltered.ListEtrans[i];
-				gridMain.ListGridRows.Add(row);
-			}
-			#endregion Fill Rows
-			gridMain.Invoke(gridMain.EndUpdate);
-		};
-		progressOD.ShowDialog();
-		Cursor=Cursors.Default;
-	}
+        dateRangePicker.SetDateTimeFrom(DateTime.Today.AddDays(-7));
+        dateRangePicker.SetDateTimeTo(DateTime.Today);
 
-	///<summary>Called when we need to filter the current in memory contents in _listEtrans. Calls FillGrid()</summary>
-	private void FilterAndFillGrid() {
-		List<long> listClinicNums=null;//A null signifies that clinics are disabled.
-		if(true) {
-			listClinicNums=comboClinics.ListClinicNumsSelected;
-		}
-		FillGrid(
-			listSelectedClinicNums:					listClinicNums,
-			carrierName:										textCarrier.Text,
-			checkTraceNum:									textCheckTrace.Text,
-			amountMin:											textRangeMin.Text,
-			amountMax:											textRangeMax.Text,
-			controlId:											textControlId.Text,
-			doShowAutomatableCarriersOnly:	checkAutomatableCarriersOnly.Checked
-		);
-	}
+        comboClinics.IsAllSelected = true;
 
-	private void butRefresh_Click(object sender,EventArgs e) {
-		FilterAndFillGrid();
-	}
+        if (PrefC.GetBool(PrefName.EraShowStatusAndClinic))
+        {
+            checkShowFinalizedOnly.Visible = false;
+        }
+        else
+        {
+            labelStatus.Visible = false;
+            listStatus.Visible = false;
+            checkAutomatableCarriersOnly.Visible = false;
+            comboClinics.Visible = false;
+        }
 
-	private void gridMain_DoubleClick(object sender,EventArgs e) {
-		var index=gridMain.GetSelectedIndex();
-		if(index==-1) {//Clicked in empty space. 
-			return;
-		}
-		//Mimics FormClaimsSend.gridHistory_CellDoubleClick(...)
-		Cursor=Cursors.WaitCursor;
-		var etrans=(Etrans)gridMain.ListGridRows[index].Tag;
-		//Sadly this is needed due to FormEtrans835Edit calling Etranss.Update .
-		//See Etranss.RefreshHistory(...), this query does not select all etrans columns.
-		//Mimics FormClaimsSend.gridHistory_CellDoubleClick(...)
-		etrans=Etranss.GetEtrans(etrans.EtransNum);
-		if(etrans==null) {
-			Cursor=Cursors.Default;
-			MsgBox.Show(this,"ERA could not be found, it was most likely deleted.");
-			FilterAndFillGrid();
-			return;
-		}
-		EtransL.ViewFormForEra(etrans,this);
-		Cursor=Cursors.Default;
-	}
+        for (var i = 0; i < Enum.GetValues(typeof(X835Status)).Length; i++)
+        {
+            var x835Status = (X835Status) i;
+            if (x835Status is X835Status.None or X835Status.FinalizedSomeDetached or X835Status.FinalizedAllDetached)
+            {
+                continue;
+            }
 
-	private void listStatus_MouseUp(object sender,MouseEventArgs e) {
-		FilterAndFillGrid();
-	}
+            listStatus.Items.Add(x835Status.GetDescription());
 
-	///<summary>User will be blocked if they don't have permission to access the EraAutoProcessed report.</summary>
-	private void butAutoProcessedEras_Click(object sender,EventArgs e) {
-		var displayReportEraAutoProcessed=DisplayReports.GetByInternalName(DisplayReports.ReportNames.EraAutoProcessed);
-		if(displayReportEraAutoProcessed==null) {
-			MsgBox.Show(this,"The "+DisplayReports.ReportNames.EraAutoProcessed+" report could not be found.");
-			return;
-		}
-		if(!Security.IsAuthorized(EnumPermType.Reports,displayReportEraAutoProcessed.DisplayReportNum,suppressMessage:false)) {
-			return;
-		}
-		var formRpEraAutoProcessed=new FormRpEraAutoProcessed();
-		formRpEraAutoProcessed.Show();
-	}
+            _x835Statuses.Add(x835Status);
 
+            var isSelected = x835Status != X835Status.Finalized;
+
+            listStatus.SetSelected(listStatus.Items.Count - 1, isSelected);
+        }
+    }
+
+    private void FormEtrans835s_Shown(object sender, EventArgs e)
+    {
+        if (!PrefC.GetBool(PrefName.EraRefreshOnLoad))
+        {
+            return;
+        }
+
+        FilterAndFillGrid();
+
+        SecurityLogs.MakeLogEntry(EnumPermType.InsPayCreate, 0, "Window 'Electronic EOBs - ERA 835s' opened.");
+    }
+
+    private void FillGrid(List<long> listSelectedClinicNums, string carrierName, string checkTraceNum, string amountMin, string amountMax, string controlId, bool doShowAutomatableCarriersOnly)
+    {
+        Cursor = Cursors.WaitCursor;
+
+        labelControlId.Visible = PrefC.GetBool(PrefName.EraShowControlIdFilter);
+        textControlId.Visible = PrefC.GetBool(PrefName.EraShowControlIdFilter);
+
+        var showStatusAndClinics = PrefC.GetBool(PrefName.EraShowStatusAndClinic);
+
+        _dateFrom = dateRangePicker.GetDateTimeFrom();
+        _dateTo = dateRangePicker.GetDateTimeTo(isDefaultMaxDateT: true);
+
+        var progress = new ProgressWin
+        {
+            ActionMain = () => { EtransL.AddMissingEtrans835s(_dateFrom, _dateTo); }
+        };
+
+        progress.ShowDialog();
+        progress = new ProgressWin
+        {
+            ActionMain = () =>
+            {
+                if (comboClinics.ListClinicNumsSelected.Count == 0)
+                {
+                    comboClinics.IsAllSelected = true;
+                }
+
+                var x835Statuses = new List<X835Status>();
+                if (showStatusAndClinics)
+                {
+                    foreach (var index in listStatus.SelectedIndices)
+                    {
+                        x835Statuses.Add(_x835Statuses[index]);
+                    }
+
+                    if (x835Statuses.Contains(X835Status.Finalized))
+                    {
+                        x835Statuses.Add(X835Status.FinalizedAllDetached);
+                        x835Statuses.Add(X835Status.FinalizedSomeDetached);
+                    }
+                }
+                else if (checkShowFinalizedOnly.Checked)
+                {
+                    x835Statuses = new List<X835Status>([X835Status.Finalized, X835Status.FinalizedAllDetached, X835Status.FinalizedSomeDetached]);
+                }
+                else
+                {
+                    x835Statuses = new List<X835Status>([X835Status.NotFinalized, X835Status.Partial, X835Status.Unprocessed]);
+                }
+
+                var eraDataFiltered = EtransL.GetEraDataFiltered(showStatusAndClinics, x835Statuses, listSelectedClinicNums, amountMin, amountMax, _dateFrom, _dateTo, carrierName, checkTraceNum, controlId, doShowAutomatableCarriersOnly, comboClinics.IsAllSelected);
+
+                gridMain.Invoke(gridMain.BeginUpdate);
+
+                gridMain.Columns.Clear();
+                gridMain.Columns.Add(new GridColumn("Patient Name", 250));
+                gridMain.Columns.Add(new GridColumn("Carrier Name", 190));
+
+                if (showStatusAndClinics)
+                {
+                    gridMain.Columns.Add(new GridColumn("Status", 80));
+                }
+
+                gridMain.Columns.Add(new GridColumn("Date", 80, GridSortingStrategy.DateParse));
+                gridMain.Columns.Add(new GridColumn("Amount", 80, GridSortingStrategy.AmountParse));
+                if (showStatusAndClinics)
+                {
+                    gridMain.Columns.Add(new GridColumn("Clinic", 70));
+                }
+
+                gridMain.Columns.Add(new GridColumn("Code", 37, HorizontalAlignment.Center));
+
+                if (PrefC.GetBool(PrefName.EraShowControlIdFilter))
+                {
+                    gridMain.Columns.Add(new GridColumn("ControlID", 70) {IsWidthDynamic = true});
+                }
+
+                gridMain.Columns.Add(new GridColumn("Note", 250) {IsWidthDynamic = true, DynamicWeight = 2});
+                gridMain.ListGridRows.Clear();
+
+                for (var i = 0; i < eraDataFiltered.ListEtrans.Count; i++)
+                {
+                    ODEvent.Fire(ODEventType.ProgressBar, "Filling grid rows " + (i + 1) + "/" + eraDataFiltered.ListEtrans.Count);
+
+                    var etrans835 = eraDataFiltered.ListEtrans835s[i];
+
+                    var gridRow = new GridRow();
+
+                    gridRow.Cells.Add(etrans835.PatientName);
+                    gridRow.Cells.Add(etrans835.PayerName);
+
+                    if (showStatusAndClinics)
+                    {
+                        gridRow.Cells.Add(etrans835.Status.GetDescription());
+                    }
+
+                    gridRow.Cells.Add(SOut.Date(eraDataFiltered.ListEtrans[i].DateTimeTrans));
+                    gridRow.Cells.Add(SOut.Double(etrans835.InsPaid));
+
+                    if (showStatusAndClinics)
+                    {
+                        var clinicNums = eraDataFiltered.ListAttached
+                            .Where(x => x.EtransNum == eraDataFiltered.ListEtrans[i].EtransNum)
+                            .Select(x => x.ClinicNum).Distinct()
+                            .ToList();
+
+                        var clinicAbbr = clinicNums.Count switch
+                        {
+                            1 => clinicNums[0] == 0 ? "Unassigned" : Clinics.GetAbbr(clinicNums[0]),
+                            > 1 => "(Multiple)",
+                            _ => ""
+                        };
+
+                        gridRow.Cells.Add(clinicAbbr);
+                    }
+
+                    gridRow.Cells.Add(etrans835.PaymentMethodCode);
+
+                    if (PrefC.GetBool(PrefName.EraShowControlIdFilter))
+                    {
+                        gridRow.Cells.Add(etrans835.ControlId);
+                    }
+
+                    gridRow.Cells.Add(eraDataFiltered.ListEtrans[i].Note);
+                    gridRow.Tag = eraDataFiltered.ListEtrans[i];
+
+                    gridMain.ListGridRows.Add(gridRow);
+                }
+
+                gridMain.Invoke(gridMain.EndUpdate);
+            }
+        };
+
+        progress.ShowDialog();
+
+        Cursor = Cursors.Default;
+    }
+
+    private void FilterAndFillGrid()
+    {
+        var clinicNums = comboClinics.ListClinicNumsSelected;
+
+        FillGrid(
+            listSelectedClinicNums: clinicNums,
+            carrierName: textCarrier.Text,
+            checkTraceNum: textCheckTrace.Text,
+            amountMin: textRangeMin.Text,
+            amountMax: textRangeMax.Text,
+            controlId: textControlId.Text,
+            doShowAutomatableCarriersOnly: checkAutomatableCarriersOnly.Checked);
+    }
+
+    private void ButtonRefresh_Click(object sender, EventArgs e)
+    {
+        FilterAndFillGrid();
+    }
+
+    private void GridMain_DoubleClick(object sender, EventArgs e)
+    {
+        var selectedIndex = gridMain.GetSelectedIndex();
+        if (selectedIndex == -1)
+        {
+            return;
+        }
+
+        Cursor = Cursors.WaitCursor;
+
+        var etrans = (Etrans) gridMain.ListGridRows[selectedIndex].Tag;
+
+        etrans = Etranss.GetEtrans(etrans.EtransNum);
+
+        if (etrans is null)
+        {
+            Cursor = Cursors.Default;
+
+            ShowError("ERA could not be found, it was most likely deleted.");
+
+            FilterAndFillGrid();
+
+            return;
+        }
+
+        EtransL.ViewFormForEra(etrans, this);
+
+        Cursor = Cursors.Default;
+    }
+
+    private void ListBoxStatus_MouseUp(object sender, MouseEventArgs e)
+    {
+        FilterAndFillGrid();
+    }
+
+    private void ButtonAutoProcessedEras_Click(object sender, EventArgs e)
+    {
+        var displayReportEraAutoProcessed = DisplayReports.GetByInternalName(DisplayReports.ReportNames.EraAutoProcessed);
+        if (displayReportEraAutoProcessed is null)
+        {
+            ShowError("The " + DisplayReports.ReportNames.EraAutoProcessed + " report could not be found.");
+            return;
+        }
+
+        if (!Security.IsAuthorized(EnumPermType.Reports, displayReportEraAutoProcessed.DisplayReportNum, suppressMessage: false))
+        {
+            return;
+        }
+
+        var formRpEraAutoProcessed = new FormRpEraAutoProcessed();
+
+        formRpEraAutoProcessed.Show();
+    }
 }

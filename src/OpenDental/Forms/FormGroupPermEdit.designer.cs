@@ -1,11 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Forms;
-
-namespace OpenDental {
+﻿namespace OpenDental.Forms {
 	public partial class FormGroupPermEdit {
 		private System.ComponentModel.IContainer components = null;
 

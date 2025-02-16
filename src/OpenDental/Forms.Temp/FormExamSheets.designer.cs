@@ -39,7 +39,7 @@ namespace OpenDental{
 			this.listExamTypes.Name = "listExamTypes";
 			this.listExamTypes.Size = new System.Drawing.Size(196, 43);
 			this.listExamTypes.TabIndex = 1;
-			this.listExamTypes.SelectionChangeCommitted += new System.EventHandler(this.listExamTypes_SelectionChangeCommitted);
+			this.listExamTypes.SelectionChangeCommitted += new System.EventHandler(this.ListExamTypes_SelectionChangeCommitted);
 			// 
 			// labelFilterTypes
 			// 
@@ -60,7 +60,7 @@ namespace OpenDental{
 			this.butAdd.Size = new System.Drawing.Size(75, 24);
 			this.butAdd.TabIndex = 3;
 			this.butAdd.Text = "Add";
-			this.butAdd.Click += new System.EventHandler(this.butAdd_Click);
+			this.butAdd.Click += new System.EventHandler(this.ButtonAdd_Click);
 			// 
 			// gridMain
 			// 
@@ -72,8 +72,8 @@ namespace OpenDental{
 			this.gridMain.TabIndex = 2;
 			this.gridMain.Title = "Exam Sheets";
 			this.gridMain.TranslationName = "FormPatientForms";
-			this.gridMain.CellDoubleClick += new OpenDental.UI.ODGridClickEventHandler(this.gridMain_CellDoubleClick);
-			this.gridMain.SelectionCommitted += new System.EventHandler(this.gridMain_SelectionCommitted);
+			this.gridMain.CellDoubleClick += new OpenDental.UI.ODGridClickEventHandler(this.GridMain_CellDoubleClick);
+			this.gridMain.SelectionCommitted += new System.EventHandler(this.GridMain_SelectionCommitted);
 			// 
 			// menuMain
 			// 
@@ -92,7 +92,7 @@ namespace OpenDental{
 			this.panelSheetPreview.Name = "panelSheetPreview";
 			this.panelSheetPreview.Size = new System.Drawing.Size(534, 692);
 			this.panelSheetPreview.TabIndex = 0;
-			this.panelSheetPreview.Paint += new System.Windows.Forms.PaintEventHandler(this.panelSheetPreview_Paint);
+			this.panelSheetPreview.Paint += new System.Windows.Forms.PaintEventHandler(this.PanelSheetPreview_Paint);
 			// 
 			// labelVerticalDivider
 			// 

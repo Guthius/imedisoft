@@ -48,7 +48,7 @@ namespace OpenDental{
 			this.gridEras.TabIndex = 5;
 			this.gridEras.Title = "ERA List";
 			this.gridEras.TranslationName = "TableERA";
-			this.gridEras.CellDoubleClick += new OpenDental.UI.ODGridClickEventHandler(this.gridEras_CellDoubleClick);
+			this.gridEras.CellDoubleClick += new OpenDental.UI.ODGridClickEventHandler(this.GridEras_CellDoubleClick);
 			// 
 			// FormEtrans835PickEra
 			// 

@@ -1124,7 +1124,7 @@ public partial class FormClaimProc : FormODBase {
 				checkPayPlan.Checked=false;
 				return;
 			}
-			_claimProc.PayPlanNum=formPayPlanSelect.PayPlanNumSelected;
+			_claimProc.PayPlanNum=formPayPlanSelect.SelectedPayPlanNum;
 		}
 		else {//payPlan unchecked
 			_claimProc.PayPlanNum=0;

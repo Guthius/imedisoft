@@ -15,6 +15,7 @@ using Imedisoft.Core.Caching;
 using Imedisoft.Core.Entities;
 using Imedisoft.Core.Features.Providers;
 using Imedisoft.Core.Features.Providers.Dtos;
+using OpenDental.Forms;
 using PdfSharp.Pdf;
 
 namespace OpenDental;

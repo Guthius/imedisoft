@@ -978,7 +978,7 @@ public partial class FormPayment:FormODBase {
 			if(formPayPlanSelect.DialogResult!=DialogResult.OK) {
 				return false;
 			}
-			paySplit.PayPlanNum=formPayPlanSelect.PayPlanNumSelected;
+			paySplit.PayPlanNum=formPayPlanSelect.SelectedPayPlanNum;
 		}
 		_listPaySplits.Add(paySplit);
 		_payment.PayAmt=SIn.Double(textAmount.Text);

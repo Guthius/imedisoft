@@ -15,6 +15,7 @@ using Imedisoft.Core.Features.Clinics;
 using Imedisoft.Core.Features.Clinics.Dtos;
 using Imedisoft.Core.Features.Providers;
 using Imedisoft.Core.Features.Providers.Dtos;
+using OpenDental.Forms;
 
 namespace OpenDental;
 
@@ -52,7 +53,7 @@ public partial class FormClinicEdit : FormODBase {
 			label15.Text=Lang.g(this,"City, Prov, Postal");
 		}
 		checkIsMedicalOnly.Checked=ClinicCur.IsMedicalOnly;
-		if(Programs.UsingEcwTightOrFullMode()) {
+		if(false) {
 			checkIsMedicalOnly.Visible=false;
 		}
 		if(ClinicCur.Id!=0) {
@@ -207,12 +208,12 @@ public partial class FormClinicEdit : FormODBase {
 		formDefinitionPicker.IsMultiSelectionMode=true;
 		formDefinitionPicker.ShowDialog();
 		if(formDefinitionPicker.DialogResult==DialogResult.OK) {
-			for(var i=0;i<formDefinitionPicker.ListDefsSelected.Count;i++) {
-				if(ListDefLinksSpecialties.Any(x => x.DefNum==formDefinitionPicker.ListDefsSelected[i].DefNum)) {
+			for(var i=0;i<formDefinitionPicker.SelectedDefs.Count;i++) {
+				if(ListDefLinksSpecialties.Any(x => x.DefNum==formDefinitionPicker.SelectedDefs[i].DefNum)) {
 					continue;//Definition already added to this clinic. 
 				}
 				var defLink=new DefLink();
-				defLink.DefNum=formDefinitionPicker.ListDefsSelected[i].DefNum;
+				defLink.DefNum=formDefinitionPicker.SelectedDefs[i].DefNum;
 				defLink.FKey=ClinicCur.Id;//could be 0 if IsNew
 				defLink.LinkType=DefLinkType.ClinicSpecialty;
 				ListDefLinksSpecialties.Add(defLink);

@@ -46,8 +46,8 @@ namespace OpenDental{
 			this.gridGroups.TabIndex = 4;
 			this.gridGroups.Title = "Fee Schedule Groups";
 			this.gridGroups.TranslationName = "Table Fee Schedule Groups";
-			this.gridGroups.CellDoubleClick += new OpenDental.UI.ODGridClickEventHandler(this.gridGroups_CellDoubleClick);
-			this.gridGroups.CellClick += new OpenDental.UI.ODGridClickEventHandler(this.gridGroups_CellClick);
+			this.gridGroups.CellDoubleClick += new OpenDental.UI.ODGridClickEventHandler(this.GridGroups_CellDoubleClick);
+			this.gridGroups.CellClick += new OpenDental.UI.ODGridClickEventHandler(this.GridGroups_CellClick);
 			// 
 			// gridClinics
 			// 
@@ -72,7 +72,7 @@ namespace OpenDental{
 			this.butAdd.Size = new System.Drawing.Size(93, 23);
 			this.butAdd.TabIndex = 220;
 			this.butAdd.Text = "&Add Group";
-			this.butAdd.Click += new System.EventHandler(this.butAdd_Click);
+			this.butAdd.Click += new System.EventHandler(this.ButtonAdd_Click);
 			// 
 			// groupFilters
 			// 
@@ -93,7 +93,7 @@ namespace OpenDental{
 			this.comboClinic.Name = "comboClinic";
 			this.comboClinic.Size = new System.Drawing.Size(126, 21);
 			this.comboClinic.TabIndex = 3;
-			this.comboClinic.SelectedIndexChanged += new System.EventHandler(this.comboClinic_SelectionChanged);
+			this.comboClinic.SelectedIndexChanged += new System.EventHandler(this.ComboBoxClinic_SelectionChanged);
 			// 
 			// label1
 			// 

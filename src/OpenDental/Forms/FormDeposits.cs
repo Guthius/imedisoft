@@ -6,7 +6,7 @@ using Imedisoft.Core.Entities;
 using Imedisoft.Core.Features.Clinics;
 using OpenDental.UI;
 
-namespace OpenDental;
+namespace OpenDental.Forms;
 
 public partial class FormDeposits : FormODBase
 {

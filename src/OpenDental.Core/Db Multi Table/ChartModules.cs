@@ -2112,7 +2112,7 @@ public class ChartModules
             Procedures.AfterProcsSetComplete(new List<Procedure>() {procedure});
         }
 
-        if (!Programs.UsingEcwTightOrFullMode() //no need to synch with eCW
+        if (!false //no need to synch with eCW
             && new[] {ProcStat.C, ProcStat.EC, ProcStat.EO}.Contains(procedure.ProcStatus)) //only run Recalls for completed, existing current, or existing other
         {
             Recalls.Synch(procedure.PatNum);

@@ -1,4 +1,4 @@
-namespace OpenDental{
+namespace OpenDental.Forms{
 	partial class FormDiscountPlans {
 		/// <summary>
 		/// Required designer variable.
@@ -39,7 +39,7 @@ namespace OpenDental{
 			this.butOK.Size = new System.Drawing.Size(75, 24);
 			this.butOK.TabIndex = 3;
 			this.butOK.Text = "&OK";
-			this.butOK.Click += new System.EventHandler(this.butOK_Click);
+			this.butOK.Click += new System.EventHandler(this.ButtonAccept_Click);
 			// 
 			// gridMain
 			// 
@@ -52,7 +52,7 @@ namespace OpenDental{
 			this.gridMain.TabIndex = 4;
 			this.gridMain.Title = "Discount Plans";
 			this.gridMain.TranslationName = "TableDiscountPlans";
-			this.gridMain.CellDoubleClick += new OpenDental.UI.ODGridClickEventHandler(this.gridMain_CellDoubleClick);
+			this.gridMain.CellDoubleClick += new OpenDental.UI.ODGridClickEventHandler(this.GridMain_CellDoubleClick);
 			// 
 			// butAdd
 			// 
@@ -64,7 +64,7 @@ namespace OpenDental{
 			this.butAdd.Size = new System.Drawing.Size(75, 24);
 			this.butAdd.TabIndex = 5;
 			this.butAdd.Text = "Add";
-			this.butAdd.Click += new System.EventHandler(this.butAdd_Click);
+			this.butAdd.Click += new System.EventHandler(this.ButtonAdd_Click);
 			// 
 			// butMerge
 			// 
@@ -75,7 +75,7 @@ namespace OpenDental{
 			this.butMerge.Size = new System.Drawing.Size(75, 24);
 			this.butMerge.TabIndex = 6;
 			this.butMerge.Text = "Merge";
-			this.butMerge.Click += new System.EventHandler(this.butMerge_Click);
+			this.butMerge.Click += new System.EventHandler(this.ButtonMerge_Click);
 			// 
 			// checkShowHidden
 			// 
@@ -85,7 +85,7 @@ namespace OpenDental{
 			this.checkShowHidden.Size = new System.Drawing.Size(105, 24);
 			this.checkShowHidden.TabIndex = 7;
 			this.checkShowHidden.Text = "Show Hidden";
-			this.checkShowHidden.Click += new System.EventHandler(this.checkShowHidden_Click);
+			this.checkShowHidden.Click += new System.EventHandler(this.CheckBoxShowHidden_Click);
 			// 
 			// FormDiscountPlans
 			// 
