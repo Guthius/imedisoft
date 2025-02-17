@@ -1,4 +1,4 @@
-namespace OpenDental{
+namespace OpenDental.Forms{
 	partial class FormSheetImportEnumPicker {
 		/// <summary>
 		/// Required designer variable.
@@ -47,7 +47,7 @@ namespace OpenDental{
 			this.butOK.Size = new System.Drawing.Size(75, 24);
 			this.butOK.TabIndex = 3;
 			this.butOK.Text = "&OK";
-			this.butOK.Click += new System.EventHandler(this.butOK_Click);
+			this.butOK.Click += new System.EventHandler(this.ButtonAccept_Click);
 			// 
 			// butClear
 			// 
@@ -57,7 +57,7 @@ namespace OpenDental{
 			this.butClear.Size = new System.Drawing.Size(75, 24);
 			this.butClear.TabIndex = 6;
 			this.butClear.Text = "Clear Val";
-			this.butClear.Click += new System.EventHandler(this.butClear_Click);
+			this.butClear.Click += new System.EventHandler(this.ButtonClear_Click);
 			// 
 			// listResult
 			// 
@@ -68,7 +68,7 @@ namespace OpenDental{
 			this.listResult.Name = "listResult";
 			this.listResult.Size = new System.Drawing.Size(197, 277);
 			this.listResult.TabIndex = 7;
-			this.listResult.DoubleClick += new System.EventHandler(this.listResult_DoubleClick);
+			this.listResult.DoubleClick += new System.EventHandler(this.ListBoxResult_DoubleClick);
 			// 
 			// FormSheetImportEnumPicker
 			// 

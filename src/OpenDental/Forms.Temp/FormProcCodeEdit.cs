@@ -432,7 +432,7 @@ public partial class FormProcCodeEdit : FormODBase {
 		if(textDiagnosticCodes.Text.Length>0 && textDiagnosticCodes.Text.Last()!=',') {
 			textDiagnosticCodes.Text+=",";
 		}
-		textDiagnosticCodes.Text+=formIcd10s.Icd10Selected.Icd10Code;
+		textDiagnosticCodes.Text+=formIcd10s.SelectedIcd10.Icd10Code;
 	}
 
 	private void butSave_Click(object sender, System.EventArgs e) {

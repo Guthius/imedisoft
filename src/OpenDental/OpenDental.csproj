@@ -169,6 +169,48 @@
       <Compile Update="Forms\FormGroupPermEdit.cs">
         <SubType>Form</SubType>
       </Compile>
+      <Compile Update="Forms\FormInsBenefitNotes.cs">
+        <SubType>Form</SubType>
+      </Compile>
+      <Compile Update="Forms\FormInsAdj.cs">
+        <SubType>Form</SubType>
+      </Compile>
+      <Compile Update="Forms\FormImagingSetup.cs">
+        <SubType>Form</SubType>
+      </Compile>
+      <Compile Update="Forms\FormIncomeTransferManage.cs">
+        <SubType>Form</SubType>
+      </Compile>
+      <Compile Update="Forms\FormImagingDeviceEdit.cs">
+        <SubType>Form</SubType>
+      </Compile>
+      <Compile Update="Forms\FormImages.cs">
+        <SubType>Form</SubType>
+      </Compile>
+      <Compile Update="Forms\FormApptPrintSetup.cs">
+        <SubType>Form</SubType>
+      </Compile>
+      <Compile Update="Forms\FormApptFieldDefs.cs">
+        <SubType>Form</SubType>
+      </Compile>
+      <Compile Update="Forms\FormAdjust.cs">
+        <SubType>Form</SubType>
+      </Compile>
+      <Compile Update="Forms\FormEmailDigitalSignature.cs">
+        <SubType>Form</SubType>
+      </Compile>
+      <Compile Update="Forms\FormExamSheets.cs">
+        <SubType>Form</SubType>
+      </Compile>
+      <Compile Update="Forms\FormSheetImportEnumPicker.cs">
+        <SubType>Form</SubType>
+      </Compile>
+      <Compile Update="Forms\FormSheetOutputFormat.cs">
+        <SubType>Form</SubType>
+      </Compile>
+      <Compile Update="Forms\FormSheetProcSelect.cs">
+        <SubType>Form</SubType>
+      </Compile>
     </ItemGroup>
 
 </Project>

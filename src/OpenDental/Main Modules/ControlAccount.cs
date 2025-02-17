@@ -17,6 +17,7 @@ using Imedisoft.Core.Entities;
 using Imedisoft.Core.Features.Clinics;
 using Imedisoft.Core.Features.Providers;
 using Imedisoft.Core.Features.Providers.Dtos;
+using OpenDental.Forms;
 using OpenDental.Logic;
 using OpenDentBusiness.WebTypes.Shared.XWeb;
 using OpenDentBusiness.Eclaims;

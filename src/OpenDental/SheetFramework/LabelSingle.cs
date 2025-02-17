@@ -14,20 +14,21 @@ public class LabelSingle
         var sheetDef = SheetsInternal.GetSheetDef(SheetInternalType.LabelPatientMail);
         if (PrefC.GetLong(PrefName.LabelPatientDefaultSheetDefNum) != 0)
         {
-            //Try to use custom label sheet.
             try
             {
                 sheetDef = SheetDefs.GetSheetDef(PrefC.GetLong(PrefName.LabelPatientDefaultSheetDefNum));
             }
             catch
             {
-                //The default label could not be retrieved so just use the internal sheet.
+                // The default label could not be retrieved so just use the internal sheet.
             }
         }
 
         var sheet = SheetUtil.CreateSheet(sheetDef);
+        
         SheetParameter.SetParameter(sheet, "PatNum", patNum);
         SheetFiller.FillFields(sheet);
+        
         try
         {
             SheetPrinting.Print(sheet);

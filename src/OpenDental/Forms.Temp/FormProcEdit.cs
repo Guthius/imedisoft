@@ -2144,14 +2144,14 @@ public partial class FormProcEdit : FormODBase {
 			using var formIcd10s=new FormIcd10s();
 			formIcd10s.IsSelectionMode=true;
 			if(formIcd10s.ShowDialog()==DialogResult.OK) {
-				textBoxDiagnosisCode.Text=formIcd10s.Icd10Selected.Icd10Code;
+				textBoxDiagnosisCode.Text=formIcd10s.SelectedIcd10.Icd10Code;
 			}
 		}
 		else {//ICD-9
 			using var formIcd9s=new FormIcd9s();
 			formIcd9s.IsSelectionMode=true;
 			if(formIcd9s.ShowDialog()==DialogResult.OK) {
-				textBoxDiagnosisCode.Text=formIcd9s.ICD9Selected.ICD9Code;
+				textBoxDiagnosisCode.Text=formIcd9s.SelectedIcd9.ICD9Code;
 			}
 		}
 	}

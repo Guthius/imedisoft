@@ -4,70 +4,73 @@ using System.Windows.Forms;
 
 namespace OpenDental;
 
-public partial class FormImageDrawColor:FormODBase {
-	///<summary>Not really used here. Just shown to user if they click Transparent.</summary>
-	public Color ColorBack;
-	///<summary>Both lines and text.</summary>
-	public Color ColorFore;
-	///<summary>Can be transparent.</summary>
-	public Color ColorTextBack;
-	///<summary>Just shows a label for mounts.</summary>
-	public bool IsMount;
+public partial class FormImageDrawColor : FormODBase
+{
+    public Color ColorBack { get; set; }
+    public Color ColorFore { get; set; }
+    public Color ColorTextBack { get; set; }
+    public bool IsMount { get; set; }
 
-	public FormImageDrawColor() {
-		InitializeComponent();
-	}
+    public FormImageDrawColor()
+    {
+        InitializeComponent();
+    }
 
-	private void FormImageDrawEdit_Load(object sender, EventArgs e){
-		if(!IsMount){
-			labelMount.Visible=false;
-		}
-		butColorFore.BackColor=ColorFore;
-		butColorTextBack.BackColor=ColorTextBack;
-		if(ColorTextBack.ToArgb()==Color.Transparent.ToArgb()){
-			checkTransparent.Checked=true;
-			butColorTextBack.BackColor=ColorBack;
-		}
-	}
+    private void FormImageDrawEdit_Load(object sender, EventArgs e)
+    {
+        if (!IsMount)
+        {
+            labelMount.Visible = false;
+        }
 
-	private void butColorFore_Click(object sender, EventArgs e){
-		using var colorDialog=new ColorDialog();
-		colorDialog.Color=butColorFore.BackColor;
-		colorDialog.ShowDialog();
-		butColorFore.BackColor=colorDialog.Color;
-	}
+        butColorFore.BackColor = ColorFore;
+        butColorTextBack.BackColor = ColorTextBack;
 
-	private void butColorTextBack_Click(object sender,EventArgs e) {
-		using var colorDialog=new ColorDialog();
-		colorDialog.Color=butColorTextBack.BackColor;
-		var dialogResult=colorDialog.ShowDialog();
-		if(dialogResult!=DialogResult.OK){
-			//if Transparent was checked, it can stay checked.
-			return;
-		}
-		checkTransparent.Checked=false;
-		butColorTextBack.BackColor=colorDialog.Color;
-	}
+        if (ColorTextBack.ToArgb() != Color.Transparent.ToArgb())
+        {
+            return;
+        }
 
-	private void checkTransparent_Click(object sender,EventArgs e) {
-		if(checkTransparent.Checked){
-			butColorTextBack.BackColor=ColorBack;//interpreted by user as transparent
-		}
-		else{
-			//they can also do the same thing by editing the color, and the box will automatically uncheck.
-			butColorTextBack.BackColor=ColorBack;
-		}
-	}
+        checkTransparent.Checked = true;
+        butColorTextBack.BackColor = ColorBack;
+    }
 
-	private void butSave_Click(object sender,EventArgs e) {
-		ColorFore=butColorFore.BackColor;
-		if(checkTransparent.Checked){
-			ColorTextBack=Color.Transparent;
-		}
-		else{
-			ColorTextBack=butColorTextBack.BackColor;
-		}
-		DialogResult=DialogResult.OK;
-	}
+    private void ButtonColorFore_Click(object sender, EventArgs e)
+    {
+        using var colorDialog = new ColorDialog();
 
+        colorDialog.Color = butColorFore.BackColor;
+        colorDialog.ShowDialog();
+
+        butColorFore.BackColor = colorDialog.Color;
+    }
+
+    private void ButtonColorTextBack_Click(object sender, EventArgs e)
+    {
+        using var colorDialog = new ColorDialog();
+
+        colorDialog.Color = butColorTextBack.BackColor;
+
+        if (colorDialog.ShowDialog() != DialogResult.OK)
+        {
+            return;
+        }
+
+        checkTransparent.Checked = false;
+
+        butColorTextBack.BackColor = colorDialog.Color;
+    }
+
+    private void CheckBoxTransparent_Click(object sender, EventArgs e)
+    {
+        butColorTextBack.BackColor = ColorBack;
+    }
+
+    private void ButtonSave_Click(object sender, EventArgs e)
+    {
+        ColorFore = butColorFore.BackColor;
+        ColorTextBack = checkTransparent.Checked ? Color.Transparent : butColorTextBack.BackColor;
+
+        DialogResult = DialogResult.OK;
+    }
 }

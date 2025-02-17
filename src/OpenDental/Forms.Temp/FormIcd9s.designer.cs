@@ -42,7 +42,7 @@ namespace OpenDental{
 			this.listMain.Name = "listMain";
 			this.listMain.Size = new System.Drawing.Size(501, 642);
 			this.listMain.TabIndex = 15;
-			this.listMain.DoubleClick += new System.EventHandler(this.listMain_DoubleClick);
+			this.listMain.DoubleClick += new System.EventHandler(this.ListBoxMain_DoubleClick);
 			// 
 			// butOK
 			// 
@@ -52,7 +52,7 @@ namespace OpenDental{
 			this.butOK.Size = new System.Drawing.Size(75, 24);
 			this.butOK.TabIndex = 3;
 			this.butOK.Text = "&OK";
-			this.butOK.Click += new System.EventHandler(this.butOK_Click);
+			this.butOK.Click += new System.EventHandler(this.ButtonAccept_Click);
 			// 
 			// textCode
 			// 
@@ -77,7 +77,7 @@ namespace OpenDental{
 			this.butSearch.Size = new System.Drawing.Size(75, 24);
 			this.butSearch.TabIndex = 19;
 			this.butSearch.Text = "Search";
-			this.butSearch.Click += new System.EventHandler(this.butSearch_Click);
+			this.butSearch.Click += new System.EventHandler(this.ButtonSearch_Click);
 			// 
 			// butCodeImport
 			// 
@@ -88,7 +88,7 @@ namespace OpenDental{
 			this.butCodeImport.TabIndex = 20;
 			this.butCodeImport.Text = "Import";
 			this.butCodeImport.UseVisualStyleBackColor = false;
-			this.butCodeImport.Click += new System.EventHandler(this.butCodeImport_Click);
+			this.butCodeImport.Click += new System.EventHandler(this.ButtonCodeImport_Click);
 			// 
 			// FormIcd9s
 			// 

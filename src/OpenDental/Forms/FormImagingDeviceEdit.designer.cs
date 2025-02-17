@@ -1,4 +1,4 @@
-namespace OpenDentalImaging{
+namespace OpenDental.Forms{
 	partial class FormImagingDeviceEdit {
 		/// <summary>
 		/// Required designer variable.
@@ -51,7 +51,7 @@ namespace OpenDentalImaging{
 			this.butSave.Size = new System.Drawing.Size(75, 24);
 			this.butSave.TabIndex = 3;
 			this.butSave.Text = "&Save";
-			this.butSave.Click += new System.EventHandler(this.butSave_Click);
+			this.butSave.Click += new System.EventHandler(this.ButtonSave_Click);
 			// 
 			// butDelete
 			// 
@@ -63,7 +63,7 @@ namespace OpenDentalImaging{
 			this.butDelete.Size = new System.Drawing.Size(75, 24);
 			this.butDelete.TabIndex = 4;
 			this.butDelete.Text = "Delete";
-			this.butDelete.Click += new System.EventHandler(this.butDelete_Click);
+			this.butDelete.Click += new System.EventHandler(this.ButtonDelete_Click);
 			// 
 			// label1
 			// 
@@ -122,7 +122,7 @@ namespace OpenDentalImaging{
 			this.butThis.Size = new System.Drawing.Size(55, 24);
 			this.butThis.TabIndex = 23;
 			this.butThis.Text = "This";
-			this.butThis.Click += new System.EventHandler(this.butThis_Click);
+			this.butThis.Click += new System.EventHandler(this.ButtonThis_Click);
 			// 
 			// comboTwainName
 			// 
@@ -133,7 +133,7 @@ namespace OpenDentalImaging{
 			this.comboTwainName.Name = "comboTwainName";
 			this.comboTwainName.Size = new System.Drawing.Size(339, 21);
 			this.comboTwainName.TabIndex = 25;
-			this.comboTwainName.DropDown += new System.EventHandler(this.comboTwainName_DropDown);
+			this.comboTwainName.DropDown += new System.EventHandler(this.ComboBoxTwainName_DropDown);
 			// 
 			// checkShowTwainUI
 			// 

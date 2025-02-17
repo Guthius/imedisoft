@@ -50,7 +50,7 @@ namespace OpenDental {
 			this.butOK.Size = new System.Drawing.Size(79,26);
 			this.butOK.TabIndex = 1;
 			this.butOK.Text = "&OK";
-			this.butOK.Click += new System.EventHandler(this.butOK_Click);
+			this.butOK.Click += new System.EventHandler(this.ButtonAccept_Click);
 			// 
 			// listEmp
 			// 
@@ -62,7 +62,7 @@ namespace OpenDental {
 			this.listEmp.SelectionMode = OpenDental.UI.SelectionMode.MultiExtended;
 			this.listEmp.Size = new System.Drawing.Size(222,523);
 			this.listEmp.TabIndex = 2;
-			this.listEmp.DoubleClick += new System.EventHandler(this.listEmp_DoubleClick);
+			this.listEmp.DoubleClick += new System.EventHandler(this.ListBoxEmp_DoubleClick);
 			// 
 			// butAdd
 			// 
@@ -74,7 +74,7 @@ namespace OpenDental {
 			this.butAdd.Size = new System.Drawing.Size(79,26);
 			this.butAdd.TabIndex = 7;
 			this.butAdd.Text = "&Add";
-			this.butAdd.Click += new System.EventHandler(this.butAdd_Click);
+			this.butAdd.Click += new System.EventHandler(this.ButtonAdd_Click);
 			// 
 			// butDelete
 			// 
@@ -86,7 +86,7 @@ namespace OpenDental {
 			this.butDelete.Size = new System.Drawing.Size(79,26);
 			this.butDelete.TabIndex = 8;
 			this.butDelete.Text = "&Delete";
-			this.butDelete.Click += new System.EventHandler(this.butDelete_Click);
+			this.butDelete.Click += new System.EventHandler(this.ButtonDelete_Click);
 			// 
 			// butEdit
 			// 
@@ -98,7 +98,7 @@ namespace OpenDental {
 			this.butEdit.Size = new System.Drawing.Size(79,26);
 			this.butEdit.TabIndex = 9;
 			this.butEdit.Text = "&Edit";
-			this.butEdit.Click += new System.EventHandler(this.butEdit_Click);
+			this.butEdit.Click += new System.EventHandler(this.ButtonEdit_Click);
 			// 
 			// butCombine
 			// 
@@ -109,7 +109,7 @@ namespace OpenDental {
 			this.butCombine.TabIndex = 10;
 			this.butCombine.Text = "Co&mbine";
 			this.toolTip1.SetToolTip(this.butCombine,"Combines multiple Employers");
-			this.butCombine.Click += new System.EventHandler(this.butCombine_Click);
+			this.butCombine.Click += new System.EventHandler(this.ButtonCombine_Click);
 			// 
 			// FormEmployers
 			// 

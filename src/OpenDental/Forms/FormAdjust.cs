@@ -11,15 +11,15 @@ using Imedisoft.Core.Features.Providers;
 using Imedisoft.Core.Features.Providers.Dtos;
 using OpenDentBusiness;
 
-namespace OpenDental;
+namespace OpenDental.Forms;
 
 public partial class FormAdjust : FormODBase
 {
     private readonly Patient _patient;
     private readonly Adjustment _adjustment;
     private bool _checkZeroAmount;
-    private List<Def> _listDefsAdjPosCats;
-    private List<Def> _listDefsAdjNegCats;
+    private List<Def> _positiveAdjTypeDefs;
+    private List<Def> _negativeAdjTypeDefs;
     private decimal _adjRemAmt;
     private bool _isEditAnyway;
     private List<PaySplit> _paySplitsForAdjustment;
@@ -38,7 +38,7 @@ public partial class FormAdjust : FormODBase
         _program = Programs.GetCur(ProgramName.Transworld);
         _patientGuar = Patients.GetGuarForPat(_adjustment.PatNum);
         _isTsiAdj = isTsiAdj;
-        
+
         InitializeComponent();
     }
 
@@ -108,11 +108,8 @@ public partial class FormAdjust : FormODBase
         {
             textAmount.Text = _adjustment.AdjAmt.ToString("F");
         }
-        else if (Defs.GetValue(DefCat.AdjTypes, _adjustment.AdjType) == "-")
-        {
-            textAmount.Text = (-_adjustment.AdjAmt).ToString("F");
-        }
-        else if (Defs.GetValue(DefCat.AdjTypes, _adjustment.AdjType) == "dp")
+        else if (Defs.GetValue(DefCat.AdjTypes, _adjustment.AdjType) == "-" ||
+                 Defs.GetValue(DefCat.AdjTypes, _adjustment.AdjType) == "dp")
         {
             textAmount.Text = (-_adjustment.AdjAmt).ToString("F");
         }
@@ -420,7 +417,7 @@ public partial class FormAdjust : FormODBase
         if (payPlanLink != null)
         {
             var payPlan = PayPlans.GetOne(payPlanLink.PayPlanNum);
-            
+
             isDynamic = payPlan.IsDynamic;
         }
 
@@ -509,13 +506,13 @@ public partial class FormAdjust : FormODBase
 
         if (listTypePos.SelectedIndex != -1)
         {
-            _adjustment.AdjType = _listDefsAdjPosCats[listTypePos.SelectedIndex].DefNum;
+            _adjustment.AdjType = _positiveAdjTypeDefs[listTypePos.SelectedIndex].DefNum;
             _adjustment.AdjAmt = SIn.Double(textAmount.Text);
         }
 
         if (listTypeNeg.SelectedIndex != -1)
         {
-            _adjustment.AdjType = _listDefsAdjNegCats[listTypeNeg.SelectedIndex].DefNum;
+            _adjustment.AdjType = _negativeAdjTypeDefs[listTypeNeg.SelectedIndex].DefNum;
             _adjustment.AdjAmt = -SIn.Double(textAmount.Text);
         }
 
@@ -630,23 +627,23 @@ public partial class FormAdjust : FormODBase
         listTypeNeg.SelectedIndexChanged -= ListBoxTypeNeg_SelectedIndexChanged;
         listTypePos.SelectedIndexChanged -= ListBoxTypePos_SelectedIndexChanged;
 
-        _listDefsAdjPosCats = Defs.GetPositiveAdjTypes(considerPermission: true);
-        _listDefsAdjPosCats = checkOnlyTsiExcludedAdjTypes.Checked
-            ? _listDefsAdjPosCats.FindAll(x => _tsiExcludedAdjDefNums.Contains(x.DefNum))
-            : _listDefsAdjPosCats.FindAll(x => !_tsiExcludedAdjDefNums.Contains(x.DefNum));
+        _positiveAdjTypeDefs = Defs.GetPositiveAdjTypes(considerPermission: true);
+        _positiveAdjTypeDefs = checkOnlyTsiExcludedAdjTypes.Checked
+            ? _positiveAdjTypeDefs.FindAll(x => _tsiExcludedAdjDefNums.Contains(x.DefNum))
+            : _positiveAdjTypeDefs.FindAll(x => !_tsiExcludedAdjDefNums.Contains(x.DefNum));
 
-        _listDefsAdjPosCats.ForEach(x => listTypePos.Items.Add(x.ItemName));
+        _positiveAdjTypeDefs.ForEach(x => listTypePos.Items.Add(x.ItemName));
 
-        listTypePos.SelectedIndex = _listDefsAdjPosCats.FindIndex(x => x.DefNum == _adjustment.AdjType);
+        listTypePos.SelectedIndex = _positiveAdjTypeDefs.FindIndex(x => x.DefNum == _adjustment.AdjType);
 
-        _listDefsAdjNegCats = Defs.GetNegativeAdjTypes(considerPermission: true);
-        _listDefsAdjNegCats = checkOnlyTsiExcludedAdjTypes.Checked
-            ? _listDefsAdjNegCats.FindAll(x => _tsiExcludedAdjDefNums.Contains(x.DefNum))
-            : _listDefsAdjNegCats.FindAll(x => !_tsiExcludedAdjDefNums.Contains(x.DefNum));
+        _negativeAdjTypeDefs = Defs.GetNegativeAdjTypes(considerPermission: true);
+        _negativeAdjTypeDefs = checkOnlyTsiExcludedAdjTypes.Checked
+            ? _negativeAdjTypeDefs.FindAll(x => _tsiExcludedAdjDefNums.Contains(x.DefNum))
+            : _negativeAdjTypeDefs.FindAll(x => !_tsiExcludedAdjDefNums.Contains(x.DefNum));
 
-        _listDefsAdjNegCats.ForEach(x => listTypeNeg.Items.Add(x.ItemName));
+        _negativeAdjTypeDefs.ForEach(x => listTypeNeg.Items.Add(x.ItemName));
 
-        listTypeNeg.SelectedIndex = _listDefsAdjNegCats.FindIndex(x => x.DefNum == _adjustment.AdjType);
+        listTypeNeg.SelectedIndex = _negativeAdjTypeDefs.FindIndex(x => x.DefNum == _adjustment.AdjType);
         listTypeNeg.SelectedIndexChanged += ListBoxTypeNeg_SelectedIndexChanged;
         listTypePos.SelectedIndexChanged += ListBoxTypePos_SelectedIndexChanged;
     }

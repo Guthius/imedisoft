@@ -7,7 +7,7 @@ using Imedisoft.Core.Entities;
 using OpenDental.UI;
 using OpenDentBusiness;
 
-namespace OpenDental;
+namespace OpenDental.Forms;
 
 public partial class FormExamSheets : FormODBase
 {

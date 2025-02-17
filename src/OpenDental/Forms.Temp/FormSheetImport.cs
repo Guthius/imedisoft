@@ -14,6 +14,7 @@ using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Data;
 using Imedisoft.Core.Entities;
+using OpenDental.Forms;
 
 namespace OpenDental;
 

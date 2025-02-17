@@ -78,15 +78,15 @@ public partial class FormDiseaseDefEdit : FormODBase {
 		if(formIcd9s.DialogResult!=DialogResult.OK) {
 			return;
 		}
-		if(DiseaseDefs.ContainsIcd9(formIcd9s.ICD9Selected.ICD9Code,DiseaseDefCur.DiseaseDefNum)) {
+		if(DiseaseDefs.ContainsIcd9(formIcd9s.SelectedIcd9.ICD9Code,DiseaseDefCur.DiseaseDefNum)) {
 			MsgBox.Show(this,"ICD-9 code already exists in the problems list.");
 			return;
 		}
-		DiseaseDefCur.ICD9Code=formIcd9s.ICD9Selected.ICD9Code;
-		var icd9Description=Icd9s.GetCodeAndDescription(formIcd9s.ICD9Selected.ICD9Code);
+		DiseaseDefCur.ICD9Code=formIcd9s.SelectedIcd9.ICD9Code;
+		var icd9Description=Icd9s.GetCodeAndDescription(formIcd9s.SelectedIcd9.ICD9Code);
 		textICD9.Text=icd9Description;
 		if(icd9Description=="") {
-			textICD9.Text=formIcd9s.ICD9Selected.ICD9Code;
+			textICD9.Text=formIcd9s.SelectedIcd9.ICD9Code;
 		}
 	}
 
@@ -97,12 +97,12 @@ public partial class FormDiseaseDefEdit : FormODBase {
 		if(formIcd10s.DialogResult!=DialogResult.OK) {
 			return;
 		}
-		if(DiseaseDefs.ContainsIcd10(formIcd10s.Icd10Selected.Icd10Code,DiseaseDefCur.DiseaseDefNum)) {
+		if(DiseaseDefs.ContainsIcd10(formIcd10s.SelectedIcd10.Icd10Code,DiseaseDefCur.DiseaseDefNum)) {
 			MsgBox.Show(this,"ICD-10 code already exists in the problems list.");
 			return;
 		}
-		DiseaseDefCur.Icd10Code=formIcd10s.Icd10Selected.Icd10Code;
-		textIcd10.Text=formIcd10s.Icd10Selected.Icd10Code+"-"+formIcd10s.Icd10Selected.Description;
+		DiseaseDefCur.Icd10Code=formIcd10s.SelectedIcd10.Icd10Code;
+		textIcd10.Text=formIcd10s.SelectedIcd10.Icd10Code+"-"+formIcd10s.SelectedIcd10.Description;
 	}
 
 	private void butDelete_Click(object sender,EventArgs e) {

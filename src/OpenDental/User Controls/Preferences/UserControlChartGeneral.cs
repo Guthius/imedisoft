@@ -46,14 +46,14 @@ public partial class UserControlChartGeneral:UserControl {
 			using var formI=new FormIcd10s();
 			formI.IsSelectionMode=true;
 			if(formI.ShowDialog()==DialogResult.OK) {
-				textICD9DefaultForNewProcs.Text=formI.Icd10Selected.Icd10Code;
+				textICD9DefaultForNewProcs.Text=formI.SelectedIcd10.Icd10Code;
 			}
 		}
 		else {//ICD-9
 			using var formI=new FormIcd9s();
 			formI.IsSelectionMode=true;
 			if(formI.ShowDialog()==DialogResult.OK) {
-				textICD9DefaultForNewProcs.Text=formI.ICD9Selected.ICD9Code;
+				textICD9DefaultForNewProcs.Text=formI.SelectedIcd9.ICD9Code;
 			}
 		}
 	}

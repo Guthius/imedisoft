@@ -1,14 +1,13 @@
 using System;
 using System.Security.Cryptography.X509Certificates;
 using System.Windows.Forms;
-using CodeBase;
 using OpenDentBusiness;
 
-namespace OpenDental;
+namespace OpenDental.Forms;
 
 public partial class FormEmailDigitalSignature : FormODBase
 {
-    private X509Certificate2 _x509Certificate2;
+    private readonly X509Certificate2 _x509Certificate2;
     private bool _isTrusted;
 
     public FormEmailDigitalSignature(X509Certificate2 x509Certificate2)
@@ -21,28 +20,34 @@ public partial class FormEmailDigitalSignature : FormODBase
     private void FormEmailDigitalSignature_Load(object sender, EventArgs e)
     {
         var signedByAddress = EmailNameResolver.GetCertSubjectName(_x509Certificate2);
+
         textSignedBy.Text = signedByAddress;
         textCertificateAuthority.Text = _x509Certificate2.IssuerName.Name;
         textValidFrom.Text = _x509Certificate2.NotBefore.ToShortDateString() + " to " + _x509Certificate2.NotAfter.ToShortDateString();
         textThumbprint.Text = _x509Certificate2.Thumbprint;
         textVersion.Text = _x509Certificate2.Version.ToString();
-        _isTrusted = (EmailMessages.GetReceiverUntrustedCount(signedByAddress) == -1);
+
+        _isTrusted = EmailMessages.GetReceiverUntrustedCount(signedByAddress) == -1;
+
         if (_isTrusted)
         {
             butTrust.Visible = false;
-            textTrustStatus.Text = Lan.g(this, "Trusted");
-            textTrustExplanation.Text = Lan.g(this, "Encrypted email and EHR Direct messaging are currently enabled for the signer.");
+
+            textTrustStatus.Text = "Trusted";
+            textTrustExplanation.Text = "Encrypted email and EHR Direct messaging are currently enabled for the signer.";
         }
         else
         {
             butTrust.Visible = true;
-            textTrustStatus.Text = Lan.g(this, "Untrusted or invalid");
-            textTrustExplanation.Text = Lan.g(this, "Encrypted email and EHR Direct messaging will not work until this digital signature is trusted by you.") + "  "
-                                                                                                                                                              + Lan.g(this, "Click the Trust button to add trust for this digital signature.");
+
+            textTrustStatus.Text = "Untrusted or invalid";
+            textTrustExplanation.Text =
+                "Encrypted email and EHR Direct messaging will not work until this digital signature is trusted by you. " +
+                "Click the Trust button to add trust for this digital signature.";
         }
     }
 
-    private void butTrust_Click(object sender, EventArgs e)
+    private void ButtonTrust_Click(object sender, EventArgs e)
     {
         try
         {
@@ -50,11 +55,13 @@ public partial class FormEmailDigitalSignature : FormODBase
         }
         catch (Exception ex)
         {
-            ODMessageBox.Show(ex.Message);
+            ShowError(ex.Message);
+
             return;
         }
 
-        MsgBox.Show(this, "Trust added for digital signature.");
+        ShowInfo("Trust added for digital signature.");
+
         DialogResult = DialogResult.OK;
     }
 }

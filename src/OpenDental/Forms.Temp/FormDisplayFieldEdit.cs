@@ -6,82 +6,83 @@ using Imedisoft.Core.Entities;
 
 namespace OpenDental;
 
-/// <summary></summary>
-public partial class FormDisplayFieldEdit : FormODBase {
-	private Font _font=new Font(FontFamily.GenericSansSerif,8.5f,FontStyle.Bold);
-	public DisplayField DisplayFieldCur;
-	///<summary>True when we allow the user to set a display field width to 0 to allow dynamic grid widths.</summary>
-	public bool AllowZeroWidth=false;
+public partial class FormDisplayFieldEdit : FormODBase
+{
+    private readonly Font _font = new(FontFamily.GenericSansSerif, 8.5f, FontStyle.Bold);
 
-		
-	public FormDisplayFieldEdit()
-	{
-		//
-		// Required for Windows Form Designer support
-		//
-		InitializeComponent();
-	}
+    public DisplayField DisplayFieldCur { get; set; }
+    public bool AllowZeroWidth { get; set; }
 
-	private void FormDisplayFieldEdit_Load(object sender,EventArgs e) {
-		textInternalName.Text=DisplayFieldCur.InternalName;
-		textDescription.Text=DisplayFieldCur.Description;
-		textDescriptionOverride.Text=DisplayFieldCur.DescriptionOverride;
-		textWidth.Text=DisplayFieldCur.ColumnWidth.ToString();
-		if(AllowZeroWidth) {
-			//textWidth.MinVal=0;
-			//labelZeroWidth.Visible=true;
-			//jordan 2020-08-05-This feature is just too hard to explain to users. It would only work if layout set to fill right.  
-			//It's good enough that the right column does that.  We don't need a middle column to be dynamic.
-			//Furthermore, it would require changing ODGridColumn.ColWidth to handle IsWidthDynamic
-		}
-		if(DisplayFieldCur.Category==DisplayFieldCategory.SuperFamilyGridCols && DisplayFieldCur.InternalName=="") {
-			//PatFields
-			labelInternalName.Visible=false;
-			textInternalName.Visible=false;
-			labelDescriptionOption.Visible=false;
-			textDescription.ReadOnly=true;
-		}
-		//else ortho has it's own window
-		else {
-			labelDescriptionOverride.Visible=false;
-			textDescriptionOverride.Visible=false;
-			labelDescriptionOverrideOption.Visible=false;
-		}
-		FillWidth();
-	}
+    public FormDisplayFieldEdit()
+    {
+        InitializeComponent();
+    }
 
-	private void FillWidth(){
-		var g=this.CreateGraphics();
-		var displayText=textDescriptionOverride.Text;
-		if(displayText=="") {
-			displayText=textDescription.Text;
-		}
-		if(displayText=="") {
-			displayText=textInternalName.Text;
-		}
-		//Add a 5 pixel buffer for slight variations of font scaling, fonts do not scale with the same ratios that other controls do, so we need some additional space to compensate. Also we don't need to use the LayoutManager.Scale for these 5 pixels since the Grid is already scaling.
-		var width=(int)g.MeasureString(displayText,_font).Width+5;
-		textWidthMin.Text=width.ToString();
-		g.Dispose();
-	}
+    private void FormDisplayFieldEdit_Load(object sender, EventArgs e)
+    {
+        textInternalName.Text = DisplayFieldCur.InternalName;
+        textDescription.Text = DisplayFieldCur.Description;
+        textDescriptionOverride.Text = DisplayFieldCur.DescriptionOverride;
+        textWidth.Text = DisplayFieldCur.ColumnWidth.ToString();
 
-	private void textDescription_TextChanged(object sender,EventArgs e) {
-		FillWidth();
-	}
+        if (DisplayFieldCur.Category == DisplayFieldCategory.SuperFamilyGridCols && DisplayFieldCur.InternalName == "")
+        {
+            labelInternalName.Visible = false;
+            textInternalName.Visible = false;
+            labelDescriptionOption.Visible = false;
+            textDescription.ReadOnly = true;
+        }
+        else
+        {
+            labelDescriptionOverride.Visible = false;
+            textDescriptionOverride.Visible = false;
+            labelDescriptionOverrideOption.Visible = false;
+        }
 
-	private void textDescriptionOverride_TextChanged(object sender,EventArgs e) {
-		FillWidth();
-	}
+        FillWidth();
+    }
 
-	private void butSave_Click(object sender, System.EventArgs e) {
-		if(!textWidth.IsValid()) {
-			MsgBox.Show(this,"Please fix data entry errors first.");
-			return;
-		}
-		DisplayFieldCur.Description=textDescription.Text;
-		DisplayFieldCur.DescriptionOverride=textDescriptionOverride.Text;
-		DisplayFieldCur.ColumnWidth=SIn.Int(textWidth.Text);
-		DialogResult=DialogResult.OK;
-	}
+    private void FillWidth()
+    {
+        using var graphics = CreateGraphics();
 
+        var description = textDescriptionOverride.Text;
+        if (description == "")
+        {
+            description = textDescription.Text;
+        }
+
+        if (description == "")
+        {
+            description = textInternalName.Text;
+        }
+
+        var width = (int) graphics.MeasureString(description, _font).Width + 5;
+
+        textWidthMin.Text = width.ToString();
+    }
+
+    private void TextBoxDescription_TextChanged(object sender, EventArgs e)
+    {
+        FillWidth();
+    }
+
+    private void TextBoxDescriptionOverride_TextChanged(object sender, EventArgs e)
+    {
+        FillWidth();
+    }
+
+    private void ButtonSave_Click(object sender, EventArgs e)
+    {
+        if (!textWidth.IsValid())
+        {
+            ShowError("Please fix data entry errors first.");
+            return;
+        }
+
+        DisplayFieldCur.Description = textDescription.Text;
+        DisplayFieldCur.DescriptionOverride = textDescriptionOverride.Text;
+        DisplayFieldCur.ColumnWidth = SIn.Int(textWidth.Text);
+        DialogResult = DialogResult.OK;
+    }
 }

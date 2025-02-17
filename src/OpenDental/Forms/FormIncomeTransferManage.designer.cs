@@ -1,4 +1,4 @@
-namespace OpenDental{
+namespace OpenDental.Forms{
 	partial class FormIncomeTransferManage {
 		/// <summary>
 		/// Required designer variable.
@@ -63,7 +63,7 @@ namespace OpenDental{
 			this.gridTransfers.TabIndex = 12;
 			this.gridTransfers.Title = "Existing Transfers (editable)";
 			this.gridTransfers.TranslationName = "TableTransfers";
-			this.gridTransfers.CellDoubleClick += new OpenDental.UI.ODGridClickEventHandler(this.gridTransfers_CellDoubleClick);
+			this.gridTransfers.CellDoubleClick += new OpenDental.UI.ODGridClickEventHandler(this.GridTransfers_CellDoubleClick);
 			// 
 			// butTransfer
 			// 
@@ -75,7 +75,7 @@ namespace OpenDental{
 			this.butTransfer.TabIndex = 18;
 			this.butTransfer.Text = "Transfer";
 			this.butTransfer.TextImageRelation = System.Windows.Forms.TextImageRelation.ImageBeforeText;
-			this.butTransfer.Click += new System.EventHandler(this.butTransfer_Click);
+			this.butTransfer.Click += new System.EventHandler(this.ButtonTransfer_Click);
 			// 
 			// checkShowBreakdown
 			// 
@@ -85,7 +85,7 @@ namespace OpenDental{
 			this.checkShowBreakdown.Size = new System.Drawing.Size(148, 20);
 			this.checkShowBreakdown.TabIndex = 157;
 			this.checkShowBreakdown.Text = "Show Breakdown";
-			this.checkShowBreakdown.CheckedChanged += new System.EventHandler(this.checkShowBreakdown_CheckedChanged);
+			this.checkShowBreakdown.CheckedChanged += new System.EventHandler(this.CheckBoxShowBreakdown_CheckedChanged);
 			// 
 			// datePickerAsOf
 			// 
@@ -94,7 +94,7 @@ namespace OpenDental{
 			this.datePickerAsOf.Name = "datePickerAsOf";
 			this.datePickerAsOf.Size = new System.Drawing.Size(112, 20);
 			this.datePickerAsOf.TabIndex = 158;
-			this.datePickerAsOf.ValueChanged += new System.EventHandler(this.datePickerTransfer_ValueChanged);
+			this.datePickerAsOf.ValueChanged += new System.EventHandler(this.DatePickerTransfer_ValueChanged);
 			// 
 			// labelAsOfDate
 			// 
@@ -122,7 +122,7 @@ namespace OpenDental{
 			this.butFIFO.TabIndex = 162;
 			this.butFIFO.Text = "Transfer FIFO";
 			this.butFIFO.TextImageRelation = System.Windows.Forms.TextImageRelation.ImageBeforeText;
-			this.butFIFO.Click += new System.EventHandler(this.butFIFO_Click);
+			this.butFIFO.Click += new System.EventHandler(this.ButtonFIFO_Click);
 			// 
 			// label6
 			// 

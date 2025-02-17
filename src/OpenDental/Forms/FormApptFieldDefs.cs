@@ -7,7 +7,7 @@ using Imedisoft.Core.Entities;
 using OpenDental.UI;
 using OpenDentBusiness;
 
-namespace OpenDental;
+namespace OpenDental.Forms;
 
 public partial class FormApptFieldDefs : FormODBase
 {
@@ -53,7 +53,8 @@ public partial class FormApptFieldDefs : FormODBase
         var needsUpdate = false;
         for (var i = 0; i < _apptFieldDefs.Count; i++)
         {
-            if (FieldDefLinks.GetExists(x => x.FieldDefType == FieldDefTypes.Appointment && x.FieldDefNum == _apptFieldDefs[i].ApptFieldDefNum))
+            var apptFieldDefNum = _apptFieldDefs[i].ApptFieldDefNum;
+            if (FieldDefLinks.GetExists(x => x.FieldDefType == FieldDefTypes.Appointment && x.FieldDefNum == apptFieldDefNum))
             {
                 listMain.Items.Add(_apptFieldDefs[i].FieldName + " (Hidden)");
             }

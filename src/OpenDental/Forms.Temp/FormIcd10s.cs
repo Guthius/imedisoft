@@ -1,118 +1,94 @@
 using System;
 using System.Collections.Generic;
 using System.Windows.Forms;
-using OpenDentBusiness;
 using Imedisoft.Core.Entities;
 using OpenDental.UI;
+using OpenDentBusiness;
 
 namespace OpenDental;
 
-public partial class FormIcd10s:FormODBase {
-	public bool IsSelectionMode;
-	public Icd10 Icd10Selected;
-	private List<Icd10> _listIcd10s;
+public partial class FormIcd10s : FormODBase
+{
+    private List<Icd10> _icd10s;
+    
+    public bool IsSelectionMode { get; set; }
+    public Icd10 SelectedIcd10 { get; set; }
+    
+    public FormIcd10s()
+    {
+        InitializeComponent();
+    }
 
-	public FormIcd10s() {
-		InitializeComponent();
-	}
+    private void FormIcd10s_Load(object sender, EventArgs e)
+    {
+        if (!IsSelectionMode)
+        {
+            butOK.Visible = false;
+        }
 
-	private void FormIcd10s_Load(object sender,EventArgs e) {
-		if(!IsSelectionMode) {
-			butOK.Visible=false;
-		}
-		ActiveControl=textCode;
-	}
-		
-	private void butSearch_Click(object sender,EventArgs e) {
-		FillGrid();
-	}
+        ActiveControl = textCode;
+    }
 
-	private void FillGrid() {
-		gridMain.BeginUpdate();
-		gridMain.Columns.Clear();
-		GridColumn col;
-		col=new GridColumn("Icd10 Code",100);
-		gridMain.Columns.Add(col);
-		//col=new ODGridColumn("Deprecated",75,HorizontalAlignment.Center);
-		//gridMain.Columns.Add(col);
-		col=new GridColumn("Description",500);
-		gridMain.Columns.Add(col);
-		//col=new ODGridColumn("Used By CQM's",75);
-		//gridMain.Columns.Add(col);
-		gridMain.ListGridRows.Clear();
-		GridRow row;
-		_listIcd10s=Icd10s.GetBySearchText(textCode.Text);
-		//List<ODGridRow> listAll=new List<ODGridRow>();//for sorting grid after it has been filled.
-		for(var i=0;i<_listIcd10s.Count;i++) {
-			row=new GridRow();
-			row.Cells.Add(_listIcd10s[i].Icd10Code);
-			row.Cells.Add(_listIcd10s[i].Description);
-			//row.Cells.Add(EhrCodes.GetMeasureIdsForCode(listCpts[i].SnomedCode,"SNOMEDCT"));
-			row.Tag=_listIcd10s[i];;
-			//listAll.Add(row);
-			gridMain.ListGridRows.Add(row);
-		}
-		//listAll.Sort(SortMeasuresMet);
-		//for(int i=0;i<listAll.Count;i++) {
-		//	gridMain.Rows.Add(listAll[i]);
-		//}
-		gridMain.EndUpdate();
-	}
+    private void ButtonSearch_Click(object sender, EventArgs e)
+    {
+        FillGrid();
+    }
 
-	///<summary>Sort function to put the codes that apply to the most number of CQM's at the top so the user can see which codes they should select.</summary>
-	//private int SortMeasuresMet(ODGridRow row1,ODGridRow row2) {
-	//	//First sort by the number of measures the codes apply to in a comma delimited list
-	//	int diff=row2.Cells[2].Text.Split(new string[] { "," },StringSplitOptions.RemoveEmptyEntries).Length-row1.Cells[2].Text.Split(new string[] { "," },StringSplitOptions.RemoveEmptyEntries).Length;
-	//	if(diff!=0) {
-	//		return diff;
-	//	}
-	//	try {
-	//		//if the codes apply to the same number of CQMs, order by the code values
-	//		return PIn.Long(row1.Cells[0].Text).CompareTo(PIn.Long(row2.Cells[0].Text));
-	//	}
-	//	catch(Exception ex) {
-	//		return 0;
-	//	}
-	//}
+    private void FillGrid()
+    {
+        gridMain.BeginUpdate();
+        
+        gridMain.Columns.Clear();
+        gridMain.Columns.Add( new GridColumn("Icd10 Code", 100));
+        gridMain.Columns.Add(new GridColumn("Description", 500));
+        
+        gridMain.ListGridRows.Clear();
+        
+        _icd10s = Icd10s.GetBySearchText(textCode.Text);
+        
+        foreach (var icd10 in _icd10s)
+        {
+            var gridRow = new GridRow();
+            
+            gridRow.Cells.Add(icd10.Icd10Code);
+            gridRow.Cells.Add(icd10.Description);
+            gridRow.Tag = icd10;
+            
+            gridMain.ListGridRows.Add(gridRow);
+        }
 
-	private void gridMain_CellDoubleClick(object sender,ODGridClickEventArgs e) {
-		if(IsSelectionMode) {
-			Icd10Selected=(Icd10)gridMain.ListGridRows[e.Row].Tag;
-			DialogResult=DialogResult.OK;
-			return;
-		}
-		//changed=true;
-		//FormSnomedEdit FormSE=new FormSnomedEdit((Snomed)gridMain.Rows[e.Row].Tag);
-		//FormSE.ShowDialog();
-		//if(FormSE.DialogResult!=DialogResult.OK) {
-		//	return;
-		//}
-		//FillGrid();
-	}
+        gridMain.EndUpdate();
+    }
+    
+    private void GridMain_CellDoubleClick(object sender, ODGridClickEventArgs e)
+    {
+        if (!IsSelectionMode)
+        {
+            return;
+        }
+        
+        SelectedIcd10 = (Icd10) gridMain.ListGridRows[e.Row].Tag;
+        
+        DialogResult = DialogResult.OK;
+    }
+    
+    private void ButtonCodeImport_Click(object sender, EventArgs e)
+    {
+        using var formCodeSystemsImport = new FormCodeSystemsImport();
+        
+        formCodeSystemsImport.ShowDialog();
+    }
 
-	/*private void butAdd_Click(object sender,EventArgs e) {
-		//TODO: Either change to adding a snomed code instead of an ICD9 or don't allow users to add SNOMED codes other than importing.
-		changed=true;
-		Snomed snomed=new Snomed();
-		FormSnomedEdit FormI=new FormSnomedEdit(snomed);
-		FormI.IsNew=true;
-		FormI.ShowDialog();
-		FillGrid();
-	}*/
+    private void ButtonAccept_Click(object sender, EventArgs e)
+    {
+        if (gridMain.GetSelectedIndex() == -1)
+        {
+            ShowError("Please select an item first.");
+            return;
+        }
 
-	private void butCodeImport_Click(object sender,EventArgs e) {
-		using var formCodeSystemsImport=new FormCodeSystemsImport();
-		formCodeSystemsImport.ShowDialog();
-	}
-
-	private void butOK_Click(object sender,EventArgs e) {
-		//not even visible unless IsSelectionMode
-		if(gridMain.GetSelectedIndex()==-1) {
-			MsgBox.Show(this,"Please select an item first.");
-			return;
-		}
-		Icd10Selected=(Icd10)gridMain.ListGridRows[gridMain.GetSelectedIndex()].Tag;
-		DialogResult=DialogResult.OK;
-	}
-
+        SelectedIcd10 = (Icd10) gridMain.ListGridRows[gridMain.GetSelectedIndex()].Tag;
+        
+        DialogResult = DialogResult.OK;
+    }
 }

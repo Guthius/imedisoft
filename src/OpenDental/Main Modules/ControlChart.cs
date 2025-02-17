@@ -1677,7 +1677,7 @@ public partial class ControlChart : UserControl
             formSheetProcSelect.ShowDialog();
             if (formSheetProcSelect.DialogResult == DialogResult.OK)
             {
-                SheetParameter.SetParameter(sheet, "ListProcNums", formSheetProcSelect.ListProcNumsSelected);
+                SheetParameter.SetParameter(sheet, "ListProcNums", formSheetProcSelect.SelectedProcNums);
             }
         }
 

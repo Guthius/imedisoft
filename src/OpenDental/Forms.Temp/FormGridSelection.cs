@@ -1,57 +1,69 @@
 using System;
 using System.Collections.Generic;
 using System.Windows.Forms;
-using CodeBase;
 using OpenDental.UI;
 
 namespace OpenDental;
 
-public partial class FormGridSelection:FormODBase {
-		
-	private List<GridColumn> _listGridColumns;
-		
-	private List<GridRow> _listGridRows;
-	///<summary>Set to the tag of the rows that are double selected.</summary>
-	public List<object> ListSelectedTags= [];
+public partial class FormGridSelection : FormODBase
+{
+    private readonly List<GridColumn> _gridColumns;
+    private readonly List<GridRow> _gridRows;
 
-	/// <summary>listGridRows must have tags set.</summary>
-	public FormGridSelection(List<GridColumn> listGridColumns,List<GridRow> listGridRows,string formTitle,string gridTitle,GridSelectionMode selectMode=GridSelectionMode.OneRow) {
-		InitializeComponent();
+    public List<object> ListSelectedTags = [];
 
-		_listGridColumns=listGridColumns;
-		_listGridRows=listGridRows;
-		this.Text=formTitle;
-		gridMain.Title=gridTitle;
-		gridMain.SelectionMode=selectMode;
-	}
-		
-	private void FormGridSelection_Load(object sender,EventArgs e) {
-		FillGrid();
-	}
+    public FormGridSelection(List<GridColumn> gridColumns, List<GridRow> gridRows, string title, string gridTitle, GridSelectionMode selectionMode = GridSelectionMode.OneRow)
+    {
+        InitializeComponent();
 
-	private void FillGrid() {
-		gridMain.BeginUpdate();
-		for(var i=0;i<_listGridColumns.Count;i++) {
-			gridMain.Columns.Add(_listGridColumns[i]);
-		}
-		for(var i=0;i<_listGridRows.Count;i++) {
-			gridMain.ListGridRows.Add(_listGridRows[i]);
-		}
-		gridMain.EndUpdate();
-	}
+        _gridColumns = gridColumns;
+        _gridRows = gridRows;
 
-	private void gridEras_CellDoubleClick(object sender,UI.ODGridClickEventArgs e) {
-		ListSelectedTags=new List<object>(gridMain.SelectedTags<object>());
-		this.DialogResult=DialogResult.OK;
-	}
+        Text = title;
 
-	private void butOK_Click(object sender,EventArgs e) {
-		if(gridMain.SelectedIndices.Length==0) {
-			ODMessageBox.Show(Lan.g(this.Text+" "+gridMain.Title,"No items are selected.  Please select an item before continuing."));
-			return;
-		}
-		ListSelectedTags=new List<object>(gridMain.SelectedTags<object>());
-		this.DialogResult=DialogResult.OK;
-	}
+        gridMain.Title = gridTitle;
+        gridMain.SelectionMode = selectionMode;
+    }
 
+    private void FormGridSelection_Load(object sender, EventArgs e)
+    {
+        FillGrid();
+    }
+
+    private void FillGrid()
+    {
+        gridMain.BeginUpdate();
+
+        foreach (var gridColumn in _gridColumns)
+        {
+            gridMain.Columns.Add(gridColumn);
+        }
+
+        foreach (var gridRow in _gridRows)
+        {
+            gridMain.ListGridRows.Add(gridRow);
+        }
+
+        gridMain.EndUpdate();
+    }
+
+    private void GridEras_CellDoubleClick(object sender, ODGridClickEventArgs e)
+    {
+        ListSelectedTags = new List<object>(gridMain.SelectedTags<object>());
+
+        DialogResult = DialogResult.OK;
+    }
+
+    private void ButtonAccept_Click(object sender, EventArgs e)
+    {
+        if (gridMain.SelectedIndices.Length == 0)
+        {
+            ShowError("No items are selected.  Please select an item before continuing.");
+            return;
+        }
+
+        ListSelectedTags = new List<object>(gridMain.SelectedTags<object>());
+
+        DialogResult = DialogResult.OK;
+    }
 }

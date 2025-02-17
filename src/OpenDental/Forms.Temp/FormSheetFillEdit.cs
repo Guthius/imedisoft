@@ -16,6 +16,7 @@ using Imedisoft.Core.Caching;
 using Imedisoft.Core.Data;
 using Imedisoft.Core.Entities;
 using Imedisoft.Core.Features.Clinics;
+using OpenDental.Forms;
 using OpenDental.UI;
 using OpenDentBusiness;
 

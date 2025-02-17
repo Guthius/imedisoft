@@ -6,6 +6,7 @@ using System.Windows.Forms;
 using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Entities;
+using OpenDental.Forms;
 using OpenDental.UI;
 using OpenDentBusiness;
 
@@ -234,7 +235,7 @@ public partial class FormPatientForms:FormODBase {
 				formSheetProcSelect.PatNum=PatNum;
 				formSheetProcSelect.ShowDialog();
 				if(formSheetProcSelect.DialogResult==DialogResult.OK) {
-					SheetParameter.SetParameter(sheet,"ListProcNums",formSheetProcSelect.ListProcNumsSelected);
+					SheetParameter.SetParameter(sheet,"ListProcNums",formSheetProcSelect.SelectedProcNums);
 				}
 			}
 			//Will display FormApptsOther for the user to select an appointment or procedures to display on the sheet.

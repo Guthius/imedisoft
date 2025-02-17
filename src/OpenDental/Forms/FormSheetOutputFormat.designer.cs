@@ -1,4 +1,4 @@
-namespace OpenDental{
+namespace OpenDental.Forms{
 	partial class FormSheetOutputFormat {
 		/// <summary>
 		/// Required designer variable.
@@ -49,7 +49,7 @@ namespace OpenDental{
 			this.checkEmailPat.Size = new System.Drawing.Size(356, 20);
 			this.checkEmailPat.TabIndex = 85;
 			this.checkEmailPat.Text = "E-mail to patient (not recommended for sensitive information):";
-			this.checkEmailPat.Click += new System.EventHandler(this.checkEmailPat_Click);
+			this.checkEmailPat.Click += new System.EventHandler(this.CheckBoxEmailPat_Click);
 			// 
 			// textEmailPat
 			// 
@@ -72,7 +72,7 @@ namespace OpenDental{
 			this.checkEmail2.Size = new System.Drawing.Size(356, 20);
 			this.checkEmail2.TabIndex = 87;
 			this.checkEmail2.Text = "E-mail to referral (not recommended for sensitive information):";
-			this.checkEmail2.Click += new System.EventHandler(this.checkEmail2_Click);
+			this.checkEmail2.Click += new System.EventHandler(this.CheckBoxEmail2_Click);
 			// 
 			// textPaperCopies
 			// 
@@ -91,7 +91,7 @@ namespace OpenDental{
 			this.butOK.Size = new System.Drawing.Size(75, 24);
 			this.butOK.TabIndex = 3;
 			this.butOK.Text = "&OK";
-			this.butOK.Click += new System.EventHandler(this.butOK_Click);
+			this.butOK.Click += new System.EventHandler(this.ButtonAccept_Click);
 			// 
 			// FormSheetOutputFormat
 			// 

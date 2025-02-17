@@ -70,7 +70,7 @@ public partial class FormCreditRecurringDateChoose : FormODBase
             if (daysOfMonth.Count > 1)
             {
                 comboBoxMonthSelect.Items.Clear();
-                var listDateTimes = new List<DateTime>();
+                var dateTimes = new List<DateTime>();
 
                 foreach (var dayOfMonth in daysOfMonth)
                 {
@@ -84,19 +84,19 @@ public partial class FormCreditRecurringDateChoose : FormODBase
                     var lastMonth = GetDateForDayOfMonth(DateTime.Today.AddMonths(monthOffset - 1), dayOfMonth);
                     if (thisMonth >= _creditCard.DateStart)
                     {
-                        listDateTimes.Add(thisMonth);
+                        dateTimes.Add(thisMonth);
                     }
 
                     if (lastMonth >= _creditCard.DateStart)
                     {
-                        listDateTimes.Add(lastMonth);
+                        dateTimes.Add(lastMonth);
                     }
                 }
 
-                listDateTimes = listDateTimes.OrderByDescending(x => x).ToList();
-                for (var i = 0; i < listDateTimes.Count; i++)
+                dateTimes = dateTimes.OrderByDescending(x => x).ToList();
+                foreach (var dateTime in dateTimes)
                 {
-                    comboBoxMonthSelect.Items.Add(listDateTimes[i].ToShortDateString(), listDateTimes[i]);
+                    comboBoxMonthSelect.Items.Add(dateTime.ToShortDateString(), dateTime);
                 }
 
                 if (comboBoxMonthSelect.Items.Count > 0)

@@ -69,7 +69,7 @@ namespace OpenDental{
 			this.buttonChangeInto.TabIndex = 2;
 			this.buttonChangeInto.Text = "Change";
 			this.buttonChangeInto.UseVisualStyleBackColor = true;
-			this.buttonChangeInto.Click += new System.EventHandler(this.buttonChangeInto_Click);
+			this.buttonChangeInto.Click += new System.EventHandler(this.ButtonChangeInto_Click);
 			// 
 			// textBoxInto
 			// 
@@ -109,7 +109,7 @@ namespace OpenDental{
 			this.buttonChangeFrom.TabIndex = 3;
 			this.buttonChangeFrom.Text = "Change";
 			this.buttonChangeFrom.UseVisualStyleBackColor = true;
-			this.buttonChangeFrom.Click += new System.EventHandler(this.buttonChangeFrom_Click);
+			this.buttonChangeFrom.Click += new System.EventHandler(this.ButtonChangeFrom_Click);
 			// 
 			// textBoxFrom
 			// 

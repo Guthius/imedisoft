@@ -1470,7 +1470,7 @@ public partial class FormOpenDental : FormODBase
             formSheetProcSelect.ShowDialog();
             if (formSheetProcSelect.DialogResult == DialogResult.OK)
             {
-                SheetParameter.SetParameter(sheet, "ListProcNums", formSheetProcSelect.ListProcNumsSelected);
+                SheetParameter.SetParameter(sheet, "ListProcNums", formSheetProcSelect.SelectedProcNums);
             }
         }
 
@@ -1584,7 +1584,7 @@ public partial class FormOpenDental : FormODBase
 
             if (formSheetProcSelect.ShowDialog() == DialogResult.OK)
             {
-                SheetParameter.SetParameter(sheet, "ListProcNums", formSheetProcSelect.ListProcNumsSelected);
+                SheetParameter.SetParameter(sheet, "ListProcNums", formSheetProcSelect.SelectedProcNums);
             }
         }
 

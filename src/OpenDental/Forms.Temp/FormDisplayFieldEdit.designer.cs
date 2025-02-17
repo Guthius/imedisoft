@@ -72,7 +72,7 @@ namespace OpenDental {
 			this.textDescription.Name = "textDescription";
 			this.textDescription.Size = new System.Drawing.Size(348, 20);
 			this.textDescription.TabIndex = 5;
-			this.textDescription.TextChanged += new System.EventHandler(this.textDescription_TextChanged);
+			this.textDescription.TextChanged += new System.EventHandler(this.TextBoxDescription_TextChanged);
 			// 
 			// label2
 			// 
@@ -135,7 +135,7 @@ namespace OpenDental {
 			this.butSave.Size = new System.Drawing.Size(75, 26);
 			this.butSave.TabIndex = 1;
 			this.butSave.Text = "&Save";
-			this.butSave.Click += new System.EventHandler(this.butSave_Click);
+			this.butSave.Click += new System.EventHandler(this.ButtonSave_Click);
 			// 
 			// lblDescOption
 			// 
@@ -161,7 +161,7 @@ namespace OpenDental {
 			this.textDescriptionOverride.Name = "textDescriptionOverride";
 			this.textDescriptionOverride.Size = new System.Drawing.Size(348, 20);
 			this.textDescriptionOverride.TabIndex = 97;
-			this.textDescriptionOverride.TextChanged += new System.EventHandler(this.textDescriptionOverride_TextChanged);
+			this.textDescriptionOverride.TextChanged += new System.EventHandler(this.TextBoxDescriptionOverride_TextChanged);
 			// 
 			// lblDescOverride
 			// 

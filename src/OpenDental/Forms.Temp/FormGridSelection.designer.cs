@@ -40,7 +40,7 @@ namespace OpenDental{
 			this.gridMain.TabIndex = 5;
 			this.gridMain.Title = "Grid Title";
 			this.gridMain.TranslationName = "TableERA";
-			this.gridMain.CellDoubleClick += new OpenDental.UI.ODGridClickEventHandler(this.gridEras_CellDoubleClick);
+			this.gridMain.CellDoubleClick += new OpenDental.UI.ODGridClickEventHandler(this.GridEras_CellDoubleClick);
 			// 
 			// butOK
 			// 
@@ -50,7 +50,7 @@ namespace OpenDental{
 			this.butOK.Size = new System.Drawing.Size(75, 24);
 			this.butOK.TabIndex = 6;
 			this.butOK.Text = "&OK";
-			this.butOK.Click += new System.EventHandler(this.butOK_Click);
+			this.butOK.Click += new System.EventHandler(this.ButtonAccept_Click);
 			// 
 			// FormGridSelection
 			// 

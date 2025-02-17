@@ -7,7 +7,7 @@ using Imedisoft.Core.Entities;
 using Imedisoft.Core.Features.Clinics;
 using OpenDentBusiness;
 
-namespace OpenDental;
+namespace OpenDental.Forms;
 
 public partial class FormApptPrintSetup : FormODBase
 {
@@ -250,6 +250,7 @@ public partial class FormApptPrintSetup : FormODBase
         }
 
         IsPrintPreview = true;
+
         DialogResult = DialogResult.OK;
     }
 

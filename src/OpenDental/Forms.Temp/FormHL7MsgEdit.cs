@@ -1,4 +1,5 @@
 using System;
+using System.Globalization;
 using System.Windows.Forms;
 using Imedisoft.Core.Data;
 using Imedisoft.Core.Entities;
@@ -6,33 +7,41 @@ using OpenDentBusiness;
 
 namespace OpenDental;
 
-/// <summary></summary>
-public partial class FormHL7MsgEdit:FormODBase {
-	public HL7Msg HL7MsgCur;
+public partial class FormHL7MsgEdit : FormODBase
+{
+    public HL7Msg HL7MsgCur;
+    
+    public FormHL7MsgEdit()
+    {
+        InitializeComponent();
+    }
 
-		
-	public FormHL7MsgEdit() {
-		InitializeComponent();
-	}
+    private void FormHL7DefSegmentEdit_Load(object sender, EventArgs e)
+    {
+        textHL7MsgNum.Text = HL7MsgCur.HL7MsgNum.ToString();
+        textDateTStamp.Text = HL7MsgCur.DateTStamp.ToString(CultureInfo.InvariantCulture);
+        
+        if (HL7MsgCur.PatNum > 0)
+        {
+            textPatient.Text = Patients.GetLim(HL7MsgCur.PatNum).GetNameLF();
+        }
 
-	private void FormHL7DefSegmentEdit_Load(object sender,EventArgs e) {
-		textHL7MsgNum.Text=HL7MsgCur.HL7MsgNum.ToString();
-		textDateTStamp.Text=HL7MsgCur.DateTStamp.ToString();
-		if(HL7MsgCur.PatNum>0) {
-			textPatient.Text=Patients.GetLim(HL7MsgCur.PatNum).GetNameLF();
-		}
-		if(HL7MsgCur.AptNum>0) {
-			textAptNum.Text=HL7MsgCur.AptNum.ToString();
-		}
-		textHL7Status.Text=HL7MsgCur.HL7Status.ToString();
-		textMsgTxt.Text=HL7MsgCur.MsgText;
-		textNote.Text=HL7MsgCur.Note;
-	}
+        if (HL7MsgCur.AptNum > 0)
+        {
+            textAptNum.Text = HL7MsgCur.AptNum.ToString();
+        }
 
-	private void butSave_Click(object sender,EventArgs e) {
-		HL7MsgCur.Note=textNote.Text;
-		HL7Msgs.Update(HL7MsgCur);
-		DialogResult=DialogResult.OK;
-	}
+        textHL7Status.Text = HL7MsgCur.HL7Status.ToString();
+        textMsgTxt.Text = HL7MsgCur.MsgText;
+        textNote.Text = HL7MsgCur.Note;
+    }
 
+    private void butSave_Click(object sender, EventArgs e)
+    {
+        HL7MsgCur.Note = textNote.Text;
+        
+        HL7Msgs.Update(HL7MsgCur);
+        
+        DialogResult = DialogResult.OK;
+    }
 }

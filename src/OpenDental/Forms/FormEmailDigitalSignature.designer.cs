@@ -1,4 +1,4 @@
-namespace OpenDental{
+namespace OpenDental.Forms{
 	partial class FormEmailDigitalSignature {
 		/// <summary>
 		/// Required designer variable.
@@ -49,7 +49,7 @@ namespace OpenDental{
 			this.butTrust.Size = new System.Drawing.Size(75, 24);
 			this.butTrust.TabIndex = 3;
 			this.butTrust.Text = "Trust";
-			this.butTrust.Click += new System.EventHandler(this.butTrust_Click);
+			this.butTrust.Click += new System.EventHandler(this.ButtonTrust_Click);
 			// 
 			// label2
 			// 

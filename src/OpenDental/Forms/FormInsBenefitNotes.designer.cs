@@ -1,11 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Forms;
-
-namespace OpenDental {
+﻿namespace OpenDental.Forms {
 	public partial class FormInsBenefitNotes {
 		/// <summary>
 		/// Required designer variable.
@@ -47,7 +40,7 @@ namespace OpenDental {
 			this.butSave.Size = new System.Drawing.Size(75, 26);
 			this.butSave.TabIndex = 1;
 			this.butSave.Text = "&Save";
-			this.butSave.Click += new System.EventHandler(this.butSave_Click);
+			this.butSave.Click += new System.EventHandler(this.ButtonSave_Click);
 			// 
 			// textBenefitNotes
 			// 

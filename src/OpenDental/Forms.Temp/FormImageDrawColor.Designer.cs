@@ -41,7 +41,7 @@ namespace OpenDental{
 			this.butSave.Size = new System.Drawing.Size(75, 24);
 			this.butSave.TabIndex = 3;
 			this.butSave.Text = "&Save";
-			this.butSave.Click += new System.EventHandler(this.butSave_Click);
+			this.butSave.Click += new System.EventHandler(this.ButtonSave_Click);
 			// 
 			// labelColorFore
 			// 
@@ -59,7 +59,7 @@ namespace OpenDental{
 			this.butColorFore.Name = "butColorFore";
 			this.butColorFore.Size = new System.Drawing.Size(30, 20);
 			this.butColorFore.TabIndex = 160;
-			this.butColorFore.Click += new System.EventHandler(this.butColorFore_Click);
+			this.butColorFore.Click += new System.EventHandler(this.ButtonColorFore_Click);
 			// 
 			// labelColorTextBack
 			// 
@@ -77,7 +77,7 @@ namespace OpenDental{
 			this.butColorTextBack.Name = "butColorTextBack";
 			this.butColorTextBack.Size = new System.Drawing.Size(30, 20);
 			this.butColorTextBack.TabIndex = 166;
-			this.butColorTextBack.Click += new System.EventHandler(this.butColorTextBack_Click);
+			this.butColorTextBack.Click += new System.EventHandler(this.ButtonColorTextBack_Click);
 			// 
 			// checkTransparent
 			// 
@@ -86,7 +86,7 @@ namespace OpenDental{
 			this.checkTransparent.Size = new System.Drawing.Size(117, 18);
 			this.checkTransparent.TabIndex = 167;
 			this.checkTransparent.Text = "Transparent";
-			this.checkTransparent.Click += new System.EventHandler(this.checkTransparent_Click);
+			this.checkTransparent.Click += new System.EventHandler(this.CheckBoxTransparent_Click);
 			// 
 			// labelMount
 			// 

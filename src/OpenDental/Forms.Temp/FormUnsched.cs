@@ -16,8 +16,6 @@ using OpenDental.Logic;
 namespace OpenDental;
 
 public partial class FormUnsched:FormODBase {
-		
-	public static string ProceduresForCur;
 	private List<Appointment> _listAppointmentsUnsched;
 	private bool _isHeadingPrinted;
 	private int _heightHeadingPrint;

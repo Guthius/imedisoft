@@ -427,8 +427,7 @@ public class SheetPrinting
         }
         catch (Exception ex)
         {
-            FriendlyException.Show(Lans.g("PdfDocument", "An error has occurred while trying to create this document"), ex, true);
-            return;
+            FriendlyException.Show("An error has occurred while trying to create this document", ex, true);
         }
     }
 

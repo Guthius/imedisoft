@@ -1,4 +1,4 @@
-namespace OpenDental{
+namespace OpenDental.Forms{
 	partial class FormImages {
 		/// <summary>
 		/// Required designer variable.

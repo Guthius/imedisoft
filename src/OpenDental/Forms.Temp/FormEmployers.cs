@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Windows.Forms;
 using CodeBase;
@@ -6,150 +7,175 @@ using OpenDentBusiness;
 
 namespace OpenDental;
 
-/// <summary>
-/// Summary description for FormBasicTemplate.
-/// </summary>
-public partial class FormEmployers : FormODBase {
-	private List<Employer> _listEmployers;
-	//<summary>Set to true if using this dialog to select an employer.</summary>
-	//public bool IsSelectMode;
+public partial class FormEmployers : FormODBase
+{
+    private readonly List<Employer> _employers = [];
 
-		
-	public FormEmployers()
-	{
-		//
-		// Required for Windows Form Designer support
-		//
-		InitializeComponent();
+    public FormEmployers()
+    {
+        InitializeComponent();
+    }
 
-		_listEmployers= [];
-	}
+    private void FormEmployers_Load(object sender, EventArgs e)
+    {
+        FillGrid();
+    }
 
-	private void FormEmployers_Load(object sender, System.EventArgs e) {
-		FillGrid();
-	}
+    private void FillGrid()
+    {
+        Employers.RefreshCache();
 
-	private void FillGrid(){
-		Employers.RefreshCache();
-		_listEmployers.Clear();
-		var listEmployersAll=Employers.GetListDeep();
-		for(var i=0;i<listEmployersAll.Count;i++) {
-			_listEmployers.Add(listEmployersAll[i]);
-		}
-		_listEmployers.Sort(CompareEmployers);
-		listEmp.Items.Clear();
-		for(var i=0;i<_listEmployers.Count;i++){
-			listEmp.Items.Add(_listEmployers[i].EmpName);
-			//if(IsSelectMode && ListEmployers[i].EmployerNum==Employers.Cur.EmployerNum){
-			//	listEmp.SetSelected(i);
-			//}
-		}
-	}
+        _employers.Clear();
 
-	private int CompareEmployers(Employer employer1,Employer employer2) {
-		return employer1.EmpName.CompareTo(employer2.EmpName);
-	}
+        var employers = Employers.GetListDeep();
+        foreach (var employer in employers)
+        {
+            _employers.Add(employer);
+        }
 
-	private void listEmp_DoubleClick(object sender, System.EventArgs e) {
-		if(listEmp.SelectedIndices.Count==0) {
-			return;
-		}
-		//EmployerCur=
-		//if(IsSelectMode){
-		//	DialogResult=DialogResult.OK;
-		//	return;
-		//}
-		var frmEmployerEdit=new FrmEmployerEdit();
-		frmEmployerEdit.EmployerCur=_listEmployers[listEmp.SelectedIndices[0]];
-		frmEmployerEdit.ShowDialog();
-		if(!frmEmployerEdit.IsDialogOK)
-			return;
-		FillGrid();
-	}
+        _employers.Sort(CompareEmployers);
 
-	private void butAdd_Click(object sender, System.EventArgs e) {
-		var frmEmployerEdit=new FrmEmployerEdit();
-		frmEmployerEdit.EmployerCur=new Employer();
-		frmEmployerEdit.IsNew=true;
-		frmEmployerEdit.ShowDialog();
-		FillGrid();
-	}
+        listEmp.Items.Clear();
 
-	private void butDelete_Click(object sender, System.EventArgs e) {
-		if(listEmp.SelectedIndices.Count!=1){
-			ODMessageBox.Show(Lan.g(this,"Please select one item first."));
-			return;
-		}
-		//Employers.Cur=;
-		//make sure no dependent patients:
-		var dependentNames=Employers.DependentPatients(_listEmployers[listEmp.SelectedIndices[0]]);
-		if(dependentNames!=""){
-			ODMessageBox.Show(Lan.g(this,"Not allowed to delete this employer because it it attached to "
-			                             +"the following patients.  You should combine employers instead.")
-			                  +"\r\n\r\n"+dependentNames);
-			return;
-		}
-		//make sure no dependent insplans:
-		dependentNames=Employers.DependentInsPlans(_listEmployers[listEmp.SelectedIndices[0]]);
-		if(dependentNames!=""){
-			ODMessageBox.Show(Lan.g(this,"Not allowed to delete this employer because it is attached to "
-			                             +"the following insurance plans.  You should combine employers instead.")
-			                  +"\r\n\r\n"+dependentNames);
-			return;
-		}
-		if(ODMessageBox.Show(Lan.g(this,"Delete Employer?"),"",MessageBoxButtons.OKCancel)!=DialogResult.OK){
-			return;
-		}
-		Employers.Delete(_listEmployers[listEmp.SelectedIndices[0]]);
-		FillGrid();
-	}
+        foreach (var employer in _employers)
+        {
+            listEmp.Items.Add(employer.EmpName);
+        }
+    }
 
-	private void butEdit_Click(object sender, System.EventArgs e) {
-		if(listEmp.SelectedIndices.Count!=1){
-			ODMessageBox.Show(Lan.g(this,"Please select one item first."));
-			return;
-		}
-		var frmEmployerEdit=new FrmEmployerEdit();
-		frmEmployerEdit.EmployerCur=_listEmployers[listEmp.SelectedIndices[0]];
-		frmEmployerEdit.ShowDialog();
-		if(!frmEmployerEdit.IsDialogOK)
-			return;
-		FillGrid();
-	}
+    private static int CompareEmployers(Employer employer1, Employer employer2)
+    {
+        return string.Compare(employer1.EmpName, employer2.EmpName, StringComparison.Ordinal);
+    }
 
-	private void butCombine_Click(object sender, System.EventArgs e) {
-		if(listEmp.SelectedIndices.Count<2){
-			ODMessageBox.Show(Lan.g(this,"Please select multiple items first while holding down the control key."));
-			return;
-		}
-		if(ODMessageBox.Show(Lan.g(this,"Combine all these employers into a single employer? This will affect all patients using these employers."),""
-			   ,MessageBoxButtons.OKCancel)!=DialogResult.OK){
-			return;
-		}
-		var listEmployerNums=new List<long>();
-		for(var i=0;i<listEmp.SelectedIndices.Count;i++) {
-			listEmployerNums.Add(_listEmployers[listEmp.SelectedIndices[i]].EmployerNum);
-		}
-		Employers.Combine(listEmployerNums);
-		FillGrid();
-	}
+    private void ListBoxEmp_DoubleClick(object sender, EventArgs e)
+    {
+        if (listEmp.SelectedIndices.Count == 0)
+        {
+            return;
+        }
 
-	private void butOK_Click(object sender, System.EventArgs e) {
-		/*if(IsSelectMode){
-			if(listEmp.SelectedIndices.Count!=1){
-				Employers.Cur=new Employer();
-				//MessageBox.Show(Lan.g(this,"Please select one item first."));
-				//return;
-			}
-			else
-				Employers.Cur=ListEmployers[listEmp.SelectedIndices[0]];
-		}
-		else{
-			//update the other computers:
-			//DataValid.SetInvalid();//not needed due to intelligent refreshing
-		}*/
-		DataValid.SetInvalid(InvalidType.Employers);
-		DialogResult=DialogResult.OK;
-	}
+        var frmEmployerEdit = new FrmEmployerEdit
+        {
+            EmployerCur = _employers[listEmp.SelectedIndices[0]]
+        };
 
+        frmEmployerEdit.ShowDialog();
+
+        if (!frmEmployerEdit.IsDialogOK)
+        {
+            return;
+        }
+
+        FillGrid();
+    }
+
+    private void ButtonAdd_Click(object sender, EventArgs e)
+    {
+        var frmEmployerEdit = new FrmEmployerEdit
+        {
+            EmployerCur = new Employer(),
+            IsNew = true
+        };
+
+        frmEmployerEdit.ShowDialog();
+
+        FillGrid();
+    }
+
+    private void ButtonDelete_Click(object sender, EventArgs e)
+    {
+        if (listEmp.SelectedIndices.Count != 1)
+        {
+            ShowError("Please select one item first.");
+
+            return;
+        }
+
+        var dependentNames = Employers.DependentPatients(_employers[listEmp.SelectedIndices[0]]);
+        if (dependentNames != "")
+        {
+            ShowError(
+                "Not allowed to delete this employer because it it attached to the following patients. " +
+                "You should combine employers instead.\r\n\r\n" +
+                dependentNames);
+
+            return;
+        }
+
+        dependentNames = Employers.DependentInsPlans(_employers[listEmp.SelectedIndices[0]]);
+        if (dependentNames != "")
+        {
+            ShowError(
+                "Not allowed to delete this employer because it is attached to the following insurance plans. " +
+                "You should combine employers instead.\r\n\r\n" +
+                dependentNames);
+
+            return;
+        }
+
+        if (!ConfirmOk("Delete Employer?"))
+        {
+            return;
+        }
+
+        Employers.Delete(_employers[listEmp.SelectedIndices[0]]);
+
+        FillGrid();
+    }
+
+    private void ButtonEdit_Click(object sender, EventArgs e)
+    {
+        if (listEmp.SelectedIndices.Count != 1)
+        {
+            ShowError("Please select one item first.");
+
+            return;
+        }
+
+        var frmEmployerEdit = new FrmEmployerEdit
+        {
+            EmployerCur = _employers[listEmp.SelectedIndices[0]]
+        };
+
+        frmEmployerEdit.ShowDialog();
+
+        if (!frmEmployerEdit.IsDialogOK)
+        {
+            return;
+        }
+
+        FillGrid();
+    }
+
+    private void ButtonCombine_Click(object sender, EventArgs e)
+    {
+        if (listEmp.SelectedIndices.Count < 2)
+        {
+            ShowError("Please select multiple items first while holding down the control key.");
+            return;
+        }
+
+        if (!ConfirmOk("Combine all these employers into a single employer? This will affect all patients using these employers."))
+        {
+            return;
+        }
+
+        var employerNums = new List<long>();
+        foreach (var index in listEmp.SelectedIndices)
+        {
+            employerNums.Add(_employers[index].EmployerNum);
+        }
+
+        Employers.Combine(employerNums);
+        
+        FillGrid();
+    }
+
+    private void ButtonAccept_Click(object sender, EventArgs e)
+    {
+        DataValid.SetInvalid(InvalidType.Employers);
+
+        DialogResult = DialogResult.OK;
+    }
 }

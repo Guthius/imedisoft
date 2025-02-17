@@ -62,7 +62,7 @@ namespace OpenDental{
 			this.gridMain.Title = "ICD10 Codes";
 			this.gridMain.TranslationName = "FormIcd10Codes";
 			this.gridMain.WrapText = false;
-			this.gridMain.CellDoubleClick += new OpenDental.UI.ODGridClickEventHandler(this.gridMain_CellDoubleClick);
+			this.gridMain.CellDoubleClick += new OpenDental.UI.ODGridClickEventHandler(this.GridMain_CellDoubleClick);
 			// 
 			// butSearch
 			// 
@@ -72,7 +72,7 @@ namespace OpenDental{
 			this.butSearch.Size = new System.Drawing.Size(75, 24);
 			this.butSearch.TabIndex = 19;
 			this.butSearch.Text = "Search";
-			this.butSearch.Click += new System.EventHandler(this.butSearch_Click);
+			this.butSearch.Click += new System.EventHandler(this.ButtonSearch_Click);
 			// 
 			// butOK
 			// 
@@ -82,7 +82,7 @@ namespace OpenDental{
 			this.butOK.Size = new System.Drawing.Size(75, 24);
 			this.butOK.TabIndex = 3;
 			this.butOK.Text = "&OK";
-			this.butOK.Click += new System.EventHandler(this.butOK_Click);
+			this.butOK.Click += new System.EventHandler(this.ButtonAccept_Click);
 			// 
 			// butCodeImport
 			// 
@@ -93,7 +93,7 @@ namespace OpenDental{
 			this.butCodeImport.TabIndex = 21;
 			this.butCodeImport.Text = "Import";
 			this.butCodeImport.UseVisualStyleBackColor = false;
-			this.butCodeImport.Click += new System.EventHandler(this.butCodeImport_Click);
+			this.butCodeImport.Click += new System.EventHandler(this.ButtonCodeImport_Click);
 			// 
 			// FormIcd10s
 			// 
