@@ -2,110 +2,98 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Windows.Forms;
-using CodeBase;
 using Imedisoft.Core.Entities;
 using Imedisoft.Core.Features.Clinics;
 using Imedisoft.Core.Features.Providers;
 using OpenDental.UI;
-using OpenDentBusiness;
 
 namespace OpenDental;
 
-public partial class FormOperatoryPick:FormODBase {
+public partial class FormOperatoryPick : FormODBase
+{
+    private readonly List<Operatory> _operatories;
 
-	///<summary>After this window closes, this will be the OperatoryNum of the selected operatory.</summary>
-	public long OperatoryNumSelected;
-	///<summary>Passed in list of operatories shown to user.</summary>
-	private List<Operatory> _listOperatories;
+    public long SelectedOperatoryNum { get; set; }
 
-	public FormOperatoryPick(List<Operatory> listOperatories) {
-		InitializeComponent();
+    public FormOperatoryPick(List<Operatory> operatories)
+    {
+        _operatories = operatories;
 
-		_listOperatories=listOperatories.Select(x=>x.Copy()).ToList();
-	}
-		
-	private void FormOperatoryPick_Load(object sender,EventArgs e) {
-		FillGrid();
-	}
+        InitializeComponent();
+    }
 
-	private void gridMain_CellDoubleClick(object sender,ODGridClickEventArgs e) {
-		if(!SelectOperatory()) {
-			return;
-		}
-		DialogResult=DialogResult.OK;
-	}
+    private void FormOperatoryPick_Load(object sender, EventArgs e)
+    {
+        FillGrid();
+    }
 
-	private void FillGrid(){
-		gridMain.BeginUpdate();
-		gridMain.Columns.Clear();
-		var opNameWidth=180;
-		var clinicWidth=85;
-		var col=new GridColumn(Lan.g("TableOperatories","Op Name"),opNameWidth);
-		gridMain.Columns.Add(col);
-		col=new GridColumn(Lan.g("TableOperatories","Abbrev"),70);
-		gridMain.Columns.Add(col);
-		col=new GridColumn(Lan.g("TableOperatories","IsHidden"),64,HorizontalAlignment.Center);
-		gridMain.Columns.Add(col);
-		if(true) {
-			col=new GridColumn(Lan.g("TableOperatories","Clinic"),clinicWidth);
-			gridMain.Columns.Add(col);
-		}
-		col=new GridColumn(Lan.g("TableOperatories","Provider"),70);
-		gridMain.Columns.Add(col);
-		col=new GridColumn(Lan.g("TableOperatories","Hygienist"),70);
-		gridMain.Columns.Add(col);
-		col=new GridColumn(Lan.g("TableOperatories","IsHygiene"),64,HorizontalAlignment.Center);
-		gridMain.Columns.Add(col);
-		col=new GridColumn(Lan.g("TableOperatories","IsWebSched"),74,HorizontalAlignment.Center);
-		gridMain.Columns.Add(col);
-		col=new GridColumn(Lan.g("TableOperatories","IsNewPat"),50,HorizontalAlignment.Center){ IsWidthDynamic=true };
-		gridMain.Columns.Add(col);
-		gridMain.ListGridRows.Clear();
-		GridRow row;
-		for(var i=0;i<_listOperatories.Count;i++) {
-			row=new GridRow();
-			row.Cells.Add(_listOperatories[i].OpName);
-			row.Cells.Add(_listOperatories[i].Abbrev);
-			if(_listOperatories[i].IsHidden){
-				row.Cells.Add("X");
-			}
-			else{
-				row.Cells.Add("");
-			}
-			if(true) {
-				row.Cells.Add(Clinics.GetAbbr(_listOperatories[i].ClinicNum));
-			}
-			row.Cells.Add(Providers.GetAbbr(_listOperatories[i].ProvDentist));
-			row.Cells.Add(Providers.GetAbbr(_listOperatories[i].ProvHygienist));
-			if(_listOperatories[i].IsHygiene){
-				row.Cells.Add("X");
-			}
-			else{
-				row.Cells.Add("");
-			}
-			row.Cells.Add(_listOperatories[i].IsWebSched?"X":"");
-			row.Cells.Add("");
-			row.Tag=_listOperatories[i];
-			gridMain.ListGridRows.Add(row);
-		}
-		gridMain.EndUpdate();
-	}
+    private void GridMain_CellDoubleClick(object sender, ODGridClickEventArgs e)
+    {
+        if (!SelectOperatory())
+        {
+            return;
+        }
 
-	///<summary>Returns true if there was an operatory selected.</summary>
-	private bool SelectOperatory() {
-		if(gridMain.GetSelectedIndex()==-1){
-			ODMessageBox.Show(Lan.g(this,"Please select an item first."));
-			return false;
-		}
-		OperatoryNumSelected=((Operatory)gridMain.ListGridRows[gridMain.GetSelectedIndex()].Tag).OperatoryNum;
-		return true;
-	}
-		
-	private void butOK_Click(object sender,EventArgs e) {
-		if(!SelectOperatory()) {
-			return;
-		}
-		DialogResult=DialogResult.OK;
-	}
+        DialogResult = DialogResult.OK;
+    }
 
+    private void FillGrid()
+    {
+        gridMain.BeginUpdate();
+
+        gridMain.Columns.Clear();
+        gridMain.Columns.Add(new GridColumn("Op Name", 180));
+        gridMain.Columns.Add(new GridColumn("Abbrev", 70));
+        gridMain.Columns.Add(new GridColumn("IsHidden", 64, HorizontalAlignment.Center));
+        gridMain.Columns.Add(new GridColumn("Clinic", 85));
+        gridMain.Columns.Add(new GridColumn("Provider", 70));
+        gridMain.Columns.Add(new GridColumn("Hygienist", 70));
+        gridMain.Columns.Add(new GridColumn("IsHygiene", 64, HorizontalAlignment.Center));
+        gridMain.Columns.Add(new GridColumn("IsWebSched", 74, HorizontalAlignment.Center));
+        gridMain.Columns.Add(new GridColumn("IsNewPat", 50, HorizontalAlignment.Center) {IsWidthDynamic = true});
+
+        gridMain.ListGridRows.Clear();
+
+        foreach (var operatory in _operatories)
+        {
+            var gridRow = new GridRow();
+
+            gridRow.Cells.Add(operatory.OpName);
+            gridRow.Cells.Add(operatory.Abbrev);
+            gridRow.Cells.Add(operatory.IsHidden ? "X" : "");
+            gridRow.Cells.Add(Clinics.GetAbbr(operatory.ClinicNum));
+            gridRow.Cells.Add(Providers.GetAbbr(operatory.ProvDentist));
+            gridRow.Cells.Add(Providers.GetAbbr(operatory.ProvHygienist));
+            gridRow.Cells.Add(operatory.IsHygiene ? "X" : "");
+            gridRow.Cells.Add(operatory.IsWebSched ? "X" : "");
+            gridRow.Cells.Add("");
+            gridRow.Tag = operatory;
+
+            gridMain.ListGridRows.Add(gridRow);
+        }
+
+        gridMain.EndUpdate();
+    }
+
+    private bool SelectOperatory()
+    {
+        if (gridMain.GetSelectedIndex() == -1)
+        {
+            ShowError("Please select an item first.");
+            return false;
+        }
+
+        SelectedOperatoryNum = ((Operatory) gridMain.ListGridRows[gridMain.GetSelectedIndex()].Tag).OperatoryNum;
+        return true;
+    }
+
+    private void ButtonAccept_Click(object sender, EventArgs e)
+    {
+        if (!SelectOperatory())
+        {
+            return;
+        }
+
+        DialogResult = DialogResult.OK;
+    }
 }

@@ -36,7 +36,6 @@ namespace OpenDental{
 			this.webBrowserMain.Name = "webBrowserMain";
 			this.webBrowserMain.Size = new System.Drawing.Size(500, 400);
 			this.webBrowserMain.TabIndex = 5;
-			this.webBrowserMain.DocumentCompleted += new System.Windows.Forms.WebBrowserDocumentCompletedEventHandler(this.webBrowserMain_DocumentCompleted);
 			// 
 			// webViewMain
 			// 

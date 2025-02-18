@@ -4889,7 +4889,7 @@ public partial class FormOpenDental : FormODBase
         {
             try
             {
-                Security.CurUser = Userods.CheckUserAndPassword(user, password, false);
+                Security.CurUser = Userods.CheckUserAndPassword(user, password);
             }
             catch (Exception ex)
             {

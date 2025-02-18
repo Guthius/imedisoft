@@ -38,7 +38,7 @@
 			this.gridMain.TabIndex = 8;
 			this.gridMain.Title = "Select the Operatory to Keep";
 			this.gridMain.TranslationName = "TableOperatories";
-			this.gridMain.CellDoubleClick += new OpenDental.UI.ODGridClickEventHandler(this.gridMain_CellDoubleClick);
+			this.gridMain.CellDoubleClick += new OpenDental.UI.ODGridClickEventHandler(this.GridMain_CellDoubleClick);
 			// 
 			// butOK
 			// 
@@ -48,7 +48,7 @@
 			this.butOK.Size = new System.Drawing.Size(75, 26);
 			this.butOK.TabIndex = 6;
 			this.butOK.Text = "&OK";
-			this.butOK.Click += new System.EventHandler(this.butOK_Click);
+			this.butOK.Click += new System.EventHandler(this.ButtonAccept_Click);
 			// 
 			// FormOperatoryPick
 			// 

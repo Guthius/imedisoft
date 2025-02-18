@@ -238,7 +238,7 @@ public partial class FormLogOn : FormODBase
         if (isEcw)
         {
             //ecw requires hash, but non-ecw requires actual password
-            passwordTyped = Authentication.HashPasswordMD5(passwordTyped, true);
+            passwordTyped = Authentication.HashPasswordMd5(passwordTyped);
         }
 
         //Middle Tier sessions should not fire the CheckUserAndPasswordFailed exception code in FormLogOn.
@@ -246,7 +246,7 @@ public partial class FormLogOn : FormODBase
         //Invoke the overload for CheckUserAndPassword that does not throw exceptions and give the user a generic error message if necessary.
         try
         {
-            userod = Userods.CheckUserAndPassword(userName, passwordTyped, isEcw);
+            userod = Userods.CheckUserAndPassword(userName, passwordTyped);
         }
         catch (Exception ex)
         {

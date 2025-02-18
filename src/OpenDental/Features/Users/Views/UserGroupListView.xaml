@@ -1,0 +1,66 @@
+﻿<UserControl x:Class="OpenDental.Features.Users.Views.UserGroupListView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             mc:Ignorable="d" d:DesignHeight="400" d:DesignWidth="980">
+    <Grid Margin="5">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="240" />
+            <ColumnDefinition Width="10" />
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="10" />
+            <ColumnDefinition Width="240" />
+        </Grid.ColumnDefinitions>
+
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <TextBlock Grid.Row="0" Grid.Column="0" Text="User group" Margin="0 0 0 2" />
+        <ListBox Grid.Row="1" Grid.Column="0" />
+        <Grid Grid.Row="2" Grid.Column="0" Margin="0 5 0 0">
+            <Button Width="80" Height="25"
+                    Content="Add Group"
+                    HorizontalAlignment="Left" />
+
+            <Button Width="80" Height="25"
+                    Content="Edit Group"
+                    HorizontalAlignment="Right" />
+        </Grid>
+
+        <TextBlock Grid.Row="0" Grid.Column="2" Text="Permissions for group" Margin="0 0 0 2" />
+        <ListBox Grid.Row="1" Grid.Column="2" />
+        <Grid Grid.Row="2" Grid.Column="2" Margin="0 5 0 0">
+            <StackPanel HorizontalAlignment="Left" Orientation="Horizontal">
+                <Button Width="80" Height="25"
+                        Content="Set All"
+                        HorizontalAlignment="Left"
+                        Margin="0 0 5 0" />
+
+                <Button Width="80" Height="25"
+                        Content="Set None"
+                        HorizontalAlignment="Right" />
+            </StackPanel>
+
+            <StackPanel HorizontalAlignment="Right" Orientation="Horizontal">
+                <Button Width="80" Height="25"
+                        Content="Collapse All"
+                        HorizontalAlignment="Left"
+                        Margin="0 0 5 0" />
+
+                <Button Width="80" Height="25"
+                        Content="Expand All"
+                        HorizontalAlignment="Right" />
+            </StackPanel>
+        </Grid>
+
+        <TextBlock Grid.Row="0" Grid.Column="4" Text="Users currently associated" Margin="0 0 0 2" />
+        <ListBox Grid.Row="1" Grid.Column="4" />
+        <Grid Grid.Row="2" Grid.Column="4">
+
+        </Grid>
+    </Grid>
+</UserControl>

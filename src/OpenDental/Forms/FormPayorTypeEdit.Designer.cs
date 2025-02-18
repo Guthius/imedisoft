@@ -1,4 +1,4 @@
-﻿namespace OpenDental {
+﻿namespace OpenDental.Forms {
 	partial class FormPayorTypeEdit {
 		/// <summary>
 		/// Required designer variable.
@@ -44,7 +44,7 @@
 			this.butDelete.Size = new System.Drawing.Size(75, 24);
 			this.butDelete.TabIndex = 127;
 			this.butDelete.Text = "Delete";
-			this.butDelete.Click += new System.EventHandler(this.butDelete_Click);
+			this.butDelete.Click += new System.EventHandler(this.ButtonDelete_Click);
 			// 
 			// butSave
 			// 
@@ -54,7 +54,7 @@
 			this.butSave.Size = new System.Drawing.Size(75, 24);
 			this.butSave.TabIndex = 125;
 			this.butSave.Text = "&Save";
-			this.butSave.Click += new System.EventHandler(this.butSave_Click);
+			this.butSave.Click += new System.EventHandler(this.ButtonSave_Click);
 			// 
 			// textNote
 			// 
@@ -98,7 +98,7 @@
 			this.comboSopCode.Name = "comboSopCode";
 			this.comboSopCode.Size = new System.Drawing.Size(490, 21);
 			this.comboSopCode.TabIndex = 138;
-			this.comboSopCode.SelectionChangeCommitted += new System.EventHandler(this.comboSopCode_SelectionChangeCommitted);
+			this.comboSopCode.SelectionChangeCommitted += new System.EventHandler(this.ComboBoxSopCode_SelectionChangeCommitted);
 			// 
 			// textDate
 			// 

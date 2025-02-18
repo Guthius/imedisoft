@@ -75,7 +75,7 @@ namespace OpenDental{
 			this.butLogin.Size = new System.Drawing.Size(75, 24);
 			this.butLogin.TabIndex = 3;
 			this.butLogin.Text = "Login";
-			this.butLogin.Click += new System.EventHandler(this.butLogin_Click);
+			this.butLogin.Click += new System.EventHandler(this.ButtonLogin_Click);
 			// 
 			// textPassword
 			// 

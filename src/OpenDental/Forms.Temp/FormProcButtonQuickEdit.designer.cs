@@ -44,7 +44,7 @@ namespace OpenDental{
 			this.checkIsLabel.Size = new System.Drawing.Size(111, 16);
 			this.checkIsLabel.TabIndex = 3;
 			this.checkIsLabel.Text = "Display as Label";
-			this.checkIsLabel.CheckedChanged += new System.EventHandler(this.checkIsLabel_CheckedChanged);
+			this.checkIsLabel.CheckedChanged += new System.EventHandler(this.CheckBoxIsLabel_CheckedChanged);
 			// 
 			// textProcedureCode
 			// 
@@ -86,7 +86,7 @@ namespace OpenDental{
 			this.butPickProc.TabIndex = 62;
 			this.butPickProc.Text = "...";
 			this.butPickProc.UseVisualStyleBackColor = true;
-			this.butPickProc.Click += new System.EventHandler(this.butPickProc_Click);
+			this.butPickProc.Click += new System.EventHandler(this.ButtonPickProc_Click);
 			// 
 			// butDelete
 			// 
@@ -98,7 +98,7 @@ namespace OpenDental{
 			this.butDelete.Size = new System.Drawing.Size(81, 26);
 			this.butDelete.TabIndex = 6;
 			this.butDelete.Text = "Delete";
-			this.butDelete.Click += new System.EventHandler(this.butDelete_Click);
+			this.butDelete.Click += new System.EventHandler(this.ButtonDelete_Click);
 			// 
 			// butSave
 			// 
@@ -108,7 +108,7 @@ namespace OpenDental{
 			this.butSave.Size = new System.Drawing.Size(75, 24);
 			this.butSave.TabIndex = 4;
 			this.butSave.Text = "&Save";
-			this.butSave.Click += new System.EventHandler(this.butSave_Click);
+			this.butSave.Click += new System.EventHandler(this.ButtonSave_Click);
 			// 
 			// labelSurfaces
 			// 

@@ -59,7 +59,7 @@ namespace OpenDental{
 			this.butPreFill.Size = new System.Drawing.Size(75, 24);
 			this.butPreFill.TabIndex = 11;
 			this.butPreFill.Text = "Pre-Fill";
-			this.butPreFill.Click += new System.EventHandler(this.butPreFill_Click);
+			this.butPreFill.Click += new System.EventHandler(this.ButtonPreFill_Click);
 			// 
 			// butImport
 			// 
@@ -70,7 +70,7 @@ namespace OpenDental{
 			this.butImport.Size = new System.Drawing.Size(75, 24);
 			this.butImport.TabIndex = 9;
 			this.butImport.Text = "Import";
-			this.butImport.Click += new System.EventHandler(this.butImport_Click);
+			this.butImport.Click += new System.EventHandler(this.ButtonImport_Click);
 			// 
 			// butTerminal
 			// 
@@ -81,7 +81,7 @@ namespace OpenDental{
 			this.butTerminal.Size = new System.Drawing.Size(75, 24);
 			this.butTerminal.TabIndex = 7;
 			this.butTerminal.Text = "Kiosk";
-			this.butTerminal.Click += new System.EventHandler(this.butTerminal_Click);
+			this.butTerminal.Click += new System.EventHandler(this.ButtonTerminal_Click);
 			// 
 			// butAddSheet
 			// 
@@ -93,7 +93,7 @@ namespace OpenDental{
 			this.butAddSheet.Size = new System.Drawing.Size(87, 24);
 			this.butAddSheet.TabIndex = 6;
 			this.butAddSheet.Text = "Add Sheet";
-			this.butAddSheet.Click += new System.EventHandler(this.butAddSheet_Click);
+			this.butAddSheet.Click += new System.EventHandler(this.ButtonAddSheet_Click);
 			// 
 			// gridMain
 			// 
@@ -107,7 +107,7 @@ namespace OpenDental{
 			this.gridMain.TabIndex = 4;
 			this.gridMain.Title = "Patient Forms and Medical Histories";
 			this.gridMain.TranslationName = "FormPatientForms";
-			this.gridMain.CellDoubleClick += new OpenDental.UI.ODGridClickEventHandler(this.gridMain_CellDoubleClick);
+			this.gridMain.CellDoubleClick += new OpenDental.UI.ODGridClickEventHandler(this.GridMain_CellDoubleClick);
 			// 
 			// menuMain
 			// 
@@ -126,7 +126,7 @@ namespace OpenDental{
 			this.butCopy.Size = new System.Drawing.Size(75, 24);
 			this.butCopy.TabIndex = 13;
 			this.butCopy.Text = "Copy";
-			this.butCopy.Click += new System.EventHandler(this.butCopy_Click);
+			this.butCopy.Click += new System.EventHandler(this.ButtonCopy_Click);
 			// 
 			// label2
 			// 
@@ -148,7 +148,7 @@ namespace OpenDental{
 			this.butAddEForm.Size = new System.Drawing.Size(87, 24);
 			this.butAddEForm.TabIndex = 15;
 			this.butAddEForm.Text = "Add eForm";
-			this.butAddEForm.Click += new System.EventHandler(this.butAddEForm_Click);
+			this.butAddEForm.Click += new System.EventHandler(this.ButtonAddEForm_Click);
 			// 
 			// groupSortBy
 			// 
@@ -171,7 +171,7 @@ namespace OpenDental{
 			this.radioSortByDateTime.TabStop = true;
 			this.radioSortByDateTime.Text = "Date and Time";
 			this.radioSortByDateTime.UseVisualStyleBackColor = true;
-			this.radioSortByDateTime.Click += new System.EventHandler(this.radioSortByDateTime_Click);
+			this.radioSortByDateTime.Click += new System.EventHandler(this.RadioButtonSortByDateTime_Click);
 			// 
 			// radioSortByDescDateT
 			// 
@@ -181,7 +181,7 @@ namespace OpenDental{
 			this.radioSortByDescDateT.TabIndex = 251;
 			this.radioSortByDescDateT.Text = "Description, then Date/Time";
 			this.radioSortByDescDateT.UseVisualStyleBackColor = true;
-			this.radioSortByDescDateT.Click += new System.EventHandler(this.radioSortByDescriptionDateTime_Click);
+			this.radioSortByDescDateT.Click += new System.EventHandler(this.RadioButtonSortByDescriptionDateTime_Click);
 			// 
 			// FormPatientForms
 			// 

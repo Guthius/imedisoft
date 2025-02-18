@@ -12,12 +12,7 @@ namespace OpenDental;
 public partial class FormPath : FormODBase {
 	///<summary>If this is set to true before opening this form, then the program cannot find the AtoZ path and needs user input.</summary>
 	public bool IsStartingUp;
-
-	///<summary>This is the database storage type that the user has chosen (or was pulled from the database.
-	///DO NOT change the value of this variable outside of SetRadioButtonChecked() or there is a chance for a stack overflow exception</summary>
-	private DataStorageType _dataStorageType=DataStorageType.LocalAtoZ;
-
-		
+	
 	public FormPath(){
 		InitializeComponent();
 
@@ -54,9 +49,6 @@ public partial class FormPath : FormODBase {
 				ActiveControl=textLocalPath;//Focus on textLocalPath, since this is the only textbox the user can edit in this case.
 			}
 		}
-		if(true) {
-			radioDatabaseStorage.Visible=false;
-		}
 	}
 
 	/// <summary>Returns true if user really wants to continue or N/A. Verifies if there is RawBase64 data currently stored in the database. It will warn users that switching away means they are no longer able to access that data.</summary>
@@ -65,13 +57,11 @@ public partial class FormPath : FormODBase {
 	}
 
 	private void DisableMostControls() {
-		radioUseFolder.Enabled=false;
 		textDocPath.ReadOnly=true;
 		butBrowseDoc.Enabled=false;
 		checkMultiplePaths.Enabled=false;
 		textServerPath.ReadOnly=true;
 		butBrowseServer.Enabled=false;
-		radioDatabaseStorage.Enabled=false;
 		textExportPath.ReadOnly=true;
 		butBrowseExport.Enabled=false;
 		textLetterMergePath.ReadOnly=true;
@@ -81,8 +71,6 @@ public partial class FormPath : FormODBase {
 	}
 
 	private void SetRadioButtonChecked() {
-		_dataStorageType=DataStorageType.LocalAtoZ;
-		radioUseFolder.Checked=true;//Will only do something when SetRadioButtonChecked is called on Load
 		tabControlDataStorageType.SelectedTab=tabAtoZ;
 	}
 
@@ -173,66 +161,27 @@ public partial class FormPath : FormODBase {
 		return false;
 	}
 
-	private void radioUseFolder_Click(object sender,EventArgs e) {
-		if(!VerifySwitchingAwayFromDBStorage()) { //they clicked cancel
-			return;
-		}
-		labelPathSameForAll.Enabled = radioUseFolder.Checked;
-		textDocPath.Enabled = radioUseFolder.Checked;
-		butBrowseDoc.Enabled = radioUseFolder.Checked;
-		checkMultiplePaths.Enabled = radioUseFolder.Checked;
-		//even though server path might not be visible:
-		labelServerPath.Enabled=radioUseFolder.Checked;
-		textServerPath.Enabled=radioUseFolder.Checked;
-		butBrowseServer.Enabled=radioUseFolder.Checked;
-		//
-		labelLocalPath.Enabled=radioUseFolder.Checked;
-		textLocalPath.Enabled=radioUseFolder.Checked;
-		butBrowseLocal.Enabled=radioUseFolder.Checked;
-		SetRadioButtonChecked();
-	}
-
-	private void radioDatabaseStorage_Click(object sender,EventArgs e) {
-		if(radioDatabaseStorage.Checked && true){//user attempting to use db to store images
-			var inputbox=new InputBox("Please enter password");
-			inputbox.ShowDialog();
-			if(inputbox.IsDialogCancel){
-				SetRadioButtonChecked();
-				return;
-			}
-			if(inputbox.StringResult!="abracadabra"){//to keep ignorant people from clicking this box.
-				SetRadioButtonChecked();
-				MsgBox.Show(this,"Wrong password");
-				return;
-			}
-		}
-		SetRadioButtonChecked();
-	}
-
 	private void butSave_Click(object sender, System.EventArgs e){
 		//remember that user might be using a website or a linux box to store images, therefore must allow forward slashes.
-		if(radioUseFolder.Checked){
-			if(textLocalPath.Text!="") {
-				if(OpenDentBusiness.FileIO.FileAtoZ.GetValidPathFromString(textLocalPath.Text)==null) {
-					MsgBox.Show(this,"The path override for this computer is invalid.  The folder must exist and must contain all 26 A through Z folders.");
-					return;
-				}
+		if(textLocalPath.Text!="") {
+			if(OpenDentBusiness.FileIO.FileAtoZ.GetValidPathFromString(textLocalPath.Text)==null) {
+				MsgBox.Show(this,"The path override for this computer is invalid.  The folder must exist and must contain all 26 A through Z folders.");
+				return;
 			}
-			else if(textServerPath.Text!="") {
-				if(OpenDentBusiness.FileIO.FileAtoZ.GetValidPathFromString(textServerPath.Text)==null) {
-					MsgBox.Show(this,"The path override for this server is invalid.  The folder must exist and must contain all 26 A through Z folders.");
-					return;
-				}
+		}
+		else if(textServerPath.Text!="") {
+			if(OpenDentBusiness.FileIO.FileAtoZ.GetValidPathFromString(textServerPath.Text)==null) {
+				MsgBox.Show(this,"The path override for this server is invalid.  The folder must exist and must contain all 26 A through Z folders.");
+				return;
 			}
-			else {
-				if(OpenDentBusiness.FileIO.FileAtoZ.GetValidPathFromString(textDocPath.Text)==null) {
-					MsgBox.Show(this,"The path is invalid.  The folder must exist and must contain all 26 A through Z folders.");
-					return;
-				}
-			}				
+		}
+		else {
+			if(OpenDentBusiness.FileIO.FileAtoZ.GetValidPathFromString(textDocPath.Text)==null) {
+				MsgBox.Show(this,"The path is invalid.  The folder must exist and must contain all 26 A through Z folders.");
+				return;
+			}
 		}
 		var isChanged=false;
-		isChanged|=Prefs.UpdateInt(PrefName.AtoZfolderUsed,(int)_dataStorageType);
 		isChanged|=Prefs.UpdateString(PrefName.DocPath,textDocPath.Text);
 		isChanged|=Prefs.UpdateString(PrefName.ExportPath,textExportPath.Text);
 		isChanged|=Prefs.UpdateString(PrefName.LetterMergePath,textLetterMergePath.Text);

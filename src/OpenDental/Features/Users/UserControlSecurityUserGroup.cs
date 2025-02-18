@@ -52,7 +52,7 @@ public partial class UserControlSecurityUserGroup : UserControl
     
     public Userod SelectedUser
     {
-        get { return _selectedUser; }
+        get => _selectedUser;
         set
         {
             _selectedUser = value;
@@ -65,6 +65,7 @@ public partial class UserControlSecurityUserGroup : UserControl
             }
 
             labelUserCurr.Text = _selectedUser.UserName;
+            
             for (var i = 0; i < gridUsers.ListGridRows.Count; i++)
             {
                 if (((Userod) gridUsers.ListGridRows[i].Tag).UserNum == _selectedUser.UserNum)

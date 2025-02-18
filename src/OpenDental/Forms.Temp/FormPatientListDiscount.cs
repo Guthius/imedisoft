@@ -7,36 +7,41 @@ using OpenDentBusiness;
 
 namespace OpenDental;
 
-public partial class FormPatientListDiscount:FormODBase {
-	public DiscountPlan DiscountPlanCur;
-	public List<string> ListPatNames;
+public partial class FormPatientListDiscount : FormODBase
+{
+    public DiscountPlan DiscountPlanCur;
+    public List<string> ListPatNames { get; set; }
 
-	public FormPatientListDiscount() {
-		InitializeComponent();
-	}
+    public FormPatientListDiscount()
+    {
+        InitializeComponent();
+    }
 
-	private void FormPatientListDiscount_Load(object sender,EventArgs e) {
-		FillGrid();
-	}
+    private void FormPatientListDiscount_Load(object sender, EventArgs e)
+    {
+        FillGrid();
+    }
 
-	private void FillGrid() {
-		if(ListPatNames==null) {
-			ListPatNames=DiscountPlans.GetPatNamesForPlan(DiscountPlanCur.DiscountPlanNum)
-				.Distinct()
-				.OrderBy(x => x)
-				.ToList();
-		}
-		gridMain.BeginUpdate();
-		gridMain.Columns.Clear();
-		GridColumn col;
-		col=new GridColumn(Lan.g(this,"Name"),100);
-		gridMain.Columns.Add(col);
-		gridMain.ListGridRows.Clear();
-		for(var i=0;i<ListPatNames.Count;i++) {
-			var row=new GridRow(ListPatNames[i]);
-			gridMain.ListGridRows.Add(row);
-		}
-		gridMain.EndUpdate();
-	}
+    private void FillGrid()
+    {
+        ListPatNames ??= DiscountPlans
+            .GetPatNamesForPlan(DiscountPlanCur.DiscountPlanNum)
+            .Distinct().OrderBy(patName => patName)
+            .ToList();
 
+        gridMain.BeginUpdate();
+        gridMain.Columns.Clear();
+        gridMain.Columns.Add(new GridColumn("Name", 100));
+
+        gridMain.ListGridRows.Clear();
+
+        foreach (var patName in ListPatNames)
+        {
+            var gridRow = new GridRow(patName);
+
+            gridMain.ListGridRows.Add(gridRow);
+        }
+
+        gridMain.EndUpdate();
+    }
 }

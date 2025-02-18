@@ -592,7 +592,7 @@ public partial class FormProviderSetup : FormODBase
                 return;
             }
 
-            userod.SetPassword(Authentication.GenerateLoginDetailsSHA512(userod.UserName));
+            userod.SetPassword(Authentication.GenerateLoginDetailsSha512(userod.UserName));
             try
             {
                 Userods.Insert(userod, comboUserGroup.GetListSelected<UserGroup>().Select(x => x.UserGroupNum).ToList());

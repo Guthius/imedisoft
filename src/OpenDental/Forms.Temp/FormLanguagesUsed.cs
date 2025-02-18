@@ -1,169 +1,222 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
-using System.Windows.Forms;
-using OpenDentBusiness;
 using System.Linq;
+using System.Windows.Forms;
+using CodeBase;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Entities;
+using OpenDentBusiness;
 
 namespace OpenDental;
 
 /// <summary></summary>
-public partial class FormLanguagesUsed:FormODBase {
-	private List<CultureInfo> _listCultureInfo;
-	private List<string> _listLangsUsed;
+public partial class FormLanguagesUsed : FormODBase
+{
+    private List<CultureInfo> _cultureInfos;
+    private List<string> _langsUsed;
+    
+    public FormLanguagesUsed()
+    {
+        InitializeComponent();
+    }
 
-		
-	public FormLanguagesUsed() {
-		//
-		// Required for Windows Form Designer support
-		//
-		InitializeComponent();
-	}
+    private void FormLanguagesUsed_Load(object sender, EventArgs e)
+    {
+        _cultureInfos = CultureInfo.GetCultures(CultureTypes.NeutralCultures).OrderBy(x => x.DisplayName).ToList();
+        
+        listAvailable.Items.AddStrings(_cultureInfos.Select(x => x.DisplayName));
+        if (PrefC.GetString(PrefName.LanguagesUsedByPatients) == "")
+        {
+            _langsUsed = [];
+            
+            FillListUsed();
+            
+            return;
+        }
 
-	private void FormLanguagesUsed_Load(object sender,EventArgs e) {
-		_listCultureInfo=CultureInfo.GetCultures(CultureTypes.NeutralCultures).OrderBy(x=>x.DisplayName).ToList();
-		listAvailable.Items.AddStrings(_listCultureInfo.Select(x=>x.DisplayName));
-		if(PrefC.GetString(PrefName.LanguagesUsedByPatients)=="") {
-			_listLangsUsed= [];
-			FillListUsed();
-			return;
-		}
-		_listLangsUsed=new List<string>(PrefC.GetString(PrefName.LanguagesUsedByPatients).Split(','));
-		FillListUsed();
-	}
+        _langsUsed = new List<string>(PrefC.GetString(PrefName.LanguagesUsedByPatients).Split(','));
+        
+        FillListUsed();
+    }
 
-	///<summary>Also calls FillComboLanguagesIndicateNone().</summary>
-	private void FillListUsed() {
-		listUsed.Items.Clear();
-		for(var i=0;i<_listLangsUsed.Count;i++) {
-			if(_listLangsUsed[i]=="") {
-				continue;
-			}
-			var cultureInfo=CodeBase.MiscUtils.GetCultureFromThreeLetter(_listLangsUsed[i]);
-			if(cultureInfo==null) {//custom language
-				listUsed.Items.Add(_listLangsUsed[i]);
-				continue;
-			}
-			listUsed.Items.Add(cultureInfo.DisplayName);
-		}
-		FillComboLanguagesIndicateNone();
-	}
+    private void FillListUsed()
+    {
+        listUsed.Items.Clear();
+        
+        foreach (var language in _langsUsed)
+        {
+            if (language == "")
+            {
+                continue;
+            }
 
-	private void FillComboLanguagesIndicateNone() {
-		comboLanguagesIndicateNone.Items.Clear();
-		for(var i=0;i<_listLangsUsed.Count;i++) {
-			if(_listLangsUsed[i]=="") {
-				continue;
-			}
-			var cultureInfo=CodeBase.MiscUtils.GetCultureFromThreeLetter(_listLangsUsed[i]);
-			if(cultureInfo!=null){ //not a custom language
-				continue;
-			}
-			//custom language
-			comboLanguagesIndicateNone.Items.Add(_listLangsUsed[i]);//Only add custom languages to this combobox.
-			if(_listLangsUsed[i]==PrefC.GetString(PrefName.LanguagesIndicateNone)) {
-				comboLanguagesIndicateNone.SelectedIndex=comboLanguagesIndicateNone.Items.Count-1;//Select the item we just added.
-			}
-		}
-	}
+            var cultureInfo = MiscUtils.GetCultureFromThreeLetter(language);
+            if (cultureInfo is null)
+            {
+                listUsed.Items.Add(language);
+                continue;
+            }
 
-	private void butAdd_Click(object sender,EventArgs e) {
-		if(listAvailable.SelectedIndex==-1) {
-			MsgBox.Show(this,"Please select a language first");
-			return;
-		}
-		var lang=_listCultureInfo[listAvailable.SelectedIndex].ThreeLetterISOLanguageName;//eng,spa etc
-		if(_listLangsUsed.Contains(lang)) {
-			MsgBox.Show(this,"Language already added.");
-			return;
-		}
-		_listLangsUsed.Add(lang);
-		FillListUsed();
-	}
+            listUsed.Items.Add(cultureInfo.DisplayName);
+        }
 
-	private void butDelete_Click(object sender,EventArgs e) {
-		if(listUsed.SelectedIndex==-1) {
-			MsgBox.Show(this,"Please select a language first");
-			return;
-		}
-		var listLangRules=ApptReminderRules.GetAll().FindAll(x => x.Language!=string.Empty).Select(x => x.Language).ToList();
-		if(listLangRules.Contains(_listLangsUsed[listUsed.SelectedIndex])) {
-			MsgBox.Show(this,"Language is in use by:\r\n - eService reminders or confirmations");
-			return;
-		}
-		_listLangsUsed.RemoveAt(listUsed.SelectedIndex);
-		FillListUsed();
-	}
+        FillComboLanguagesIndicateNone();
+    }
 
-	private void butUp_Click(object sender,EventArgs e) {
-		if(listUsed.SelectedIndex==-1) {
-			MsgBox.Show(this,"Please select a language first");
-			return;
-		}
-		if(listUsed.SelectedIndex==0) {
-			return;
-		}
-		var indexNew=listUsed.SelectedIndex-1;
-		_listLangsUsed.Reverse(listUsed.SelectedIndex-1,2);
-		FillListUsed();
-		listUsed.SetSelected(indexNew);
-	}
+    private void FillComboLanguagesIndicateNone()
+    {
+        comboLanguagesIndicateNone.Items.Clear();
+        foreach (var language in _langsUsed)
+        {
+            if (language == "")
+            {
+                continue;
+            }
 
-	private void butDown_Click(object sender,EventArgs e) {
-		if(listUsed.SelectedIndex==-1) {
-			MsgBox.Show(this,"Please select a language first");
-			return;
-		}
-		if(listUsed.SelectedIndex==listUsed.Items.Count-1) {
-			return;
-		}
-		var indexNew=listUsed.SelectedIndex+1;
-		_listLangsUsed.Reverse(listUsed.SelectedIndex,2);
-		FillListUsed();
-		listUsed.SetSelected(indexNew);
-	}
+            var cultureInfo = MiscUtils.GetCultureFromThreeLetter(language);
+            if (cultureInfo is not null)
+            {
+                continue;
+            }
+            
+            comboLanguagesIndicateNone.Items.Add(language);
+            if (language == PrefC.GetString(PrefName.LanguagesIndicateNone))
+            {
+                comboLanguagesIndicateNone.SelectedIndex = comboLanguagesIndicateNone.Items.Count - 1;
+            }
+        }
+    }
 
-	private void butAddCustom_Click(object sender,EventArgs e) {
-		if(textCustom.Text=="") {
-			MsgBox.Show(this,"Please enter a custom language first");
-			return;
-		}
-		var lang=textCustom.Text;
-		if(_listLangsUsed.Contains(lang)) {
-			MsgBox.Show(this,"Language already added.");
-			return;
-		}
-		_listLangsUsed.Add(lang);
-		textCustom.Clear();
-		FillListUsed();
-	}
+    private void ButtonAdd_Click(object sender, EventArgs e)
+    {
+        if (listAvailable.SelectedIndex == -1)
+        {
+            ShowError("Please select a language first");
+            return;
+        }
 
-	private void butSave_Click(object sender,EventArgs e) {
-		var str="";
-		for(var i=0;i<_listLangsUsed.Count;i++) {
-			if(i>0) {
-				str+=",";
-			}
-			str+=_listLangsUsed[i];
-		}
-		Prefs.UpdateString(PrefName.LanguagesUsedByPatients,str);
-		if(comboLanguagesIndicateNone.SelectedIndex==-1) {
-			Prefs.UpdateString(PrefName.LanguagesIndicateNone,"");
-		}
-		else {
-			Prefs.UpdateString(PrefName.LanguagesIndicateNone,comboLanguagesIndicateNone.SelectedItem.ToString());
-		}
-		//prefs refresh handled by the calling form.
-		DialogResult=DialogResult.OK;
-	}
+        var lang = _cultureInfos[listAvailable.SelectedIndex].ThreeLetterISOLanguageName;
+        if (_langsUsed.Contains(lang))
+        {
+            ShowError("Language already added.");
+            return;
+        }
 
-	private void FormLanguagesUsed_FormClosing(object sender,FormClosingEventArgs e) {
-		//if LanguagesUsedByPatients does not contain LanguagesIndicateNone clear LanguagesIndicateNone
-		if(!PrefC.GetString(PrefName.LanguagesUsedByPatients).Contains(PrefC.GetString(PrefName.LanguagesIndicateNone))) {
-			Prefs.UpdateString(PrefName.LanguagesIndicateNone,"");
-		}
-	}
+        _langsUsed.Add(lang);
+        
+        FillListUsed();
+    }
 
+    private void ButtonDelete_Click(object sender, EventArgs e)
+    {
+        if (listUsed.SelectedIndex == -1)
+        {
+            ShowError("Please select a language first");
+            return;
+        }
+
+        var rules = ApptReminderRules.GetAll().FindAll(x => x.Language != string.Empty).Select(x => x.Language).ToList();
+        if (rules.Contains(_langsUsed[listUsed.SelectedIndex]))
+        {
+            ShowError("Language is in use by:\r\n - eService reminders or confirmations");
+            return;
+        }
+
+        _langsUsed.RemoveAt(listUsed.SelectedIndex);
+        
+        FillListUsed();
+    }
+
+    private void ButtonUp_Click(object sender, EventArgs e)
+    {
+        switch (listUsed.SelectedIndex)
+        {
+            case -1:
+                ShowError("Please select a language first");
+                return;
+            
+            case 0:
+                return;
+        }
+
+        var newIndex = listUsed.SelectedIndex - 1;
+        
+        _langsUsed.Reverse(listUsed.SelectedIndex - 1, 2);
+        
+        FillListUsed();
+        
+        listUsed.SetSelected(newIndex);
+    }
+
+    private void ButtonDown_Click(object sender, EventArgs e)
+    {
+        if (listUsed.SelectedIndex == -1)
+        {
+            ShowError("Please select a language first");
+            return;
+        }
+
+        if (listUsed.SelectedIndex == listUsed.Items.Count - 1)
+        {
+            return;
+        }
+
+        var newIndex = listUsed.SelectedIndex + 1;
+        
+        _langsUsed.Reverse(listUsed.SelectedIndex, 2);
+        
+        FillListUsed();
+        
+        listUsed.SetSelected(newIndex);
+    }
+
+    private void ButtonAddCustom_Click(object sender, EventArgs e)
+    {
+        if (textCustom.Text == "")
+        {
+            ShowError("Please enter a custom language first");
+            return;
+        }
+
+        var lang = textCustom.Text;
+        if (_langsUsed.Contains(lang))
+        {
+            ShowError("Language already added.");
+            return;
+        }
+
+        _langsUsed.Add(lang);
+        
+        textCustom.Clear();
+        
+        FillListUsed();
+    }
+
+    private void ButtonSave_Click(object sender, EventArgs e)
+    {
+        var str = "";
+        for (var i = 0; i < _langsUsed.Count; i++)
+        {
+            if (i > 0)
+            {
+                str += ",";
+            }
+
+            str += _langsUsed[i];
+        }
+
+        Prefs.UpdateString(PrefName.LanguagesUsedByPatients, str);
+        Prefs.UpdateString(PrefName.LanguagesIndicateNone, comboLanguagesIndicateNone.SelectedIndex == -1 ? "" : comboLanguagesIndicateNone.SelectedItem.ToString());
+
+        DialogResult = DialogResult.OK;
+    }
+
+    private void FormLanguagesUsed_FormClosing(object sender, FormClosingEventArgs e)
+    {
+        if (!PrefC.GetString(PrefName.LanguagesUsedByPatients).Contains(PrefC.GetString(PrefName.LanguagesIndicateNone)))
+        {
+            Prefs.UpdateString(PrefName.LanguagesIndicateNone, "");
+        }
+    }
 }

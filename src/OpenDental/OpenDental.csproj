@@ -154,9 +154,6 @@
       <Compile Update="Forms\FormPayPlanTemplates.cs">
         <SubType>Form</SubType>
       </Compile>
-      <Compile Update="Forms\FormUserPassword.cs">
-        <SubType>Form</SubType>
-      </Compile>
       <Compile Update="Forms\FormDefEditBlockout.cs">
         <SubType>Form</SubType>
       </Compile>
@@ -209,6 +206,39 @@
         <SubType>Form</SubType>
       </Compile>
       <Compile Update="Forms\FormSheetProcSelect.cs">
+        <SubType>Form</SubType>
+      </Compile>
+      <Compile Update="Features\Users\FormUserPassword.cs">
+        <SubType>Form</SubType>
+      </Compile>
+      <Compile Update="Features\Users\FormUserEdit.cs">
+        <SubType>Form</SubType>
+      </Compile>
+      <Compile Update="Features\Users\FormSecurity.cs">
+        <SubType>Form</SubType>
+      </Compile>
+      <Compile Update="Features\Users\UserControlSecurityUserGroup.cs">
+        <SubType>UserControl</SubType>
+      </Compile>
+      <Compile Update="Features\Users\UserControlSecurityTree.cs">
+        <SubType>UserControl</SubType>
+      </Compile>
+      <Compile Update="Forms\FormReactivationEdit.cs">
+        <SubType>Form</SubType>
+      </Compile>
+      <Compile Update="Forms\FormPaymentPlanOptions.cs">
+        <SubType>Form</SubType>
+      </Compile>
+      <Compile Update="Forms\FormPayorTypes.cs">
+        <SubType>Form</SubType>
+      </Compile>
+      <Compile Update="Forms\FormPayorTypeEdit.cs">
+        <SubType>Form</SubType>
+      </Compile>
+      <Compile Update="Forms\FormPharmacies.cs">
+        <SubType>Form</SubType>
+      </Compile>
+      <Compile Update="Forms\FormPharmacyEdit.cs">
         <SubType>Form</SubType>
       </Compile>
     </ItemGroup>

@@ -88,7 +88,7 @@ public partial class FormUserPassword : FormODBase
         }
 
         IsPasswordStrong = string.IsNullOrEmpty(explanation);
-        Password = Authentication.GenerateLoginDetailsSHA512(textPassword.Text);
+        Password = Authentication.GenerateLoginDetailsSha512(textPassword.Text);
 
         PasswordTyped = textPassword.Text;
 

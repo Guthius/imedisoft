@@ -1,4 +1,4 @@
-﻿namespace OpenDental {
+﻿namespace OpenDental.Forms {
 	partial class FormReactivationEdit {
 		/// <summary>
 		/// Required designer variable.
@@ -102,7 +102,7 @@
 			this.butDelete.Size = new System.Drawing.Size(83, 24);
 			this.butDelete.TabIndex = 14;
 			this.butDelete.Text = "&Delete";
-			this.butDelete.Click += new System.EventHandler(this.butDelete_Click);
+			this.butDelete.Click += new System.EventHandler(this.ButtonDelete_Click);
 			// 
 			// butSave
 			// 
@@ -112,7 +112,7 @@
 			this.butSave.Size = new System.Drawing.Size(75, 24);
 			this.butSave.TabIndex = 13;
 			this.butSave.Text = "&Save";
-			this.butSave.Click += new System.EventHandler(this.butSave_Click);
+			this.butSave.Click += new System.EventHandler(this.ButtonSave_Click);
 			// 
 			// label2
 			// 

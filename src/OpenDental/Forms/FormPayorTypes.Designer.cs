@@ -1,4 +1,4 @@
-﻿namespace OpenDental {
+﻿namespace OpenDental.Forms {
 	partial class FormPayorTypes {
 		/// <summary>
 		/// Required designer variable.
@@ -49,7 +49,7 @@
 			this.butAdd.Size = new System.Drawing.Size(75, 24);
 			this.butAdd.TabIndex = 32;
 			this.butAdd.Text = "Add";
-			this.butAdd.Click += new System.EventHandler(this.butAdd_Click);
+			this.butAdd.Click += new System.EventHandler(this.ButtonAdd_Click);
 			// 
 			// gridMain
 			// 
@@ -62,7 +62,7 @@
 			this.gridMain.TabIndex = 30;
 			this.gridMain.Title = "History";
 			this.gridMain.TranslationName = "TableHistory";
-			this.gridMain.CellDoubleClick += new OpenDental.UI.ODGridClickEventHandler(this.gridMain_CellDoubleClick);
+			this.gridMain.CellDoubleClick += new OpenDental.UI.ODGridClickEventHandler(this.GridMain_CellDoubleClick);
 			// 
 			// FormPayorTypes
 			// 

@@ -1,11 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Forms;
+﻿using System.Windows.Forms;
 
-namespace OpenDental {
+namespace OpenDental.Forms {
 	public partial class FormPharmacyEdit {
 		/// <summary>
 		/// Required designer variable.
@@ -66,7 +61,7 @@ namespace OpenDental {
 			this.butSave.Size = new System.Drawing.Size(75, 26);
 			this.butSave.TabIndex = 9;
 			this.butSave.Text = "&Save";
-			this.butSave.Click += new System.EventHandler(this.butSave_Click);
+			this.butSave.Click += new System.EventHandler(this.ButtonSave_Click);
 			// 
 			// label1
 			// 
@@ -94,7 +89,7 @@ namespace OpenDental {
 			this.butDelete.Size = new System.Drawing.Size(81, 26);
 			this.butDelete.TabIndex = 4;
 			this.butDelete.Text = "Delete";
-			this.butDelete.Click += new System.EventHandler(this.butDelete_Click);
+			this.butDelete.Click += new System.EventHandler(this.ButtonDelete_Click);
 			// 
 			// textCity
 			// 

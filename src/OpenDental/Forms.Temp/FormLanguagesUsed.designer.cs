@@ -106,7 +106,7 @@ namespace OpenDental {
 			this.butAddCustom.Size = new System.Drawing.Size(75, 26);
 			this.butAddCustom.TabIndex = 13;
 			this.butAddCustom.Text = "Add";
-			this.butAddCustom.Click += new System.EventHandler(this.butAddCustom_Click);
+			this.butAddCustom.Click += new System.EventHandler(this.ButtonAddCustom_Click);
 			// 
 			// butDown
 			// 
@@ -115,7 +115,7 @@ namespace OpenDental {
 			this.butDown.Name = "butDown";
 			this.butDown.Size = new System.Drawing.Size(53, 26);
 			this.butDown.TabIndex = 10;
-			this.butDown.Click += new System.EventHandler(this.butDown_Click);
+			this.butDown.Click += new System.EventHandler(this.ButtonDown_Click);
 			// 
 			// butUp
 			// 
@@ -124,7 +124,7 @@ namespace OpenDental {
 			this.butUp.Name = "butUp";
 			this.butUp.Size = new System.Drawing.Size(53, 26);
 			this.butUp.TabIndex = 9;
-			this.butUp.Click += new System.EventHandler(this.butUp_Click);
+			this.butUp.Click += new System.EventHandler(this.ButtonUp_Click);
 			// 
 			// butDelete
 			// 
@@ -135,7 +135,7 @@ namespace OpenDental {
 			this.butDelete.Size = new System.Drawing.Size(83, 26);
 			this.butDelete.TabIndex = 8;
 			this.butDelete.Text = "Delete";
-			this.butDelete.Click += new System.EventHandler(this.butDelete_Click);
+			this.butDelete.Click += new System.EventHandler(this.ButtonDelete_Click);
 			// 
 			// butAdd
 			// 
@@ -146,7 +146,7 @@ namespace OpenDental {
 			this.butAdd.Size = new System.Drawing.Size(75, 26);
 			this.butAdd.TabIndex = 7;
 			this.butAdd.Text = "Add";
-			this.butAdd.Click += new System.EventHandler(this.butAdd_Click);
+			this.butAdd.Click += new System.EventHandler(this.ButtonAdd_Click);
 			// 
 			// butSave
 			// 
@@ -156,7 +156,7 @@ namespace OpenDental {
 			this.butSave.Size = new System.Drawing.Size(75, 26);
 			this.butSave.TabIndex = 6;
 			this.butSave.Text = "&Save";
-			this.butSave.Click += new System.EventHandler(this.butSave_Click);
+			this.butSave.Click += new System.EventHandler(this.ButtonSave_Click);
 			// 
 			// comboLanguagesIndicateNone
 			// 

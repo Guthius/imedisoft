@@ -30,34 +30,38 @@ public class Userods
 
     public static List<Userod> GetUsers()
     {
-        var listUserodsNonHidden = new List<Userod>();
-        var userods = GetDeepCopy();
+        var visibleUsers = new List<Userod>();
+        var users = GetDeepCopy();
 
-        foreach (var userod in userods)
+        foreach (var user in users)
         {
-            if (userod.IsHidden)
+            if (user.IsHidden)
             {
                 continue;
             }
 
-            listUserodsNonHidden.Add(userod);
+            visibleUsers.Add(user);
         }
 
-        return listUserodsNonHidden;
+        return visibleUsers;
     }
 
     public static Userod GetUserByNameNoCache(string userName)
     {
-        var command = "SELECT * FROM userod WHERE UserName='" + SOut.String(userName) + "'";
-        var listUserods = UserodCrud.TableToList(DataCore.GetTable(command));
-        return listUserods.FirstOrDefault(x => !x.IsHidden && x.UserName.ToLower() == userName.ToLower());
+        var commandText = "SELECT * FROM userod WHERE UserName='" + SOut.String(userName) + "'";
+
+        var users = UserodCrud.TableToList(DataCore.GetTable(commandText));
+
+        return users.FirstOrDefault(x => !x.IsHidden && string.Equals(x.UserName, userName, StringComparison.CurrentCultureIgnoreCase));
     }
 
     public static Userod GetUserByBadgeId(string badgeId)
     {
-        var command = "SELECT * FROM userod WHERE BadgeId <> '' AND BadgeId = RIGHT('" + SOut.String(badgeId) + "', LENGTH(BadgeId))";
-        var listUserods = UserodCrud.TableToList(DataCore.GetTable(command));
-        return listUserods.FirstOrDefault();
+        var commandText = "SELECT * FROM userod WHERE BadgeId <> '' AND BadgeId = RIGHT('" + SOut.String(badgeId) + "', LENGTH(BadgeId))";
+
+        var users = UserodCrud.TableToList(DataCore.GetTable(commandText));
+
+        return users.FirstOrDefault();
     }
 
     public static List<Userod> GetUsersByEmployeeNum(long employeeNum)
@@ -82,41 +86,44 @@ public class Userods
         return GetWhere(x => x.ProvNum == provNum, true);
     }
 
-    public static List<Userod> GetUsersForVerifyList(List<long> listClinicNums, bool isAssigning, bool includeHiddenUsers = false)
+    public static List<Userod> GetUsersForVerifyList(List<long> clinicNums, bool isAssigning, bool includeHiddenUsers = false)
     {
-        var listUserNumsInInsVerify = InsVerifies.GetAllInsVerifyUserNums();
-        var listUserNumsInClinic = new List<long>();
-        if (listClinicNums.Count > 0)
+        var userNumsInInsVerify = InsVerifies.GetAllInsVerifyUserNums();
+        var userNumsInClinic = new List<long>();
+
+        if (clinicNums.Count > 0)
         {
-            var listUserClinics = new List<UserClinic>();
-            for (var i = 0; i < listClinicNums.Count; i++) listUserNumsInClinic.AddRange(UserClinics.GetForClinic(listClinicNums[i]).Select(y => y.UserNum).Distinct().ToList());
+            foreach (var clinicNum in clinicNums)
+            {
+                userNumsInClinic.AddRange(UserClinics.GetForClinic(clinicNum).Select(y => y.UserNum).Distinct());
+            }
 
-            listUserNumsInClinic.AddRange(GetUsers().FindAll(x => !x.ClinicIsRestricted).Select(x => x.UserNum).Distinct().ToList()); //Always add unrestricted users into the list.
-            listUserNumsInClinic = listUserNumsInClinic.Distinct().ToList(); //Remove duplicates that could possibly be in the list.
-            if (listUserNumsInClinic.Count > 0) listUserNumsInInsVerify = listUserNumsInInsVerify.FindAll(x => listUserNumsInClinic.Contains(x));
+            userNumsInClinic.AddRange(GetUsers().Where(x => !x.ClinicIsRestricted).Select(x => x.UserNum).Distinct());
+            userNumsInClinic = userNumsInClinic.Distinct().ToList();
 
-            listUserNumsInInsVerify.AddRange(GetUsers(listUserNumsInInsVerify).FindAll(x => !x.ClinicIsRestricted).Select(x => x.UserNum).Distinct().ToList()); //Always add unrestricted users into the list.
-            listUserNumsInInsVerify = listUserNumsInInsVerify.Distinct().ToList();
+            if (userNumsInClinic.Count > 0)
+            {
+                userNumsInInsVerify = userNumsInInsVerify.FindAll(x => userNumsInClinic.Contains(x));
+            }
+
+            userNumsInInsVerify.AddRange(GetUsers(userNumsInInsVerify).Where(x => !x.ClinicIsRestricted).Select(x => x.UserNum).Distinct());
+            userNumsInInsVerify = userNumsInInsVerify.Distinct().ToList();
         }
 
-        var listUserodsWithPerm = GetUsersByPermission(EnumPermType.InsPlanVerifyList, includeHiddenUsers);
-        if (isAssigning)
+        var usersWithPermission = GetUsersByPermission(EnumPermType.InsPlanVerifyList, includeHiddenUsers);
+        if (!isAssigning)
         {
-            if (listClinicNums.Count == 0) return listUserodsWithPerm; //Return unfiltered list of users with permission
-
-            //Don't limit user list to already assigned insurance verifications.
-            return listUserodsWithPerm.FindAll(x => listUserNumsInClinic.Contains(x.UserNum)); //Return users with permission, limited by their clinics
+            return usersWithPermission.FindAll(x => userNumsInInsVerify.Contains(x.UserNum));
         }
 
-        return listUserodsWithPerm.FindAll(x => listUserNumsInInsVerify.Contains(x.UserNum)); //Return users limited by permission, clinic, and having an insurance already assigned.
+        return clinicNums.Count == 0 ? usersWithPermission : usersWithPermission.FindAll(x => userNumsInClinic.Contains(x.UserNum));
     }
 
     public static string GetName(long userNum)
     {
-        var userod = GetFirstOrDefault(x => x.UserNum == userNum);
-        if (userod == null) return "";
+        var user = GetFirstOrDefault(x => x.UserNum == userNum);
 
-        return userod.UserName;
+        return user == null ? "" : user.UserName;
     }
 
     public static bool IsUserCpoe()
@@ -124,87 +131,89 @@ public class Userods
         return false;
     }
 
-    public static Userod CheckUserAndPassword(string userName, string plaintext, bool isEcw)
+    public static Userod CheckUserAndPassword(string userName, string plaintext, bool hasExceptions = true)
     {
-        return CheckUserAndPassword(userName, plaintext, isEcw, true);
-    }
-
-    public static Userod CheckUserAndPassword(string userName, string plaintext, bool isEcw, bool hasExceptions)
-    {
-        //Do not use the cache here because an administrator could have cleared the log in failure attempt columns for this user.
-        //Also, middle tier calls this method every single time a process request comes to it.
-        var userodDb = GetUserByNameNoCache(userName);
-        if (userodDb == null)
+        var user = GetUserByNameNoCache(userName);
+        if (user is null)
         {
-            if (hasExceptions) throw new ODException(Lans.g("Userods", "Invalid username or password."), ODException.ErrorCodes.CheckUserAndPasswordFailed);
+            if (hasExceptions)
+            {
+                throw new ODException("Invalid username or password.", ODException.ErrorCodes.CheckUserAndPasswordFailed);
+            }
 
             return null;
         }
 
         var dateTimeNowDb = MiscData.GetNowDateTime();
-        //We found a user via matching just the username passed in.  Now we need to check to see if they have exceeded the log in failure attempts.
-        //For now we are hardcoding a 5 minute delay when the user has failed to log in 5 times in a row.  
-        //An admin user can reset the password or the failure attempt count for the user failing to log in via the Security window.
-        if (userodDb.DateTFail.Year > 1880 //The user has failed to log in recently
-            && dateTimeNowDb.Subtract(userodDb.DateTFail) < TimeSpan.FromMinutes(5) //The last failure has been within the last 5 minutes.
-            && userodDb.FailedAttempts >= 5) //The user failed 5 or more times.
+
+        if (user.DateTFail.Year > 1880 && dateTimeNowDb.Subtract(user.DateTFail) < TimeSpan.FromMinutes(5) && user.FailedAttempts >= 5)
         {
             if (hasExceptions)
-                throw new ApplicationException(Lans.g("Userods", "Account has been locked due to failed log in attempts."
-                                                                 + "\r\nCall your security admin to unlock your account or wait at least 5 minutes."));
+            {
+                throw new ApplicationException(
+                    "Account has been locked due to failed log in attempts.\r\n" +
+                    "Call your security admin to unlock your account or wait at least 5 minutes.");
+            }
 
             return null;
         }
 
-        var isPasswordValid = Authentication.CheckPassword(userodDb, plaintext, isEcw);
-        var userodNew = userodDb.Copy();
-        //If the last failed log in attempt was more than 5 minutes ago, reset the columns in the database so the user can try 5 more times.
-        if (userodDb.DateTFail.Year > 1880 && dateTimeNowDb.Subtract(userodDb.DateTFail) > TimeSpan.FromMinutes(5))
+        var isPasswordValid = Authentication.CheckPassword(user, plaintext);
+        var updatedUser = user.Copy();
+
+        if (user.DateTFail.Year > 1880 && dateTimeNowDb.Subtract(user.DateTFail) > TimeSpan.FromMinutes(5))
         {
-            userodNew.FailedAttempts = 0;
-            userodNew.DateTFail = DateTime.MinValue;
+            updatedUser.FailedAttempts = 0;
+            updatedUser.DateTFail = DateTime.MinValue;
         }
 
         if (!isPasswordValid)
         {
-            userodNew.DateTFail = dateTimeNowDb;
-            userodNew.FailedAttempts += 1;
+            updatedUser.DateTFail = dateTimeNowDb;
+            updatedUser.FailedAttempts += 1;
         }
 
-        //Synchronize the database with the results of the log in attempt above
-        UserodCrud.Update(userodNew, userodDb);
+        UserodCrud.Update(updatedUser, user);
         if (isPasswordValid)
         {
-            //Upgrade the encryption for the password if this is not an eCW user (eCW uses md5) and the password is using an outdated hashing algorithm.
-            if (!isEcw && !string.IsNullOrEmpty(plaintext) && userodNew.GetPasswordContainer().HashType != HashTypes.SHA3_512)
+            if (string.IsNullOrEmpty(plaintext) || updatedUser.GetPasswordContainer().HashType == HashTypes.SHA3_512)
             {
-                //Update the password to the default hash type which should be the most secure hashing algorithm possible.
-                Authentication.UpdatePasswordUserod(userodNew, plaintext);
-                //The above method is almost guaranteed to have changed the password for userNew so go back out the db and get the changes that were made.
-                userodNew = GetUserNoCache(userodNew.UserNum);
+                return updatedUser;
             }
 
-            return userodNew;
+            Authentication.UpdatePasswordUserod(updatedUser, plaintext);
+
+            updatedUser = GetUserNoCache(updatedUser.UserNum);
+
+            return updatedUser;
         }
 
-        //Password was not valid.
-        if (hasExceptions) throw new ODException(Lans.g("Userods", "Invalid username or password."), ODException.ErrorCodes.CheckUserAndPasswordFailed);
+        if (hasExceptions)
+        {
+            throw new ODException("Invalid username or password.", ODException.ErrorCodes.CheckUserAndPasswordFailed);
+        }
 
         return null;
     }
 
-    public static void Update(Userod userod, List<long> listUserGroupNums = null)
+    public static void Update(Userod user, List<long> userGroupNums = null)
     {
-        Validate(false, userod, false, listUserGroupNums);
-        UserodCrud.Update(userod);
-        if (listUserGroupNums == null) return;
+        Validate(false, user, false, userGroupNums);
 
-        UserGroupAttaches.SyncForUser(userod, listUserGroupNums);
+        UserodCrud.Update(user);
+
+        if (userGroupNums is null)
+        {
+            return;
+        }
+
+        UserGroupAttaches.SyncForUser(user, userGroupNums);
     }
 
-    public static void UpdatePassword(Userod userod, PasswordContainer passwordContainer, bool isPasswordStrong)
+    public static void UpdatePassword(Userod user, PasswordContainer passwordContainer, bool isPasswordStrong)
     {
-        var userodToUpdate = userod.Copy();
+        var userodToUpdate = user.Copy();
+
         userodToUpdate.SetPassword(passwordContainer);
         userodToUpdate.PasswordIsStrong = isPasswordStrong;
 
@@ -215,6 +224,7 @@ public class Userods
         }
 
         Validate(false, userodToUpdate, true, userGroups.Select(x => x.UserGroupNum).ToList());
+
         UserodCrud.Update(userodToUpdate);
     }
 
@@ -347,15 +357,15 @@ public class Userods
         userodCopy.ClinicNum = userod.ClinicNum;
 
         userodCopy.UserNum = Insert(userodCopy, UserGroups.GetForUser(userod.UserNum).Select(x => x.UserGroupNum).ToList());
-        
+
         var userClinics = new List<UserClinic>(UserClinics.GetForUser(userod.UserNum));
         userClinics.ForEach(x => x.UserNum = userodCopy.UserNum);
         UserClinics.Sync(userClinics, userodCopy.UserNum);
-        
+
         var alertSubsUsers = AlertSubs.GetAllForUser(userod.UserNum);
         alertSubsUsers.ForEach(x => x.UserNum = userodCopy.UserNum);
         AlertSubs.Sync(alertSubsUsers, []);
-        
+
         return userodCopy;
     }
 
@@ -367,11 +377,11 @@ public class Userods
     public static List<Userod> GetUsersOnlyThisClinic(long clinicNum)
     {
         return UserodCrud.SelectMany(
-            "SELECT userod.* FROM( " + 
-            "SELECT userclinic.UserNum, COUNT(userclinic.ClinicNum) Clinics FROM userclinic " + 
-            "GROUP BY userNum HAVING Clinics = 1 ) users " + 
-            "INNER JOIN userclinic ON userclinic.UserNum = users.UserNum " + 
-            "AND userclinic.ClinicNum = " + clinicNum + " " + 
+            "SELECT userod.* FROM( " +
+            "SELECT userclinic.UserNum, COUNT(userclinic.ClinicNum) Clinics FROM userclinic " +
+            "GROUP BY userNum HAVING Clinics = 1 ) users " +
+            "INNER JOIN userclinic ON userclinic.UserNum = users.UserNum " +
+            "AND userclinic.ClinicNum = " + clinicNum + " " +
             "INNER JOIN userod ON userod.UserNum = userclinic.UserNum");
     }
 
@@ -448,18 +458,20 @@ public class Userods
 
     public static long GetFirstSecurityAdminUserNumNoPasswordNoCache()
     {
-        //The query will order by UserName in order to preserve old behavior (mimics the cache).
-        var command = @"SELECT userod.UserNum,CASE WHEN COALESCE(userod.Password,'')='' THEN 0 ELSE 1 END HasPassword 
-				FROM userod
-				INNER JOIN usergroupattach ON userod.UserNum=usergroupattach.UserNum
-				INNER JOIN grouppermission ON usergroupattach.UserGroupNum=grouppermission.UserGroupNum 
-				WHERE userod.IsHidden=0
-				AND grouppermission.PermType=" + (int) EnumPermType.SecurityAdmin + @"
-				GROUP BY userod.UserNum
-				ORDER BY userod.UserName
-				LIMIT 1";
+        var commandText =
+            $"""
+             SELECT userod.UserNum, CASE WHEN COALESCE(userod.Password, '') = '' THEN 0 ELSE 1 END HasPassword 
+             FROM userod
+             INNER JOIN usergroupattach ON userod.UserNum = usergroupattach.UserNum
+             INNER JOIN grouppermission ON usergroupattach.UserGroupNum = grouppermission.UserGroupNum 
+             WHERE userod.IsHidden = 0
+             AND grouppermission.PermType = {(int) EnumPermType.SecurityAdmin}
+             GROUP BY userod.UserNum
+             ORDER BY userod.UserName
+             LIMIT 1
+             """;
 
-        var dataTable = DataCore.GetTable(command);
+        var dataTable = DataCore.GetTable(commandText);
 
         long userNumAdminNoPass = 0;
         if (dataTable is {Rows.Count: > 0} && dataTable.Rows[0]["HasPassword"].ToString() == "0")
@@ -482,11 +494,13 @@ public class Userods
 
     public static List<string> GetUserNamesNoCache()
     {
-        var command = $@"SELECT userod.UserName FROM userod 
-				WHERE userod.IsHidden=0 
-				{(PrefC.GetBool(PrefName.UserNameManualEntry) ? " " : " AND userod.UserNumCEMT=0 ")}
-				ORDER BY userod.UserName";
-        return Db.GetListString(command);
+        return Db.GetListString(
+            $"""
+             SELECT userod.UserName FROM userod 
+             WHERE userod.IsHidden = 0 
+             {(PrefC.GetBool(PrefName.UserNameManualEntry) ? " " : " AND userod.UserNumCEMT=0 ")}
+             ORDER BY userod.UserName
+             """);
     }
 
     public static bool HasSecurityAdminUserNoCache()
@@ -495,7 +509,7 @@ public class Userods
 				INNER JOIN usergroupattach ON userod.UserNum=usergroupattach.UserNum
 				INNER JOIN grouppermission ON usergroupattach.UserGroupNum=grouppermission.UserGroupNum 
 				WHERE userod.IsHidden=0
-				AND grouppermission.PermType=" + SOut.Int((int) EnumPermType.SecurityAdmin);
+				AND grouppermission.PermType=" + (int) EnumPermType.SecurityAdmin;
         return Db.GetCount(command) != "0";
     }
 

@@ -1,11 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Forms;
-
-namespace OpenDental {
+﻿namespace OpenDental.Forms {
 	public partial class FormPharmacies {
 		/// <summary>
 		/// Required designer variable.
@@ -50,7 +43,7 @@ namespace OpenDental {
 			this.butNone.Size = new System.Drawing.Size(68, 24);
 			this.butNone.TabIndex = 16;
 			this.butNone.Text = "None";
-			this.butNone.Click += new System.EventHandler(this.butNone_Click);
+			this.butNone.Click += new System.EventHandler(this.ButtonNone_Click);
 			// 
 			// butOK
 			// 
@@ -60,7 +53,7 @@ namespace OpenDental {
 			this.butOK.Size = new System.Drawing.Size(75, 24);
 			this.butOK.TabIndex = 15;
 			this.butOK.Text = "&OK";
-			this.butOK.Click += new System.EventHandler(this.butOK_Click);
+			this.butOK.Click += new System.EventHandler(this.ButtonAccept_Click);
 			// 
 			// gridMain
 			// 
@@ -73,8 +66,8 @@ namespace OpenDental {
 			this.gridMain.TabIndex = 11;
 			this.gridMain.Title = "Pharmacies";
 			this.gridMain.TranslationName = "TablePharmacies";
-			this.gridMain.CellDoubleClick += new OpenDental.UI.ODGridClickEventHandler(this.gridMain_CellDoubleClick);
-			this.gridMain.CellClick += new OpenDental.UI.ODGridClickEventHandler(this.gridMain_CellClick);
+			this.gridMain.CellDoubleClick += new OpenDental.UI.ODGridClickEventHandler(this.GridMain_CellDoubleClick);
+			this.gridMain.CellClick += new OpenDental.UI.ODGridClickEventHandler(this.GridMain_CellClick);
 			// 
 			// butAdd
 			// 
@@ -86,7 +79,7 @@ namespace OpenDental {
 			this.butAdd.Size = new System.Drawing.Size(80, 24);
 			this.butAdd.TabIndex = 10;
 			this.butAdd.Text = "&Add";
-			this.butAdd.Click += new System.EventHandler(this.butAdd_Click);
+			this.butAdd.Click += new System.EventHandler(this.ButtonAdd_Click);
 			// 
 			// FormPharmacies
 			// 
