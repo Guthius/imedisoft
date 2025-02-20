@@ -5,6 +5,7 @@ using System.Windows.Forms;
 using DataConnectionBase;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Entities;
+using OpenDental.Forms;
 using OpenDentBusiness;
 
 namespace OpenDental;

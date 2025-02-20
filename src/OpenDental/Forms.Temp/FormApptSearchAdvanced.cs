@@ -379,7 +379,7 @@ public partial class FormApptSearchAdvanced : FormODBase
             labelAptViews.Visible = false;
         }
 
-        var provNums = comboBoxMultiProv.GetSelectedProvNums().FindAll(x => x != 0).ToList();
+        var provNums = comboBoxMultiProv.GetSelectedProvNums().FindAll(x => x != 0);
 
         FillProviders(GetProvidersForSelectedClinic(), provNums);
     }

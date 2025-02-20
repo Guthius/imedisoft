@@ -1,4 +1,4 @@
-namespace OpenDental{
+namespace OpenDental.Forms{
 	partial class FormOrthoPat {
 		/// <summary>
 		/// Required designer variable.
@@ -115,7 +115,7 @@ namespace OpenDental{
 			this.butSave.Size = new System.Drawing.Size(75, 24);
 			this.butSave.TabIndex = 4;
 			this.butSave.Text = "&Save";
-			this.butSave.Click += new System.EventHandler(this.butSave_Click);
+			this.butSave.Click += new System.EventHandler(this.ButtonSave_Click);
 			// 
 			// textFee
 			// 
@@ -134,7 +134,7 @@ namespace OpenDental{
 			this.checkUseDefaultFee.Size = new System.Drawing.Size(152, 18);
 			this.checkUseDefaultFee.TabIndex = 21;
 			this.checkUseDefaultFee.Text = "Use Default Fee";
-			this.checkUseDefaultFee.CheckedChanged += new System.EventHandler(this.checkUseDefaultFee_CheckedChanged);
+			this.checkUseDefaultFee.CheckedChanged += new System.EventHandler(this.CheckBoxUseDefaultFee_CheckedChanged);
 			// 
 			// textDateNextClaim
 			// 
@@ -142,7 +142,7 @@ namespace OpenDental{
 			this.textDateNextClaim.Name = "textDateNextClaim";
 			this.textDateNextClaim.Size = new System.Drawing.Size(103, 20);
 			this.textDateNextClaim.TabIndex = 22;
-			this.textDateNextClaim.Validated += new System.EventHandler(this.textDateNextClaim_Validated);
+			this.textDateNextClaim.Validated += new System.EventHandler(this.TextBoxDateNextClaim_Validated);
 			// 
 			// FormOrthoPat
 			// 

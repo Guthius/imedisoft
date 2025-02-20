@@ -1,4 +1,4 @@
-namespace OpenDental{
+namespace OpenDental.Forms{
 	partial class FormOrthoRxSelect {
 		/// <summary>
 		/// Required designer variable.
@@ -41,7 +41,7 @@ namespace OpenDental{
 			this.butOK.Size = new System.Drawing.Size(75, 24);
 			this.butOK.TabIndex = 5;
 			this.butOK.Text = "&OK";
-			this.butOK.Click += new System.EventHandler(this.butOK_Click);
+			this.butOK.Click += new System.EventHandler(this.ButtonAccept_Click);
 			// 
 			// listBoxAvail
 			// 
@@ -88,7 +88,7 @@ namespace OpenDental{
 			this.butRemove.Size = new System.Drawing.Size(79, 24);
 			this.butRemove.TabIndex = 115;
 			this.butRemove.Text = "Remove";
-			this.butRemove.Click += new System.EventHandler(this.butRemove_Click);
+			this.butRemove.Click += new System.EventHandler(this.ButtonRemove_Click);
 			// 
 			// butSelect
 			// 
@@ -99,7 +99,7 @@ namespace OpenDental{
 			this.butSelect.Size = new System.Drawing.Size(79, 24);
 			this.butSelect.TabIndex = 116;
 			this.butSelect.Text = "Select";
-			this.butSelect.Click += new System.EventHandler(this.butSelect_Click);
+			this.butSelect.Click += new System.EventHandler(this.ButtonSelect_Click);
 			// 
 			// FormOrthoRxSelect
 			// 

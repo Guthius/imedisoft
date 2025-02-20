@@ -11,166 +11,189 @@ using OpenDentBusiness;
 
 namespace OpenDental;
 
-public partial class FormTxtMsgMany:FormODBase {
+public partial class FormTxtMsgMany : FormODBase
+{
+    private readonly List<PatComm> _patComms;
+    private readonly long _clinicNum;
+    private readonly SmsMessageSource _smsMessageSource;
 
-	private List<PatComm> _listPatComms;
-	private long _clinicNum;
-	private SmsMessageSource _smsMessageSource;
-	///<summary>If true, patients with the same number will be combined into one message.</summary>
-	public bool DoCombineNumbers;
-		
-	public FormTxtMsgMany(List<PatComm> listPatComms,string textMessageText,long clinicNum,SmsMessageSource smsMessageSource) {
-		InitializeComponent();
+    public bool DoCombineNumbers;
 
-		_listPatComms=listPatComms;
-		textMessage.Text=textMessageText;
-		_clinicNum=clinicNum;
-		_smsMessageSource=smsMessageSource;
-	}
+    public FormTxtMsgMany(List<PatComm> patComms, string textMessageText, long clinicNum, SmsMessageSource smsMessageSource)
+    {
+        _patComms = patComms;
+        _clinicNum = clinicNum;
+        _smsMessageSource = smsMessageSource;
 
-	private void FormTxtMsgMany_Load(object sender,EventArgs e) {
-		FillGrid();
-		SetFilterControlsAndAction(() => SetMessageCounts(),0,textMessage);
-	}
+        InitializeComponent();
 
-	private void SetMessageCounts() {
-		textCharCount.Text=textMessage.TextLength.ToString();
-		textMsgCountPerPatient.Text=SmsPhones.CalculateMessagePartsNumber(textMessage.Text).ToString();
-	}
+        textMessage.Text = textMessageText;
+    }
 
-	private void FillGrid() {
-		gridMain.BeginUpdate();
-		gridMain.Columns.Clear();
-		GridColumn col;
-		col=new GridColumn(Lan.g(this,"Phone Number"),120);
-		gridMain.Columns.Add(col);
-		col=new GridColumn(Lan.g(this,"Patient"),200);
-		gridMain.Columns.Add(col);
-		gridMain.ListGridRows.Clear();
-		//Another possible way to do it. Completely untested:
-		//if(DoCombineNumbers) {
-		//	_listPatComms = _listPatComms.OrderBy(x => x.WirelessPhone).ToList();
-		//}
-		////only need a new list when combining phone numbers
-		//List<PatComm> patCommGroup = new List<PatComm>();
-		//string currentPhone="";
-		//for(int i = 0;i<_listPatComms.Count;i++) {
-		//	currentPhone=_listPatComms[i].WirelessPhone;
-		//	patCommGroup.Add(_listPatComms[i]);
-		//	if(DoCombineNumbers
-		//		&& i<_listPatComms.Count-1
-		//		&& _listPatComms[i+1].WirelessPhone == currentPhone) {
-		//		continue;
-		//	}
-		//	GridRow row=new GridRow();
-		//	row.Cells.Add(patCommGroup.First().WirelessPhone);
-		//	row.Cells.Add(string.Join("\r\n",patCommGroup.Select(x => x.LName+", "+x.FName))); // add cell with all names in it
-		//	row.Tag=patCommGroup;
-		//	gridMain.ListGridRows.Add(row);
-		//	patCommGroup.Clear();
-		//}
-		if(DoCombineNumbers) {
-			// Get list of phone numbers
-			var listWirelessPhones = _listPatComms.Select(x => x.WirelessPhone).Distinct().ToList();
-			for(var i = 0;i<listWirelessPhones.Count;i++) {
-				//get list of all PatComms for this phone number
-				var listPatComms = _listPatComms.FindAll(x => x.WirelessPhone==listWirelessPhones[i]);
-				var row=new GridRow();
-				row.Cells.Add(listWirelessPhones[i]); 
-				row.Cells.Add(string.Join("\r\n",listPatComms.Select(x => x.LName+", "+x.FName))); // Add all names to this cell
-				row.Tag=listPatComms.ToList(); // This is a list of PatComms for a single phone number
-				gridMain.ListGridRows.Add(row);
-			}
-			gridMain.EndUpdate();
-			return;
-		}
-		// Get list of PatNums
-		var listPatNums = _listPatComms.Select(x => x.PatNum).Distinct().ToList();
-		for(var i = 0;i<listPatNums.Count;i++) {
-			//get list of all PatComms for this PatNum (should be unique, but just in case)
-			var listPatComms = _listPatComms.FindAll(x => x.PatNum==listPatNums[i]);
-			var row=new GridRow();
-			row.Cells.Add(listPatComms[0].WirelessPhone); 
-			//==Jordan Since we're grouping by PatNum, if there are 2 patComms with same patNum,
-			//the next row will duplicate the name. I'm assuming that this won't happen because
-			//there are no duplicates. But this could probably use some improvement.
-			row.Cells.Add(string.Join("\r\n",listPatComms.Select(x => x.LName+", "+x.FName))); 
-			row.Tag=listPatComms.ToList();  
-			gridMain.ListGridRows.Add(row);
-		}
-		gridMain.EndUpdate();
-	}
+    private void FormTxtMsgMany_Load(object sender, EventArgs e)
+    {
+        FillGrid();
 
-	///<summary>Sends a text message to this patient if it is feasible.</summary>
-	private bool SendText(PatComm patComm,long clinicNum,string message) {	
-		if(!patComm.IsSmsAnOption)	{
-			Cursor=Cursors.Default;
-			ODMessageBox.Show(Lan.g(this,"It is not OK to text patient")+" "+patComm.FName+" "+patComm.LName+".");
-			Cursor=Cursors.WaitCursor;
-			return false;
-		}
-		SmsToMobiles.SendSmsSingle(patComm.PatNum,patComm.SmsPhone,message,clinicNum,_smsMessageSource,true,Security.CurUser);
-		return true;
-	}
+        SetFilterControlsAndAction(SetMessageCounts, 0, textMessage);
+    }
 
-	private void butSend_Click(object sender,EventArgs e) {
-		if(!SmsPhones.IsIntegratedTextingEnabled()) {
-			MsgBox.Show(this,"Integrated Texting has not been enabled.");
-			return;
-		}
-		if(textMessage.Text=="") {
-			MsgBox.Show(this,"Please enter a message first.");
-			return;
-		}
-		if(textMessage.Text.ToLower().Contains("[date]") || textMessage.Text.ToLower().Contains("[time]")) {
-			MsgBox.Show(this,"Please replace or remove the [Date] and [Time] tags.");
-			return;
-		}
-		if(true && !Clinics.IsTextingEnabled(_clinicNum)) { //Checking for specific clinic.
-			if(_clinicNum!=0) {
-				ODMessageBox.Show(Lans.g("Integrated Texting has not been enabled for the following clinic")+":\r\n"+Clinics.GetClinic(_clinicNum).Description+".");
-				return;
-			}
-			//Should never happen. This message is precautionary.
-			MsgBox.Show(this,"The default texting clinic has not been set.");
-			return;
-		}
-		Cursor=Cursors.WaitCursor;
-		var numTextsSent=0;
-		var listListsPatComms = gridMain.ListGridRows.Select(x => x.Tag).Cast<List<PatComm>>().ToList();
-		for(var i=0;i<listListsPatComms.Count();i++) {
-			//Use the guarantor if in the list, otherwise use the first name alphabetically.
-			var patComm = listListsPatComms[i].OrderByDescending(x => x.PatNum==x.Guarantor).ThenBy(x => x.FName).First();
-			var textMsgText=textMessage.Text.Replace("[NameF]",patComm.FName);
-			try {
-				if(SendText(patComm,_clinicNum,textMsgText)) {
-					numTextsSent++;
-				}
-			}
-			catch(ODException odex) {
-				Cursor=Cursors.Default;
-				var errorMsg=Lan.g(this,"There was an error sending to")+" "+listListsPatComms[i].First().WirelessPhone+". "
-				             +odex.Message+" "
-				             +Lan.g(this,"Do you want to continue sending messages?");
-				if(ODMessageBox.Show(errorMsg,"",MessageBoxButtons.YesNo)==DialogResult.No) {
-					break;
-				}
-				Cursor=Cursors.WaitCursor;
-			}
-			catch {
-				Cursor=Cursors.Default;
-				var errorMsg=Lan.g(this,"There was an error sending to")+" "+listListsPatComms[i].First().WirelessPhone+". "
-				             +Lan.g(this,"Do you want to continue sending messages?");
-				if(ODMessageBox.Show(errorMsg,"",MessageBoxButtons.YesNo)==DialogResult.No) {
-					break;
-				}
-				Cursor=Cursors.WaitCursor;
-			}
-		}
-		Cursor=Cursors.Default;
-		ODMessageBox.Show(numTextsSent+" "+Lan.g(this,"texts sent successfully."));
-		DialogResult=DialogResult.OK;
-		Close();
-	}
+    private void SetMessageCounts()
+    {
+        textCharCount.Text = textMessage.TextLength.ToString();
+        textMsgCountPerPatient.Text = SmsPhones.CalculateMessagePartsNumber(textMessage.Text).ToString();
+    }
 
+    private void FillGrid()
+    {
+        gridMain.BeginUpdate();
+
+        gridMain.Columns.Clear();
+        gridMain.Columns.Add(new GridColumn("Phone Number", 120));
+        gridMain.Columns.Add(new GridColumn("Patient", 200));
+
+        gridMain.ListGridRows.Clear();
+
+        if (DoCombineNumbers)
+        {
+            var wirelessPhones = _patComms.Select(x => x.WirelessPhone).Distinct().ToList();
+            foreach (var wirelessPhone in wirelessPhones)
+            {
+                var patComms = _patComms.FindAll(x => x.WirelessPhone == wirelessPhone);
+
+                var gridRow = new GridRow();
+
+                gridRow.Cells.Add(wirelessPhone);
+                gridRow.Cells.Add(string.Join("\r\n", patComms.Select(x => x.LName + ", " + x.FName)));
+                gridRow.Tag = patComms.ToList();
+
+                gridMain.ListGridRows.Add(gridRow);
+            }
+
+            gridMain.EndUpdate();
+            return;
+        }
+
+        var patNums = _patComms.Select(x => x.PatNum).Distinct().ToList();
+        foreach (var patNum in patNums)
+        {
+            var patComms = _patComms.FindAll(x => x.PatNum == patNum);
+
+            var gridRow = new GridRow();
+
+            gridRow.Cells.Add(patComms[0].WirelessPhone);
+            gridRow.Cells.Add(string.Join("\r\n", patComms.Select(x => x.LName + ", " + x.FName)));
+            gridRow.Tag = patComms.ToList();
+
+            gridMain.ListGridRows.Add(gridRow);
+        }
+
+        gridMain.EndUpdate();
+    }
+
+    private bool SendText(PatComm patComm, long clinicNum, string message)
+    {
+        if (!patComm.IsSmsAnOption)
+        {
+            Cursor = Cursors.Default;
+
+            ShowError("It is not OK to text patient " + patComm.FName + " " + patComm.LName + ".");
+
+            Cursor = Cursors.WaitCursor;
+
+            return false;
+        }
+
+        SmsToMobiles.SendSmsSingle(patComm.PatNum, patComm.SmsPhone, message, clinicNum, _smsMessageSource, true, Security.CurUser);
+        return true;
+    }
+
+    private void ButtonSend_Click(object sender, EventArgs e)
+    {
+        if (!SmsPhones.IsIntegratedTextingEnabled())
+        {
+            ShowError("Integrated Texting has not been enabled.");
+            return;
+        }
+
+        if (textMessage.Text == "")
+        {
+            ShowError("Please enter a message first.");
+            return;
+        }
+
+        if (textMessage.Text.ToLower().Contains("[date]") || textMessage.Text.ToLower().Contains("[time]"))
+        {
+            ShowError("Please replace or remove the [Date] and [Time] tags.");
+            return;
+        }
+
+        if (!Clinics.IsTextingEnabled(_clinicNum))
+        {
+            if (_clinicNum != 0)
+            {
+                ShowError("Integrated Texting has not been enabled for the following clinic:\r\n" + Clinics.GetClinic(_clinicNum).Description + ".");
+                return;
+            }
+
+            ShowError("The default texting clinic has not been set.");
+            return;
+        }
+
+        Cursor = Cursors.WaitCursor;
+
+        var numberOfTextsSent = 0;
+
+        var patComms = gridMain.ListGridRows.Select(x => x.Tag).Cast<List<PatComm>>().ToList();
+        foreach (var comms in patComms)
+        {
+            var patComm = comms.OrderByDescending(x => x.PatNum == x.Guarantor).ThenBy(x => x.FName).First();
+            var message = textMessage.Text.Replace("[NameF]", patComm.FName);
+
+            try
+            {
+                if (SendText(patComm, _clinicNum, message))
+                {
+                    numberOfTextsSent++;
+                }
+            }
+            catch (ODException ex)
+            {
+                Cursor = Cursors.Default;
+
+                var errorMessage =
+                    "There was an error sending to " + comms.First().WirelessPhone + ". " + ex.Message + " " +
+                    "Do you want to continue sending messages?";
+
+                if (!Confirm(errorMessage))
+                {
+                    break;
+                }
+
+                Cursor = Cursors.WaitCursor;
+            }
+            catch
+            {
+                Cursor = Cursors.Default;
+
+                var errorMessage =
+                    "There was an error sending to " + comms.First().WirelessPhone + ". " +
+                    "Do you want to continue sending messages?";
+
+                if (!Confirm(errorMessage))
+                {
+                    break;
+                }
+
+                Cursor = Cursors.WaitCursor;
+            }
+        }
+
+        Cursor = Cursors.Default;
+
+        ShowInfo(numberOfTextsSent + " texts sent successfully.");
+
+        DialogResult = DialogResult.OK;
+
+        Close();
+    }
 }

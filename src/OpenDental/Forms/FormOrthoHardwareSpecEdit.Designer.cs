@@ -1,4 +1,4 @@
-namespace OpenDental{
+namespace OpenDental.Forms{
 	partial class FormOrthoHardwareSpecEdit {
 		/// <summary>
 		/// Required designer variable.
@@ -43,7 +43,7 @@ namespace OpenDental{
 			this.butSave.Size = new System.Drawing.Size(75, 24);
 			this.butSave.TabIndex = 3;
 			this.butSave.Text = "&Save";
-			this.butSave.Click += new System.EventHandler(this.butSave_Click);
+			this.butSave.Click += new System.EventHandler(this.ButtonSave_Click);
 			// 
 			// label1
 			// 
@@ -77,7 +77,7 @@ namespace OpenDental{
 			this.butColor.Name = "butColor";
 			this.butColor.Size = new System.Drawing.Size(30, 20);
 			this.butColor.TabIndex = 27;
-			this.butColor.Click += new System.EventHandler(this.butColor_Click);
+			this.butColor.Click += new System.EventHandler(this.ButtonColor_Click);
 			// 
 			// labelColor
 			// 
@@ -115,7 +115,7 @@ namespace OpenDental{
 			this.butDelete.Size = new System.Drawing.Size(88, 24);
 			this.butDelete.TabIndex = 31;
 			this.butDelete.Text = "&Delete";
-			this.butDelete.Click += new System.EventHandler(this.butDelete_Click);
+			this.butDelete.Click += new System.EventHandler(this.ButtonDelete_Click);
 			// 
 			// FormOrthoHardwareSpecEdit
 			// 

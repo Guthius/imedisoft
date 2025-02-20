@@ -1,4 +1,4 @@
-namespace OpenDental{
+namespace OpenDental.Forms{
 	partial class FormOrthoRxEdit {
 		/// <summary>
 		/// Required designer variable.
@@ -46,7 +46,7 @@ namespace OpenDental{
 			this.butSave.Size = new System.Drawing.Size(75, 24);
 			this.butSave.TabIndex = 3;
 			this.butSave.Text = "&Save";
-			this.butSave.Click += new System.EventHandler(this.butSave_Click);
+			this.butSave.Click += new System.EventHandler(this.ButtonSave_Click);
 			// 
 			// butDelete
 			// 
@@ -58,7 +58,7 @@ namespace OpenDental{
 			this.butDelete.Size = new System.Drawing.Size(88, 24);
 			this.butDelete.TabIndex = 31;
 			this.butDelete.Text = "&Delete";
-			this.butDelete.Click += new System.EventHandler(this.butDelete_Click);
+			this.butDelete.Click += new System.EventHandler(this.ButtonDelete_Click);
 			// 
 			// comboHardwareSpec
 			// 
@@ -66,7 +66,7 @@ namespace OpenDental{
 			this.comboHardwareSpec.Name = "comboHardwareSpec";
 			this.comboHardwareSpec.Size = new System.Drawing.Size(293, 21);
 			this.comboHardwareSpec.TabIndex = 85;
-			this.comboHardwareSpec.SelectionChangeCommitted += new System.EventHandler(this.comboHardwareSpec_SelectionChangeCommitted);
+			this.comboHardwareSpec.SelectionChangeCommitted += new System.EventHandler(this.ComboBoxHardwareSpec_SelectionChangeCommitted);
 			// 
 			// label4
 			// 
@@ -110,7 +110,7 @@ namespace OpenDental{
 			this.butUpper.Size = new System.Drawing.Size(75, 24);
 			this.butUpper.TabIndex = 108;
 			this.butUpper.Text = "Upper";
-			this.butUpper.Click += new System.EventHandler(this.butUpper_Click);
+			this.butUpper.Click += new System.EventHandler(this.ButtonUpper_Click);
 			// 
 			// butLower
 			// 
@@ -119,7 +119,7 @@ namespace OpenDental{
 			this.butLower.Size = new System.Drawing.Size(75, 24);
 			this.butLower.TabIndex = 109;
 			this.butLower.Text = "Lower";
-			this.butLower.Click += new System.EventHandler(this.butLower_Click);
+			this.butLower.Click += new System.EventHandler(this.ButtonLower_Click);
 			// 
 			// butAll
 			// 
@@ -128,7 +128,7 @@ namespace OpenDental{
 			this.butAll.Size = new System.Drawing.Size(75, 24);
 			this.butAll.TabIndex = 110;
 			this.butAll.Text = "All";
-			this.butAll.Click += new System.EventHandler(this.butAll_Click);
+			this.butAll.Click += new System.EventHandler(this.ButtonAll_Click);
 			// 
 			// label1
 			// 

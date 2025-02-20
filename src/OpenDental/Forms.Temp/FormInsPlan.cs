@@ -1413,11 +1413,11 @@ public partial class FormInsPlan : FormODBase {
 				stringArrayNote[0]=textPlanNote.Text;
 				stringArrayNote[1]=trojanObject.PlanNote;
 				using var formNotePick=new FormNotePick();
-				formNotePick.StringArrayNotes=stringArrayNote;
+				formNotePick.Notes=stringArrayNote;
 				formNotePick.UseTrojanImportDescription=true;
 				formNotePick.ShowDialog();
 				if(formNotePick.DialogResult==DialogResult.OK) {
-					textPlanNote.Text=formNotePick.NoteSelected;
+					textPlanNote.Text=formNotePick.SelectedNote;
 				}
 			}
 		}

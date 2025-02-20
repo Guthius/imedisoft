@@ -247,19 +247,6 @@ public partial class FormMedications : FormODBase {
 		FillTab();
 	}
 
-	///<summary>Attempts to download the default medication list from HQ.
-	///If there is an exception returns an empty list after showing the user an error prompt.</summary>
-	private List<Medication> DownloadDefaultMedications() {
-		var listMedicationsNew=new List<Medication>();
-		try {
-			listMedicationsNew=MedicationL.GetMedicationsFromFile(MedicationL.DownloadDefaultMedicationsFile(),true);
-		}
-		catch(Exception ex) {
-			ODMessageBox.Show(Lan.g(this,"Failed to download medications.")+"\r\n"+ex.Message);
-		}
-		return listMedicationsNew;
-	}
-
 	private void butExportMedications_Click(object sender,EventArgs e) {
 		if(!Security.IsAuthorized(EnumPermType.MedicationDefEdit)) {
 			return;

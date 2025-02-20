@@ -3,31 +3,26 @@ using System.Drawing;
 
 namespace OpenDental;
 
-/// <summary></summary>
-public partial class FormTrojanHelp : FormODBase {
+public partial class FormTrojanHelp : FormODBase
+{
+    public FormTrojanHelp()
+    {
+        InitializeComponent();
+    }
 
-		
-	public FormTrojanHelp()
-	{
-		//
-		// Required for Windows Form Designer support
-		//
-		InitializeComponent();
-	}
-
-	private void FormTrojanHelp_Load(object sender,EventArgs e) {
-		textMain.Select(0,31);
-		textMain.SelectionFont=new Font(Font,FontStyle.Bold);
-		textMain.Select(323,20);
-		textMain.SelectionFont=new Font(Font,FontStyle.Bold);
-		textMain.Select(571,5);//skip
-		textMain.SelectionFont=new Font(Font,FontStyle.Bold);
-		textMain.Select(933,18);
-		textMain.SelectionFont=new Font(Font,FontStyle.Bold);
-		textMain.Select(1302,31);
-		textMain.SelectionFont=new Font(Font,FontStyle.Bold);
-		textMain.Select(1473,10);
-		textMain.SelectionFont=new Font(Font,FontStyle.Bold);
-	}
-
+    private void FormTrojanHelp_Load(object sender, EventArgs e)
+    {
+        textMain.Select(0, 31);
+        textMain.SelectionFont = new Font(Font, FontStyle.Bold);
+        textMain.Select(323, 20);
+        textMain.SelectionFont = new Font(Font, FontStyle.Bold);
+        textMain.Select(571, 5);
+        textMain.SelectionFont = new Font(Font, FontStyle.Bold);
+        textMain.Select(933, 18);
+        textMain.SelectionFont = new Font(Font, FontStyle.Bold);
+        textMain.Select(1302, 31);
+        textMain.SelectionFont = new Font(Font, FontStyle.Bold);
+        textMain.Select(1473, 10);
+        textMain.SelectionFont = new Font(Font, FontStyle.Bold);
+    }
 }

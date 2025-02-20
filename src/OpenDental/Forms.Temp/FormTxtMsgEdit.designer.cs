@@ -79,7 +79,7 @@ namespace OpenDental{
 			this.radioPatient.TabStop = true;
 			this.radioPatient.Text = "Patient";
 			this.radioPatient.UseVisualStyleBackColor = true;
-			this.radioPatient.Click += new System.EventHandler(this.radioPatient_Click);
+			this.radioPatient.Click += new System.EventHandler(this.RadioButtonPatient_Click);
 			// 
 			// radioOther
 			// 
@@ -91,7 +91,7 @@ namespace OpenDental{
 			this.radioOther.TabStop = true;
 			this.radioOther.Text = "Another Person";
 			this.radioOther.UseVisualStyleBackColor = true;
-			this.radioOther.Click += new System.EventHandler(this.radioOther_Click);
+			this.radioOther.Click += new System.EventHandler(this.RadioButtonOther_Click);
 			// 
 			// groupRecipient
 			// 
@@ -130,7 +130,7 @@ namespace OpenDental{
 			this.butPatFind.Size = new System.Drawing.Size(63, 24);
 			this.butPatFind.TabIndex = 5;
 			this.butPatFind.Text = "Find";
-			this.butPatFind.Click += new System.EventHandler(this.butPatFind_Click);
+			this.butPatFind.Click += new System.EventHandler(this.ButtonPatFind_Click);
 			// 
 			// textMessage
 			// 
@@ -157,7 +157,7 @@ namespace OpenDental{
 			this.butOK.Size = new System.Drawing.Size(75, 24);
 			this.butOK.TabIndex = 7;
 			this.butOK.Text = "&Send";
-			this.butOK.Click += new System.EventHandler(this.butSend_Click);
+			this.butOK.Click += new System.EventHandler(this.ButtonSend_Click);
 			// 
 			// labelCharCount
 			// 

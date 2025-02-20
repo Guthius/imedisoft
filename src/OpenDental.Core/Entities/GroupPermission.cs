@@ -33,51 +33,36 @@ public class GroupPermission : TableBase
 ///<summary>A hard-coded list of permissions which may be granted to usergroups.</summary>
 public enum EnumPermType
 {
-    ///<summary>0</summary>
     [Description("")]
     None = 0,
-
-    ///<summary>1</summary>
+    
     [Description("Appointments Module")]
     AppointmentsModule = 1,
-
-    ///<summary>2</summary>
+    
     [Description("Family Module")]
     FamilyModule = 2,
-
-    ///<summary>3</summary>
+    
     [Description("Account Module")]
     AccountModule = 3,
-
-    ///<summary>4</summary>
+    
     [Description("TreatmentPlan Module")]
     TPModule = 4,
-
-    ///<summary>5</summary>
+    
     [Description("Chart Module")]
     ChartModule = 5,
-
-    ///<summary>6</summary>
+    
     [Description("Imaging Module")]
     ImagingModule = 6,
-
-    ///<summary>7</summary>
+    
     [Description("Manage Module")]
     ManageModule = 7,
 
-    ///<summary>8. Currently covers a wide variety of setup functions. </summary>
     [Description("Setup - Covers a wide variety of setup functions")]
     Setup = 8,
 
     ///<summary>9</summary>
     [Description("Rx Create")]
     RxCreate = 9,
-
-    ///<summary>10 - DEPRECATED - Uses date restrictions. Covers editing/deleting of Completed, EO, and EC procs. 
-    ///Deleting procs of other statuses are covered by ProcDelete.
-    ///</summary>
-    [Description("Edit Completed Procedure")]
-    ProcComplEdit = 10,
 
     ///<summary>11</summary>
     [Description("Choose Database")]
@@ -188,10 +173,6 @@ public enum EnumPermType
     ///<summary>38. Uses date restrictions.</summary>
     [Description("Edit Treatment Plan")]
     TreatPlanEdit = 38,
-
-    ///<summary>39. DEPRECATED</summary>
-    [Description("Reports - Production and Income, Aging")]
-    ReportProdInc = 39,
 
     ///<summary>40. Uses date restrictions.</summary>
     [Description("Time Card Delete Entry")]
@@ -308,10 +289,6 @@ public enum EnumPermType
     ///<summary>69- There is no user interface in the security window for this permission.  It is only used for tracking.  Tracks printing of patient information.  Required by EHR.</summary>
     [Description("Printing")]
     Printing = 69,
-
-    ///<summary>70- There is no user interface in the security window for this permission.  It is only used for tracking.  Tracks viewing of patient medical information.</summary>
-    [Description("Medical Info Viewed")]
-    MedicalInfoViewed = 70,
 
     ///<summary>71- Tracks creation and editing of patient problems.</summary>
     [Description("Pat Problem List Edit")]
@@ -501,10 +478,6 @@ public enum EnumPermType
     [Description("Pay Split Create after Global Lock Date")]
     SplitCreatePastLockDate = 116,
 
-    ///<summary>117 - DEPRECATED - Uses date restrictions.  Covers editing some fields of completed procs. </summary>
-    [Description("Edit Completed Procedure (limited)")]
-    ProcComplEditLimited = 117,
-
     ///<summary>118 - Uses date restrictions based on the SecDateEntry field as the claim date.  Covers deleting a claim of any status
     ///(Sent, Waiting to Send, Received, etc).</summary>
     [Description("Claim Delete")]
@@ -564,10 +537,6 @@ public enum EnumPermType
     ///<summary>132 - Allows viewing annual prod inc of all providers instead of just a single provider.</summary>
     [Description("Production and Income - View All Providers")]
     ReportProdIncAllProviders = 132,
-
-    ///<summary>133 - Allows running daily reports. DEPRECATED.</summary>
-    [Description("Reports - Daily")]
-    ReportDaily = 133,
 
     ///<summary>134 - Allows viewing daily prod inc of all providers instead of just a single provider</summary>
     [Description("Daily Reports - View All Providers")]
@@ -652,9 +621,6 @@ public enum EnumPermType
     ///<summary>154 - Edit fees (for logging only). Security log entry for this points to feeNum instead of CodeNum. </summary>
     LogFeeEdit = 154,
 
-    ///<summary>155 - Log ClaimProcEdit</summary>
-    LogSubscriberEdit = 155,
-
     ///<summary>156 - Logs changes to recalls, recalltypes, and recaltriggers.</summary>
     RecallEdit = 156,
 
@@ -715,20 +681,9 @@ public enum EnumPermType
     [Description("Procedures Not Billed to Insurance, New Claims button")]
     NewClaimsProcNotBilled = 174,
 
-    ///<summary>175 - Logging into patient portal. Used for audit trail only.</summary>
-    [Description("Patient Portal Login")]
-    PatientPortalLogin = 175,
-
     ///<summary>178- Logs when a reminder task is popped up.  Used for audit trail only.</summary>
     [Description("Task Reminder Popup")]
     TaskReminderPopup = 178,
-
-    ///<summary>179 - Logs when changes are made to supplemental backup settings inside the FormBackup window.</summary>
-    SupplementalBackup = 179,
-
-    /// <summary>180 - Logs when a user sends a Web Sched Recall through the Recall List. Used for audit trail only</summary>
-    [Description("WebSched Recall Manually Sent")]
-    WebSchedRecallManualSend = 180,
 
     /// <summary>181 - Allows the user to unmask patient SSN for temporary viewing.  Logs any unmasks in the audit trail</summary>
     [Description("Patient Social Security Number View")]
@@ -769,10 +724,6 @@ public enum EnumPermType
     ///<summary>190 - User can create, edit, and delete time card adjustments for protected leave on their time card of the current pay period. Users that also have the Edit All Time Cards permission, have this permission for all time cards.</summary>
     [Description("Edit Protected Leave Time Card Adjustments")]
     ProtectedLeaveAdjustmentEdit = 190,
-
-    ///<summary>191 - Logs when a time card adjustment is created, edited, or deleted.</summary>
-    [Description("Create, Edit, and Delete Time Card Adjustments")]
-    TimeAdjustEdit = 191,
 
     ///<summary>192 - Permission for users to monitor queries</summary>
     [Description("Query Monitor View")]
@@ -829,13 +780,6 @@ public enum EnumPermType
     ///<summary>205 - Permission to create Employers.</summary>
     [Description("Employer - Create")]
     EmployerCreate = 205,
-
-    ///<summary>206 - Permission to allow users to login to ODCloud from any IP Address.</summary>
-    [Description("Allow Login From Any Location")]
-    AllowLoginFromAnyLocation = 206,
-
-    ///<summary>207 - Logging only. Creates an entry if a medicationpat.PatNote needs to be truncated before sending to DoseSpot.</summary>
-    LogDoseSpotMedicationNoteEdit = 207,
 
     ///<summary>208 - Allows user to edit a payment plan charge date that has an APR.</summary>
     [Description("Pay Plan Charge Date Edit")]
@@ -907,10 +851,6 @@ public enum EnumPermType
     [Description("Carrier Edit")]
     CarrierEdit = 224,
 
-    ///<summary>225 - Logs when API subscriptions are added or deleted. For audit trails only.</summary>
-    [Description("API Subscription")]
-    ApiSubscription = 225,
-
     ///<summary>226 - Logs changes to global lock date. For audit trails only.</summary>
     [Description("Security Global")]
     SecurityGlobal = 226,
@@ -939,14 +879,6 @@ public enum EnumPermType
     [Description("Clinic Edit")]
     ClinicEdit = 233,
 
-    ///<summary>235 - Logs when registration keys are created. For audit trails only.</summary>
-    [Description("Registration Key Create")]
-    RegistrationKeyCreate = 235,
-
-    ///<summary>236 - Logs when registration keys are edited. For audit trails only.</summary>
-    [Description("Registration Key Edit")]
-    RegistrationKeyEdit = 236,
-
     ///<summary>237 - Allows user to delete appointments.</summary>
     [Description("Appointment Delete")]
     AppointmentDelete = 237,
@@ -959,17 +891,9 @@ public enum EnumPermType
     [Description("Appointment Type Edit")]
     AppointmentTypeEdit = 239,
 
-    ///<summary>241 - Logs when web chat sessions are edited. For audit trails only.</summary>
-    [Description("WebChat Edit")]
-    WebChatEdit = 241,
-
     ///<summary>242 - Allows users to access FormSuppliers</summary>
     [Description("Supplier Edit")]
     SupplierEdit = 242,
-
-    ///<summary>243 - Logs when any supply purchases are created, placed, or deleted.</summary>
-    [Description("Supply Purchases")]
-    SupplyPurchases = 243,
 
     ///<summary>245 - Allows users to resize appointments.</summary>
     [Description("Appointment Resize")]
@@ -1018,10 +942,6 @@ public enum EnumPermType
     ///<summary>260 - Allows deleting eForms when they're attached to patients. No date restrictions.</summary>
     [Description("eForm Delete")]
     EFormDelete = 260,
-
-    ///<summary>261 - Used for logging only. Can be used to log whenever mobile notifications are inserted into the database.</summary>
-    [Description("Mobile Notifications")]
-    MobileNotification = 261,
 
     ///<summary>262 - Allows users to move chart views up and down, and add new chart views</summary>
     [Description("Chart View Edit")]

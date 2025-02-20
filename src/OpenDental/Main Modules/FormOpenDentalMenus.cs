@@ -13,7 +13,6 @@ partial class FormOpenDental
     private MenuItemOD _menuItemAccount;
     private MenuItemOD _menuItemAlerts;
     private MenuItemOD _menuItemClinicsMain;
-    private MenuItemOD _menuItemClinics;
     private MenuItemOD _menuItemCounties;
     private MenuItemOD _menuItemCreateAtoZ;
     private MenuItemOD _menuItemFeeSchedGroups;
@@ -218,8 +217,7 @@ partial class FormOpenDental
         menuItemLists.Add(menuItemProcedureCodes);
         menuItemLists.AddSeparator();
         menuItemLists.Add("Allergies", (_, _) => Open<FormAllergySetup>());
-        _menuItemClinics = new MenuItemOD("Clinics", menuItemClinics_Click);
-        menuItemLists.Add(_menuItemClinics);
+        menuItemLists.Add("Clinics", menuItemClinics_Click);
         var menuItemContacts = new MenuItemOD("&Contacts", (_, _) => Open<FormContacts>());
         menuItemContacts.ShortcutKeys = Keys.Control | Keys.Shift | Keys.C;
         menuItemLists.Add(menuItemContacts);

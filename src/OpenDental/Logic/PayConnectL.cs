@@ -11,40 +11,34 @@ using OpenDentBusiness;
 using Document = MigraDoc.DocumentObjectModel.Document;
 using PayConnectService = OpenDentBusiness.PayConnectService;
 
-
 namespace OpenDental;
 
-class PayConnectL
+internal static class PayConnectL
 {
-    /// <summary>Only used to void or refund transactions from PayConnectPortal. Creates new cloned payment and paysplits for the refund or void.
-    /// Returns true if the transaction was successful, otherwise false.</summary
     public static bool VoidOrRefundPayConnectPortalTransaction(PayConnectResponseWeb payConnectResponseWeb, Payment payment, PayConnectService.transType transType, string strRefNum, decimal amount)
     {
-        if (!transType.In(PayConnectService.transType.RETURN, PayConnectService.transType.VOID))
+        if (transType is not (PayConnectService.transType.RETURN or PayConnectService.transType.VOID))
         {
             MsgBox.Show("PayConnectL", "Invalid transaction type. Please contact support for assistance.");
             return false;
         }
 
-        var listPaySplits = PaySplits.GetForPayment(payment.PayNum);
-        var creditCardRequest = new PayConnectService.creditCardRequest();
-        PayConnectResponse payConnectResponse = null;
-        var receiptStr = "";
+        var paySplits = PaySplits.GetForPayment(payment.PayNum);
+
         var creditCard = CreditCards.GetOneWithPayConenctToken(payConnectResponseWeb.PaymentToken);
-        if (creditCard == null)
+        if (creditCard is null)
         {
             MsgBox.Show("PayConnectL", "Patient was not logged in for this payment, you must go through your payment merchant's portal to process this request.");
             return false;
         }
 
-        creditCardRequest = PayConnect.BuildSaleRequest(amount, creditCard.PayConnectToken, creditCard.PayConnectTokenExp.Year,
-            creditCard.PayConnectTokenExp.Month, "", "", "", "", transType, strRefNum, false);
-        var transResponse = PayConnect.ProcessCreditCard(creditCardRequest, payment.ClinicNum, x => MsgBox.Show(x));
-        payConnectResponse = PayConnectREST.ToPayConnectResponse(transResponse, creditCardRequest);
-        receiptStr = PayConnect.BuildReceiptString(creditCardRequest, transResponse, null, payment.ClinicNum);
-        if (payConnectResponse == null || payConnectResponse.StatusCode != "0")
+        var creditCardRequest = PayConnect.BuildSaleRequest(amount, creditCard.PayConnectToken, creditCard.PayConnectTokenExp.Year, creditCard.PayConnectTokenExp.Month, "", "", "", "", transType, strRefNum, false);
+        var transResponse = PayConnect.ProcessCreditCard(creditCardRequest, payment.ClinicNum, MsgBox.Show);
+        var payConnectResponse = PayConnectREST.ToPayConnectResponse(transResponse, creditCardRequest);
+        var receipt = PayConnect.BuildReceiptString(creditCardRequest, transResponse, null, payment.ClinicNum);
+
+        if (payConnectResponse is not {StatusCode: "0"})
         {
-            //error in transaction
             if (payConnectResponse == null)
             {
                 MsgBox.Show("PayConnectL", "An unexpected error occurred when attempting to process this transaction. Please try again.");
@@ -57,71 +51,95 @@ class PayConnectL
             return false;
         }
 
-        //Record a new payment for the voided transaction
-        var payNote = Lan.g("PayConnectL", "Transaction Type") + ": " + Enum.GetName(typeof(PayConnectService.transType), transType)
-                      + Environment.NewLine + Lan.g("PayConnectL", "Status") + ": " + payConnectResponse.Description + Environment.NewLine
-                      + Lan.g("PayConnectL", "Amount") + ": " + amount.ToString("C") + Environment.NewLine
-                      + Lan.g("PayConnectL", "Auth Code") + ": " + payConnectResponse.AuthCode + Environment.NewLine
-                      + Lan.g("PayConnectL", "Ref Number") + ": " + payConnectResponse.RefNumber;
-        var paymentClone = Payments.InsertVoidPayment(payment, listPaySplits, receiptStr, payNote, payConnectResponseWeb.CCSource, payAmt: (double) amount);
+        var payNote =
+            "Transaction Type: " + Enum.GetName(typeof(PayConnectService.transType), transType) + Environment.NewLine +
+            "Status: " + payConnectResponse.Description + Environment.NewLine +
+            "Amount: " + amount.ToString("C") + Environment.NewLine +
+            "Auth Code: " + payConnectResponse.AuthCode + Environment.NewLine +
+            "Ref Number: " + payConnectResponse.RefNumber;
+
+        var paymentClone = Payments.InsertVoidPayment(payment, paySplits, receipt, payNote, payConnectResponseWeb.CCSource, payAmt: (double) amount);
+
         paymentClone.PayDate = DateTime.Now;
-        var payConnectResponseWebNew = new PayConnectResponseWeb();
-        payConnectResponseWebNew.PatNum = payment.PatNum;
-        payConnectResponseWebNew.PayNum = paymentClone.PayNum;
-        payConnectResponseWebNew.CCSource = payConnectResponseWeb.CCSource;
-        payConnectResponseWebNew.Amount = paymentClone.PayAmt;
-        payConnectResponseWebNew.PayNote = Lan.g("PayConnectL", paymentClone.PayNote + Environment.NewLine + "From within Open Dental Proper.");
-        payConnectResponseWebNew.ProcessingStatus = PayConnectWebStatus.Completed;
-        payConnectResponseWebNew.DateTimeEntry = DateTime.Now;
-        payConnectResponseWebNew.DateTimeCompleted = DateTime.Now;
-        payConnectResponseWebNew.IsTokenSaved = false;
-        payConnectResponseWebNew.RefNumber = transResponse.RefNumber;
-        payConnectResponseWebNew.TransType = transType;
-        payConnectResponseWebNew.PaymentToken = payConnectResponseWeb.PaymentToken;
-        PayConnectResponseWebs.Insert(payConnectResponseWebNew);
-        SecurityLogs.MakeLogEntry(EnumPermType.PaymentCreate, paymentClone.PatNum,
-            Patients.GetLim(paymentClone.PatNum).GetNameLF() + ", " + paymentClone.PayAmt.ToString("c"));
+
+        PayConnectResponseWebs.Insert(new PayConnectResponseWeb
+        {
+            PatNum = payment.PatNum,
+            PayNum = paymentClone.PayNum,
+            CCSource = payConnectResponseWeb.CCSource,
+            Amount = paymentClone.PayAmt,
+            PayNote = paymentClone.PayNote + Environment.NewLine + "From within Open Dental Proper.",
+            ProcessingStatus = PayConnectWebStatus.Completed,
+            DateTimeEntry = DateTime.Now,
+            DateTimeCompleted = DateTime.Now,
+            IsTokenSaved = false,
+            RefNumber = transResponse.RefNumber,
+            TransType = transType,
+            PaymentToken = payConnectResponseWeb.PaymentToken
+        });
+
+        SecurityLogs.MakeLogEntry(EnumPermType.PaymentCreate, paymentClone.PatNum, Patients.GetLim(paymentClone.PatNum).GetNameLF() + ", " + paymentClone.PayAmt.ToString("c"));
+
         return true;
     }
 
-    public static void PrintReceipt(string receiptStr, Patient patient)
+    public static void PrintReceipt(string receipt, Patient patient)
     {
-        var stringArrayReceiptLines = receiptStr.Split([Environment.NewLine], StringSplitOptions.None);
-        var doc = new Document();
-        doc.DefaultPageSetup.PageWidth = Unit.FromInch(3.0);
-        doc.DefaultPageSetup.PageHeight = Unit.FromInch(0.181 * stringArrayReceiptLines.Length + 0.56); //enough to print receipt text plus 9/16 inch (0.56) extra space at bottom.
-        doc.DefaultPageSetup.TopMargin = Unit.FromInch(0.25);
-        doc.DefaultPageSetup.LeftMargin = Unit.FromInch(0.25);
-        doc.DefaultPageSetup.RightMargin = Unit.FromInch(0.25);
-        var bodyFontx = MigraDocHelper.CreateFont(8, false);
-        bodyFontx.Name = FontFamily.GenericMonospace.Name;
-        var section = doc.AddSection();
+        var receiptLines = receipt.Split(Environment.NewLine, StringSplitOptions.None);
+
+        var document = new Document
+        {
+            DefaultPageSetup =
+            {
+                PageWidth = Unit.FromInch(3.0),
+                PageHeight = Unit.FromInch(0.181 * receiptLines.Length + 0.56),
+                TopMargin = Unit.FromInch(0.25),
+                LeftMargin = Unit.FromInch(0.25),
+                RightMargin = Unit.FromInch(0.25)
+            }
+        };
+
+        var font = MigraDocHelper.CreateFont(8, false);
+
+        font.Name = FontFamily.GenericMonospace.Name;
+
+        var section = document.AddSection();
         var paragraph = section.AddParagraph();
-        var paragraphFormat = new ParagraphFormat();
-        paragraphFormat.Alignment = ParagraphAlignment.Left;
-        paragraphFormat.Font = bodyFontx;
-        paragraph.Format = paragraphFormat;
-        paragraph.AddFormattedText(receiptStr, bodyFontx);
+
+        paragraph.Format = new ParagraphFormat
+        {
+            Alignment = ParagraphAlignment.Left,
+            Font = font
+        };
+
+        paragraph.AddFormattedText(receipt, font);
+
         var migraDocPrintDocument = new MigraDocPrintDocument();
-        var documentRenderer = new DocumentRenderer(doc);
+        var documentRenderer = new DocumentRenderer(document);
+
         documentRenderer.PrepareDocument();
+
         migraDocPrintDocument.Renderer = documentRenderer;
+
         try
         {
             var printout = PrinterL.CreateODprintout(
                 printSituation: PrintSituation.Receipt,
                 auditPatNum: patient.PatNum,
-                auditDescription: Lans.g("PayConnectL", "PayConnect receipt printed")
+                auditDescription: "PayConnect receipt printed"
             );
-            if (PrinterL.TrySetPrinter(printout))
+
+            if (!PrinterL.TrySetPrinter(printout))
             {
-                migraDocPrintDocument.PrinterSettings = printout.PrintDoc.PrinterSettings;
-                migraDocPrintDocument.Print();
+                return;
             }
+
+            migraDocPrintDocument.PrinterSettings = printout.PrintDoc.PrinterSettings;
+            migraDocPrintDocument.Print();
         }
         catch (Exception ex)
         {
-            ODMessageBox.Show(Lan.g("PayConnectL", "Printer not available.") + "\r\n" + Lan.g("PayConnectL", "Original error") + ": " + ex.Message);
+            ODMessageBox.Show("Printer not available.\r\nOriginal error: " + ex.Message);
         }
     }
 }

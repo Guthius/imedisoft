@@ -69,7 +69,7 @@ namespace OpenDental{
 			this.butOK.Size = new System.Drawing.Size(75, 24);
 			this.butOK.TabIndex = 7;
 			this.butOK.Text = "&Send";
-			this.butOK.Click += new System.EventHandler(this.butSend_Click);
+			this.butOK.Click += new System.EventHandler(this.ButtonSend_Click);
 			// 
 			// gridMain
 			// 

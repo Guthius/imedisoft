@@ -51,7 +51,7 @@ namespace OpenDental {
 			this.listBoxMain.Name = "listBoxMain";
 			this.listBoxMain.Size = new System.Drawing.Size(262, 393);
 			this.listBoxMain.TabIndex = 2;
-			this.listBoxMain.DoubleClick += new System.EventHandler(this.listMain_DoubleClick);
+			this.listBoxMain.DoubleClick += new System.EventHandler(this.ListBoxMain_DoubleClick);
 			// 
 			// label1
 			// 
@@ -72,7 +72,7 @@ namespace OpenDental {
 			this.butAdd.Size = new System.Drawing.Size(80, 26);
 			this.butAdd.TabIndex = 10;
 			this.butAdd.Text = "&Add";
-			this.butAdd.Click += new System.EventHandler(this.butAdd_Click);
+			this.butAdd.Click += new System.EventHandler(this.ButtonAdd_Click);
 			// 
 			// butDown
 			// 
@@ -84,7 +84,7 @@ namespace OpenDental {
 			this.butDown.Size = new System.Drawing.Size(82, 26);
 			this.butDown.TabIndex = 36;
 			this.butDown.Text = "&Down";
-			this.butDown.Click += new System.EventHandler(this.butDown_Click);
+			this.butDown.Click += new System.EventHandler(this.ButtonDown_Click);
 			// 
 			// butUp
 			// 
@@ -96,7 +96,7 @@ namespace OpenDental {
 			this.butUp.Size = new System.Drawing.Size(82, 26);
 			this.butUp.TabIndex = 37;
 			this.butUp.Text = "&Up";
-			this.butUp.Click += new System.EventHandler(this.butUp_Click);
+			this.butUp.Click += new System.EventHandler(this.ButtonUp_Click);
 			// 
 			// FormMountDefs
 			// 

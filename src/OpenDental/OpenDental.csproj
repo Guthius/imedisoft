@@ -241,6 +241,39 @@
       <Compile Update="Forms\FormPharmacyEdit.cs">
         <SubType>Form</SubType>
       </Compile>
+      <Compile Update="Forms\FormOrthoHardwareAdd.cs">
+        <SubType>Form</SubType>
+      </Compile>
+      <Compile Update="Forms\FormOrthoHardwareEdit.cs">
+        <SubType>Form</SubType>
+      </Compile>
+      <Compile Update="Forms\FormOrthoHardwareSpecEdit.cs">
+        <SubType>Form</SubType>
+      </Compile>
+      <Compile Update="Forms\FormOrthoHardwareSpecs.cs">
+        <SubType>Form</SubType>
+      </Compile>
+      <Compile Update="Forms\FormNotePick.cs">
+        <SubType>Form</SubType>
+      </Compile>
+      <Compile Update="Forms\FormOperatoryPick.cs">
+        <SubType>Form</SubType>
+      </Compile>
+      <Compile Update="Forms\FormOrthoPat.cs">
+        <SubType>Form</SubType>
+      </Compile>
+      <Compile Update="Forms\FormOrthoRxEdit.cs">
+        <SubType>Form</SubType>
+      </Compile>
+      <Compile Update="Forms\FormOrthoRxSelect.cs">
+        <SubType>Form</SubType>
+      </Compile>
+      <Compile Update="Forms\FormOrthoRxSetup.cs">
+        <SubType>Form</SubType>
+      </Compile>
+      <Compile Update="Forms\FormInvoiceItemSelect.cs">
+        <SubType>Form</SubType>
+      </Compile>
     </ItemGroup>
 
 </Project>

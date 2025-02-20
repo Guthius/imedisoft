@@ -1,145 +1,91 @@
 using System;
-using System.Text.RegularExpressions;
+using System.Globalization;
 using System.Windows.Forms;
-using OpenDentBusiness;
 using Imedisoft.Core.Caching;
 using Imedisoft.Core.Entities;
+using OpenDentBusiness;
 
 namespace OpenDental;
 
-/// <summary></summary>
-public partial class FormUpdateSetup : FormODBase {
-	private DateTime _dateTimeUpdate;
+public partial class FormUpdateSetup : FormODBase
+{
+    private DateTime _dateTimeUpdate;
 
-		
-	public FormUpdateSetup()
-	{
-		//
-		// Required for Windows Form Designer support
-		//
-		InitializeComponent();
-	}
+    public FormUpdateSetup()
+    {
+        InitializeComponent();
+    }
 
-	private void FormUpdateSetup_Load(object sender,EventArgs e) {
-		if(!Security.IsAuthorized(EnumPermType.SecurityAdmin,true)) {
-			butChangeRegKey.Enabled=false;
-			butSave.Enabled=false;
-		}
-		textUpdateServerAddress.Text=PrefC.GetString(PrefName.UpdateServerAddress);
-		textWebsitePath.Text=PrefC.GetString(PrefName.UpdateWebsitePath);
-		textWebProxyAddress.Text=PrefC.GetString(PrefName.UpdateWebProxyAddress);
-		textWebProxyUserName.Text=PrefC.GetString(PrefName.UpdateWebProxyUserName);
-		textWebProxyPassword.Text=PrefC.GetString(PrefName.UpdateWebProxyPassword);
-		var regkey=PrefC.GetString(PrefName.RegistrationKey);
-		if(regkey.Length==16){
-			textRegKey.Text=regkey.Substring(0,4)+"-"+regkey.Substring(4,4)+"-"+regkey.Substring(8,4)+"-"+regkey.Substring(12,4);
-		}
-		else{
-			textRegKey.Text=regkey;
-		}
-		textMultiple.Text=PrefC.GetString(PrefName.UpdateMultipleDatabases);
-		checkShowMsi.Checked=PrefC.GetBool(PrefName.UpdateShowMsiButtons);
-		_dateTimeUpdate=PrefC.GetDateT(PrefName.UpdateDateTime);
-		textUpdateTime.Text=_dateTimeUpdate.ToString();
-	}
+    private void FormUpdateSetup_Load(object sender, EventArgs e)
+    {
+        if (!Security.IsAuthorized(EnumPermType.SecurityAdmin, true))
+        {
+            buttonSave.Enabled = false;
+        }
 
-	private void textRegKey_KeyUp(object sender,KeyEventArgs e) {
-		var cursor=textRegKey.SelectionStart;
-		//textRegKey.Text=textRegKey.Text.ToUpper();
-		var length=textRegKey.Text.Length;
-		if(Regex.IsMatch(textRegKey.Text,@"^[A-Z0-9]{5}$")) {
-			textRegKey.Text=textRegKey.Text.Substring(0,4)+"-"+textRegKey.Text.Substring(4);
-		}
-		else if(Regex.IsMatch(textRegKey.Text,@"^[A-Z0-9]{4}-[A-Z0-9]{5}$")) {
-			textRegKey.Text=textRegKey.Text.Substring(0,9)+"-"+textRegKey.Text.Substring(9);
-		}
-		else if(Regex.IsMatch(textRegKey.Text,@"^[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{5}$")) {
-			textRegKey.Text=textRegKey.Text.Substring(0,14)+"-"+textRegKey.Text.Substring(14);
-		}
-		if(textRegKey.Text.Length>length) {
-			cursor++;
-		}
-		textRegKey.SelectionStart=cursor;
-	}
+        textUpdateServerAddress.Text = PrefC.GetString(PrefName.UpdateServerAddress);
+        textWebsitePath.Text = PrefC.GetString(PrefName.UpdateWebsitePath);
 
-	private void textRegKey_TextChanged(object sender,EventArgs e) {
-		var cursor=textRegKey.SelectionStart;
-		textRegKey.Text=textRegKey.Text.ToUpper();
-		textRegKey.SelectionStart=cursor;
-	}
+        _dateTimeUpdate = PrefC.GetDateT(PrefName.UpdateDateTime);
 
-	private void butChangeRegKey_Click(object sender,EventArgs e) {
-		using var formRegistrationKey=new FormRegistrationKey();
-		formRegistrationKey.ShowDialog();
-		DataValid.SetInvalid(InvalidType.Prefs);
-		var regkey=PrefC.GetString(PrefName.RegistrationKey);
-		if(regkey.Length==16){
-			regkey=regkey.Substring(0,4)+"-"+regkey.Substring(4,4)+"-"+regkey.Substring(8,4)+"-"+regkey.Substring(12,4);
-		}
-		textRegKey.Text=regkey;
-	}
+        textUpdateTime.Text = _dateTimeUpdate.ToString(CultureInfo.InvariantCulture);
+    }
 
-	private void butRecopy_Click(object sender,EventArgs e) {
-	}
+    private void ButtonChangeTime_Click(object sender, EventArgs e)
+    {
+        using var formTimePick = new FormTimePick(true);
 
-	private void butChangeTime_Click(object sender,EventArgs e) {
-		using var formTimePick=new FormTimePick(true);
-		if(_dateTimeUpdate!=DateTime.MinValue) {
-			formTimePick.DateTimeSelected=_dateTimeUpdate;
-		}
-		formTimePick.ShowDialog();
-		if(formTimePick.DialogResult!=DialogResult.OK) {
-			return;
-		}
-		_dateTimeUpdate=formTimePick.DateTimeSelected;
-		textUpdateTime.Text=_dateTimeUpdate.ToString();
-		if(!Prefs.UpdateDateT(PrefName.UpdateDateTime,_dateTimeUpdate)) {
-			return;
-		}
-		//Updating to db now in case the user does not have enough permission to click the OK button on this form.			
-		Cursor=Cursors.WaitCursor;
-		DataValid.SetInvalid(InvalidType.Prefs);
-		Cursor=Cursors.Default;
-	}
+        if (_dateTimeUpdate != DateTime.MinValue)
+        {
+            formTimePick.DateTimeSelected = _dateTimeUpdate;
+        }
 
-	private void butSave_Click(object sender, System.EventArgs e) {
-		if(textRegKey.Text!="" 
-		   && !Regex.IsMatch(textRegKey.Text,@"^[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}$")
-		   && !Regex.IsMatch(textRegKey.Text,@"^[A-Z0-9]{16}$"))
-		{
-			MsgBox.Show(this,"Invalid registration key format.");
-			return;
-		}
-		if(textMultiple.Text.Contains(" ")) {
-			MsgBox.Show(this,"No spaces allowed in the database list.");
-			return;
-		}
-		var regkey="";
-		if(Regex.IsMatch(textRegKey.Text,@"^[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}-[A-Z0-9]{4}$")){
-			regkey=textRegKey.Text.Substring(0,4)+textRegKey.Text.Substring(5,4)
-			                                     +textRegKey.Text.Substring(10,4)+textRegKey.Text.Substring(15,4);
-		}
-		else if(Regex.IsMatch(textRegKey.Text,@"^[A-Z0-9]{16}$")){
-			regkey=textRegKey.Text;
-		}
-		var isChanged=false;
-		isChanged |= Prefs.UpdateString(PrefName.UpdateServerAddress,textUpdateServerAddress.Text);
-		isChanged |= Prefs.UpdateBool(PrefName.UpdateShowMsiButtons,checkShowMsi.Checked);
-		isChanged |= Prefs.UpdateString(PrefName.UpdateWebsitePath,textWebsitePath.Text);
-		isChanged |= Prefs.UpdateString(PrefName.UpdateWebProxyAddress,textWebProxyAddress.Text);
-		isChanged |= Prefs.UpdateString(PrefName.UpdateWebProxyUserName,textWebProxyUserName.Text);
-		isChanged |= Prefs.UpdateString(PrefName.UpdateWebProxyPassword,textWebProxyPassword.Text);
-		isChanged |= Prefs.UpdateString(PrefName.UpdateMultipleDatabases,textMultiple.Text);
-		if(isChanged) {
-			Cursor=Cursors.WaitCursor;
-			DataValid.SetInvalid(InvalidType.Prefs);
-			Cursor=Cursors.Default;
-		}
-		DialogResult=DialogResult.OK;
-	}
+        if (formTimePick.ShowDialog() != DialogResult.OK)
+        {
+            return;
+        }
 
-	private void FormUpdateSetup_FormClosing(object sender,FormClosingEventArgs e) {
-		var perm=(DialogResult==DialogResult.OK ? EnumPermType.SecurityAdmin : EnumPermType.Setup);
-		SecurityLogs.MakeLogEntry(perm,0,"Update Setup window accesssed.");
-	}
+        _dateTimeUpdate = formTimePick.DateTimeSelected;
+
+        textUpdateTime.Text = _dateTimeUpdate.ToString(CultureInfo.InvariantCulture);
+
+        if (!Prefs.UpdateDateT(PrefName.UpdateDateTime, _dateTimeUpdate))
+        {
+            return;
+        }
+
+        Cursor = Cursors.WaitCursor;
+
+        DataValid.SetInvalid(InvalidType.Prefs);
+
+        Cursor = Cursors.Default;
+    }
+
+    private void ButtonSave_Click(object sender, EventArgs e)
+    {
+        var changed = false;
+
+        changed |= Prefs.UpdateString(PrefName.UpdateServerAddress, textUpdateServerAddress.Text);
+        changed |= Prefs.UpdateString(PrefName.UpdateWebsitePath, textWebsitePath.Text);
+
+        if (changed)
+        {
+            Cursor = Cursors.WaitCursor;
+
+            DataValid.SetInvalid(InvalidType.Prefs);
+
+            Cursor = Cursors.Default;
+        }
+
+        DialogResult = DialogResult.OK;
+    }
+
+    private void FormUpdateSetup_FormClosing(object sender, FormClosingEventArgs e)
+    {
+        var perm = DialogResult == DialogResult.OK
+            ? EnumPermType.SecurityAdmin
+            : EnumPermType.Setup;
+
+        SecurityLogs.MakeLogEntry(perm, 0, "Update Setup window accesssed.");
+    }
 }

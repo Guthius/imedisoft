@@ -7,108 +7,149 @@ using OpenDentBusiness;
 
 namespace OpenDental;
 
-/// <summary></summary>
-public partial class FormMountDefs : FormODBase {
-	private bool _isChanged;
-	private List<MountDef> _listMountDefs;
+public partial class FormMountDefs : FormODBase
+{
+    private bool _changed;
+    private List<MountDef> _mountDefs;
 
-		
-	public FormMountDefs()
-	{
-		//
-		// Required for Windows Form Designer support
-		//
-		InitializeComponent();
-	}
+    public FormMountDefs()
+    {
+        InitializeComponent();
+    }
 
-	private void FormMountDefs_Load(object sender, System.EventArgs e) {
-		FillList();
-	}
+    private void FormMountDefs_Load(object sender, EventArgs e)
+    {
+        FillList();
+    }
 
-	private void FillList(){
-		MountDefs.RefreshCache();
-		listBoxMain.Items.Clear();
-		_listMountDefs=MountDefs.GetDeepCopy();
-		for(var i=0;i<_listMountDefs.Count;i++){
-			if(_listMountDefs[i].ItemOrder!=i){
-				_listMountDefs[i].ItemOrder=i;
-				MountDefs.Update(_listMountDefs[i]);
-				_isChanged=true;
-			}
-			listBoxMain.Items.Add(_listMountDefs[i].Description);
-		}
-	}
+    private void FormMounts_FormClosing(object sender, FormClosingEventArgs e)
+    {
+        if (_changed)
+        {
+            DataValid.SetInvalid(InvalidType.ToolButsAndMounts);
+        }
+    }
 
-	private void butAdd_Click(object sender, System.EventArgs e) {
-		var mountDef=new MountDef();
-		mountDef.IsNew=true;
-		mountDef.Description="Mount";
-		mountDef.Width=600;
-		mountDef.Height=400;
-		if(_listMountDefs.Count>0){
-			mountDef.ItemOrder=_listMountDefs.Count;
-		}
-		MountDefs.Insert(mountDef);//Insert mount here instead of inside edit window so that we have an object to add items to
-		using var formMountDefEdit=new FormMountDefEdit();
-		formMountDefEdit.MountDefCur=mountDef;
-		formMountDefEdit.ShowDialog();
-		FillList();
-		_isChanged=true;
-	}
+    private void FillList()
+    {
+        MountDefs.RefreshCache();
 
-	private void listMain_DoubleClick(object sender, System.EventArgs e) {
-		if(listBoxMain.SelectedIndex==-1){
-			return;
-		}
-		using var formMountDefEdit=new FormMountDefEdit();
-		formMountDefEdit.MountDefCur=_listMountDefs[listBoxMain.SelectedIndex];
-		formMountDefEdit.ShowDialog();
-		FillList();
-		_isChanged=true;
-	}
+        listBoxMain.Items.Clear();
 
-	private void butUp_Click(object sender,EventArgs e) {
-		var selectedIdx=listBoxMain.SelectedIndex;
-		if(selectedIdx==-1) {
-			return;
-		}
-		if(selectedIdx==0) {//at top
-			return;
-		}
-		var mountDef=_listMountDefs[selectedIdx];
-		mountDef.ItemOrder--;
-		MountDefs.Update(mountDef);
-		var mountDefAbove=_listMountDefs[selectedIdx-1];
-		mountDefAbove.ItemOrder++;
-		MountDefs.Update(mountDefAbove);
-		FillList();
-		listBoxMain.SelectedIndex=selectedIdx-1;
-		_isChanged=true;
-	}
+        _mountDefs = MountDefs.GetDeepCopy();
+        for (var i = 0; i < _mountDefs.Count; i++)
+        {
+            if (_mountDefs[i].ItemOrder != i)
+            {
+                _mountDefs[i].ItemOrder = i;
 
-	private void butDown_Click(object sender,EventArgs e) {
-		var selectedIdx=listBoxMain.SelectedIndex;
-		if(selectedIdx==-1) {
-			return;
-		}
-		if(selectedIdx==_listMountDefs.Count-1) {//at bottom
-			return;
-		}
-		var mountDef=_listMountDefs[selectedIdx];
-		mountDef.ItemOrder++;
-		MountDefs.Update(mountDef);
-		var mountDefBelow=_listMountDefs[selectedIdx+1];
-		mountDefBelow.ItemOrder--;
-		MountDefs.Update(mountDefBelow);
-		FillList();
-		listBoxMain.SelectedIndex=selectedIdx+1;
-		_isChanged=true;
-	}
+                MountDefs.Update(_mountDefs[i]);
 
-	private void FormMounts_FormClosing(object sender,FormClosingEventArgs e) {
-		if(_isChanged) {
-			DataValid.SetInvalid(InvalidType.ToolButsAndMounts);
-		}
-	}
+                _changed = true;
+            }
 
+            listBoxMain.Items.Add(_mountDefs[i].Description);
+        }
+    }
+
+    private void ButtonAdd_Click(object sender, EventArgs e)
+    {
+        var mountDef = new MountDef
+        {
+            IsNew = true,
+            Description = "Mount",
+            Width = 600,
+            Height = 400
+        };
+
+        if (_mountDefs.Count > 0)
+        {
+            mountDef.ItemOrder = _mountDefs.Count;
+        }
+
+        MountDefs.Insert(mountDef);
+
+        using var formMountDefEdit = new FormMountDefEdit();
+
+        formMountDefEdit.MountDefCur = mountDef;
+        formMountDefEdit.ShowDialog();
+
+        FillList();
+
+        _changed = true;
+    }
+
+    private void ListBoxMain_DoubleClick(object sender, EventArgs e)
+    {
+        if (listBoxMain.SelectedIndex == -1)
+        {
+            return;
+        }
+
+        using var formMountDefEdit = new FormMountDefEdit();
+
+        formMountDefEdit.MountDefCur = _mountDefs[listBoxMain.SelectedIndex];
+        formMountDefEdit.ShowDialog();
+
+        FillList();
+
+        _changed = true;
+    }
+
+    private void ButtonUp_Click(object sender, EventArgs e)
+    {
+        var selectedIndex = listBoxMain.SelectedIndex;
+        switch (selectedIndex)
+        {
+            case -1:
+            case 0:
+                return;
+        }
+
+        var mountDef = _mountDefs[selectedIndex];
+
+        mountDef.ItemOrder--;
+        MountDefs.Update(mountDef);
+
+        var mountDefAbove = _mountDefs[selectedIndex - 1];
+
+        mountDefAbove.ItemOrder++;
+        MountDefs.Update(mountDefAbove);
+
+        FillList();
+
+        listBoxMain.SelectedIndex = selectedIndex - 1;
+
+        _changed = true;
+    }
+
+    private void ButtonDown_Click(object sender, EventArgs e)
+    {
+        var selectedIndex = listBoxMain.SelectedIndex;
+        if (selectedIndex == -1)
+        {
+            return;
+        }
+
+        if (selectedIndex == _mountDefs.Count - 1)
+        {
+            return;
+        }
+
+        var mountDef = _mountDefs[selectedIndex];
+
+        mountDef.ItemOrder++;
+        MountDefs.Update(mountDef);
+
+        var mountDefBelow = _mountDefs[selectedIndex + 1];
+
+        mountDefBelow.ItemOrder--;
+        MountDefs.Update(mountDefBelow);
+
+        FillList();
+
+        listBoxMain.SelectedIndex = selectedIndex + 1;
+
+        _changed = true;
+    }
 }

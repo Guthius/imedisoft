@@ -1,11 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows.Forms;
+﻿using System.Windows.Forms;
 
-namespace OpenDental {
+namespace OpenDental.Forms {
 	public partial class FormNotePick {
 		/// <summary>
 		/// Required designer variable.
@@ -50,7 +45,7 @@ namespace OpenDental {
 			this.butOK.Size = new System.Drawing.Size(75,26);
 			this.butOK.TabIndex = 1;
 			this.butOK.Text = "&OK";
-			this.butOK.Click += new System.EventHandler(this.butOK_Click);
+			this.butOK.Click += new System.EventHandler(this.ButtonAccept_Click);
 			// 
 			// gridMain
 			// 
@@ -63,8 +58,8 @@ namespace OpenDental {
 			this.gridMain.TabIndex = 2;
 			this.gridMain.Title = "Pick Note";
 			this.gridMain.TranslationName = "TableNotePick";
-			this.gridMain.CellClick += new OpenDental.UI.ODGridClickEventHandler(this.gridMain_CellClick);
-			this.gridMain.CellDoubleClick += new OpenDental.UI.ODGridClickEventHandler(this.gridMain_CellDoubleClick);
+			this.gridMain.CellClick += new OpenDental.UI.ODGridClickEventHandler(this.GridMain_CellClick);
+			this.gridMain.CellDoubleClick += new OpenDental.UI.ODGridClickEventHandler(this.GridMain_CellDoubleClick);
 			// 
 			// label1
 			// 

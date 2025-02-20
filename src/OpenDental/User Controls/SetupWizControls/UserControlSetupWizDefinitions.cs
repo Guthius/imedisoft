@@ -94,7 +94,7 @@ public partial class UserControlSetupWizDefinitions : SetupWizControl
     {
         var selectedDef = (Def) gridDefs.ListGridRows[e.Row].Tag;
 
-        _isDefChanged = DefL.GridDefsDoubleClick(selectedDef, gridDefs, SelectedDefCatOpts, ListDefsCurs, _listDefsAll, _isDefChanged);
+        _isDefChanged = DefL.GridDefsDoubleClick(selectedDef, SelectedDefCatOpts, ListDefsCurs, _listDefsAll, _isDefChanged);
         if (!_isDefChanged)
         {
             return;

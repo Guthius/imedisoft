@@ -1,13 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Windows.Forms;
 using Imedisoft.Core.Entities;
 using Imedisoft.Core.Features.Clinics;
 using Imedisoft.Core.Features.Providers;
 using OpenDental.UI;
 
-namespace OpenDental;
+namespace OpenDental.Forms;
 
 public partial class FormOperatoryPick : FormODBase
 {
@@ -84,6 +83,7 @@ public partial class FormOperatoryPick : FormODBase
         }
 
         SelectedOperatoryNum = ((Operatory) gridMain.ListGridRows[gridMain.GetSelectedIndex()].Tag).OperatoryNum;
+
         return true;
     }
 

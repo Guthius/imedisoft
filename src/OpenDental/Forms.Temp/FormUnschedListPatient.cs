@@ -8,73 +8,83 @@ using OpenDentBusiness;
 
 namespace OpenDental;
 
-public partial class FormUnschedListPatient:FormODBase {
-	private List<Appointment> _listAppointmentsForPatUnsched;
-	private Patient _patient;
-	///<summary>Holds the selected appointment from the grid. Only one selection is allowed.</summary>
-	public Appointment Appointment;
+public partial class FormUnschedListPatient : FormODBase
+{
+    private readonly Patient _patient;
+    private List<Appointment> _appointmentsForPatUnsched;
 
-	public FormUnschedListPatient(Patient patient) {
-		InitializeComponent();
-		_patient=patient;
-	}
+    public Appointment Appointment;
 
-	private void FormPatientUnschedList_Load(object sender,EventArgs e) {
-		this.Text=" "+_patient.GetNameLF();
-		_listAppointmentsForPatUnsched=Appointments.GetUnschedApptsForPat(_patient.PatNum);
-		FillGrid();
-	}
+    public FormUnschedListPatient(Patient patient)
+    {
+        _patient = patient;
 
-	private void FillGrid() {
-		this.Cursor=Cursors.WaitCursor;
-		gridMain.BeginUpdate();
-		gridMain.Columns.Clear();
-		var col=new GridColumn(Lan.g(gridMain.TranslationName,"Date"),65,HorizontalAlignment.Center);
-		gridMain.Columns.Add(col);
-		col=new GridColumn(Lan.g(gridMain.TranslationName,"AptStatus"),90);
-		gridMain.Columns.Add(col);
-		col=new GridColumn(Lan.g(gridMain.TranslationName,"UnschedStatus"),110);
-		gridMain.Columns.Add(col);
-		col=new GridColumn(Lan.g(gridMain.TranslationName,"Prov"),80);
-		gridMain.Columns.Add(col);
-		col=new GridColumn(Lan.g(gridMain.TranslationName,"Procedures"),150);
-		gridMain.Columns.Add(col);
-		col=new GridColumn(Lan.g(gridMain.TranslationName,"Notes"),200);
-		gridMain.Columns.Add(col);
-		gridMain.ListGridRows.Clear();
-		GridRow row;
-		for(var i = 0;i<_listAppointmentsForPatUnsched.Count;i++) {
-			row=new GridRow();
-			row.Cells.Add(_listAppointmentsForPatUnsched[i].AptDateTime.ToShortDateString());
-			row.Cells.Add(Lan.g(this,_listAppointmentsForPatUnsched[i].AptStatus.ToString()));
-			row.Cells.Add(Lan.g(this,_listAppointmentsForPatUnsched[i].UnschedStatus.ToString()));
-			row.Cells.Add(Providers.GetAbbr(_listAppointmentsForPatUnsched[i].ProvNum));
-			row.Cells.Add(_listAppointmentsForPatUnsched[i].ProcDescript);
-			row.Cells.Add(_listAppointmentsForPatUnsched[i].Note);
-			row.Tag=_listAppointmentsForPatUnsched[i];
-			gridMain.ListGridRows.Add(row);
-		}
-		gridMain.EndUpdate();
-		this.Cursor=Cursors.Default;
-	}
+        InitializeComponent();
+    }
 
-	///<summary>Sets SelectedAppt to the appointment that is currently selected in the grid.  Shows an error message to the user if no appointment is selected.
-	///Otherwise; Sets the appointment and then sets DialogResult to OK.</summary>
-	private void SetSelectedAppt() {
-		Appointment=gridMain.SelectedTag<Appointment>();
-		if(Appointment==null) {//No row was selected.
-			MsgBox.Show(this,Lan.g(this,"Please select an unscheduled appointment to use."));
-			return;
-		}
-		DialogResult=DialogResult.OK;
-	}
+    private void FormPatientUnschedList_Load(object sender, EventArgs e)
+    {
+        Text = " " + _patient.GetNameLF();
 
-	private void gridMain_CellDoubleClick(object sender,ODGridClickEventArgs e) {
-		SetSelectedAppt();
-	}
+        _appointmentsForPatUnsched = Appointments.GetUnschedApptsForPat(_patient.PatNum);
 
-	private void butOK_Click(object sender,EventArgs e) {
-		SetSelectedAppt();
-	}
+        FillGrid();
+    }
 
+    private void FillGrid()
+    {
+        Cursor = Cursors.WaitCursor;
+
+        gridMain.BeginUpdate();
+
+        gridMain.Columns.Clear();
+        gridMain.Columns.Add(new GridColumn("Date", 65, HorizontalAlignment.Center));
+        gridMain.Columns.Add(new GridColumn("AptStatus", 90));
+        gridMain.Columns.Add(new GridColumn("UnschedStatus", 110));
+        gridMain.Columns.Add(new GridColumn("Prov", 80));
+        gridMain.Columns.Add(new GridColumn("Procedures", 150));
+        gridMain.Columns.Add(new GridColumn("Notes", 200));
+
+        gridMain.ListGridRows.Clear();
+
+        foreach (var appointment in _appointmentsForPatUnsched)
+        {
+            var gridRow = new GridRow();
+
+            gridRow.Cells.Add(appointment.AptDateTime.ToShortDateString());
+            gridRow.Cells.Add(appointment.AptStatus.ToString());
+            gridRow.Cells.Add(appointment.UnschedStatus.ToString());
+            gridRow.Cells.Add(Providers.GetAbbr(appointment.ProvNum));
+            gridRow.Cells.Add(appointment.ProcDescript);
+            gridRow.Cells.Add(appointment.Note);
+            gridRow.Tag = appointment;
+
+            gridMain.ListGridRows.Add(gridRow);
+        }
+
+        gridMain.EndUpdate();
+        Cursor = Cursors.Default;
+    }
+
+    private void SetSelectedAppt()
+    {
+        Appointment = gridMain.SelectedTag<Appointment>();
+        if (Appointment is null)
+        {
+            ShowError("Please select an unscheduled appointment to use.");
+            return;
+        }
+
+        DialogResult = DialogResult.OK;
+    }
+
+    private void GridMain_CellDoubleClick(object sender, ODGridClickEventArgs e)
+    {
+        SetSelectedAppt();
+    }
+
+    private void ButtonAccept_Click(object sender, EventArgs e)
+    {
+        SetSelectedAppt();
+    }
 }

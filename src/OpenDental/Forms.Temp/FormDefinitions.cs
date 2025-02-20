@@ -76,7 +76,7 @@ public partial class FormDefinitions : FormODBase {
 		var defSelected=(Def)gridDefs.ListGridRows[e.Row].Tag;
 		var defCatOptionsSelected=listCategory.GetSelected<DefCatOptions>();
 		var listDefsSorted=_listDefsAll.Where(x => x.Category==defCatOptionsSelected.DefCat).OrderBy(x => x.ItemOrder).ToList();
-		_isDefChanged=DefL.GridDefsDoubleClick(defSelected,gridDefs,defCatOptionsSelected,listDefsSorted,_listDefsAll,_isDefChanged);
+		_isDefChanged=DefL.GridDefsDoubleClick(defSelected,defCatOptionsSelected,listDefsSorted,_listDefsAll,_isDefChanged);
 		if(_isDefChanged) {
 			RefreshDefs();
 			FillGridDefs();

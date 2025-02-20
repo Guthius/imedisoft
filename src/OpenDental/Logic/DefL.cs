@@ -11,286 +11,305 @@ using Imedisoft.Core.Features.Providers;
 using OpenDental.Forms;
 using OpenDental.UI;
 using OpenDentBusiness;
+using Def = Imedisoft.Core.Entities.Def;
 
 namespace OpenDental;
 
 public class DefL
 {
-    private static string _lanThis = "FormDefinitions";
+    private const string LanThis = "FormDefinitions";
 
-    #region GetMethods
-
-    public static List<DefCatOptions> GetOptionsForDefCats(List<DefCat> listDefCats)
+    public static List<DefCatOptions> GetOptionsForDefCats(List<DefCat> defCats)
     {
-        var listDefCatOptions = new List<DefCatOptions>();
-        for (var i = 0; i < listDefCats.Count; i++)
+        var defCatOptions = new List<DefCatOptions>();
+
+        foreach (var defCat in defCats)
         {
-            if (listDefCats[i].GetDescription() == "NotUsed")
+            if (defCat.GetDescription() == "NotUsed")
             {
                 continue;
             }
 
-            if (listDefCats[i].GetDescription().Contains("HqOnly"))
+            if (defCat.GetDescription().Contains("HqOnly"))
             {
                 continue;
             }
-            
-            var defCatOptions = new DefCatOptions(listDefCats[i]);
-            switch (listDefCats[i])
+
+            var options = new DefCatOptions(defCat);
+            switch (defCat)
             {
                 case DefCat.AccountColors:
-                    defCatOptions.CanEditName = false;
-                    defCatOptions.EnableColor = true;
-                    defCatOptions.HelpText = Lans.g("FormDefinitions", "Changes the color of text for different types of entries in Account Module");
+                    options.CanEditName = false;
+                    options.EnableColor = true;
+                    options.HelpText = "Changes the color of text for different types of entries in Account Module";
                     break;
+
                 case DefCat.AccountQuickCharge:
-                    defCatOptions.CanDelete = true;
-                    defCatOptions.EnableValue = true;
-                    defCatOptions.ValueText = Lans.g("FormDefinitions", "Procedure Codes");
-                    defCatOptions.HelpText = Lans.g("FormDefinitions", "Account Proc Quick Add items.  Each entry can be a series of procedure codes separated by commas (e.g. D0180,D1101,D8220).  Used in the account module to quickly charge patients for items.");
+                    options.CanDelete = true;
+                    options.EnableValue = true;
+                    options.ValueText = "Procedure Codes";
+                    options.HelpText = "Account Proc Quick Add items.  Each entry can be a series of procedure codes separated by commas (e.g. D0180,D1101,D8220).  Used in the account module to quickly charge patients for items.";
                     break;
+
                 case DefCat.AdjTypes:
-                    defCatOptions.EnableValue = true;
-                    defCatOptions.ValueText = Lans.g("FormDefinitions", "+, -, or dp");
-                    defCatOptions.HelpText = Lans.g("FormDefinitions", "Plus increases the patient balance.  Minus decreases it.  Dp means discount plan.  Not allowed to change value after creating new type since changes affect all patient accounts.");
+                    options.EnableValue = true;
+                    options.ValueText = "+, -, or dp";
+                    options.HelpText = "Plus increases the patient balance.  Minus decreases it.  Dp means discount plan.  Not allowed to change value after creating new type since changes affect all patient accounts.";
                     break;
+
                 case DefCat.AppointmentColors:
-                    defCatOptions.CanEditName = false;
-                    defCatOptions.EnableColor = true;
-                    defCatOptions.HelpText = Lans.g("FormDefinitions", "Changes colors of background in Appointments Module, and colors for completed appointments.");
+                    options.CanEditName = false;
+                    options.EnableColor = true;
+                    options.HelpText = "Changes colors of background in Appointments Module, and colors for completed appointments.";
                     break;
+
                 case DefCat.ApptConfirmed:
-                    defCatOptions.EnableColor = true;
-                    defCatOptions.EnableValue = true;
-                    defCatOptions.ValueText = Lans.g("FormDefinitions", "Abbrev");
-                    defCatOptions.HelpText = Lans.g("FormDefinitions", "Color shows on each appointment if Appointment View is set to show ConfirmedColor.");
+                    options.EnableColor = true;
+                    options.EnableValue = true;
+                    options.ValueText = "Abbrev";
+                    options.HelpText = "Color shows on each appointment if Appointment View is set to show ConfirmedColor.";
                     break;
+
                 case DefCat.ApptProcsQuickAdd:
-                    defCatOptions.EnableValue = true;
-                    if (CultureInfo.CurrentCulture.Name.EndsWith("CA"))
-                    {
-                        //Canadian. en-CA or fr-CA
-                        defCatOptions.ValueText = Lans.g("FormDefinitions", "CDA Code(s)");
-                    }
-                    else
-                    {
-                        //USA
-                        defCatOptions.ValueText = Lans.g("FormDefinitions", "ADA Code(s)");
-                    }
-
-                    if (Clinics.IsMedicalPracticeOrClinic(Clinics.ClinicNum))
-                    {
-                        defCatOptions.HelpText = Lans.g("FormDefinitions", "These are the procedures that you can quickly add to the treatment plan from within the appointment editing window.  Multiple procedures may be separated by commas with no spaces. These definitions may be freely edited without affecting any patient records.");
-                    }
-                    else
-                    {
-                        defCatOptions.HelpText = Lans.g("FormDefinitions", "These are the procedures that you can quickly add to the treatment plan from within the appointment editing window. Multiple procedures may be separated by commas with no spaces. They generally will not require a tooth number, but a single tooth number is allowed. Example: D1111#8. These definitions may be freely edited without affecting any patient records.");
-                    }
-
+                    options.EnableValue = true;
+                    options.ValueText = CultureInfo.CurrentCulture.Name.EndsWith("CA") ? "CDA Code(s)" : "ADA Code(s)";
+                    options.HelpText = Clinics.IsMedicalPracticeOrClinic(Clinics.ClinicNum)
+                        ? "These are the procedures that you can quickly add to the treatment plan from within the appointment editing window.  Multiple procedures may be separated by commas with no spaces. These definitions may be freely edited without affecting any patient records."
+                        : "These are the procedures that you can quickly add to the treatment plan from within the appointment editing window. Multiple procedures may be separated by commas with no spaces. They generally will not require a tooth number, but a single tooth number is allowed. Example: D1111#8. These definitions may be freely edited without affecting any patient records.";
                     break;
+
                 case DefCat.AutoDeposit:
-                    defCatOptions.CanDelete = true;
-                    defCatOptions.CanHide = true;
-                    defCatOptions.EnableValue = true;
-                    defCatOptions.ValueText = Lans.g("FormDefinitions", "Account Number");
+                    options.CanDelete = true;
+                    options.CanHide = true;
+                    options.EnableValue = true;
+                    options.ValueText = "Account Number";
                     break;
-                case DefCat.AutoNoteCats:
-                    defCatOptions.CanDelete = true;
-                    defCatOptions.CanHide = false;
-                    defCatOptions.EnableValue = true;
-                    defCatOptions.IsValueDefNum = true;
-                    defCatOptions.ValueText = Lans.g("FormDefinitions", "Parent Category");
-                    defCatOptions.HelpText = Lans.g("FormDefinitions", "Each category can have a parent so that categories can be nested. Leave the Parent Category blank for categories at the root level. The order set here will only affect the order within the assigned Parent Category.");
-                    break;
-                case DefCat.BillingTypes:
-                    defCatOptions.EnableValue = true;
-                    defCatOptions.ValueText = Lans.g("FormDefinitions", "E, C, or CE");
-                    defCatOptions.HelpText = Lans.g("FormDefinitions", "E=Email bill, C=Collection, CE=Collection Excluded.  It is recommended to use as few billing types as possible.  They can be useful when running reports to separate delinquent accounts, but can cause 'forgotten accounts' if used without good office procedures. Changes affect all patients.");
-                    break;
-                case DefCat.BlockoutTypes:
-                    defCatOptions.EnableColor = true;
-                    defCatOptions.HelpText = Lans.g("FormDefinitions", "Blockout types are used in the appointments module.");
-                    defCatOptions.EnableValue = true;
-                    defCatOptions.ValueText = Lans.g("FormDefinitions", "Flags");
-                    break;
-                case DefCat.CertificationCategories:
-                    defCatOptions.HelpText = Lans.g("FormDefinitions", "Categories for employee certifications.");
-                    break;
-                case DefCat.ChartGraphicColors:
-                    defCatOptions.CanEditName = false;
-                    defCatOptions.EnableColor = true;
-                    if (Clinics.IsMedicalPracticeOrClinic(Clinics.ClinicNum))
-                    {
-                        defCatOptions.HelpText = Lans.g("FormDefinitions", "These colors will be used to graphically display treatments.");
-                    }
-                    else
-                    {
-                        defCatOptions.HelpText = Lans.g("FormDefinitions", "These colors will be used on the graphical tooth chart to draw restorations.");
-                    }
 
+                case DefCat.AutoNoteCats:
+                    options.CanDelete = true;
+                    options.CanHide = false;
+                    options.EnableValue = true;
+                    options.IsValueDefNum = true;
+                    options.ValueText = "Parent Category";
+                    options.HelpText = "Each category can have a parent so that categories can be nested. Leave the Parent Category blank for categories at the root level. The order set here will only affect the order within the assigned Parent Category.";
                     break;
+
+                case DefCat.BillingTypes:
+                    options.EnableValue = true;
+                    options.ValueText = "E, C, or CE";
+                    options.HelpText = "E=Email bill, C=Collection, CE=Collection Excluded.  It is recommended to use as few billing types as possible.  They can be useful when running reports to separate delinquent accounts, but can cause 'forgotten accounts' if used without good office procedures. Changes affect all patients.";
+                    break;
+
+                case DefCat.BlockoutTypes:
+                    options.EnableColor = true;
+                    options.HelpText = "Blockout types are used in the appointments module.";
+                    options.EnableValue = true;
+                    options.ValueText = "Flags";
+                    break;
+
+                case DefCat.CertificationCategories:
+                    options.HelpText = "Categories for employee certifications.";
+                    break;
+
+                case DefCat.ChartGraphicColors:
+                    options.CanEditName = false;
+                    options.EnableColor = true;
+                    options.HelpText = Clinics.IsMedicalPracticeOrClinic(Clinics.ClinicNum)
+                        ? "These colors will be used to graphically display treatments."
+                        : "These colors will be used on the graphical tooth chart to draw restorations.";
+                    break;
+
                 case DefCat.ClaimCustomTracking:
-                    defCatOptions.CanDelete = true;
-                    defCatOptions.EnableValue = true;
-                    defCatOptions.ValueText = Lans.g("FormDefinitions", "Days Suppressed");
-                    defCatOptions.HelpText = Lans.g("FormDefinitions", "Some offices may set up claim tracking statuses such as 'review', 'hold', 'riskmanage', etc.") + "\r\n"
-                                                                                                                                                                       + Lans.g("FormDefinitions", "Set the value of 'Days Suppressed' to the number of days the claim will be suppressed from the Outstanding Claims Report "
-                                                                                                                                                                                                   + "when the status is changed to the selected status.");
+                    options.CanDelete = true;
+                    options.EnableValue = true;
+                    options.ValueText = "Days Suppressed";
+                    options.HelpText =
+                        "Some offices may set up claim tracking statuses such as 'review', 'hold', 'riskmanage', etc.\r\n" +
+                        "Set the value of 'Days Suppressed' to the number of days the claim will be suppressed from the Outstanding Claims Report when the status is changed to the selected status.";
                     break;
+
                 case DefCat.ClaimErrorCode:
-                    defCatOptions.CanDelete = true;
-                    defCatOptions.CanHide = false;
-                    defCatOptions.EnableValue = true;
-                    defCatOptions.ValueText = Lans.g("FormDefinitions", "Description");
-                    defCatOptions.HelpText = Lans.g("FormDefinitions", "Used to track error codes when entering claim custom statuses.");
+                    options.CanDelete = true;
+                    options.CanHide = false;
+                    options.EnableValue = true;
+                    options.ValueText = "Description";
+                    options.HelpText = "Used to track error codes when entering claim custom statuses.";
                     break;
+
                 case DefCat.ClaimPaymentTracking:
-                    defCatOptions.ValueText = Lans.g("FormDefinitions", "Value");
-                    defCatOptions.HelpText = Lans.g("FormDefinitions", "EOB adjudication method codes to be used for insurance payments.  Last entry cannot be hidden.");
+                    options.ValueText = "Value";
+                    options.HelpText = "EOB adjudication method codes to be used for insurance payments.  Last entry cannot be hidden.";
                     break;
+
                 case DefCat.ClaimPaymentGroups:
-                    defCatOptions.ValueText = Lans.g("FormDefinitions", "Value");
-                    defCatOptions.HelpText = Lans.g("FormDefinitions", "Used to group claim payments in the daily payments report.");
+                    options.ValueText = "Value";
+                    options.HelpText = "Used to group claim payments in the daily payments report.";
                     break;
+
                 case DefCat.ClinicSpecialty:
-                    defCatOptions.CanHide = true;
-                    defCatOptions.CanDelete = false;
-                    defCatOptions.HelpText = Lans.g("FormDefinitions", "You can add as many specialties as you want.  Changes affect all current records.");
+                    options.CanHide = true;
+                    options.CanDelete = false;
+                    options.HelpText = "You can add as many specialties as you want.  Changes affect all current records.";
                     break;
+
                 case DefCat.CommLogTypes:
-                    defCatOptions.EnableValue = true;
-                    defCatOptions.EnableColor = true;
-                    defCatOptions.DoShowNoColor = true;
+                    options.EnableValue = true;
+                    options.EnableColor = true;
+                    options.DoShowNoColor = true;
                     var commItemTypes = string.Join(", ", Commlogs.GetCommItemTypes().Select(x => x.GetDescription(useShortVersionIfAvailable: true)));
-                    defCatOptions.ValueText = Lans.g("FormDefinitions", "Usage");
-                    defCatOptions.HelpText = Lans.g("FormDefinitions", "Changes affect all current commlog entries.  Optionally set Usage to one of the following: "
-                                                                       + commItemTypes + ". Only one of each. This helps automate new entries.");
+                    options.ValueText = "Usage";
+                    options.HelpText = "Changes affect all current commlog entries.  Optionally set Usage to one of the following: " + commItemTypes + ". Only one of each. This helps automate new entries.";
                     break;
+
                 case DefCat.ContactCategories:
-                    defCatOptions.HelpText = Lans.g("FormDefinitions", "You can add as many categories as you want.  Changes affect all current contact records.");
+                    options.HelpText = "You can add as many categories as you want.  Changes affect all current contact records.";
                     break;
+
                 case DefCat.Diagnosis:
-                    defCatOptions.EnableValue = true;
-                    defCatOptions.ValueText = Lans.g("FormDefinitions", "1 or 2 letter abbreviation");
-                    defCatOptions.HelpText = Lans.g("FormDefinitions", "The diagnosis list is shown when entering a procedure.  Ones that are less used should go lower on the list.  The abbreviation is shown in the progress notes.  BE VERY CAREFUL.  Changes affect all patients.");
+                    options.EnableValue = true;
+                    options.ValueText = "1 or 2 letter abbreviation";
+                    options.HelpText = "The diagnosis list is shown when entering a procedure.  Ones that are less used should go lower on the list.  The abbreviation is shown in the progress notes.  BE VERY CAREFUL.  Changes affect all patients.";
                     break;
+
                 case DefCat.FeeColors:
-                    defCatOptions.CanEditName = false;
-                    defCatOptions.CanHide = false;
-                    defCatOptions.EnableColor = true;
-                    defCatOptions.HelpText = Lans.g("FormDefinitions", "These are the colors associated to fee types.");
+                    options.CanEditName = false;
+                    options.CanHide = false;
+                    options.EnableColor = true;
+                    options.HelpText = "These are the colors associated to fee types.";
                     break;
+
                 case DefCat.ImageCats:
-                    defCatOptions.ValueText = Lans.g("FormDefinitions", "Usage");
-                    defCatOptions.HelpText = Lans.g("FormDefinitions", "These are the categories that will be available in the image and chart modules.  If you hide a category, images in that category will be hidden, so only hide a category if you are certain it has never been used.  Multiple categories can be set to show in the Chart module, but only one category should be set for patient pictures, statements, and tooth charts. Selecting multiple categories for treatment plans will save the treatment plan in each category. Affects all patient records.");
+                    options.ValueText = "Usage";
+                    options.HelpText = "These are the categories that will be available in the image and chart modules.  If you hide a category, images in that category will be hidden, so only hide a category if you are certain it has never been used.  Multiple categories can be set to show in the Chart module, but only one category should be set for patient pictures, statements, and tooth charts. Selecting multiple categories for treatment plans will save the treatment plan in each category. Affects all patient records.";
                     break;
+
                 case DefCat.InsurancePaymentType:
-                    defCatOptions.CanDelete = true;
-                    defCatOptions.CanHide = true;
-                    defCatOptions.EnableValue = true;
-                    defCatOptions.ValueText = Lans.g("FormDefinitions", "N=Not selected for deposit");
-                    defCatOptions.HelpText = Lans.g("FormDefinitions", "These are claim payment types for insurance payments attached to claims.");
+                    options.CanDelete = true;
+                    options.CanHide = true;
+                    options.EnableValue = true;
+                    options.ValueText = "N=Not selected for deposit";
+                    options.HelpText = "These are claim payment types for insurance payments attached to claims.";
                     break;
+
                 case DefCat.InsuranceVerificationStatus:
-                    defCatOptions.ValueText = Lans.g("FormDefinitions", "Usage");
-                    defCatOptions.HelpText = Lans.g("FormDefinitions", "These are statuses for the insurance verification list.");
+                    options.ValueText = "Usage";
+                    options.HelpText = "These are statuses for the insurance verification list.";
                     break;
+
                 case DefCat.LetterMergeCats:
-                    defCatOptions.HelpText = Lans.g("FormDefinitions", "Categories for Letter Merge.  You can safely make any changes you want.");
+                    options.HelpText = "Categories for Letter Merge.  You can safely make any changes you want.";
                     break;
+
                 case DefCat.MiscColors:
-                    defCatOptions.CanEditName = false;
-                    defCatOptions.EnableColor = true;
-                    defCatOptions.DoShowNoColor = true;
-                    defCatOptions.HelpText = "";
+                    options.CanEditName = false;
+                    options.EnableColor = true;
+                    options.DoShowNoColor = true;
+                    options.HelpText = "";
                     break;
+
                 case DefCat.OperatoryTypes:
-                    defCatOptions.CanDelete = true;
-                    defCatOptions.CanHide = true;
-                    defCatOptions.CanEditName = true;
-                    defCatOptions.HelpText = Lans.g("FormDefinitions", "Types for the Operatory. This value is not normally used.");
+                    options.CanDelete = true;
+                    options.CanHide = true;
+                    options.CanEditName = true;
+                    options.HelpText = "Types for the Operatory. This value is not normally used.";
                     break;
+
                 case DefCat.PaymentTypes:
-                    defCatOptions.EnableValue = true;
-                    defCatOptions.ValueText = Lans.g("FormDefinitions", "N=Not selected for deposit");
-                    defCatOptions.HelpText = Lans.g("FormDefinitions", "Types of payments that patients might make. Any changes will affect all patients.");
+                    options.EnableValue = true;
+                    options.ValueText = "N=Not selected for deposit";
+                    options.HelpText = "Types of payments that patients might make. Any changes will affect all patients.";
                     break;
+
                 case DefCat.PayPlanCategories:
-                    defCatOptions.HelpText = Lans.g("FormDefinitions", "Assign payment plans to different categories");
+                    options.HelpText = "Assign payment plans to different categories";
                     break;
+
                 case DefCat.PaySplitUnearnedType:
-                    defCatOptions.ValueText = "Do Not Show on Account";
-                    defCatOptions.HelpText = Lans.g("FormDefinitions", "Typically used when a payment is posted to an account with a credit or no balance. Any changes will affect all patients.");
-                    defCatOptions.EnableValue = true;
+                    options.ValueText = "Do Not Show on Account";
+                    options.HelpText = "Typically used when a payment is posted to an account with a credit or no balance. Any changes will affect all patients.";
+                    options.EnableValue = true;
                     break;
+
                 case DefCat.ProcButtonCats:
-                    defCatOptions.HelpText = Lans.g("FormDefinitions", "These are similar to the procedure code categories, but are only used for organizing and grouping the procedure buttons in the Chart module.");
+                    options.HelpText = "These are similar to the procedure code categories, but are only used for organizing and grouping the procedure buttons in the Chart module.";
                     break;
+
                 case DefCat.ProcCodeCats:
-                    defCatOptions.HelpText = Lans.g("FormDefinitions", "These are the categories for organizing procedure codes. They do not have to follow ADA categories.  There is no relationship to insurance categories which are setup in the Ins Categories section.  Does not affect any patient records.");
+                    options.HelpText = "These are the categories for organizing procedure codes. They do not have to follow ADA categories.  There is no relationship to insurance categories which are setup in the Ins Categories section.  Does not affect any patient records.";
                     break;
+
                 case DefCat.ProgNoteColors:
-                    defCatOptions.CanEditName = false;
-                    defCatOptions.EnableColor = true;
-                    defCatOptions.HelpText = Lans.g("FormDefinitions", "Changes color of text for different types of entries in the Chart Module Progress Notes.");
+                    options.CanEditName = false;
+                    options.EnableColor = true;
+                    options.HelpText = "Changes color of text for different types of entries in the Chart Module Progress Notes.";
                     break;
+
                 case DefCat.Prognosis:
-                    //Nothing special. Might add HelpText later.
                     break;
+
                 case DefCat.ProviderSpecialties:
-                    defCatOptions.HelpText = Lans.g("FormDefinitions", "Provider specialties cannot be deleted.  Changes to provider specialties could affect e-claims.");
+                    options.HelpText = "Provider specialties cannot be deleted.  Changes to provider specialties could affect e-claims.";
                     break;
+
                 case DefCat.RecallUnschedStatus:
-                    defCatOptions.EnableValue = true;
-                    defCatOptions.ValueText = Lans.g("FormDefinitions", "Abbreviation");
-                    defCatOptions.HelpText = Lans.g("FormDefinitions", "Recall/Unsched Status.  Abbreviation must be 7 characters or less.  Changes affect all patients.");
+                    options.EnableValue = true;
+                    options.ValueText = "Abbreviation";
+                    options.HelpText = "Recall/Unsched Status.  Abbreviation must be 7 characters or less.  Changes affect all patients.";
                     break;
+
                 case DefCat.Regions:
-                    defCatOptions.CanHide = false;
-                    defCatOptions.HelpText = Lans.g("FormDefinitions", "The region identifying the clinic it is assigned to.");
+                    options.CanHide = false;
+                    options.HelpText = "The region identifying the clinic it is assigned to.";
                     break;
+
                 case DefCat.SupplyCats:
-                    defCatOptions.CanDelete = true;
-                    defCatOptions.CanHide = false;
-                    defCatOptions.HelpText = Lans.g("FormDefinitions", "The categories for inventory supplies.");
+                    options.CanDelete = true;
+                    options.CanHide = false;
+                    options.HelpText = "The categories for inventory supplies.";
                     break;
+
                 case DefCat.TaskCategories:
-                    defCatOptions.CanDelete = true;
-                    defCatOptions.DoShowNoColor = true;
-                    defCatOptions.EnableColor = true;
-                    defCatOptions.HelpText = Lans.g("FormDefinitions", "The categories for tasks. HQ Only as of now.");
+                    options.CanDelete = true;
+                    options.DoShowNoColor = true;
+                    options.EnableColor = true;
+                    options.HelpText = "The categories for tasks. HQ Only as of now.";
                     break;
+
                 case DefCat.TaskPriorities:
-                    defCatOptions.EnableColor = true;
-                    defCatOptions.EnableValue = true;
-                    defCatOptions.ValueText = Lans.g("FormDefinitions", "D = Default, R = Reminder");
-                    defCatOptions.HelpText = Lans.g("FormDefinitions", "Priorities available for selection within the task edit window.  Task lists are sorted using the order of these priorities.  They can have any description and color.  At least one priority should be Default (D).  If more than one priority is flagged as the default, the last default in the list will be used.  If no default is set, the last priority will be used.  Use (R) to indicate the initial reminder task priority to use when creating reminder tasks.  Changes affect all tasks where the definition is used.");
+                    options.EnableColor = true;
+                    options.EnableValue = true;
+                    options.ValueText = "D = Default, R = Reminder";
+                    options.HelpText = "Priorities available for selection within the task edit window.  Task lists are sorted using the order of these priorities.  They can have any description and color.  At least one priority should be Default (D).  If more than one priority is flagged as the default, the last default in the list will be used.  If no default is set, the last priority will be used.  Use (R) to indicate the initial reminder task priority to use when creating reminder tasks.  Changes affect all tasks where the definition is used.";
                     break;
+
                 case DefCat.TxPriorities:
-                    defCatOptions.EnableColor = true;
-                    defCatOptions.EnableValue = true;
-                    defCatOptions.DoShowItemOrderInValue = true;
-                    defCatOptions.ValueText = Lan.g(_lanThis, "Internal Priority");
-                    defCatOptions.HelpText = Lan.g(_lanThis, "Displayed order should match order of priority of treatment.  They are used in Treatment Plan and Chart "
-                                                             + "modules. They can be simple numbers or descriptive abbreviations 7 letters or less.  Changes affect all procedures where the "
-                                                             + "definition is used.  'Internal Priority' does not show, but is used for list order and for automated selection of which procedures "
-                                                             + "are next in a planned appointment.");
+                    options.EnableColor = true;
+                    options.EnableValue = true;
+                    options.DoShowItemOrderInValue = true;
+                    options.ValueText = "Internal Priority";
+                    options.HelpText =
+                        "Displayed order should match order of priority of treatment.  They are used in Treatment Plan and Chart " +
+                        "modules. They can be simple numbers or descriptive abbreviations 7 letters or less.  Changes affect all procedures where the " +
+                        "definition is used.  'Internal Priority' does not show, but is used for list order and for automated selection of which procedures " +
+                        "are next in a planned appointment.";
                     break;
+
                 case DefCat.CarrierGroupNames:
-                    defCatOptions.CanHide = true;
-                    defCatOptions.HelpText = Lans.g("FormDefinitions", "These are group names for Carriers.");
+                    options.CanHide = true;
+                    options.HelpText = "These are group names for Carriers.";
                     break;
+
                 case DefCat.TimeCardAdjTypes:
-                    defCatOptions.CanEditName = true;
-                    defCatOptions.CanHide = true;
-                    defCatOptions.HelpText = Lans.g("FormDefinitions", "These are PTO Adjustments Types used for tracking on employee time cards and ADP export.");
+                    options.CanEditName = true;
+                    options.CanHide = true;
+                    options.HelpText = "These are PTO Adjustments Types used for tracking on employee time cards and ADP export.";
                     break;
             }
 
-            listDefCatOptions.Add(defCatOptions);
+            defCatOptions.Add(options);
         }
 
-        return listDefCatOptions;
+        return defCatOptions;
     }
 
     private static string GetItemDescForImages(string itemValue)
@@ -298,210 +317,195 @@ public class DefL
         var listDescriptions = new List<string>();
         if (itemValue.Contains("X"))
         {
-            listDescriptions.Add(Lan.g(_lanThis, "ChartModule"));
+            listDescriptions.Add(Lan.g(LanThis, "ChartModule"));
         }
 
         if (itemValue.Contains("M"))
         {
-            listDescriptions.Add(Lan.g(_lanThis, "Thumbnails"));
+            listDescriptions.Add(Lan.g(LanThis, "Thumbnails"));
         }
 
         if (itemValue.Contains("F"))
         {
-            listDescriptions.Add(Lan.g(_lanThis, "PatientForm"));
+            listDescriptions.Add(Lan.g(LanThis, "PatientForm"));
         }
 
         if (itemValue.Contains("P"))
         {
-            listDescriptions.Add(Lan.g(_lanThis, "PatientPic"));
+            listDescriptions.Add(Lan.g(LanThis, "PatientPic"));
         }
 
         if (itemValue.Contains("S"))
         {
-            listDescriptions.Add(Lan.g(_lanThis, "Statement"));
+            listDescriptions.Add(Lan.g(LanThis, "Statement"));
         }
 
         if (itemValue.Contains("T"))
         {
-            listDescriptions.Add(Lan.g(_lanThis, "ToothChart"));
+            listDescriptions.Add(Lan.g(LanThis, "ToothChart"));
         }
 
         if (itemValue.Contains("R"))
         {
-            listDescriptions.Add(Lan.g(_lanThis, "TreatPlans"));
+            listDescriptions.Add(Lan.g(LanThis, "TreatPlans"));
         }
 
         if (itemValue.Contains("L"))
         {
-            listDescriptions.Add(Lan.g(_lanThis, "PatientPortal"));
+            listDescriptions.Add(Lan.g(LanThis, "PatientPortal"));
         }
 
         if (itemValue.Contains("A"))
         {
-            listDescriptions.Add(Lan.g(_lanThis, "PayPlans"));
+            listDescriptions.Add(Lan.g(LanThis, "PayPlans"));
         }
 
         if (itemValue.Contains("C"))
         {
-            listDescriptions.Add(Lan.g(_lanThis, "ClaimAttachments"));
+            listDescriptions.Add(Lan.g(LanThis, "ClaimAttachments"));
         }
 
         if (itemValue.Contains("B"))
         {
-            listDescriptions.Add(Lan.g(_lanThis, "LabCases"));
+            listDescriptions.Add(Lan.g(LanThis, "LabCases"));
         }
 
         if (itemValue.Contains("U"))
         {
-            listDescriptions.Add(Lan.g(_lanThis, "AutoSaveForms"));
+            listDescriptions.Add(Lan.g(LanThis, "AutoSaveForms"));
         }
 
         if (itemValue.Contains("Y"))
         {
-            listDescriptions.Add(Lan.g(_lanThis, "TaskAttachments"));
+            listDescriptions.Add(Lan.g(LanThis, "TaskAttachments"));
         }
 
         if (itemValue.Contains("N"))
         {
-            listDescriptions.Add(Lan.g(_lanThis, "ClaimResponses"));
+            listDescriptions.Add(Lan.g(LanThis, "ClaimResponses"));
         }
 
         return string.Join(", ", listDescriptions);
     }
 
-    #endregion
-
-    ///<summary>Fills the passed in grid with the definitions in the passed in list.</summary>
-    public static void FillGridDefs(GridOD gridDefs, DefCatOptions defCatOptionsSelected, List<Def> listDefs)
+    public static void FillGridDefs(GridOD gridDefs, DefCatOptions defCatOptionsSelected, List<Def> defs)
     {
-        Def defSelected = null;
+        Def selectedDef = null;
         if (gridDefs.GetSelectedIndex() > -1)
         {
-            defSelected = (Def) gridDefs.ListGridRows[gridDefs.GetSelectedIndex()].Tag;
+            selectedDef = (Def) gridDefs.ListGridRows[gridDefs.GetSelectedIndex()].Tag;
         }
 
         var scroll = gridDefs.ScrollValue;
         gridDefs.BeginUpdate();
+
         gridDefs.Columns.Clear();
-        GridColumn col;
-        col = new GridColumn(Lan.g("TableDefs", "Name"), 190);
-        gridDefs.Columns.Add(col);
-        col = new GridColumn(defCatOptionsSelected.ValueText, 190);
-        gridDefs.Columns.Add(col);
-        col = new GridColumn(defCatOptionsSelected.EnableColor ? Lan.g("TableDefs", "Color") : "", 40);
-        gridDefs.Columns.Add(col);
-        col = new GridColumn(defCatOptionsSelected.CanHide ? Lan.g("TableDefs", "Hide") : "", 30, HorizontalAlignment.Center);
-        gridDefs.Columns.Add(col);
+        gridDefs.Columns.Add(new GridColumn("Name", 190));
+        gridDefs.Columns.Add(new GridColumn(defCatOptionsSelected.ValueText, 190));
+        gridDefs.Columns.Add(new GridColumn(defCatOptionsSelected.EnableColor ? "Color" : "", 40));
+        gridDefs.Columns.Add(new GridColumn(defCatOptionsSelected.CanHide ? "Hide" : "", 30, HorizontalAlignment.Center));
+
         gridDefs.ListGridRows.Clear();
-        GridRow row;
-        for (var i = 0; i < listDefs.Count; i++)
+
+        foreach (var def in defs)
         {
-            if (Defs.IsDefDeprecated(listDefs[i]))
+            if (Defs.IsDefDeprecated(def))
             {
-                listDefs[i].IsHidden = true;
+                def.IsHidden = true;
             }
 
-            row = new GridRow();
-            if (defCatOptionsSelected.CanEditName)
+            var gridRow = new GridRow();
+
+            gridRow.Cells.Add(def.ItemName);
+
+            switch (defCatOptionsSelected.DefCat)
             {
-                row.Cells.Add(listDefs[i].ItemName);
-            }
-            else
-            {
-                //Users cannot edit the item name so let them translate them.
-                row.Cells.Add(Lan.g("FormDefinitions", listDefs[i].ItemName)); //Doesn't use 'this' so that renaming the form doesn't change the translation
+                case DefCat.ImageCats:
+                    gridRow.Cells.Add(GetItemDescForImages(def.ItemValue));
+                    break;
+
+                case DefCat.AutoNoteCats:
+                {
+                    var autoNoteDefs = defs.ToDictionary(x => x.DefNum.ToString(), x => x.ItemName);
+
+                    gridRow.Cells.Add(autoNoteDefs.TryGetValue(def.ItemValue, out var nameCur) ? nameCur : def.ItemValue);
+                    break;
+                }
+
+                default:
+                {
+                    gridRow.Cells.Add(defCatOptionsSelected.DoShowItemOrderInValue ? def.ItemOrder.ToString() : def.ItemValue);
+                    break;
+                }
             }
 
-            if (defCatOptionsSelected.DefCat == DefCat.ImageCats)
-            {
-                row.Cells.Add(GetItemDescForImages(listDefs[i].ItemValue));
-            }
-            else if (defCatOptionsSelected.DefCat == DefCat.AutoNoteCats)
-            {
-                var dictAutoNoteDefs = new Dictionary<string, string>();
-                dictAutoNoteDefs = listDefs.ToDictionary(x => x.DefNum.ToString(), x => x.ItemName);
-                string nameCur;
-                row.Cells.Add(dictAutoNoteDefs.TryGetValue(listDefs[i].ItemValue, out nameCur) ? nameCur : listDefs[i].ItemValue);
-            }
-            else if (defCatOptionsSelected.DoShowItemOrderInValue)
-            {
-                row.Cells.Add(listDefs[i].ItemOrder.ToString());
-            }
-            else
-            {
-                row.Cells.Add(listDefs[i].ItemValue);
-            }
-
-            row.Cells.Add("");
+            gridRow.Cells.Add("");
             if (defCatOptionsSelected.EnableColor)
             {
-                row.Cells[row.Cells.Count - 1].ColorBackG = listDefs[i].ItemColor;
+                gridRow.Cells[gridRow.Cells.Count - 1].ColorBackG = def.ItemColor;
             }
 
-            if (listDefs[i].IsHidden)
-            {
-                row.Cells.Add("X");
-            }
-            else
-            {
-                row.Cells.Add("");
-            }
+            gridRow.Cells.Add(def.IsHidden ? "X" : "");
+            gridRow.Tag = def;
 
-            row.Tag = listDefs[i];
-            gridDefs.ListGridRows.Add(row);
+            gridDefs.ListGridRows.Add(gridRow);
         }
 
         gridDefs.EndUpdate();
-        if (defSelected != null)
+
+        if (selectedDef is not null)
         {
             for (var i = 0; i < gridDefs.ListGridRows.Count; i++)
             {
-                if (((Def) gridDefs.ListGridRows[i].Tag).DefNum == defSelected.DefNum)
+                if (((Def) gridDefs.ListGridRows[i].Tag).DefNum != selectedDef.DefNum)
                 {
-                    gridDefs.SetSelected(i, true);
-                    break;
+                    continue;
                 }
+
+                gridDefs.SetSelected(i);
+                break;
             }
         }
 
         gridDefs.ScrollValue = scroll;
     }
 
-    public static bool GridDefsDoubleClick(Def defSelected, GridOD gridDefs, DefCatOptions defCatOptionsSelected, List<Def> listDefs, List<Def> listDefsAll, bool isDefChanged)
+    public static bool GridDefsDoubleClick(Def defSelected, DefCatOptions defCatOptionsSelected, List<Def> listDefs, List<Def> listDefsAll, bool isDefChanged)
     {
         switch (defCatOptionsSelected.DefCat)
         {
             case DefCat.BlockoutTypes:
                 using (var formDefEditBlockout = new FormDefEditBlockout(defSelected))
                 {
-                    formDefEditBlockout.ShowDialog();
-                    if (formDefEditBlockout.DialogResult == DialogResult.OK)
+                    if (formDefEditBlockout.ShowDialog() == DialogResult.OK)
                     {
                         isDefChanged = true;
                     }
                 }
 
                 break;
+
             case DefCat.ImageCats:
                 using (var formDefEditImages = new FormDefEditImages(defSelected))
                 {
                     formDefEditImages.IsNew = false;
-                    formDefEditImages.ShowDialog();
-                    if (formDefEditImages.DialogResult == DialogResult.OK)
+
+                    if (formDefEditImages.ShowDialog() == DialogResult.OK)
                     {
                         isDefChanged = true;
                     }
                 }
 
                 break;
-            default: //Show the normal FormDefEdit window.
-                using (var FormDefEdit = new FormDefEdit(defSelected, listDefs, defCatOptionsSelected))
+
+            default:
+                using (var formDefEdit = new FormDefEdit(defSelected, listDefs, defCatOptionsSelected))
                 {
-                    FormDefEdit.IsNew = false;
-                    FormDefEdit.ShowDialog();
-                    if (FormDefEdit.DialogResult == DialogResult.OK)
+                    formDefEdit.IsNew = false;
+
+                    if (formDefEdit.ShowDialog() == DialogResult.OK)
                     {
-                        if (FormDefEdit.IsDeleted)
+                        if (formDefEdit.IsDeleted)
                         {
                             listDefsAll.Remove(defSelected);
                         }
@@ -516,26 +520,30 @@ public class DefL
         return isDefChanged;
     }
 
-    public static bool AddDef(GridOD gridDefs, DefCatOptions defCatOptionsSelected)
+    public static bool AddDef(GridOD grid, DefCatOptions selectedDefCatOptions)
     {
-        var def = new Def();
-        def.IsNew = true;
-        var itemOrder = 0;
-        if (Defs.GetDefsForCategory(defCatOptionsSelected.DefCat).Count > 0)
+        var def = new Def
         {
-            itemOrder = Defs.GetDefsForCategory(defCatOptionsSelected.DefCat).Max(x => x.ItemOrder) + 1;
+            IsNew = true
+        };
+
+        var itemOrder = 0;
+        if (Defs.GetDefsForCategory(selectedDefCatOptions.DefCat).Count > 0)
+        {
+            itemOrder = Defs.GetDefsForCategory(selectedDefCatOptions.DefCat).Max(x => x.ItemOrder) + 1;
         }
 
         def.ItemOrder = itemOrder;
-        def.Category = defCatOptionsSelected.DefCat;
+        def.Category = selectedDefCatOptions.DefCat;
         def.ItemName = "";
-        def.ItemValue = ""; //necessary
-        if (defCatOptionsSelected.DefCat == DefCat.InsurancePaymentType)
+        def.ItemValue = "";
+
+        if (selectedDefCatOptions.DefCat == DefCat.InsurancePaymentType)
         {
             def.ItemValue = "N";
         }
 
-        switch (defCatOptionsSelected.DefCat)
+        switch (selectedDefCatOptions.DefCat)
         {
             case DefCat.BlockoutTypes:
                 using (var formDefEditBlockout = new FormDefEditBlockout(def))
@@ -547,30 +555,33 @@ public class DefL
                 }
 
                 break;
+
             case DefCat.ImageCats:
                 using (var formDefEditImages = new FormDefEditImages(def))
                 {
                     formDefEditImages.IsNew = true;
-                    formDefEditImages.ShowDialog();
-                    if (formDefEditImages.DialogResult != DialogResult.OK)
+
+                    if (formDefEditImages.ShowDialog() != DialogResult.OK)
                     {
                         return false;
                     }
                 }
 
                 break;
+
             default:
-                var listDefsCurrent = new List<Def>();
-                for (var i = 0; i < gridDefs.ListGridRows.Count; i++)
+                var currentDefs = new List<Def>();
+
+                foreach (var gridRow in grid.ListGridRows)
                 {
-                    listDefsCurrent.Add((Def) gridDefs.ListGridRows[i].Tag);
+                    currentDefs.Add((Def) gridRow.Tag);
                 }
 
-                using (var formDefEdit = new FormDefEdit(def, listDefsCurrent, defCatOptionsSelected))
+                using (var formDefEdit = new FormDefEdit(def, currentDefs, selectedDefCatOptions))
                 {
                     formDefEdit.IsNew = true;
-                    formDefEdit.ShowDialog();
-                    if (formDefEdit.DialogResult != DialogResult.OK)
+
+                    if (formDefEdit.ShowDialog() != DialogResult.OK)
                     {
                         return false;
                     }
@@ -582,16 +593,16 @@ public class DefL
         return true;
     }
 
-    ///<summary>Will attempt to hide the currently selected definition of the ODGrid that is passed in.</summary>
     public static bool TryHideDefSelectedInGrid(GridOD gridDefs, DefCatOptions selectedDefCatOpt)
     {
         if (gridDefs.GetSelectedIndex() == -1)
         {
-            MsgBox.Show(_lanThis, "Please select item first,");
+            MsgBox.Show(LanThis, "Please select item first,");
             return false;
         }
 
         var defSelected = (Def) gridDefs.ListGridRows[gridDefs.GetSelectedIndex()].Tag;
+
         if (!CanHideDef(defSelected, selectedDefCatOpt))
         {
             return false;
@@ -601,26 +612,25 @@ public class DefL
         return true;
     }
 
-    ///<summary>Returns true if definition can be hidden or is already hidden. Displays error message and returns false if not.</summary>
     public static bool CanHideDef(Def def, DefCatOptions defCatOptions)
     {
         if (def.IsHidden)
         {
-            //Return true if Def is already hidden.
             return true;
         }
 
         if (!defCatOptions.CanHide || !defCatOptions.CanEditName)
         {
-            MsgBox.Show(_lanThis, "Definitions of this category cannot be hidden.");
-            return false; //We should never get here, but if we do, something went wrong because the definition shouldn't have been hideable
+            MsgBox.Show(LanThis, "Definitions of this category cannot be hidden.");
+
+            return false;
         }
 
-        //Stop users from hiding the last definition in categories that must have at least one def in them.
-        var listDefsNotHidden = Defs.GetDefsForCategory(defCatOptions.DefCat, true);
-        if (Defs.NeedOneUnhidden(def.Category) && listDefsNotHidden.Count == 1)
+        var visibleDefs = Defs.GetDefsForCategory(defCatOptions.DefCat, true);
+        if (Defs.NeedOneUnhidden(def.Category) && visibleDefs.Count == 1)
         {
-            MsgBox.Show(_lanThis, "You cannot hide the last definition in this category.");
+            MsgBox.Show(LanThis, "You cannot hide the last definition in this category.");
+
             return false;
         }
 
@@ -628,21 +638,21 @@ public class DefL
         {
             if (Providers.IsSpecialtyInUse(def.DefNum))
             {
-                MsgBox.Show(_lanThis, "You cannot hide a specialty if it is in use by a provider.");
+                MsgBox.Show(LanThis, "You cannot hide a specialty if it is in use by a provider.");
                 return false;
             }
 
             if (Referrals.IsSpecialtyInUse(def.DefNum))
             {
-                MsgBox.Show(_lanThis, "You cannot hide a specialty if it is in use by a referral source.");
+                MsgBox.Show(LanThis, "You cannot hide a specialty if it is in use by a referral source.");
                 return false;
             }
         }
 
         if (Defs.IsDefinitionInUse(def))
         {
-            //DefNum will be zero if it is being created but hasn't been saved to DB yet, thus it can't be in use.
             var isClinicDefaultBillingType = ClinicPrefs.GetPrefAllClinics(PrefName.PracticeDefaultBillType).Any(x => x.ValueString == def.DefNum.ToString());
+
             if (def.DefNum.In(
                     PrefC.GetLong(PrefName.BrokenAppointmentAdjustmentType),
                     PrefC.GetLong(PrefName.AppointmentTimeArrivedTrigger),
@@ -659,146 +669,146 @@ public class DefL
                     PrefC.GetLong(PrefName.EraAchPaymentType),
                     PrefC.GetLong(PrefName.EraFwtPaymentType),
                     PrefC.GetLong(PrefName.EraDefaultPaymentType)))
-                //PrefC.GetLong(PrefName.TpUnearnedType))) //We can hide this because of the combo box code which will still set a default
             {
-                MsgBox.Show(_lanThis, "You cannot hide a definition if it is in use within Preferences.");
+                MsgBox.Show(LanThis, "You cannot hide a definition if it is in use within Preferences.");
                 return false;
             }
-            else if (def.DefNum.In(
-                         PrefC.GetLong(PrefName.RecallStatusMailed),
-                         PrefC.GetLong(PrefName.RecallStatusTexted),
-                         PrefC.GetLong(PrefName.RecallStatusEmailed),
-                         PrefC.GetLong(PrefName.RecallStatusEmailedTexted)))
+
+            if (def.DefNum.In(
+                    PrefC.GetLong(PrefName.RecallStatusMailed),
+                    PrefC.GetLong(PrefName.RecallStatusTexted),
+                    PrefC.GetLong(PrefName.RecallStatusEmailed),
+                    PrefC.GetLong(PrefName.RecallStatusEmailedTexted)))
             {
-                MsgBox.Show(_lanThis, "You cannot hide a definition that is used as a status in the Setup Recall window.");
+                MsgBox.Show(LanThis, "You cannot hide a definition that is used as a status in the Setup Recall window.");
                 return false;
             }
-            else if (def.DefNum == PrefC.GetLong(PrefName.WebSchedNewPatConfirmStatus))
+
+            if (def.DefNum == PrefC.GetLong(PrefName.WebSchedNewPatConfirmStatus))
             {
-                MsgBox.Show(_lanThis, "You cannot hide a definition that is used as an appointment confirmation status in Web Sched New Pat Appt.");
+                MsgBox.Show(LanThis, "You cannot hide a definition that is used as an appointment confirmation status in Web Sched New Pat Appt.");
                 return false;
             }
-            else if (def.DefNum == PrefC.GetLong(PrefName.WebSchedRecallConfirmStatus))
+
+            if (def.DefNum == PrefC.GetLong(PrefName.WebSchedRecallConfirmStatus))
             {
-                MsgBox.Show(_lanThis, "You cannot hide a definition that is used as an appointment confirmation status in Web Sched Recall Appt.");
+                MsgBox.Show(LanThis, "You cannot hide a definition that is used as an appointment confirmation status in Web Sched Recall Appt.");
                 return false;
             }
-            else if (def.DefNum == PrefC.GetLong(PrefName.PracticeDefaultBillType))
+
+            if (def.DefNum == PrefC.GetLong(PrefName.PracticeDefaultBillType))
             {
-                MsgBox.Show(_lanThis, "You cannot hide a billing type when it is selected as the practice default billing type.");
+                MsgBox.Show(LanThis, "You cannot hide a billing type when it is selected as the practice default billing type.");
                 return false;
             }
-            else if (isClinicDefaultBillingType)
+
+            if (isClinicDefaultBillingType)
             {
-                MsgBox.Show(_lanThis, "You cannot hide a billing type when it is selected as a clinic's default billing type.");
+                MsgBox.Show(LanThis, "You cannot hide a billing type when it is selected as a clinic's default billing type.");
                 return false;
             }
-            else if (Defs.IsPaymentTypeInUse(def))
+
+            if (Defs.IsPaymentTypeInUse(def))
             {
-                MsgBox.Show(_lanThis, "You cannot hide a payment type when it is the default payment type for PayConnect, PaySimple, EdgeExpress, or XCharge.");
+                MsgBox.Show(LanThis, "You cannot hide a payment type when it is the default payment type for PayConnect, PaySimple, EdgeExpress, or XCharge.");
                 return false;
             }
-            else
+
+            if (!MsgBox.Show(LanThis, MsgBoxButtons.OKCancel, "Warning: This definition is currently in use within the program."))
             {
-                if (!MsgBox.Show(_lanThis, MsgBoxButtons.OKCancel, "Warning: This definition is currently in use within the program."))
-                {
-                    return false;
-                }
+                return false;
             }
         }
 
         if (def.Category == DefCat.PaySplitUnearnedType)
         {
-            if (listDefsNotHidden.FindAll(x => string.IsNullOrEmpty(x.ItemValue)).Count == 1 && def.ItemValue == "")
+            if (visibleDefs.FindAll(x => string.IsNullOrEmpty(x.ItemValue)).Count == 1 && def.ItemValue == "")
             {
-                MsgBox.Show(_lanThis, "Must have at least one definition that shows in Account");
+                MsgBox.Show(LanThis, "Must have at least one definition that shows in Account");
                 return false;
             }
         }
 
-        //Warn the user if they are about to hide a billing type currently in use.
-        if (defCatOptions.DefCat == DefCat.BillingTypes && Patients.IsBillingTypeInUse(def.DefNum))
+        if (defCatOptions.DefCat != DefCat.BillingTypes || !Patients.IsBillingTypeInUse(def.DefNum))
         {
-            if (!MsgBox.Show(_lanThis, MsgBoxButtons.OKCancel,
-                    "Warning: Billing type is currently in use by patients, insurance plans, or preferences."))
-            {
-                return false;
-            }
+            return true;
         }
         
-        return true;
+        return MsgBox.Show(LanThis, MsgBoxButtons.OKCancel, "Warning: Billing type is currently in use by patients, insurance plans, or preferences.");
     }
 
-    public static bool UpClick(GridOD gridDefs)
+    public static bool UpClick(GridOD grid)
     {
-        if (gridDefs.GetSelectedIndex() == -1)
+        if (grid.GetSelectedIndex() == -1)
         {
-            ODMessageBox.Show(Lan.g("Defs", "Please select an item first."));
+            ODMessageBox.Show("Please select an item first.");
             return false;
         }
 
-        if (gridDefs.GetSelectedIndex() == 0)
+        if (grid.GetSelectedIndex() == 0)
         {
             return false;
         }
 
-        var defSelected = (Def) gridDefs.ListGridRows[gridDefs.GetSelectedIndex()].Tag;
-        var defAbove = (Def) gridDefs.ListGridRows[gridDefs.GetSelectedIndex() - 1].Tag;
-        var indexDefSelectedItemOrder = defSelected.ItemOrder;
-        defSelected.ItemOrder = defAbove.ItemOrder;
-        defAbove.ItemOrder = indexDefSelectedItemOrder;
+        var defSelected = (Def) grid.ListGridRows[grid.GetSelectedIndex()].Tag;
+        var defAbove = (Def) grid.ListGridRows[grid.GetSelectedIndex() - 1].Tag;
+
+        (defSelected.ItemOrder, defAbove.ItemOrder) = (defAbove.ItemOrder, defSelected.ItemOrder);
+
         Update(defSelected);
         Update(defAbove);
+
         return true;
     }
 
-    public static bool DownClick(GridOD gridDefs)
+    public static bool DownClick(GridOD grid)
     {
-        if (gridDefs.GetSelectedIndex() == -1)
+        if (grid.GetSelectedIndex() == -1)
         {
-            ODMessageBox.Show(Lan.g("Defs", "Please select an item first."));
+            ODMessageBox.Show("Please select an item first.");
             return false;
         }
 
-        if (gridDefs.GetSelectedIndex() == gridDefs.ListGridRows.Count - 1)
+        if (grid.GetSelectedIndex() == grid.ListGridRows.Count - 1)
         {
             return false;
         }
 
-        var defSelected = (Def) gridDefs.ListGridRows[gridDefs.GetSelectedIndex()].Tag;
-        var defBelow = (Def) gridDefs.ListGridRows[gridDefs.GetSelectedIndex() + 1].Tag;
-        var indexDefSelectedItemOrder = defSelected.ItemOrder;
-        defSelected.ItemOrder = defBelow.ItemOrder;
-        defBelow.ItemOrder = indexDefSelectedItemOrder;
+        var defSelected = (Def) grid.ListGridRows[grid.GetSelectedIndex()].Tag;
+        var defBelow = (Def) grid.ListGridRows[grid.GetSelectedIndex() + 1].Tag;
+
+        (defSelected.ItemOrder, defBelow.ItemOrder) = (defBelow.ItemOrder, defSelected.ItemOrder);
+
         Update(defSelected);
         Update(defBelow);
+
         return true;
     }
 
-    ///<summary>Also handles a security log entry.</summary>
-    public static long Insert(Def def)
+    public static void Insert(Def def)
     {
-        var logText = Lan.g("Defintions", "Definition created:") + " " + def.ItemName + " "
-                      + Lan.g("Defintions", "with category:") + " " + def.Category.GetDescription();
-        SecurityLogs.MakeLogEntry(EnumPermType.DefEdit, 0, logText);
-        return Defs.Insert(def);
+        var logMessage = "Definition created: " + def.ItemName + " with category: " + def.Category.GetDescription();
+
+        SecurityLogs.MakeLogEntry(EnumPermType.DefEdit, 0, logMessage);
+
+        Defs.Insert(def);
     }
 
-    ///<summary>Also handles a security log entry.</summary>
     public static void Update(Def def)
     {
-        var logText = Lan.g("Defintions", "Definition edited:") + " " + def.ItemName + " "
-                      + Lan.g("Defintions", "with category:") + " " + def.Category.GetDescription();
-        SecurityLogs.MakeLogEntry(EnumPermType.DefEdit, 0, logText);
+        var logMessage = "Definition edited: " + def.ItemName + " with category: " + def.Category.GetDescription();
+
+        SecurityLogs.MakeLogEntry(EnumPermType.DefEdit, 0, logMessage);
+
         Defs.Update(def);
     }
 
-    ///<summary>Also handles a security log entry.</summary>
     public static void HideDef(Def def)
     {
-        var logText = Lan.g("Defintions", "Definition hidden:") + " " + def.ItemName + " "
-                      + Lan.g("Defintions", "with category:") + " " + def.Category.GetDescription();
-        SecurityLogs.MakeLogEntry(EnumPermType.DefEdit, 0, logText);
+        var logMessage = "Definition hidden: " + def.ItemName + " with category: " + def.Category.GetDescription();
+
+        SecurityLogs.MakeLogEntry(EnumPermType.DefEdit, 0, logMessage);
+
         Defs.HideDef(def);
     }
 }

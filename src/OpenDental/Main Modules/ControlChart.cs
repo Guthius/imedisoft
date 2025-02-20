@@ -11615,23 +11615,23 @@ public partial class ControlChart : UserControl
             return;
         }
 
-        for (var p = 0; p < formOrthoHardwareAdd.ListOrthoHardwareSpecsSelected.Count; p++)
+        for (var p = 0; p < formOrthoHardwareAdd.SelectedOrthoHardwareSpecs.Count; p++)
         {
-            if (formOrthoHardwareAdd.ListOrthoHardwareSpecsSelected[p].OrthoHardwareType == EnumOrthoHardwareType.Bracket)
+            if (formOrthoHardwareAdd.SelectedOrthoHardwareSpecs[p].OrthoHardwareType == EnumOrthoHardwareType.Bracket)
             {
                 for (var i = 0; i < _toothChartRelay.SelectedTeeth.Count; i++)
                 {
                     var orthoHardware = new OrthoHardware();
                     orthoHardware.PatNum = Pd.PatNum;
-                    orthoHardware.OrthoHardwareType = formOrthoHardwareAdd.ListOrthoHardwareSpecsSelected[p].OrthoHardwareType;
+                    orthoHardware.OrthoHardwareType = formOrthoHardwareAdd.SelectedOrthoHardwareSpecs[p].OrthoHardwareType;
                     orthoHardware.DateExam = DateTime.Today;
-                    orthoHardware.OrthoHardwareSpecNum = formOrthoHardwareAdd.ListOrthoHardwareSpecsSelected[p].OrthoHardwareSpecNum;
+                    orthoHardware.OrthoHardwareSpecNum = formOrthoHardwareAdd.SelectedOrthoHardwareSpecs[p].OrthoHardwareSpecNum;
                     orthoHardware.ToothRange = _toothChartRelay.SelectedTeeth[i];
                     OrthoHardwares.Insert(orthoHardware);
                 }
             }
 
-            if (formOrthoHardwareAdd.ListOrthoHardwareSpecsSelected[p].OrthoHardwareType == EnumOrthoHardwareType.Wire)
+            if (formOrthoHardwareAdd.SelectedOrthoHardwareSpecs[p].OrthoHardwareType == EnumOrthoHardwareType.Wire)
             {
                 var listStringsUpper = new List<string>();
                 var listStringsLower = new List<string>();
@@ -11651,9 +11651,9 @@ public partial class ControlChart : UserControl
                 {
                     var orthoHardware = new OrthoHardware();
                     orthoHardware.PatNum = Pd.PatNum;
-                    orthoHardware.OrthoHardwareType = formOrthoHardwareAdd.ListOrthoHardwareSpecsSelected[p].OrthoHardwareType;
+                    orthoHardware.OrthoHardwareType = formOrthoHardwareAdd.SelectedOrthoHardwareSpecs[p].OrthoHardwareType;
                     orthoHardware.DateExam = DateTime.Today;
-                    orthoHardware.OrthoHardwareSpecNum = formOrthoHardwareAdd.ListOrthoHardwareSpecsSelected[p].OrthoHardwareSpecNum;
+                    orthoHardware.OrthoHardwareSpecNum = formOrthoHardwareAdd.SelectedOrthoHardwareSpecs[p].OrthoHardwareSpecNum;
                     orthoHardware.ToothRange = listStringsUpper[0] + "-" + listStringsUpper[listStringsUpper.Count - 1];
                     OrthoHardwares.Insert(orthoHardware);
                 }
@@ -11662,15 +11662,15 @@ public partial class ControlChart : UserControl
                 {
                     var orthoHardware = new OrthoHardware();
                     orthoHardware.PatNum = Pd.PatNum;
-                    orthoHardware.OrthoHardwareType = formOrthoHardwareAdd.ListOrthoHardwareSpecsSelected[p].OrthoHardwareType;
+                    orthoHardware.OrthoHardwareType = formOrthoHardwareAdd.SelectedOrthoHardwareSpecs[p].OrthoHardwareType;
                     orthoHardware.DateExam = DateTime.Today;
-                    orthoHardware.OrthoHardwareSpecNum = formOrthoHardwareAdd.ListOrthoHardwareSpecsSelected[p].OrthoHardwareSpecNum;
+                    orthoHardware.OrthoHardwareSpecNum = formOrthoHardwareAdd.SelectedOrthoHardwareSpecs[p].OrthoHardwareSpecNum;
                     orthoHardware.ToothRange = listStringsLower[0] + "-" + listStringsLower[listStringsLower.Count - 1];
                     OrthoHardwares.Insert(orthoHardware);
                 }
             }
 
-            if (formOrthoHardwareAdd.ListOrthoHardwareSpecsSelected[p].OrthoHardwareType == EnumOrthoHardwareType.Elastic)
+            if (formOrthoHardwareAdd.SelectedOrthoHardwareSpecs[p].OrthoHardwareType == EnumOrthoHardwareType.Elastic)
             {
                 var teeth = "";
                 for (var i = 0; i < _toothChartRelay.SelectedTeeth.Count; i++)
@@ -11685,9 +11685,9 @@ public partial class ControlChart : UserControl
 
                 var orthoHardware = new OrthoHardware();
                 orthoHardware.PatNum = Pd.PatNum;
-                orthoHardware.OrthoHardwareType = formOrthoHardwareAdd.ListOrthoHardwareSpecsSelected[p].OrthoHardwareType;
+                orthoHardware.OrthoHardwareType = formOrthoHardwareAdd.SelectedOrthoHardwareSpecs[p].OrthoHardwareType;
                 orthoHardware.DateExam = DateTime.Today;
-                orthoHardware.OrthoHardwareSpecNum = formOrthoHardwareAdd.ListOrthoHardwareSpecsSelected[p].OrthoHardwareSpecNum;
+                orthoHardware.OrthoHardwareSpecNum = formOrthoHardwareAdd.SelectedOrthoHardwareSpecs[p].OrthoHardwareSpecNum;
                 orthoHardware.ToothRange = teeth;
                 OrthoHardwares.Insert(orthoHardware);
             }
@@ -11885,9 +11885,9 @@ public partial class ControlChart : UserControl
             return;
         }
 
-        for (var i = 0; i < formOrthoRxSelect.ListOrthoRxsSelected.Count; i++)
+        for (var i = 0; i < formOrthoRxSelect.SelectedOrthoRxs.Count; i++)
         {
-            var orthoHardwareSpec = OrthoHardwareSpecs.GetFirstOrDefault(x => x.OrthoHardwareSpecNum == formOrthoRxSelect.ListOrthoRxsSelected[i].OrthoHardwareSpecNum);
+            var orthoHardwareSpec = OrthoHardwareSpecs.GetFirstOrDefault(x => x.OrthoHardwareSpecNum == formOrthoRxSelect.SelectedOrthoRxs[i].OrthoHardwareSpecNum);
             if (orthoHardwareSpec is null)
             {
                 continue;
@@ -11895,7 +11895,7 @@ public partial class ControlChart : UserControl
 
             if (orthoHardwareSpec.OrthoHardwareType == EnumOrthoHardwareType.Bracket)
             {
-                var stringArrayTeeth = formOrthoRxSelect.ListOrthoRxsSelected[i].ToothRange.Split(',');
+                var stringArrayTeeth = formOrthoRxSelect.SelectedOrthoRxs[i].ToothRange.Split(',');
                 for (var t = 0; t < stringArrayTeeth.Length; t++)
                 {
                     if (!Tooth.IsValidDB(stringArrayTeeth[t]))
@@ -11908,7 +11908,7 @@ public partial class ControlChart : UserControl
                     orthoHardware.PatNum = Pd.PatNum;
                     orthoHardware.OrthoHardwareType = EnumOrthoHardwareType.Bracket;
                     orthoHardware.DateExam = DateTime.Today;
-                    orthoHardware.OrthoHardwareSpecNum = formOrthoRxSelect.ListOrthoRxsSelected[i].OrthoHardwareSpecNum;
+                    orthoHardware.OrthoHardwareSpecNum = formOrthoRxSelect.SelectedOrthoRxs[i].OrthoHardwareSpecNum;
                     orthoHardware.ToothRange = stringArrayTeeth[t];
                     OrthoHardwares.Insert(orthoHardware);
                 }
@@ -11920,8 +11920,8 @@ public partial class ControlChart : UserControl
                 orthoHardware.PatNum = Pd.PatNum;
                 orthoHardware.OrthoHardwareType = orthoHardwareSpec.OrthoHardwareType;
                 orthoHardware.DateExam = DateTime.Today;
-                orthoHardware.OrthoHardwareSpecNum = formOrthoRxSelect.ListOrthoRxsSelected[i].OrthoHardwareSpecNum;
-                orthoHardware.ToothRange = formOrthoRxSelect.ListOrthoRxsSelected[i].ToothRange; //already in correct format with commas
+                orthoHardware.OrthoHardwareSpecNum = formOrthoRxSelect.SelectedOrthoRxs[i].OrthoHardwareSpecNum;
+                orthoHardware.ToothRange = formOrthoRxSelect.SelectedOrthoRxs[i].ToothRange; //already in correct format with commas
                 OrthoHardwares.Insert(orthoHardware);
             }
 
@@ -11931,8 +11931,8 @@ public partial class ControlChart : UserControl
                 orthoHardware.PatNum = Pd.PatNum;
                 orthoHardware.OrthoHardwareType = EnumOrthoHardwareType.Wire;
                 orthoHardware.DateExam = DateTime.Today;
-                orthoHardware.OrthoHardwareSpecNum = formOrthoRxSelect.ListOrthoRxsSelected[i].OrthoHardwareSpecNum;
-                orthoHardware.ToothRange = formOrthoRxSelect.ListOrthoRxsSelected[i].ToothRange; //already in correct format with hypen
+                orthoHardware.OrthoHardwareSpecNum = formOrthoRxSelect.SelectedOrthoRxs[i].OrthoHardwareSpecNum;
+                orthoHardware.ToothRange = formOrthoRxSelect.SelectedOrthoRxs[i].ToothRange; //already in correct format with hypen
                 OrthoHardwares.Insert(orthoHardware);
             }
         }

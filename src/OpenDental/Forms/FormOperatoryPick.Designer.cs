@@ -1,4 +1,4 @@
-﻿namespace OpenDental {
+﻿namespace OpenDental.Forms {
 	partial class FormOperatoryPick {
 		/// <summary>
 		/// Required designer variable.

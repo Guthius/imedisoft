@@ -49,7 +49,7 @@ namespace OpenDental{
 			this.butOK.Size = new System.Drawing.Size(75, 24);
 			this.butOK.TabIndex = 3;
 			this.butOK.Text = "Generate";
-			this.butOK.Click += new System.EventHandler(this.butOK_Click);
+			this.butOK.Click += new System.EventHandler(this.ButtonAccept_Click);
 			// 
 			// label2
 			// 
@@ -74,7 +74,7 @@ namespace OpenDental{
 			this.listType.Name = "listType";
 			this.listType.Size = new System.Drawing.Size(158, 95);
 			this.listType.TabIndex = 14;
-			this.listType.SelectedIndexChanged += new System.EventHandler(this.listType_SelectedIndexChanged);
+			this.listType.SelectedIndexChanged += new System.EventHandler(this.ListBoxType_SelectedIndexChanged);
 			// 
 			// label1
 			// 

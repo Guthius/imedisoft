@@ -17,7 +17,7 @@ public class MarkupL
         var lengthSelection = codeBox.SelectionLength;
         var str = tagStart + codeBox.SelectedText + tagClose;
         codeBox.SelectedText = str;
-            
+
         if (lengthSelection == 0)
         {
             codeBox.SelectionStart = startSelection + tagStart.Length + lengthSelection;
@@ -27,21 +27,21 @@ public class MarkupL
         codeBox.SelectionStart = startSelection + str.Length;
         codeBox.SelectionLength = 0;
     }
-        
+
     public static bool ValidateMarkup(ODcodeBox codeBox, bool isForSaving, bool showMsgBox = true, bool isEmail = false)
     {
         MatchCollection matchCollection;
-            
+
         var str = codeBox.Text;
-            
+
         str = str.Replace("&", "&amp;");
         str = str.Replace("&amp;<", "&lt;");
         str = str.Replace("&amp;>", "&gt;");
         str = "<body>" + str + "</body>";
-            
+
         var xmlDocument = new XmlDocument();
         var stringReader = new StringReader(str);
-            
+
         try
         {
             xmlDocument.Load(stringReader);
@@ -80,7 +80,7 @@ public class MarkupL
             {
                 continue;
             }
-                
+
             if (showMsgBox)
             {
                 ODMessageBox.Show(
@@ -119,7 +119,7 @@ public class MarkupL
                     {
                         continue;
                     }
-                        
+
                     if (showMsgBox)
                     {
                         ODMessageBox.Show("Error at line: " + codeBox.GetLineFromCharIndex(matchCollection[i].Index) + " - Not allowed to save because image does not exist:  " + imgPath);
@@ -160,7 +160,7 @@ public class MarkupL
             {
                 continue;
             }
-                
+
             if (!lines[i].StartsWith("#"))
             {
                 if (showMsgBox)
@@ -175,7 +175,7 @@ public class MarkupL
             {
                 continue;
             }
-                    
+
             if (showMsgBox)
             {
                 ODMessageBox.Show("Error at line: " + (i + 1) + " - Hashes used for lists may not have a space after them.");
@@ -197,12 +197,12 @@ public class MarkupL
                 return false;
             }
 
-            if (matchCollection[m].Value.StartsWith("[[img:") || 
-                matchCollection[m].Value.StartsWith("[[keywords:") || 
-                matchCollection[m].Value.StartsWith("[[file:") || 
-                matchCollection[m].Value.StartsWith("[[folder:") || 
-                matchCollection[m].Value.StartsWith("[[list:") || 
-                matchCollection[m].Value.StartsWith("[[color:") || 
+            if (matchCollection[m].Value.StartsWith("[[img:") ||
+                matchCollection[m].Value.StartsWith("[[keywords:") ||
+                matchCollection[m].Value.StartsWith("[[file:") ||
+                matchCollection[m].Value.StartsWith("[[folder:") ||
+                matchCollection[m].Value.StartsWith("[[list:") ||
+                matchCollection[m].Value.StartsWith("[[color:") ||
                 matchCollection[m].Value.StartsWith("[[font:"))
             {
                 continue;
@@ -212,7 +212,7 @@ public class MarkupL
             {
                 continue;
             }
-                
+
             if (showMsgBox)
             {
                 ODMessageBox.Show("Error at line: " + codeBox.GetLineFromCharIndex(matchCollection[m].Index) + " - Internal link cannot contain a pipe character: " + matchCollection[m].Value);
@@ -220,7 +220,7 @@ public class MarkupL
 
             return false;
         }
-            
+
         matchCollection = Regex.Matches(str, @"\{\|\n.+?\n\|\}", RegexOptions.Singleline);
         for (var m = 0; m < matchCollection.Count; m++)
         {
@@ -229,7 +229,7 @@ public class MarkupL
             {
                 if (showMsgBox)
                 {
-                    ODMessageBox.Show( "Error at line: " + codeBox.GetLineFromCharIndex(matchCollection[m].Index) + " - The second line of a table markup section must start with ! to indicate column headers.");
+                    ODMessageBox.Show("Error at line: " + codeBox.GetLineFromCharIndex(matchCollection[m].Index) + " - The second line of a table markup section must start with ! to indicate column headers.");
                 }
 
                 return false;
@@ -262,7 +262,7 @@ public class MarkupL
                 {
                     continue;
                 }
-                    
+
                 if (showMsgBox)
                 {
                     ODMessageBox.Show("Table rows must start with |.  At line " + (i + 1) + ", this was found instead:" + lines[i]);

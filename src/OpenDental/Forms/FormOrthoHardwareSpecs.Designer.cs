@@ -1,4 +1,4 @@
-namespace OpenDental{
+namespace OpenDental.Forms{
 	partial class FormOrthoHardwareSpecs {
 		/// <summary>
 		/// Required designer variable.
@@ -39,7 +39,7 @@ namespace OpenDental{
 			this.listType.Size = new System.Drawing.Size(120, 43);
 			this.listType.TabIndex = 4;
 			this.listType.Text = "listBoxOD1";
-			this.listType.Click += new System.EventHandler(this.listType_Click);
+			this.listType.Click += new System.EventHandler(this.ListBoxType_Click);
 			// 
 			// label3
 			// 
@@ -60,7 +60,7 @@ namespace OpenDental{
 			this.gridMain.Size = new System.Drawing.Size(421, 511);
 			this.gridMain.TabIndex = 32;
 			this.gridMain.TranslationName = "TableOrthoHardwareSpecs";
-			this.gridMain.CellDoubleClick += new OpenDental.UI.ODGridClickEventHandler(this.gridMain_CellDoubleClick);
+			this.gridMain.CellDoubleClick += new OpenDental.UI.ODGridClickEventHandler(this.GridMain_CellDoubleClick);
 			// 
 			// butDown
 			// 
@@ -71,7 +71,7 @@ namespace OpenDental{
 			this.butDown.Size = new System.Drawing.Size(79, 24);
 			this.butDown.TabIndex = 35;
 			this.butDown.Text = "&Down";
-			this.butDown.Click += new System.EventHandler(this.butDown_Click);
+			this.butDown.Click += new System.EventHandler(this.ButtonDown_Click);
 			// 
 			// butUp
 			// 
@@ -83,7 +83,7 @@ namespace OpenDental{
 			this.butUp.Size = new System.Drawing.Size(79, 24);
 			this.butUp.TabIndex = 34;
 			this.butUp.Text = "&Up";
-			this.butUp.Click += new System.EventHandler(this.butUp_Click);
+			this.butUp.Click += new System.EventHandler(this.ButtonUp_Click);
 			// 
 			// butAdd
 			// 
@@ -94,7 +94,7 @@ namespace OpenDental{
 			this.butAdd.Size = new System.Drawing.Size(79, 24);
 			this.butAdd.TabIndex = 33;
 			this.butAdd.Text = "&Add";
-			this.butAdd.Click += new System.EventHandler(this.butAdd_Click);
+			this.butAdd.Click += new System.EventHandler(this.ButtonAdd_Click);
 			// 
 			// FormOrthoHardwareSpecs
 			// 
