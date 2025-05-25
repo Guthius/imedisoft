@@ -69,7 +69,7 @@ public partial class ControlManage : UserControl
 
         GlobalFormOpenDental.PatientSelected(new Patient(), false);
 
-        DataValid.SetInvalid(true);
+        DataValid.SetInvalid();
 
         ModuleSelected(_patNum);
     }
